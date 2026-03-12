@@ -1,3 +1,19 @@
+import type { GarmentCategory } from "@/types";
+
+export const GARMENT_STATUS = Object.freeze({
+  STORED: "stored",
+  CHECKED_OUT: "checked_out",
+  LOST: "lost",
+} as const);
+
+export const SYNC_STATUS = Object.freeze({
+  IDLE: "idle",
+  SYNCING: "syncing",
+  ERROR: "error",
+} as const);
+
+export type SyncStatusValue = (typeof SYNC_STATUS)[keyof typeof SYNC_STATUS];
+
 export const QR_SCHEME = Object.freeze({
   GARMENT_PREFIX: "dwg://g/",
   LOCATION_PREFIX: "dwg://l/",
@@ -59,6 +75,16 @@ export const CONFIDENCE_DECAY_OPTIONS = Object.freeze([
   { value: 30, label: "通常 (30日)" },
   { value: 90, label: "季節物 (90日)" },
 ] as const);
+
+export const GARMENT_CATEGORIES: readonly GarmentCategory[] = [
+  "tops",
+  "bottoms",
+  "dress",
+  "outer",
+  "shoes",
+  "accessory",
+  "other",
+];
 
 export const TOP_BAR_HEIGHT = 56;
 export const BOTTOM_NAV_HEIGHT = 64;

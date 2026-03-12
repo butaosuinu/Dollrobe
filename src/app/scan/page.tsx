@@ -2,8 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { activeLocationIdAtom, scannedGarmentIdsAtom } from "@/stores/scanSessionAtoms";
-import { garmentsAtom } from "@/stores/garmentAtoms";
+import {
+  activeLocationIdAtom,
+  scannedGarmentIdsAtom,
+  resetScanSessionAtom,
+} from "@/stores/scanSessionAtoms";
+import { confirmAllGarmentsAtom, garmentsAtom } from "@/stores/garmentAtoms";
 import { storageLocationsAtom } from "@/stores/locationAtoms";
 import { QR_SCHEME } from "@/lib/constants";
 import QrScanner from "@/components/scan/QrScanner";
@@ -16,9 +20,12 @@ const ScanPage = () => {
   const activeLocationId = useAtomValue(activeLocationIdAtom);
   const setActiveLocationId = useSetAtom(activeLocationIdAtom);
   const setScannedIds = useSetAtom(scannedGarmentIdsAtom);
+  const confirmAll = useSetAtom(confirmAllGarmentsAtom);
+  const resetSession = useSetAtom(resetScanSessionAtom);
 
   const [lastScan, setLastScan] = useState<
-    { type: "garment" | "location"; name: string; subtitle?: string } | undefined
+    | { type: "garment" | "location"; name: string; subtitle?: string }
+    | undefined
   >(undefined);
 
   const activeLocation = locations.find((l) => l.id === activeLocationId);
@@ -39,7 +46,9 @@ const ScanPage = () => {
 
       if (data.startsWith(QR_SCHEME.GARMENT_PREFIX)) {
         const garmentId = data.slice(QR_SCHEME.GARMENT_PREFIX.length);
-        setScannedIds((prev) => (prev.includes(garmentId) ? prev : [...prev, garmentId]));
+        setScannedIds((prev) =>
+          prev.includes(garmentId) ? prev : [...prev, garmentId],
+        );
         const garment = garments.find((g) => g.id === garmentId);
         setLastScan({
           type: "garment",
@@ -51,7 +60,10 @@ const ScanPage = () => {
     [locations, garments, setActiveLocationId, setScannedIds],
   );
 
-  const handleConfirmAll = () => {
+  const handleConfirmAll = async () => {
+    if (activeLocationId === undefined) return;
+    await confirmAll(activeLocationId);
+    resetSession();
     setLastScan(undefined);
   };
 
@@ -64,10 +76,17 @@ const ScanPage = () => {
       <QrScanner onScan={handleScan} isActive />
 
       {lastScan !== undefined && (
-        <ScanResult type={lastScan.type} name={lastScan.name} subtitle={lastScan.subtitle} />
+        <ScanResult
+          type={lastScan.type}
+          name={lastScan.name}
+          subtitle={lastScan.subtitle}
+        />
       )}
 
-      <ScanSessionPanel locationName={activeLocation?.label} onConfirmAll={handleConfirmAll} />
+      <ScanSessionPanel
+        locationName={activeLocation?.label}
+        onConfirmAll={handleConfirmAll}
+      />
     </div>
   );
 };

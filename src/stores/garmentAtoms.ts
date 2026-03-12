@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { db } from "@/lib/db/dexie";
-import { SYNC_ACTION_TYPE } from "@/lib/constants";
+import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { Garment } from "@/types";
 
 export const garmentsAtom = atom(async () => {
@@ -41,5 +41,31 @@ export const deleteGarmentAtom = atom(
       payload: { id },
       createdAt: Date.now(),
     });
+  },
+);
+
+export const confirmAllGarmentsAtom = atom(
+  undefined,
+  async (_get, _set, locationId: string) => {
+    const now = Date.now();
+    const garments = await db.garments
+      .where("locationId")
+      .equals(locationId)
+      .toArray();
+
+    const storedGarments = garments.filter(
+      (g) => g.status === GARMENT_STATUS.STORED,
+    );
+
+    await db.garments.bulkPut(
+      storedGarments.map((g) => ({ ...g, lastScannedAt: now, updatedAt: now })),
+    );
+    await db.syncQueue.bulkAdd(
+      storedGarments.map((g) => ({
+        type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
+        payload: { ...g, lastScannedAt: now, updatedAt: now },
+        createdAt: now,
+      })),
+    );
   },
 );

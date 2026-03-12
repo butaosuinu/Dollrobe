@@ -9,12 +9,16 @@ type Props = {
 };
 
 const SCAN_INTERVAL_MS = 250;
+const SCAN_COOLDOWN_MS = 2000;
 
 const QrScanner = ({ onScan, isActive }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const animationRef = useRef<number>(0);
+  const lastScannedRef = useRef<
+    { readonly data: string; readonly timestamp: number } | undefined
+  >(undefined);
 
   const startCamera = useCallback(async () => {
     const stream = await navigator.mediaDevices
@@ -39,6 +43,21 @@ const QrScanner = ({ onScan, isActive }: Props) => {
     cancelAnimationFrame(animationRef.current);
   }, []);
 
+  const handleDetectedCode = useCallback(
+    (data: string) => {
+      const now = Date.now();
+      const isDuplicate =
+        lastScannedRef.current?.data === data &&
+        now - lastScannedRef.current.timestamp < SCAN_COOLDOWN_MS;
+      if (isDuplicate) return;
+
+      lastScannedRef.current = { data, timestamp: now };
+      onScan(data);
+      navigator.vibrate?.(100);
+    },
+    [onScan],
+  );
+
   const scanFrame = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -55,13 +74,9 @@ const QrScanner = ({ onScan, isActive }: Props) => {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-    if (code !== null && code.data !== "") {
-      onScan(code.data);
-      if (navigator.vibrate !== undefined) {
-        navigator.vibrate(100);
-      }
-    }
-  }, [onScan]);
+    if (code === null || code.data === "") return;
+    handleDetectedCode(code.data);
+  }, [handleDetectedCode]);
 
   useEffect(() => {
     if (!isActive) {
@@ -81,7 +96,12 @@ const QrScanner = ({ onScan, isActive }: Props) => {
 
   return (
     <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-black">
-      <video ref={videoRef} className="size-full object-cover" playsInline muted />
+      <video
+        ref={videoRef}
+        className="size-full object-cover"
+        playsInline
+        muted
+      />
       <canvas ref={canvasRef} className="hidden" />
 
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

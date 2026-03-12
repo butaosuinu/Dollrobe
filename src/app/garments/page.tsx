@@ -7,7 +7,7 @@ import { useAtomValue } from "jotai";
 import { Plus, Search, Shirt } from "lucide-react";
 import clsx from "clsx";
 import { garmentsAtom } from "@/stores/garmentAtoms";
-import { GARMENT_CATEGORY_LABEL } from "@/lib/constants";
+import { GARMENT_CATEGORY_LABEL, GARMENT_CATEGORIES } from "@/lib/constants";
 import type { GarmentCategory } from "@/types";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import GarmentGrid from "@/components/garment/GarmentGrid";
@@ -25,7 +25,7 @@ type CategoryFilter = {
 
 const CATEGORY_FILTERS: readonly CategoryFilter[] = [
   { value: "all", label: "すべて" },
-  ...(Object.keys(GARMENT_CATEGORY_LABEL) as readonly GarmentCategory[]).map((key) => ({
+  ...GARMENT_CATEGORIES.map((key) => ({
     value: key,
     label: GARMENT_CATEGORY_LABEL[key],
   })),
@@ -36,15 +36,20 @@ const GarmentListContent = () => {
   const garments = useAtomValue(garmentsAtom);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<GarmentCategory | "all">("all");
+  const [activeCategory, setActiveCategory] = useState<GarmentCategory | "all">(
+    "all",
+  );
 
   const filteredGarments = useMemo(() => {
     const query = searchQuery.toLowerCase();
     return garments.filter((g) => {
-      const matchesCategory = activeCategory === "all" || g.category === activeCategory;
+      const matchesCategory =
+        activeCategory === "all" || g.category === activeCategory;
       const nameMatches = g.name.toLowerCase().includes(query);
       const tagMatches = g.tags.some((t) => t.toLowerCase().includes(query));
-      const matchesSearch = [query === "", nameMatches, tagMatches].some(Boolean);
+      const matchesSearch = [query === "", nameMatches, tagMatches].some(
+        Boolean,
+      );
       return matchesCategory && matchesSearch;
     });
   }, [garments, searchQuery, activeCategory]);
@@ -97,7 +102,9 @@ const GarmentListContent = () => {
       </div>
 
       {filteredGarments.length === 0 ? (
-        <p className="py-12 text-center text-sm text-text-tertiary">一致する服が見つかりません</p>
+        <p className="py-12 text-center text-sm text-text-tertiary">
+          一致する服が見つかりません
+        </p>
       ) : viewMode === "grid" ? (
         <GarmentGrid garments={filteredGarments} />
       ) : (
@@ -113,7 +120,9 @@ const GarmentsPage = () => (
       <h2 className="font-display text-xl font-bold">ワードローブ</h2>
     </div>
 
-    <ErrorBoundary fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}>
+    <ErrorBoundary
+      fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}
+    >
       <Suspense
         fallback={
           <div className="grid grid-cols-2 gap-3">

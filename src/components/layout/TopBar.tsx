@@ -3,16 +3,17 @@
 import { useAtomValue } from "jotai";
 import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import { syncStatusAtom } from "@/stores/syncAtoms";
+import { SYNC_STATUS } from "@/lib/constants";
 
 const SyncIndicator = () => {
   const syncStatus = useAtomValue(syncStatusAtom);
 
   const iconClass = "size-4";
 
-  if (syncStatus === "syncing") {
+  if (syncStatus === SYNC_STATUS.SYNCING) {
     return <Loader2 className={`${iconClass} animate-spin text-accent-400`} />;
   }
-  if (syncStatus === "error") {
+  if (syncStatus === SYNC_STATUS.ERROR) {
     return <CloudOff className={`${iconClass} text-danger`} />;
   }
   return <Cloud className={`${iconClass} text-text-tertiary`} />;

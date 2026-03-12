@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { Garment, StorageLocation } from "@/types";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
+import { GARMENT_STATUS } from "@/lib/constants";
 
 type Props = {
   readonly location: StorageLocation;
@@ -13,7 +14,7 @@ const getWorstConfidence = (
 ): "confirmed" | "uncertain" | "unknown" | "empty" => {
   if (garments.length === 0) return "empty";
 
-  const stored = garments.filter((g) => g.status === "stored");
+  const stored = garments.filter((g) => g.status === GARMENT_STATUS.STORED);
   if (stored.length === 0) return "empty";
 
   const worstConfidence = Math.min(...stored.map((g) => getConfidence(g)));
@@ -40,9 +41,13 @@ const StorageCell = ({ location, garments, onClick }: Props) => {
         CELL_BG[status],
       )}
     >
-      <span className="text-xs font-bold text-text-primary">{location.label}</span>
+      <span className="text-xs font-bold text-text-primary">
+        {location.label}
+      </span>
       {garments.length > 0 && (
-        <span className="mt-0.5 text-[10px] text-text-secondary">{garments.length}着</span>
+        <span className="mt-0.5 text-[10px] text-text-secondary">
+          {garments.length}着
+        </span>
       )}
     </button>
   );
