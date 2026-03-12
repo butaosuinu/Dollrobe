@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.workers.json && tsc --noEmit -p tsconfig.sw.json",
     "lint": "oxlint src/ workers/ && eslint .",
     "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
     "test": "vitest run",
     "test:watch": "vitest",
     "deploy:workers": "wrangler deploy",
