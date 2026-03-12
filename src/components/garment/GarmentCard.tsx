@@ -2,9 +2,8 @@ import Link from "next/link";
 import { Shirt } from "lucide-react";
 import clsx from "clsx";
 import type { Garment } from "@/types";
-import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_CATEGORY_LABEL, DOLL_SIZE_LABEL } from "@/lib/constants";
-import ConfidenceBadge from "@/components/confidence/ConfidenceBadge";
+import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
 import Card from "@/components/ui/Card";
 
 type Props = {
@@ -12,8 +11,6 @@ type Props = {
 };
 
 const GarmentCard = ({ garment }: Props) => {
-  const confidence = getConfidence(garment);
-  const label = getConfidenceLabel(confidence);
   const isCheckedOut = garment.status === "checked_out";
 
   return (
@@ -48,7 +45,7 @@ const GarmentCard = ({ garment }: Props) => {
           {DOLL_SIZE_LABEL[garment.dollSize]}
         </p>
         <div className="mt-2">
-          <ConfidenceBadge label={label} />
+          <ConfidenceIndicator garment={garment} compact />
         </div>
       </Card>
     </Link>
