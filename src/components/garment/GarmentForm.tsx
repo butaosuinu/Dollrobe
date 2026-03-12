@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
 import { createId } from "@paralleldrive/cuid2";
 import { addGarmentAtom } from "@/stores/garmentAtoms";
+import { authStateAtom } from "@/stores/authAtoms";
 import type { DollSize, GarmentCategory } from "@/types";
 import {
   GARMENT_CATEGORY_LABEL,
@@ -41,6 +42,7 @@ const DECAY_OPTIONS = CONFIDENCE_DECAY_OPTIONS.map(({ value, label }) => ({
 const GarmentForm = () => {
   const router = useRouter();
   const addGarment = useSetAtom(addGarmentAtom);
+  const authState = useAtomValue(authStateAtom);
   const [name, setName] = useState("");
   const [category, setCategory] = useState<GarmentCategory>("tops");
   const [dollSize, setDollSize] = useState<DollSize>("1/3");
@@ -79,7 +81,7 @@ const GarmentForm = () => {
     const now = Date.now();
     await addGarment({
       id: createId(),
-      userId: "local",
+      userId: authState.user?.id ?? "local",
       name: name.trim(),
       category,
       dollSize,

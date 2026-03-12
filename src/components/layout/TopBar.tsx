@@ -4,6 +4,7 @@ import { useAtomValue } from "jotai";
 import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import { syncStatusAtom } from "@/stores/syncAtoms";
 import { SYNC_STATUS } from "@/lib/constants";
+import UserMenu from "@/components/auth/UserMenu";
 
 const SyncIndicator = () => {
   const syncStatus = useAtomValue(syncStatusAtom);
@@ -24,7 +25,10 @@ const TopBar = () => (
     <h1 className="font-display text-lg font-bold tracking-tight text-primary-700">
       Doll Wardrobe
     </h1>
-    <SyncIndicator />
+    <div className="flex items-center gap-3">
+      <SyncIndicator />
+      <UserMenu />
+    </div>
   </header>
 );
 
