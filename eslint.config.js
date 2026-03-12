@@ -141,7 +141,7 @@ export default tseslint.config(
       "functional/no-return-void": "off",
       "functional/no-throw-statements": "off",
       "functional/no-conditional-statements": "off",
-      eqeqeq: "off",
+      eqeqeq: ["error", "always", { null: "ignore" }],
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/prefer-destructuring": "off",

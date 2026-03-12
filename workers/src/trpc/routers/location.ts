@@ -8,7 +8,7 @@ import {
   createLocationInputSchema,
 } from "../lib/schemas";
 import {
-  TEMP_USER_ID,
+  getUserId,
   toStorageCase,
   toStorageLocation,
   generateLabel,
@@ -19,7 +19,7 @@ const GARMENT_STATUS_CHECKED_OUT = "checked_out";
 
 export const locationRouter = router({
   listCases: publicProcedure.query(async ({ ctx }) => {
-    const userId = TEMP_USER_ID;
+    const userId = getUserId(ctx);
 
     const { results } = await ctx.env.DB.prepare(
       "SELECT * FROM storage_cases WHERE user_id = ? ORDER BY created_at DESC",
@@ -40,7 +40,7 @@ export const locationRouter = router({
   getCase: publicProcedure
     .input(cuidSchema)
     .query(async ({ ctx, input: id }) => {
-      const userId = TEMP_USER_ID;
+      const userId = getUserId(ctx);
 
       const caseRow = await ctx.env.DB.prepare(
         "SELECT * FROM storage_cases WHERE id = ? AND user_id = ?",
@@ -84,7 +84,7 @@ export const locationRouter = router({
   createCase: publicProcedure
     .input(createCaseInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const userId = TEMP_USER_ID;
+      const userId = getUserId(ctx);
       const caseId = createId();
       const now = Date.now();
 
@@ -121,7 +121,7 @@ export const locationRouter = router({
   updateCase: publicProcedure
     .input(updateCaseInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const userId = TEMP_USER_ID;
+      const userId = getUserId(ctx);
 
       const existing = await ctx.env.DB.prepare(
         "SELECT * FROM storage_cases WHERE id = ? AND user_id = ?",
@@ -162,7 +162,7 @@ export const locationRouter = router({
   deleteCase: publicProcedure
     .input(cuidSchema)
     .mutation(async ({ ctx, input: id }) => {
-      const userId = TEMP_USER_ID;
+      const userId = getUserId(ctx);
       const now = Date.now();
 
       const existing = await ctx.env.DB.prepare(
@@ -185,10 +185,12 @@ export const locationRouter = router({
         });
       }
 
+      // 収納場所消失 → checked_out に遷移し、孤立チェックアウト検出で再配置を促す
       const clearGarments = ctx.env.DB.prepare(
         `UPDATE garments SET location_id = NULL, status = ?, checked_out_at = ?
-         WHERE location_id IN (SELECT id FROM storage_locations WHERE case_id = ?)`,
-      ).bind(GARMENT_STATUS_CHECKED_OUT, now, id);
+         WHERE location_id IN (SELECT id FROM storage_locations WHERE case_id = ? AND user_id = ?)
+         AND user_id = ?`,
+      ).bind(GARMENT_STATUS_CHECKED_OUT, now, id, userId, userId);
 
       const deleteLocations = ctx.env.DB.prepare(
         "DELETE FROM storage_locations WHERE case_id = ? AND user_id = ?",
@@ -216,7 +218,7 @@ export const locationRouter = router({
   createLocation: publicProcedure
     .input(createLocationInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const userId = TEMP_USER_ID;
+      const userId = getUserId(ctx);
       const now = Date.now();
 
       const caseRow = await ctx.env.DB.prepare(
@@ -288,7 +290,7 @@ export const locationRouter = router({
   deleteLocation: publicProcedure
     .input(cuidSchema)
     .mutation(async ({ ctx, input: id }) => {
-      const userId = TEMP_USER_ID;
+      const userId = getUserId(ctx);
       const now = Date.now();
 
       const existing = await ctx.env.DB.prepare(
@@ -311,10 +313,11 @@ export const locationRouter = router({
         });
       }
 
+      // 収納場所消失 → checked_out に遷移し、孤立チェックアウト検出で再配置を促す
       const clearGarments = ctx.env.DB.prepare(
         `UPDATE garments SET location_id = NULL, status = ?, checked_out_at = ?
-         WHERE location_id = ?`,
-      ).bind(GARMENT_STATUS_CHECKED_OUT, now, id);
+         WHERE location_id = ? AND user_id = ?`,
+      ).bind(GARMENT_STATUS_CHECKED_OUT, now, id, userId);
 
       const deleteLocation = ctx.env.DB.prepare(
         "DELETE FROM storage_locations WHERE id = ? AND user_id = ?",

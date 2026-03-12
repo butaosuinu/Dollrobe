@@ -72,4 +72,8 @@ describe("generateLabel", () => {
   it("row=25, col=0 のとき Z-1 を返す", () => {
     expect(generateLabel({ row: 25, col: 0 })).toBe("Z-1");
   });
+
+  it("row=26 のとき例外をスローする", () => {
+    expect(() => generateLabel({ row: 26, col: 0 })).toThrow();
+  });
 });

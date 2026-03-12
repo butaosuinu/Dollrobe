@@ -1,8 +1,12 @@
 import type { StorageCase, StorageLocation } from "@/types/index";
+import type { TRPCContext } from "../index";
 
 export const TEMP_USER_ID = "temp-user-001";
 
 const ASCII_UPPER_A = 65;
+const MAX_LABEL_ROWS = 26;
+
+export const getUserId = (_ctx: TRPCContext): string => TEMP_USER_ID;
 
 export type StorageCaseRow = {
   readonly id: string;
@@ -50,4 +54,9 @@ export const generateLabel = ({
 }: {
   readonly row: number;
   readonly col: number;
-}): string => `${String.fromCharCode(ASCII_UPPER_A + row)}-${col + 1}`;
+}): string => {
+  if (row >= MAX_LABEL_ROWS) {
+    throw new Error(`row must be less than ${MAX_LABEL_ROWS}, got ${row}`);
+  }
+  return `${String.fromCharCode(ASCII_UPPER_A + row)}-${col + 1}`;
+};
