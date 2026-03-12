@@ -1,0 +1,27 @@
+name = "doll-wardrobe-api"
+main = "workers/src/index.ts"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "doll-wardrobe-db"
+database_id = "YOUR_D1_ID"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "doll-wardrobe-images"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "YOUR_KV_ID"
+
+[[queues.producers]]
+binding = "QUEUE"
+queue = "doll-wardrobe-digest"
+
+[[queues.consumers]]
+queue = "doll-wardrobe-digest"
+max_batch_size = 10
+
+[triggers]
+crons = ["0 9 * * 1"]
