@@ -112,6 +112,16 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/app/sw.ts"],
+    rules: {
+      "functional/no-expression-statements": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-redundant-type-constituents": "off",
+      "@typescript-eslint/array-type": "off",
+    },
+  },
+  {
     files: ["**/*.test.ts", "**/*.test.tsx", "src/test/**/*.ts"],
     rules: {
       "functional/no-expression-statements": "off",

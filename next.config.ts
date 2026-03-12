@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import withSerwist from "@serwist/next";
+import { withSerwist } from "@serwist/turbopack";
 
 const nextConfig: NextConfig = {
   typescript: {
@@ -7,8 +7,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSerwist({
-  swSrc: "src/sw.ts",
-  swDest: "public/sw.js",
-  disable: process.env.NODE_ENV === "development",
-})(nextConfig);
+export default withSerwist(nextConfig);
