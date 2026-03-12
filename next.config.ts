@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 import withSerwist from "@serwist/next";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  typescript: {
+    tsconfigPath: "./tsconfig.app.json",
+  },
+};
 
 export default withSerwist({
   swSrc: "src/sw.ts",

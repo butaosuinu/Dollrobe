@@ -1,19 +1,9 @@
 import type { ConfidenceLabel, Garment } from "@/types";
-import {
-  CONFIDENCE_THRESHOLD,
-  MS_PER_DAY,
-  ORPHAN_CHECKOUT_THRESHOLD_DAYS,
-} from "@/lib/constants";
+import { CONFIDENCE_THRESHOLD, MS_PER_DAY, ORPHAN_CHECKOUT_THRESHOLD_DAYS } from "@/lib/constants";
 
 export const getConfidence = (g: Garment): number =>
   g.status === "stored"
-    ? Math.max(
-        0,
-        1 -
-          (Date.now() - g.lastScannedAt) /
-            MS_PER_DAY /
-            g.confidenceDecayDays,
-      )
+    ? Math.max(0, 1 - (Date.now() - g.lastScannedAt) / MS_PER_DAY / g.confidenceDecayDays)
     : 0;
 
 export const getConfidenceLabel = (c: number): ConfidenceLabel =>
