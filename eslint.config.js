@@ -73,6 +73,9 @@ export default tseslint.config(
     rules: {
       "functional/no-expression-statements": "off",
       "functional/no-return-void": "off",
+      "functional/no-classes": "off",
+      "functional/no-class-inheritance": "off",
+      "functional/no-this-expressions": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
