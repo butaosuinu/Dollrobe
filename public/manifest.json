@@ -4,8 +4,8 @@
   "description": "ドール服管理システム",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#faf8f5",
+  "theme_color": "#f2e8eb",
   "icons": [
     {
       "src": "/icons/icon-192.png",

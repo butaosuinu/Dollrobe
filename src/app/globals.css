@@ -1,7 +1,133 @@
 @import "tailwindcss";
 
 @theme {
+  /* === Primary: Mauve Pink === */
+  --color-primary-50: oklch(0.97 0.01 350);
+  --color-primary-100: oklch(0.93 0.03 350);
+  --color-primary-200: oklch(0.86 0.06 350);
+  --color-primary-300: oklch(0.78 0.1 350);
+  --color-primary-400: oklch(0.7 0.14 350);
+  --color-primary-500: oklch(0.62 0.17 350);
+  --color-primary-600: oklch(0.54 0.17 350);
+  --color-primary-700: oklch(0.46 0.15 350);
+  --color-primary-800: oklch(0.38 0.12 350);
+  --color-primary-900: oklch(0.3 0.09 350);
+
+  /* === Accent: Lavender Purple === */
+  --color-accent-50: oklch(0.97 0.01 290);
+  --color-accent-100: oklch(0.93 0.03 290);
+  --color-accent-200: oklch(0.86 0.06 290);
+  --color-accent-300: oklch(0.78 0.1 290);
+  --color-accent-400: oklch(0.7 0.13 290);
+  --color-accent-500: oklch(0.6 0.16 290);
+
+  /* === Surface: Warm cream tones === */
+  --color-surface-base: oklch(0.985 0.005 85);
+  --color-surface-raised: oklch(0.99 0.003 85);
+  --color-surface-overlay: oklch(1 0 0);
+
+  /* === Text === */
+  --color-text-primary: oklch(0.25 0.02 285);
+  --color-text-secondary: oklch(0.45 0.02 285);
+  --color-text-tertiary: oklch(0.6 0.01 285);
+  --color-text-inverse: oklch(0.98 0 0);
+
+  /* === Confidence === */
   --color-confirmed: oklch(0.72 0.19 142);
   --color-uncertain: oklch(0.8 0.18 84);
   --color-unknown: oklch(0.63 0.24 29);
+
+  /* === Semantic === */
+  --color-danger: oklch(0.58 0.22 25);
+  --color-success: oklch(0.72 0.19 142);
+  --color-info: oklch(0.7 0.12 240);
+
+  /* === Border === */
+  --color-border-default: oklch(0.92 0.008 85);
+  --color-border-strong: oklch(0.84 0.016 85);
+
+  /* === Shadows === */
+  --shadow-sm: 0 1px 2px oklch(0.3 0 0 / 0.04);
+  --shadow-md: 0 2px 8px oklch(0.3 0 0 / 0.06), 0 1px 2px oklch(0.3 0 0 / 0.04);
+  --shadow-lg:
+    0 4px 16px oklch(0.3 0 0 / 0.08), 0 2px 4px oklch(0.3 0 0 / 0.04);
+  --shadow-card:
+    0 1px 3px oklch(0.3 0 0 / 0.05), 0 1px 2px oklch(0.3 0 0 / 0.03);
+
+  /* === Animation === */
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* === Font families === */
+  --font-display:
+    var(--font-zen-maru-gothic), "Hiragino Maru Gothic ProN", sans-serif;
+  --font-body:
+    var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN", sans-serif;
+}
+
+html {
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scan-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.62 0.17 350 / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px oklch(0.62 0.17 350 / 0);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
