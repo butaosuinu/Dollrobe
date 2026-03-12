@@ -41,6 +41,15 @@ const CATEGORY_FILTERS: readonly CategoryFilter[] = [
   })),
 ];
 
+const GARMENT_COMPARATORS = Object.freeze({
+  newest: (a: Garment, b: Garment) => b.createdAt - a.createdAt,
+  oldest: (a: Garment, b: Garment) => a.createdAt - b.createdAt,
+  confidence_asc: (a: Garment, b: Garment) =>
+    getConfidence(a) - getConfidence(b),
+  confidence_desc: (a: Garment, b: Garment) =>
+    getConfidence(b) - getConfidence(a),
+} satisfies Record<SortOptionValue, (a: Garment, b: Garment) => number>);
+
 const GarmentListContent = () => {
   const router = useRouter();
   const garments = useAtomValue(garmentsAtom);
@@ -69,17 +78,7 @@ const GarmentListContent = () => {
       return matchesCategory && matchesSearch && matchesConfidence;
     });
 
-    const comparators: Record<
-      SortOptionValue,
-      (a: Garment, b: Garment) => number
-    > = {
-      newest: (a, b) => b.createdAt - a.createdAt,
-      oldest: (a, b) => a.createdAt - b.createdAt,
-      confidence_asc: (a, b) => getConfidence(a) - getConfidence(b),
-      confidence_desc: (a, b) => getConfidence(b) - getConfidence(a),
-    };
-
-    return [...filtered].sort(comparators[sortOption]);
+    return [...filtered].sort(GARMENT_COMPARATORS[sortOption]);
   }, [garments, searchQuery, activeCategory, confidenceFilter, sortOption]);
 
   if (garments.length === 0) {
