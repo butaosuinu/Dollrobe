@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Printer } from "lucide-react";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import QrLabel from "@/components/qr/QrLabel";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
@@ -14,12 +15,8 @@ const handlePrint = () => {
 const PrintContent = () => {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
-  const idsParam = searchParams.get("ids");
-  const ids =
-    idsParam !== null ? idsParam.split(",").filter((id) => id !== "") : [];
-
-  const namesParam = searchParams.get("names");
-  const nameList = namesParam !== null ? namesParam.split(",") : [];
+  const ids = searchParams.getAll("ids");
+  const nameList = searchParams.getAll("names");
 
   if (
     type === null ||
@@ -56,9 +53,15 @@ const PrintContent = () => {
 
 const PrintPage = () => (
   <div className="p-4">
-    <Suspense fallback={<Skeleton className="h-96 w-full" />}>
-      <PrintContent />
-    </Suspense>
+    <ErrorBoundary
+      fallback={
+        <p className="text-sm text-danger">ページの読み込みに失敗しました</p>
+      }
+    >
+      <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+        <PrintContent />
+      </Suspense>
+    </ErrorBoundary>
   </div>
 );
 

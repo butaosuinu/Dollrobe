@@ -36,7 +36,7 @@ describe("PrintPage", () => {
 
   it("type と ids が指定されたら QR ラベルが表示される", () => {
     mockSearchParams.value = new URLSearchParams(
-      "type=garment&ids=g1,g2&names=ドレスA,ドレスB",
+      "type=garment&ids=g1&ids=g2&names=ドレスA&names=ドレスB",
     );
     render(<PrintPage />);
     expect(screen.getByText("QR ラベル印刷")).toBeInTheDocument();

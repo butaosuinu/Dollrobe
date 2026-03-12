@@ -135,9 +135,11 @@ const GarmentDetail = ({ garment }: Props) => {
           size="lg"
           fullWidth
           onClick={() => {
-            router.push(
-              `/print?type=garment&ids=${garment.id}&names=${encodeURIComponent(garment.name)}`,
-            );
+            const params = new URLSearchParams();
+            params.set("type", "garment");
+            params.append("ids", garment.id);
+            params.append("names", garment.name);
+            router.push(`/print?${params.toString()}`);
           }}
         >
           <QrCode className="size-4" />
