@@ -139,9 +139,13 @@ export default tseslint.config(
     rules: {
       "functional/no-expression-statements": "off",
       "functional/no-return-void": "off",
+      "functional/no-throw-statements": "off",
+      "functional/no-conditional-statements": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/prefer-destructuring": "off",
+      "no-negated-condition": "off",
     },
   },
 );
