@@ -3,7 +3,7 @@
 ## General Guidelines
 
 - **常に日本語で返答してください** (Always respond in Japanese)
-- ファイル保存時に内容が変更される場合がありますが、これは prettier によるフォーマットなので気にしないでください
+- ファイル保存時に内容が変更される場合がありますが、これは oxfmt によるフォーマットなので気にしないでください
 - 過剰なコメントは**禁止**
 - 作業ログ的なコメントは**禁止**
 
@@ -30,11 +30,10 @@
 - ファイル単位での実行コマンド: `npx oxlint path/to/file.ts && npx eslint path/to/file.ts` または `npx oxlint path/to/file.tsx && npx eslint path/to/file.tsx`
 - プロジェクト全体のlinting: `pnpm lint` （必要な場合のみ使用）
 
-### Formatting (OxFmt + Prettier)
+### Formatting (OxFmt)
 
 - **ファイル単位でのフォーマット実行を優先すること**
-- TypeScript/JavaScript ファイル: `npx oxfmt path/to/file.ts --write` または `npx oxfmt path/to/file.tsx --write`
-- CSS ファイル: `npx prettier --write path/to/file.css`
+- 全ファイル: `npx oxfmt path/to/file --write`
 - プロジェクト全体のフォーマット: `pnpm format` （必要な場合のみ使用）
 
 ## Github Guidelines
@@ -391,7 +390,7 @@ crons = ["0 9 * * 1"]  # 毎週月曜 9:00 UTC
 #### 各テストレベルの役割と優先順位
 
 1. **Static Analysis（静的解析）** - 基盤
-   - TypeScript 型チェック、ESLint、Prettier
+   - TypeScript 型チェック、ESLint、OxFmt
    - 基本的な構文エラーや型エラーを早期発見
    - コードの品質と一貫性を保証
 

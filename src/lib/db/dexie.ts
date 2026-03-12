@@ -1,5 +1,11 @@
 import Dexie from "dexie";
-import type { Garment, StorageCase, StorageLocation, Coordinate, SyncQueueItem } from "@/types";
+import type {
+  Garment,
+  StorageCase,
+  StorageLocation,
+  Coordinate,
+  SyncQueueItem,
+} from "@/types";
 
 class DollWardrobeDB extends Dexie {
   readonly garments!: Dexie.Table<Garment, string>;
