@@ -9,12 +9,7 @@ import {
 } from "../lib/schemas";
 import { TEMP_USER_ID } from "../lib/d1-helpers";
 import type { GarmentRow } from "../lib/d1-helpers";
-
-const GARMENT_STATUS = Object.freeze({
-  STORED: "stored",
-  CHECKED_OUT: "checked_out",
-  LOST: "lost",
-});
+import { GARMENT_STATUS } from "@shared/lib/constants";
 
 export const scanRouter = router({
   checkin: publicProcedure
@@ -39,9 +34,20 @@ export const scanRouter = router({
           ),
       );
 
-      await db.batch(statements);
+      const results = await db.batch(statements);
+      const totalChanges = results.reduce(
+        (sum, result) => sum + result.meta.changes,
+        0,
+      );
 
-      return { success: true, checkedInCount: garmentIds.length };
+      if (totalChanges < garmentIds.length) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `${String(garmentIds.length - totalChanges)}件の服が見つかりませんでした`,
+        });
+      }
+
+      return { success: true, checkedInCount: totalChanges };
     }),
 
   checkout: publicProcedure
@@ -51,6 +57,7 @@ export const scanRouter = router({
       const db = ctx.env.DB;
       const now = Date.now();
 
+      // D1 .first() は該当行がない場合 null を返す
       const existing = await db
         .prepare(`SELECT id FROM garments WHERE id = ? AND user_id = ?`)
         .bind(garmentId, TEMP_USER_ID)
@@ -133,6 +140,7 @@ export const scanRouter = router({
       const db = ctx.env.DB;
       const now = Date.now();
 
+      // D1 .first() は該当行がない場合 null を返す
       const existing = await db
         .prepare(`SELECT id, status FROM garments WHERE id = ? AND user_id = ?`)
         .bind(garmentId, TEMP_USER_ID)
