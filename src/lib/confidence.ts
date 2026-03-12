@@ -9,10 +9,7 @@ export const getConfidence = (g: Garment): number =>
   g.status === "stored"
     ? Math.max(
         0,
-        1 -
-          (Date.now() - g.lastScannedAt) /
-            MS_PER_DAY /
-            g.confidenceDecayDays,
+        1 - (Date.now() - g.lastScannedAt) / MS_PER_DAY / g.confidenceDecayDays,
       )
     : 0;
 
