@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
+import { SerwistProvider } from "@/app/serwist-provider";
 
 export const metadata: Metadata = {
   title: "Doll Wardrobe",
@@ -15,7 +16,14 @@ export const viewport: Viewport = {
 
 const RootLayout = ({ children }: { readonly children: React.ReactNode }) => (
   <html lang="ja">
-    <body>{children}</body>
+    <body>
+      <SerwistProvider
+        swUrl="/serwist/sw.js"
+        disable={process.env.NODE_ENV === "development"}
+      >
+        {children}
+      </SerwistProvider>
+    </body>
   </html>
 );
 

@@ -84,7 +84,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/sw.ts"],
+    files: ["src/app/sw.ts"],
     rules: {
       "functional/no-expression-statements": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
