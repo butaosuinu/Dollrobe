@@ -137,3 +137,19 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Serwist generated service worker
+public/sw.js
+
+# Next.js generated types
+next-env.d.ts
+
+# Wrangler (Cloudflare)
+.wrangler/
+
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*.swo

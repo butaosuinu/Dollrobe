@@ -13,14 +13,17 @@ export const storageLocationsAtom = atom(async () => {
   return locations;
 });
 
-export const addStorageCaseAtom = atom(undefined, async (_get, _set, storageCase: StorageCase) => {
-  await db.storageCases.add(storageCase);
-  await db.syncQueue.add({
-    type: SYNC_ACTION_TYPE.STORAGE_CASE_CREATE,
-    payload: storageCase,
-    createdAt: Date.now(),
-  });
-});
+export const addStorageCaseAtom = atom(
+  undefined,
+  async (_get, _set, storageCase: StorageCase) => {
+    await db.storageCases.add(storageCase);
+    await db.syncQueue.add({
+      type: SYNC_ACTION_TYPE.STORAGE_CASE_CREATE,
+      payload: storageCase,
+      createdAt: Date.now(),
+    });
+  },
+);
 
 export const addStorageLocationAtom = atom(
   undefined,
