@@ -86,5 +86,24 @@ export const GARMENT_CATEGORIES: readonly GarmentCategory[] = [
   "other",
 ];
 
+export const CONFIDENCE_FILTER_OPTIONS = Object.freeze([
+  { value: "all", label: "すべて" },
+  { value: "confirmed", label: "確定" },
+  { value: "uncertain", label: "要確認" },
+  { value: "unknown", label: "不明" },
+] as const);
+
+export type ConfidenceFilterValue =
+  (typeof CONFIDENCE_FILTER_OPTIONS)[number]["value"];
+
+export const SORT_OPTIONS = Object.freeze([
+  { value: "newest", label: "新しい順" },
+  { value: "oldest", label: "古い順" },
+  { value: "confidence_asc", label: "信頼度: 低い順" },
+  { value: "confidence_desc", label: "信頼度: 高い順" },
+] as const);
+
+export type SortOptionValue = (typeof SORT_OPTIONS)[number]["value"];
+
 export const TOP_BAR_HEIGHT = 56;
 export const BOTTOM_NAV_HEIGHT = 64;

@@ -32,6 +32,9 @@ export const getItemsNeedingReview = (
       getConfidence(g) < CONFIDENCE_THRESHOLD.CONFIRMED,
   );
 
+export const getElapsedDays = (lastScannedAt: number): number =>
+  Math.floor((Date.now() - lastScannedAt) / MS_PER_DAY);
+
 export const getOrphanedCheckouts = (
   garments: readonly Garment[],
   thresholdDays: number = ORPHAN_CHECKOUT_THRESHOLD_DAYS,

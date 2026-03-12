@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   getConfidence,
   getConfidenceLabel,
+  getElapsedDays,
   getItemsNeedingReview,
   getOrphanedCheckouts,
 } from "./confidence";
@@ -107,6 +108,31 @@ describe("getItemsNeedingReview", () => {
     const result = getItemsNeedingReview(garments, "loc1");
     expect(result).toHaveLength(1);
     expect(result[0]?.id).toBe("g2");
+  });
+});
+
+describe("getElapsedDays", () => {
+  const FIXED_NOW = new Date("2025-06-15T00:00:00Z").getTime();
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("経過日数0を返す（スキャン直後）", () => {
+    expect(getElapsedDays(FIXED_NOW)).toBe(0);
+  });
+
+  it("10日前のスキャンで経過日数10を返す", () => {
+    expect(getElapsedDays(FIXED_NOW - 10 * MS_PER_DAY)).toBe(10);
+  });
+
+  it("端数は切り捨てる", () => {
+    expect(getElapsedDays(FIXED_NOW - 1.9 * MS_PER_DAY)).toBe(1);
   });
 });
 

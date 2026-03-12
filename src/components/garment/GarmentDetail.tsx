@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
 import { Shirt, Trash2, Edit3, QrCode } from "lucide-react";
 import type { Garment } from "@/types";
-import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import {
   GARMENT_CATEGORY_LABEL,
   DOLL_SIZE_LABEL,
@@ -12,8 +11,7 @@ import {
   GARMENT_STATUS_LABEL,
 } from "@/lib/constants";
 import { deleteGarmentAtom } from "@/stores/garmentAtoms";
-import ConfidenceBadge from "@/components/confidence/ConfidenceBadge";
-import ConfidenceBar from "@/components/confidence/ConfidenceBar";
+import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -25,22 +23,11 @@ type Props = {
 const GarmentDetail = ({ garment }: Props) => {
   const router = useRouter();
   const deleteGarment = useSetAtom(deleteGarmentAtom);
-  const confidence = getConfidence(garment);
-  const label = getConfidenceLabel(confidence);
 
   const handleDelete = async () => {
     await deleteGarment(garment.id);
     router.push("/garments");
   };
-
-  const lastScannedDate = new Date(garment.lastScannedAt).toLocaleDateString(
-    "ja-JP",
-    {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    },
-  );
 
   return (
     <div className="flex flex-col gap-4 animate-[fade-in_0.4s_ease-out]">
@@ -66,7 +53,7 @@ const GarmentDetail = ({ garment }: Props) => {
             {DOLL_SIZE_LABEL[garment.dollSize]}
           </p>
         </div>
-        <ConfidenceBadge label={label} />
+        <ConfidenceIndicator garment={garment} compact />
       </div>
 
       <Card>
@@ -85,15 +72,7 @@ const GarmentDetail = ({ garment }: Props) => {
               {GARMENT_STATUS_LABEL[garment.status]}
             </Badge>
           </div>
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-text-secondary">信頼度</span>
-              <span className="text-xs text-text-tertiary">
-                最終スキャン: {lastScannedDate}
-              </span>
-            </div>
-            <ConfidenceBar confidence={confidence} />
-          </div>
+          <ConfidenceIndicator garment={garment} />
         </div>
       </Card>
 
