@@ -9,6 +9,9 @@ export default defineConfig({
     include: ["src/**/*.test.{ts,tsx}", "workers/**/*.test.ts"],
     css: true,
   },
+  esbuild: {
+    jsx: "automatic",
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),

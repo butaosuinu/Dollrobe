@@ -130,7 +130,16 @@ const GarmentDetail = ({ garment }: Props) => {
           <Edit3 className="size-4" />
           編集
         </Button>
-        <Button variant="secondary" size="lg" fullWidth>
+        <Button
+          variant="secondary"
+          size="lg"
+          fullWidth
+          onClick={() => {
+            router.push(
+              `/print?type=garment&ids=${garment.id}&names=${encodeURIComponent(garment.name)}`,
+            );
+          }}
+        >
           <QrCode className="size-4" />
           QRを印刷
         </Button>
