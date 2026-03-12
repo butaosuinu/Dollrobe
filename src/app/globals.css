@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  --color-confirmed: oklch(0.72 0.19 142);
+  --color-uncertain: oklch(0.8 0.18 84);
+  --color-unknown: oklch(0.63 0.24 29);
+}

@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "types": ["@cloudflare/workers-types"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["./src/types/*"],
+      "@shared/lib/*": ["./src/lib/*"]
+    }
+  },
+  "include": [
+    "workers/**/*.ts",
+    "src/types/**/*.ts",
+    "src/lib/confidence.ts",
+    "src/lib/constants.ts"
+  ],
+  "exclude": ["node_modules"]
+}
