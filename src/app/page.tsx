@@ -25,7 +25,9 @@ const DashboardPage = () => (
       <h2 className="font-display text-xl font-bold">ダッシュボード</h2>
     </div>
 
-    <ErrorBoundary fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}>
+    <ErrorBoundary
+      fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}
+    >
       <Suspense fallback={<StatsLoading />}>
         <StatsOverview />
       </Suspense>

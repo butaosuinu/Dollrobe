@@ -10,7 +10,8 @@ const Card = ({ children, hoverable = false, className }: Props) => (
   <div
     className={clsx(
       "rounded-xl border border-border-default bg-surface-overlay p-4 shadow-card",
-      hoverable && "transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0",
+      hoverable &&
+        "transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0",
       className,
     )}
   >

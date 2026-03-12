@@ -16,7 +16,11 @@ const StorageCaseCard = ({ storageCase, locations, garments }: Props) => (
         {storageCase.rows}行 x {storageCase.cols}列
       </span>
     </div>
-    <StorageGrid storageCase={storageCase} locations={locations} garments={garments} />
+    <StorageGrid
+      storageCase={storageCase}
+      locations={locations}
+      garments={garments}
+    />
   </Card>
 );
 

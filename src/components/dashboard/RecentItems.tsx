@@ -25,7 +25,9 @@ const RecentItems = () => {
   return (
     <section>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-display text-sm font-bold text-text-secondary">最近のアイテム</h2>
+        <h2 className="font-display text-sm font-bold text-text-secondary">
+          最近のアイテム
+        </h2>
         <Link
           href="/garments"
           className="text-xs font-medium text-primary-500 transition-colors hover:text-primary-600"
@@ -56,7 +58,9 @@ const RecentItems = () => {
                     <Shirt className="size-8 text-primary-200" />
                   )}
                 </div>
-                <p className="truncate font-display text-sm font-bold">{garment.name}</p>
+                <p className="truncate font-display text-sm font-bold">
+                  {garment.name}
+                </p>
                 <p className="text-xs text-text-tertiary">
                   {GARMENT_CATEGORY_LABEL[garment.category]}
                 </p>

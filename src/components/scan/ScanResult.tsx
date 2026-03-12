@@ -25,7 +25,9 @@ const ScanResult = ({ type, name, subtitle }: Props) => {
         </div>
         <div className="flex-1">
           <p className="text-sm font-bold text-text-primary">{name}</p>
-          {subtitle !== undefined && <p className="text-xs text-text-secondary">{subtitle}</p>}
+          {subtitle !== undefined && (
+            <p className="text-xs text-text-secondary">{subtitle}</p>
+          )}
         </div>
         <div className="flex size-6 items-center justify-center rounded-full bg-confirmed">
           <Check className="size-3.5 text-white" />

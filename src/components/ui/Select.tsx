@@ -19,7 +19,10 @@ const Select = ({ label, options, error, placeholder, id, ...rest }: Props) => {
   return (
     <div className="flex flex-col gap-1.5">
       {label !== undefined && (
-        <label htmlFor={selectId} className="text-sm font-medium text-text-secondary">
+        <label
+          htmlFor={selectId}
+          className="text-sm font-medium text-text-secondary"
+        >
           {label}
         </label>
       )}

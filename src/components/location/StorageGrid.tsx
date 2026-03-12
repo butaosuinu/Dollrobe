@@ -13,13 +13,17 @@ type Props = {
 };
 
 const StorageGrid = ({ storageCase, locations, garments }: Props) => {
-  const [selectedLocation, setSelectedLocation] = useState<StorageLocation | undefined>(undefined);
+  const [selectedLocation, setSelectedLocation] = useState<
+    StorageLocation | undefined
+  >(undefined);
 
   const getGarmentsForLocation = (locationId: string) =>
     garments.filter((g) => g.locationId === locationId);
 
   const selectedGarments =
-    selectedLocation !== undefined ? getGarmentsForLocation(selectedLocation.id) : [];
+    selectedLocation !== undefined
+      ? getGarmentsForLocation(selectedLocation.id)
+      : [];
 
   return (
     <>
@@ -53,7 +57,9 @@ const StorageGrid = ({ storageCase, locations, garments }: Props) => {
         {selectedGarments.length > 0 ? (
           <GarmentList garments={selectedGarments} />
         ) : (
-          <p className="py-8 text-center text-sm text-text-tertiary">この場所には服がありません</p>
+          <p className="py-8 text-center text-sm text-text-tertiary">
+            この場所には服がありません
+          </p>
         )}
       </BottomSheet>
     </>

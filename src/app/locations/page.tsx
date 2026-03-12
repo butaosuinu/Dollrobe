@@ -29,7 +29,9 @@ const LocationsContent = () => {
   return (
     <div className="flex flex-col gap-4">
       {cases.map((storageCase) => {
-        const caseLocations = locations.filter((l) => l.caseId === storageCase.id);
+        const caseLocations = locations.filter(
+          (l) => l.caseId === storageCase.id,
+        );
         return (
           <StorageCaseCard
             key={storageCase.id}
@@ -49,7 +51,9 @@ const LocationsPage = () => (
       <h2 className="font-display text-xl font-bold">収納場所</h2>
     </div>
 
-    <ErrorBoundary fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}>
+    <ErrorBoundary
+      fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}
+    >
       <Suspense
         fallback={
           <div className="flex flex-col gap-4">

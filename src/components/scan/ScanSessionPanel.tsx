@@ -24,7 +24,9 @@ const ScanSessionPanel = ({ locationName, onConfirmAll }: Props) => {
       <div className="rounded-xl bg-surface-overlay/95 p-4 shadow-lg backdrop-blur-sm">
         <div className="flex items-center gap-3 text-text-secondary">
           <MapPin className="size-5 shrink-0" />
-          <p className="text-sm">場所のQRをスキャンして、収納場所を設定してください</p>
+          <p className="text-sm">
+            場所のQRをスキャンして、収納場所を設定してください
+          </p>
         </div>
       </div>
     );
@@ -39,7 +41,9 @@ const ScanSessionPanel = ({ locationName, onConfirmAll }: Props) => {
           </div>
           <div>
             <p className="text-xs text-text-tertiary">スキャン中の場所</p>
-            <p className="text-sm font-bold">{locationName ?? activeLocationId}</p>
+            <p className="text-sm font-bold">
+              {locationName ?? activeLocationId}
+            </p>
           </div>
         </div>
         <button
@@ -52,7 +56,9 @@ const ScanSessionPanel = ({ locationName, onConfirmAll }: Props) => {
       </div>
 
       {scannedIds.length > 0 && (
-        <p className="text-xs text-text-secondary">{scannedIds.length}着をスキャンしました</p>
+        <p className="text-xs text-text-secondary">
+          {scannedIds.length}着をスキャンしました
+        </p>
       )}
 
       <div className="flex gap-2">

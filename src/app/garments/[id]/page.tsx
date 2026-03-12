@@ -47,7 +47,9 @@ const GarmentDetailPage = () => {
         <h2 className="font-display text-lg font-bold">詳細</h2>
       </div>
 
-      <ErrorBoundary fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}>
+      <ErrorBoundary
+        fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}
+      >
         <Suspense fallback={<Skeleton className="h-96 rounded-2xl" />}>
           <GarmentDetailContent />
         </Suspense>

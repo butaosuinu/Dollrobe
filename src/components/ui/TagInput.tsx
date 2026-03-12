@@ -11,7 +11,12 @@ type Props = {
   readonly placeholder?: string;
 };
 
-const TagInput = ({ label, tags, onChangeTags, placeholder = "タグを入力..." }: Props) => {
+const TagInput = ({
+  label,
+  tags,
+  onChangeTags,
+  placeholder = "タグを入力...",
+}: Props) => {
   const [input, setInput] = useState("");
 
   const addTag = () => {

@@ -11,7 +11,10 @@ const Input = ({ label, error, id, ...rest }: Props) => {
   return (
     <div className="flex flex-col gap-1.5">
       {label !== undefined && (
-        <label htmlFor={inputId} className="text-sm font-medium text-text-secondary">
+        <label
+          htmlFor={inputId}
+          className="text-sm font-medium text-text-secondary"
+        >
           {label}
         </label>
       )}

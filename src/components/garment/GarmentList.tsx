@@ -31,15 +31,22 @@ const GarmentList = ({ garments }: Props) => (
           >
             <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary-50">
               {garment.imageUrl !== undefined ? (
-                <img src={garment.imageUrl} alt={garment.name} className="size-full object-cover" />
+                <img
+                  src={garment.imageUrl}
+                  alt={garment.name}
+                  className="size-full object-cover"
+                />
               ) : (
                 <Shirt className="size-6 text-primary-200" />
               )}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate font-display text-sm font-bold">{garment.name}</p>
+              <p className="truncate font-display text-sm font-bold">
+                {garment.name}
+              </p>
               <p className="text-xs text-text-tertiary">
-                {GARMENT_CATEGORY_LABEL[garment.category]} ・ {DOLL_SIZE_LABEL[garment.dollSize]}
+                {GARMENT_CATEGORY_LABEL[garment.category]} ・{" "}
+                {DOLL_SIZE_LABEL[garment.dollSize]}
               </p>
             </div>
             <ConfidenceBadge label={label} />

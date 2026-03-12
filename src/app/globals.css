@@ -49,8 +49,10 @@
   /* === Shadows === */
   --shadow-sm: 0 1px 2px oklch(0.3 0 0 / 0.04);
   --shadow-md: 0 2px 8px oklch(0.3 0 0 / 0.06), 0 1px 2px oklch(0.3 0 0 / 0.04);
-  --shadow-lg: 0 4px 16px oklch(0.3 0 0 / 0.08), 0 2px 4px oklch(0.3 0 0 / 0.04);
-  --shadow-card: 0 1px 3px oklch(0.3 0 0 / 0.05), 0 1px 2px oklch(0.3 0 0 / 0.03);
+  --shadow-lg:
+    0 4px 16px oklch(0.3 0 0 / 0.08), 0 2px 4px oklch(0.3 0 0 / 0.04);
+  --shadow-card:
+    0 1px 3px oklch(0.3 0 0 / 0.05), 0 1px 2px oklch(0.3 0 0 / 0.03);
 
   /* === Animation === */
   --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -60,8 +62,10 @@
   --duration-slow: 400ms;
 
   /* === Font families === */
-  --font-display: var(--font-zen-maru-gothic), "Hiragino Maru Gothic ProN", sans-serif;
-  --font-body: var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN", sans-serif;
+  --font-display:
+    var(--font-zen-maru-gothic), "Hiragino Maru Gothic ProN", sans-serif;
+  --font-body:
+    var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN", sans-serif;
 }
 
 html {

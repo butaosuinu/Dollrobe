@@ -1,6 +1,11 @@
 import clsx from "clsx";
 
-type BadgeVariant = "default" | "primary" | "confirmed" | "uncertain" | "unknown";
+type BadgeVariant =
+  | "default"
+  | "primary"
+  | "confirmed"
+  | "uncertain"
+  | "unknown";
 
 type Props = {
   readonly variant?: BadgeVariant;

@@ -11,9 +11,12 @@ type Props = {
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "className">;
 
 const VARIANT_STYLES: Record<ButtonVariant, string> = {
-  primary: "bg-primary-500 text-text-inverse hover:bg-primary-600 active:bg-primary-700",
-  secondary: "bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300",
-  ghost: "bg-transparent text-text-secondary hover:bg-primary-50 active:bg-primary-100",
+  primary:
+    "bg-primary-500 text-text-inverse hover:bg-primary-600 active:bg-primary-700",
+  secondary:
+    "bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300",
+  ghost:
+    "bg-transparent text-text-secondary hover:bg-primary-50 active:bg-primary-100",
   danger: "bg-red-50 text-danger hover:bg-red-100 active:bg-red-200",
 };
 

@@ -19,7 +19,10 @@ const ConfidenceBar = ({ confidence }: Props) => {
     <div className="flex items-center gap-2">
       <div className="h-2 flex-1 overflow-hidden rounded-full bg-border-default">
         <div
-          className={clsx("h-full rounded-full transition-all", BAR_COLORS[label])}
+          className={clsx(
+            "h-full rounded-full transition-all",
+            BAR_COLORS[label],
+          )}
           style={{ width: `${percentage}%` }}
           role="progressbar"
           aria-valuenow={percentage}

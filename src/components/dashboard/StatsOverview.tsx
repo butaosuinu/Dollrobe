@@ -9,7 +9,9 @@ const StatsOverview = () => {
 
   return (
     <section>
-      <h2 className="mb-3 font-display text-sm font-bold text-text-secondary">ステータス</h2>
+      <h2 className="mb-3 font-display text-sm font-bold text-text-secondary">
+        ステータス
+      </h2>
       <ConfidenceStats garments={garments} />
     </section>
   );

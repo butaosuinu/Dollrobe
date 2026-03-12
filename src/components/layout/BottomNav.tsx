@@ -22,7 +22,8 @@ const BottomNav = () => {
     >
       <div className="flex h-16 items-center justify-around">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+          const isActive =
+            href === "/" ? pathname === "/" : pathname.startsWith(href);
           const isScan = href === "/scan";
 
           return (
@@ -47,9 +48,18 @@ const BottomNav = () => {
                   <Icon className="size-5" />
                 </span>
               ) : (
-                <Icon className={clsx("size-5 transition-transform", isActive && "scale-110")} />
+                <Icon
+                  className={clsx(
+                    "size-5 transition-transform",
+                    isActive && "scale-110",
+                  )}
+                />
               )}
-              <span className={clsx("text-[10px] font-medium", isScan && "mt-0.5")}>{label}</span>
+              <span
+                className={clsx("text-[10px] font-medium", isScan && "mt-0.5")}
+              >
+                {label}
+              </span>
             </Link>
           );
         })}
