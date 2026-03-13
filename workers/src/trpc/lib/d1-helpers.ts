@@ -9,7 +9,7 @@ import {
   GARMENT_CATEGORY_LABEL,
   DOLL_SIZE_LABEL,
   GARMENT_STATUS_LABEL,
-} from "@shared/lib/constants";
+} from "@/lib/constants";
 import { TRPCError } from "@trpc/server";
 import type { TRPCContext } from "../index";
 
