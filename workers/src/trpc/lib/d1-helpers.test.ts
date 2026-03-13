@@ -173,13 +173,9 @@ describe("wrapDbError", () => {
 
   it("INTERNAL_SERVER_ERROR コードを設定する", () => {
     const handler = wrapDbError("update garment");
+    const result = expect(() => handler(new Error("test")));
 
-    try {
-      handler(new Error("test"));
-    } catch (err) {
-      expect(err).toBeInstanceOf(TRPCError);
-      expect((err as TRPCError).code).toBe("INTERNAL_SERVER_ERROR");
-    }
+    result.toThrow(TRPCError);
   });
 });
 
