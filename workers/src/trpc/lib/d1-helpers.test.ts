@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { toGarment, type GarmentRow } from "./d1-helpers";
+import { TRPCError } from "@trpc/server";
+import { toGarment, wrapDbError, type GarmentRow } from "./d1-helpers";
 
 const createRow = (overrides: Partial<GarmentRow> = {}): GarmentRow => ({
   id: "test-id-001",
@@ -127,5 +128,48 @@ describe("toGarment", () => {
       const garment = toGarment(row);
       expect(garment.dollSize).toBe(size);
     });
+  });
+
+  it("不正な JSON でフィールド名付きエラーを投げる", () => {
+    const row = createRow({ colors: "not-json" });
+
+    expect(() => toGarment(row)).toThrow(
+      'Invalid JSON array in field "colors"',
+    );
+  });
+
+  it("tags の不正な JSON でもフィールド名が含まれる", () => {
+    const row = createRow({ tags: "{broken" });
+
+    expect(() => toGarment(row)).toThrow('Invalid JSON array in field "tags"');
+  });
+});
+
+describe("wrapDbError", () => {
+  it("Error インスタンスの場合は err.message を使用する", () => {
+    const handler = wrapDbError("fetch garment");
+
+    expect(() => handler(new Error("connection refused"))).toThrow(TRPCError);
+    expect(() => handler(new Error("connection refused"))).toThrow(
+      "connection refused",
+    );
+  });
+
+  it("Error 以外の場合はコンテキスト付きメッセージを使用する", () => {
+    const handler = wrapDbError("delete garment");
+
+    expect(() => handler("unknown error")).toThrow(TRPCError);
+    expect(() => handler("unknown error")).toThrow("Failed to delete garment");
+  });
+
+  it("INTERNAL_SERVER_ERROR コードを設定する", () => {
+    const handler = wrapDbError("update garment");
+
+    try {
+      handler(new Error("test"));
+    } catch (err) {
+      expect(err).toBeInstanceOf(TRPCError);
+      expect((err as TRPCError).code).toBe("INTERNAL_SERVER_ERROR");
+    }
   });
 });

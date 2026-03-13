@@ -1,30 +1,30 @@
 import { z } from "zod";
+import {
+  GARMENT_CATEGORIES,
+  DOLL_SIZES,
+  GARMENT_STATUSES,
+} from "@shared/lib/constants";
 
 const GARMENT_NAME_MAX_LENGTH = 100;
 const CONFIDENCE_DECAY_MIN = 1;
 const CONFIDENCE_DECAY_MAX = 365;
 const DEFAULT_CONFIDENCE_DECAY_DAYS = 30;
 
+const toNonEmptyTuple = <T extends string>(arr: readonly T[]): [T, ...T[]] => {
+  const [first, ...rest] = arr;
+  if (first === undefined) {
+    throw new Error("Array must not be empty");
+  }
+  return [first, ...rest];
+};
+
 export const cuidSchema = z.string().min(1);
 
-export const dollSizeSchema = z.enum([
-  "1/3",
-  "MSD",
-  "SD",
-  "YoSD",
-  "1/6",
-  "other",
-]);
-export const garmentCategorySchema = z.enum([
-  "tops",
-  "bottoms",
-  "dress",
-  "outer",
-  "shoes",
-  "accessory",
-  "other",
-]);
-export const garmentStatusSchema = z.enum(["stored", "checked_out", "lost"]);
+export const dollSizeSchema = z.enum(toNonEmptyTuple(DOLL_SIZES));
+export const garmentCategorySchema = z.enum(
+  toNonEmptyTuple(GARMENT_CATEGORIES),
+);
+export const garmentStatusSchema = z.enum(toNonEmptyTuple(GARMENT_STATUSES));
 
 export const listGarmentsInputSchema = z.object({
   category: garmentCategorySchema.optional(),

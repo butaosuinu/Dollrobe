@@ -8,7 +8,12 @@ import {
   updateGarmentInputSchema,
   cuidSchema,
 } from "../lib/schemas";
-import { type GarmentRow, toGarment, TEMP_USER_ID } from "../lib/d1-helpers";
+import {
+  type GarmentRow,
+  toGarment,
+  wrapDbError,
+  TEMP_USER_ID,
+} from "../lib/d1-helpers";
 import { GARMENT_STATUS } from "@shared/lib/constants";
 
 export const garmentRouter = router({
@@ -50,13 +55,7 @@ export const garmentRouter = router({
       const result = await ctx.env.DB.prepare(sql)
         .bind(...params)
         .all<GarmentRow>()
-        .catch((err: unknown) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message:
-              err instanceof Error ? err.message : "Failed to fetch garments",
-          });
-        });
+        .catch(wrapDbError("fetch garments"));
 
       return result.results.map(toGarment);
     }),
@@ -71,13 +70,7 @@ export const garmentRouter = router({
       )
         .bind(input.id, userId)
         .first<GarmentRow>()
-        .catch((err: unknown) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message:
-              err instanceof Error ? err.message : "Failed to fetch garment",
-          });
-        });
+        .catch(wrapDbError("fetch garment"));
 
       if (row === null) {
         throw new TRPCError({
@@ -123,28 +116,15 @@ export const garmentRouter = router({
           now,
         )
         .run()
-        .catch((err: unknown) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message:
-              err instanceof Error ? err.message : "Failed to create garment",
-          });
-        });
+        .catch(wrapDbError("create garment"));
 
+      // DB デフォルト値との一貫性を保つため再 SELECT
       const row = await ctx.env.DB.prepare(
         "SELECT * FROM garments WHERE id = ?1",
       )
         .bind(id)
         .first<GarmentRow>()
-        .catch((err: unknown) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message:
-              err instanceof Error
-                ? err.message
-                : "Failed to fetch created garment",
-          });
-        });
+        .catch(wrapDbError("fetch created garment"));
 
       if (row === null) {
         throw new TRPCError({
@@ -166,13 +146,7 @@ export const garmentRouter = router({
       )
         .bind(input.id, userId)
         .first<GarmentRow>()
-        .catch((err: unknown) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message:
-              err instanceof Error ? err.message : "Failed to fetch garment",
-          });
-        });
+        .catch(wrapDbError("fetch garment"));
 
       if (existing === null) {
         throw new TRPCError({
@@ -233,28 +207,14 @@ export const garmentRouter = router({
       await ctx.env.DB.prepare(sql)
         .bind(...allParams)
         .run()
-        .catch((err: unknown) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message:
-              err instanceof Error ? err.message : "Failed to update garment",
-          });
-        });
+        .catch(wrapDbError("update garment"));
 
       const row = await ctx.env.DB.prepare(
         "SELECT * FROM garments WHERE id = ?1 AND user_id = ?2",
       )
         .bind(input.id, userId)
         .first<GarmentRow>()
-        .catch((err: unknown) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message:
-              err instanceof Error
-                ? err.message
-                : "Failed to fetch updated garment",
-          });
-        });
+        .catch(wrapDbError("fetch updated garment"));
 
       if (row === null) {
         throw new TRPCError({
@@ -271,18 +231,19 @@ export const garmentRouter = router({
     .mutation(async ({ ctx, input }) => {
       const userId = TEMP_USER_ID;
 
-      await ctx.env.DB.prepare(
+      const result = await ctx.env.DB.prepare(
         "DELETE FROM garments WHERE id = ?1 AND user_id = ?2",
       )
         .bind(input.id, userId)
         .run()
-        .catch((err: unknown) => {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message:
-              err instanceof Error ? err.message : "Failed to delete garment",
-          });
+        .catch(wrapDbError("delete garment"));
+
+      if (result.meta.changes === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Garment not found: ${input.id}`,
         });
+      }
 
       return { success: true };
     }),

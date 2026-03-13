@@ -13,6 +13,15 @@ import { TRPCError } from "@trpc/server";
 
 export const TEMP_USER_ID = "temp-user-001";
 
+export const wrapDbError =
+  (context: string) =>
+  (err: unknown): never => {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: err instanceof Error ? err.message : `Failed to ${context}`,
+    });
+  };
+
 export type GarmentRow = {
   readonly id: string;
   readonly user_id: string;
@@ -40,7 +49,18 @@ const isDollSize = (value: string): value is DollSize =>
 const isGarmentStatus = (value: string): value is GarmentStatus =>
   Object.hasOwn(GARMENT_STATUS_LABEL, value);
 
-const parseJsonArray = (json: string): readonly string[] => {
+const isJsonArraySyntax = (str: string): boolean => {
+  const trimmed = str.trim();
+  return trimmed.startsWith("[") && trimmed.endsWith("]");
+};
+
+const parseJsonArray = (json: string, fieldName: string): readonly string[] => {
+  if (!isJsonArraySyntax(json)) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `Invalid JSON array in field "${fieldName}": ${json}`,
+    });
+  }
   const parsed: unknown = JSON.parse(json);
   if (!Array.isArray(parsed)) {
     return [];
@@ -78,8 +98,8 @@ export const toGarment = (row: GarmentRow): Garment => {
     name: row.name,
     category: row.category,
     dollSize: row.doll_size,
-    colors: parseJsonArray(row.colors),
-    tags: parseJsonArray(row.tags),
+    colors: parseJsonArray(row.colors, "colors"),
+    tags: parseJsonArray(row.tags, "tags"),
     imageUrl: row.image_url ?? undefined,
     locationId: row.location_id ?? undefined,
     status: row.status,
