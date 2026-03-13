@@ -1,4 +1,4 @@
-import type { GarmentCategory } from "@/types";
+import type { DollSize, GarmentCategory, GarmentStatus } from "@/types";
 
 export const GARMENT_STATUS = Object.freeze({
   STORED: "stored",
@@ -104,6 +104,21 @@ export const SORT_OPTIONS = Object.freeze([
 ] as const);
 
 export type SortOptionValue = (typeof SORT_OPTIONS)[number]["value"];
+
+export const DOLL_SIZES: readonly DollSize[] = [
+  "1/3",
+  "MSD",
+  "SD",
+  "YoSD",
+  "1/6",
+  "other",
+];
+
+export const GARMENT_STATUSES: readonly GarmentStatus[] = [
+  "stored",
+  "checked_out",
+  "lost",
+];
 
 export const TOP_BAR_HEIGHT = 56;
 export const BOTTOM_NAV_HEIGHT = 64;
