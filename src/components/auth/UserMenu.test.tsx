@@ -15,15 +15,13 @@ type AuthState = {
   readonly isAuthenticated: boolean;
 };
 
-const mockAuthState = vi.hoisted(() => ({
-  value: { user: undefined, isAuthenticated: false } as AuthState,
-}));
+const mockAuthState = vi.hoisted(() => {
+  const initial: AuthState = { user: undefined, isAuthenticated: false };
+  return { value: initial };
+});
 
 vi.mock("@/stores/authAtoms", async () => {
-  const original =
-    await vi.importActual<typeof import("@/stores/authAtoms")>(
-      "@/stores/authAtoms",
-    );
+  const original = await vi.importActual("@/stores/authAtoms");
   return {
     ...original,
     authSessionAtom: atom(() => mockAuthState.value),

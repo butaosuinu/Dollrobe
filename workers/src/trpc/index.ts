@@ -22,7 +22,6 @@ const authMiddleware = t.middleware(async ({ ctx, next }) => {
     })
     .catch(() => undefined);
 
-  // eslint-disable-next-line functional/no-throw-statements -- tRPC requires throwing TRPCError
   if (session == null) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
