@@ -7,14 +7,24 @@ import { useAtomValue } from "jotai";
 import { Plus, Search, Shirt } from "lucide-react";
 import clsx from "clsx";
 import { garmentsAtom } from "@/stores/garmentAtoms";
-import { GARMENT_CATEGORY_LABEL, GARMENT_CATEGORIES } from "@/lib/constants";
-import type { GarmentCategory } from "@/types";
+import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
+import {
+  GARMENT_CATEGORY_LABEL,
+  GARMENT_CATEGORIES,
+  CONFIDENCE_FILTER_OPTIONS,
+  SORT_OPTIONS,
+} from "@/lib/constants";
+import type { ConfidenceFilterValue, SortOptionValue } from "@/lib/constants";
+import type { GarmentCategory, Garment } from "@/types";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import GarmentGrid from "@/components/garment/GarmentGrid";
 import GarmentList from "@/components/garment/GarmentList";
 import ViewToggle from "@/components/garment/ViewToggle";
 import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
+
+const isSortOptionValue = (value: string): value is SortOptionValue =>
+  SORT_OPTIONS.some((option) => option.value === value);
 
 type ViewMode = "grid" | "list";
 
@@ -31,6 +41,15 @@ const CATEGORY_FILTERS: readonly CategoryFilter[] = [
   })),
 ];
 
+const GARMENT_COMPARATORS = Object.freeze({
+  newest: (a: Garment, b: Garment) => b.createdAt - a.createdAt,
+  oldest: (a: Garment, b: Garment) => a.createdAt - b.createdAt,
+  confidence_asc: (a: Garment, b: Garment) =>
+    getConfidence(a) - getConfidence(b),
+  confidence_desc: (a: Garment, b: Garment) =>
+    getConfidence(b) - getConfidence(a),
+} satisfies Record<SortOptionValue, (a: Garment, b: Garment) => number>);
+
 const GarmentListContent = () => {
   const router = useRouter();
   const garments = useAtomValue(garmentsAtom);
@@ -39,10 +58,13 @@ const GarmentListContent = () => {
   const [activeCategory, setActiveCategory] = useState<GarmentCategory | "all">(
     "all",
   );
+  const [confidenceFilter, setConfidenceFilter] =
+    useState<ConfidenceFilterValue>("all");
+  const [sortOption, setSortOption] = useState<SortOptionValue>("newest");
 
   const filteredGarments = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return garments.filter((g) => {
+    const filtered = garments.filter((g) => {
       const matchesCategory =
         activeCategory === "all" || g.category === activeCategory;
       const nameMatches = g.name.toLowerCase().includes(query);
@@ -50,9 +72,14 @@ const GarmentListContent = () => {
       const matchesSearch = [query === "", nameMatches, tagMatches].some(
         Boolean,
       );
-      return matchesCategory && matchesSearch;
+      const matchesConfidence =
+        confidenceFilter === "all" ||
+        getConfidenceLabel(getConfidence(g)) === confidenceFilter;
+      return matchesCategory && matchesSearch && matchesConfidence;
     });
-  }, [garments, searchQuery, activeCategory]);
+
+    return [...filtered].sort(GARMENT_COMPARATORS[sortOption]);
+  }, [garments, searchQuery, activeCategory, confidenceFilter, sortOption]);
 
   if (garments.length === 0) {
     return (
@@ -81,6 +108,23 @@ const GarmentListContent = () => {
             className="h-10 w-full rounded-lg border border-border-default bg-surface-overlay pl-9 pr-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
           />
         </div>
+        <select
+          value={sortOption}
+          onChange={(e) => {
+            const { value } = e.target;
+            if (isSortOptionValue(value)) {
+              setSortOption(value);
+            }
+          }}
+          aria-label="並び替え"
+          className="h-10 rounded-lg border border-border-default bg-surface-overlay px-2 text-xs text-text-secondary focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+        >
+          {SORT_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
         <ViewToggle mode={viewMode} onChangeMode={setViewMode} />
       </div>
 
@@ -92,6 +136,23 @@ const GarmentListContent = () => {
             className={clsx(
               "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
               activeCategory === value
+                ? "bg-primary-500 text-text-inverse"
+                : "bg-surface-overlay text-text-secondary border border-border-default hover:bg-primary-50",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        {CONFIDENCE_FILTER_OPTIONS.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setConfidenceFilter(value)}
+            className={clsx(
+              "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+              confidenceFilter === value
                 ? "bg-primary-500 text-text-inverse"
                 : "bg-surface-overlay text-text-secondary border border-border-default hover:bg-primary-50",
             )}
