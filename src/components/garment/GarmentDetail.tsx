@@ -109,7 +109,18 @@ const GarmentDetail = ({ garment }: Props) => {
           <Edit3 className="size-4" />
           編集
         </Button>
-        <Button variant="secondary" size="lg" fullWidth>
+        <Button
+          variant="secondary"
+          size="lg"
+          fullWidth
+          onClick={() => {
+            const params = new URLSearchParams();
+            params.set("type", "garment");
+            params.append("ids", garment.id);
+            params.append("names", garment.name);
+            router.push(`/print?${params.toString()}`);
+          }}
+        >
           <QrCode className="size-4" />
           QRを印刷
         </Button>
