@@ -25,3 +25,7 @@ max_batch_size = 10
 
 [triggers]
 crons = ["0 9 * * 1"]
+
+[vars]
+TRUSTED_ORIGINS = "http://localhost:3000"
+ALLOWED_ORIGINS = "http://localhost:3000"
