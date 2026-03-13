@@ -9,7 +9,7 @@ import {
 } from "../lib/schemas";
 import { TEMP_USER_ID } from "../lib/d1-helpers";
 import type { GarmentRow } from "../lib/d1-helpers";
-import { GARMENT_STATUS } from "@shared/lib/constants";
+import { GARMENT_STATUS } from "@/lib/constants";
 
 export const scanRouter = router({
   checkin: publicProcedure
