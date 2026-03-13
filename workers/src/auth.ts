@@ -16,7 +16,7 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
         clientSecret: env.GOOGLE_CLIENT_SECRET,
       },
     },
-    trustedOrigins: ["http://localhost:3000"],
+    trustedOrigins: env.TRUSTED_ORIGINS.split(","),
   });
 
 export type Auth = ReturnType<typeof createAuth>;

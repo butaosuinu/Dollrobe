@@ -1,11 +1,12 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { Context as HonoContext } from "hono";
 import type { Env } from "../types";
-import { createAuth } from "../auth";
+import type { Auth } from "../auth";
 
 export type TRPCContext = {
   readonly env: Env;
   readonly honoContext: HonoContext;
+  readonly auth: Auth;
 };
 
 export type AuthenticatedTRPCContext = TRPCContext & {
@@ -14,29 +15,17 @@ export type AuthenticatedTRPCContext = TRPCContext & {
 
 const t = initTRPC.context<TRPCContext>().create();
 
-type SessionResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof createAuth>["api"]["getSession"]>>
->;
-
-function assertSession(
-  session: SessionResult | null | undefined,
-): asserts session is SessionResult {
-  // eslint-disable-next-line functional/no-conditional-statements -- tRPC requires throwing for unauthorized access
-  if (session === undefined || session === null) {
-    // eslint-disable-next-line functional/no-throw-statements -- tRPC requires throwing TRPCError
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-}
-
 const authMiddleware = t.middleware(async ({ ctx, next }) => {
-  const auth = createAuth({ env: ctx.env });
-  const session = await auth.api
+  const session = await ctx.auth.api
     .getSession({
       headers: ctx.honoContext.req.raw.headers,
     })
     .catch(() => undefined);
 
-  assertSession(session);
+  // eslint-disable-next-line functional/no-throw-statements -- tRPC requires throwing TRPCError
+  if (session == null) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 
   return await next({
     ctx: { ...ctx, userId: session.user.id },

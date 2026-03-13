@@ -2,10 +2,10 @@
 
 import { useAtomValue, useSetAtom } from "jotai";
 import { LogOut } from "lucide-react";
-import { authStateAtom, signOutAtom } from "@/stores/authAtoms";
+import { authSessionAtom, signOutAtom } from "@/stores/authAtoms";
 
 const UserMenu = () => {
-  const authState = useAtomValue(authStateAtom);
+  const authState = useAtomValue(authSessionAtom);
   const signOut = useSetAtom(signOutAtom);
 
   if (authState.user === undefined) {

@@ -12,26 +12,36 @@ export type SessionUser = {
   readonly name: string;
   readonly email: string;
   readonly emailVerified: boolean;
-  readonly image?: string | null | undefined;
+  readonly image: string | undefined;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 };
 
 export type SessionResponse = {
-  readonly data?: {
-    readonly user: SessionUser;
-  } | null;
+  readonly data:
+    | {
+        readonly user: SessionUser;
+      }
+    | undefined;
 };
 
-const { signOut: clientSignOut, useSession: clientUseSession, signIn } = client;
+const { signOut: clientSignOut, signIn } = client;
 const { social } = signIn;
 
 export const signInSocial = social;
 export const signOut = clientSignOut;
-export const useSession = clientUseSession;
 
 export const getSession = async (): Promise<SessionResponse> => {
-  const result = await client.getSession();
-  const { data } = result;
-  return { data };
+  const { data: rawData } = await client.getSession();
+  return {
+    data:
+      rawData === null
+        ? undefined
+        : {
+            user: {
+              ...rawData.user,
+              image: rawData.user.image ?? undefined,
+            },
+          },
+  };
 };

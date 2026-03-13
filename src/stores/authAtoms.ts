@@ -16,11 +16,6 @@ type AuthState = {
   readonly isAuthenticated: boolean;
 };
 
-export const authStateAtom = atom<AuthState>({
-  user: undefined,
-  isAuthenticated: false,
-});
-
 const extractUser = (
   session: SessionResponse | undefined,
 ): AuthUser | undefined => {
@@ -35,16 +30,20 @@ const extractUser = (
       };
 };
 
-export const fetchAuthSessionAtom = atom(undefined, async (_get, set) => {
+const authRefreshTriggerAtom = atom(0);
+
+export const authSessionAtom = atom(async (get): Promise<AuthState> => {
+  get(authRefreshTriggerAtom);
   const session = await getSession().catch(() => undefined);
   const user = extractUser(session);
-  set(authStateAtom, {
-    user,
-    isAuthenticated: user !== undefined,
-  });
+  return { user, isAuthenticated: user !== undefined };
 });
 
 export const signOutAtom = atom(undefined, async (_get, set) => {
   await authSignOut().catch(() => undefined);
-  set(authStateAtom, { user: undefined, isAuthenticated: false });
+  set(authRefreshTriggerAtom, (prev) => prev + 1);
+});
+
+export const refreshAuthAtom = atom(undefined, (_get, set) => {
+  set(authRefreshTriggerAtom, (prev) => prev + 1);
 });

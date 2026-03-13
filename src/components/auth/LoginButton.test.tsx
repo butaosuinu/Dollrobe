@@ -34,4 +34,24 @@ describe("LoginButton", () => {
 
     expect(mockSignInSocial).toHaveBeenCalledWith({ provider: "twitter" });
   });
+
+  it("ログインエラー時にconsole.errorが呼ばれる", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const loginError = new Error("OAuth failed");
+    mockSignInSocial.mockRejectedValueOnce(loginError);
+
+    const user = userEvent.setup();
+    render(<LoginButton provider="twitter" />);
+    await user.click(
+      screen.getByRole("button", { name: "X (Twitter) でログイン" }),
+    );
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "ソーシャルログイン失敗:",
+      loginError,
+    );
+    consoleErrorSpy.mockRestore();
+  });
 });

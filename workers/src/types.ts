@@ -16,4 +16,6 @@ export type Env = {
   readonly TWITTER_CLIENT_SECRET: string;
   readonly GOOGLE_CLIENT_ID: string;
   readonly GOOGLE_CLIENT_SECRET: string;
+  readonly TRUSTED_ORIGINS: string;
+  readonly ALLOWED_ORIGINS: string;
 };

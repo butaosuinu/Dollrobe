@@ -14,7 +14,10 @@ const PROVIDER_LABEL = Object.freeze({
 
 const LoginButton = ({ provider }: Props) => {
   const handleLogin = async () => {
-    await signInSocial({ provider }).catch(() => undefined);
+    await signInSocial({ provider }).catch((error: unknown) => {
+      // eslint-disable-next-line no-console -- OAuth errors should be visible for debugging
+      console.error("ソーシャルログイン失敗:", error);
+    });
   };
 
   return (
