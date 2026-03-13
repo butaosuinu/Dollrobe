@@ -4,12 +4,14 @@ import type {
   DollSize,
   GarmentStatus,
 } from "@/types";
+import type { StorageCase, StorageLocation } from "@/types/index";
 import {
   GARMENT_CATEGORY_LABEL,
   DOLL_SIZE_LABEL,
   GARMENT_STATUS_LABEL,
 } from "@shared/lib/constants";
 import { TRPCError } from "@trpc/server";
+import type { TRPCContext } from "../index";
 
 export const TEMP_USER_ID = "temp-user-001";
 
@@ -21,6 +23,11 @@ export const wrapDbError =
       message: err instanceof Error ? err.message : `Failed to ${context}`,
     });
   };
+
+export const getUserId = (_ctx: TRPCContext): string => TEMP_USER_ID;
+
+const ASCII_UPPER_A = 65;
+const MAX_LABEL_ROWS = 26;
 
 export type GarmentRow = {
   readonly id: string;
@@ -38,6 +45,25 @@ export type GarmentRow = {
   readonly checked_out_at: number | null;
   readonly created_at: number;
   readonly updated_at: number;
+};
+
+export type StorageCaseRow = {
+  readonly id: string;
+  readonly user_id: string;
+  readonly name: string;
+  readonly rows: number;
+  readonly cols: number;
+  readonly created_at: number;
+};
+
+export type StorageLocationRow = {
+  readonly id: string;
+  readonly user_id: string;
+  readonly case_id: string;
+  readonly label: string;
+  readonly row_num: number;
+  readonly col_num: number;
+  readonly created_at: number;
 };
 
 const isGarmentCategory = (value: string): value is GarmentCategory =>
@@ -109,4 +135,38 @@ export const toGarment = (row: GarmentRow): Garment => {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+};
+
+export const toStorageCase = (row: StorageCaseRow): StorageCase => ({
+  id: row.id,
+  userId: row.user_id,
+  name: row.name,
+  rows: row.rows,
+  cols: row.cols,
+  createdAt: row.created_at,
+});
+
+export const toStorageLocation = (
+  row: StorageLocationRow,
+): StorageLocation => ({
+  id: row.id,
+  userId: row.user_id,
+  caseId: row.case_id,
+  label: row.label,
+  row: row.row_num,
+  col: row.col_num,
+  createdAt: row.created_at,
+});
+
+export const generateLabel = ({
+  row,
+  col,
+}: {
+  readonly row: number;
+  readonly col: number;
+}): string => {
+  if (row >= MAX_LABEL_ROWS) {
+    throw new Error(`row must be less than ${MAX_LABEL_ROWS}, got ${row}`);
+  }
+  return `${String.fromCharCode(ASCII_UPPER_A + row)}-${col + 1}`;
 };
