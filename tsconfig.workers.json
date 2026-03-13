@@ -6,8 +6,8 @@
     "types": ["@cloudflare/workers-types"],
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["./src/types/*"],
-      "@shared/lib/*": ["./src/lib/*"]
+      "@shared/lib/*": ["./src/lib/*"],
+      "@shared/*": ["./src/types/*"]
     }
   },
   "include": [

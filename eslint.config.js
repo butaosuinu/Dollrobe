@@ -144,7 +144,9 @@ export default tseslint.config(
       eqeqeq: ["error", "always", { null: "ignore" }],
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/prefer-destructuring": "off",
+      "no-negated-condition": "off",
     },
   },
 );

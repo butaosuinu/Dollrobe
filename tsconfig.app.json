@@ -12,7 +12,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared/lib/*": ["./src/lib/*"],
+      "@shared/*": ["./src/types/*"]
     },
     "allowJs": true,
     "incremental": true,
