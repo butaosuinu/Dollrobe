@@ -11,7 +11,6 @@ import {
   GARMENT_STATUS_LABEL,
 } from "@/lib/constants";
 import { TRPCError } from "@trpc/server";
-import type { TRPCContext } from "../index";
 
 export const TEMP_USER_ID = "temp-user-001";
 
@@ -23,8 +22,6 @@ export const wrapDbError =
       message: err instanceof Error ? err.message : `Failed to ${context}`,
     });
   };
-
-export const getUserId = (_ctx: TRPCContext): string => TEMP_USER_ID;
 
 const ASCII_UPPER_A = 65;
 const MAX_LABEL_ROWS = 26;
