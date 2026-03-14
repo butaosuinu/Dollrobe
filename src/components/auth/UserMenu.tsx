@@ -2,6 +2,7 @@
 
 import { useAtomValue, useSetAtom } from "jotai";
 import { LogOut } from "lucide-react";
+import { t } from "@lingui/core/macro";
 import { authSessionAtom, signOutAtom } from "@/stores/authAtoms";
 
 const UserMenu = () => {
@@ -31,7 +32,7 @@ const UserMenu = () => {
           signOut();
         }}
         className="p-1 text-text-tertiary hover:text-text-primary"
-        aria-label="ログアウト"
+        aria-label={t`ログアウト`}
       >
         <LogOut className="size-4" />
       </button>

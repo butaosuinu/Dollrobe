@@ -68,6 +68,15 @@
     var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN", sans-serif;
 }
 
+html[lang="ko"] {
+  --font-body: var(--font-noto-sans-kr), "Malgun Gothic", sans-serif;
+}
+
+html[lang="zh"] {
+  --font-body:
+    var(--font-noto-sans-sc), "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
 html {
   font-family: var(--font-body);
   color: var(--color-text-primary);

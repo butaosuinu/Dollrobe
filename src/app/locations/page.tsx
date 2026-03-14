@@ -3,6 +3,8 @@
 import { Suspense } from "react";
 import { useAtomValue } from "jotai";
 import { LayoutGrid, Plus } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { storageCasesAtom, storageLocationsAtom } from "@/stores/locationAtoms";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
@@ -19,9 +21,9 @@ const LocationsContent = () => {
     return (
       <EmptyState
         icon={LayoutGrid}
-        title="まだ収納場所がありません"
-        description="衣装ケースを追加して、服の収納場所を管理しましょう"
-        actionLabel="ケースを追加"
+        title={t`まだ収納場所がありません`}
+        description={t`衣装ケースを追加して、服の収納場所を管理しましょう`}
+        actionLabel={t`ケースを追加`}
       />
     );
   }
@@ -48,11 +50,17 @@ const LocationsContent = () => {
 const LocationsPage = () => (
   <div className="flex flex-col gap-4 p-4">
     <div className="animate-[fade-in_0.4s_ease-out]">
-      <h2 className="font-display text-xl font-bold">収納場所</h2>
+      <h2 className="font-display text-xl font-bold">
+        <Trans>収納場所</Trans>
+      </h2>
     </div>
 
     <ErrorBoundary
-      fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}
+      fallback={
+        <p className="text-sm text-danger">
+          <Trans>読み込みに失敗しました</Trans>
+        </p>
+      }
     >
       <Suspense
         fallback={

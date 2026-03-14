@@ -15,6 +15,7 @@ import {
   TEMP_USER_ID,
 } from "../lib/d1-helpers";
 import { GARMENT_STATUS } from "@shared/lib/constants";
+import { ERROR_CODE } from "../lib/errorCodes";
 
 export const garmentRouter = router({
   list: publicProcedure
@@ -75,7 +76,7 @@ export const garmentRouter = router({
       if (row === null) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Garment not found: ${input.id}`,
+          message: ERROR_CODE.GARMENT_NOT_FOUND,
         });
       }
 
@@ -129,7 +130,7 @@ export const garmentRouter = router({
       if (row === null) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Created garment not found",
+          message: ERROR_CODE.GARMENT_CREATE_FAILED,
         });
       }
 
@@ -151,7 +152,7 @@ export const garmentRouter = router({
       if (existing === null) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Garment not found: ${input.id}`,
+          message: ERROR_CODE.GARMENT_NOT_FOUND,
         });
       }
 
@@ -219,7 +220,7 @@ export const garmentRouter = router({
       if (row === null) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Updated garment not found",
+          message: ERROR_CODE.GARMENT_UPDATE_FAILED,
         });
       }
 
@@ -241,7 +242,7 @@ export const garmentRouter = router({
       if (result.meta.changes === 0) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Garment not found: ${input.id}`,
+          message: ERROR_CODE.GARMENT_NOT_FOUND,
         });
       }
 

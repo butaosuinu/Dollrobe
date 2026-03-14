@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { ArrowLeft } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import GarmentDetail from "@/components/garment/GarmentDetail";
@@ -18,12 +19,14 @@ const GarmentDetailContent = () => {
   if (garment === undefined) {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <p className="text-sm text-text-secondary">服が見つかりません</p>
+        <p className="text-sm text-text-secondary">
+          <Trans>服が見つかりません</Trans>
+        </p>
         <button
           onClick={() => router.push("/garments")}
           className="text-sm font-medium text-primary-500"
         >
-          一覧に戻る
+          <Trans>一覧に戻る</Trans>
         </button>
       </div>
     );
@@ -44,11 +47,17 @@ const GarmentDetailPage = () => {
         >
           <ArrowLeft className="size-5" />
         </button>
-        <h2 className="font-display text-lg font-bold">詳細</h2>
+        <h2 className="font-display text-lg font-bold">
+          <Trans>詳細</Trans>
+        </h2>
       </div>
 
       <ErrorBoundary
-        fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}
+        fallback={
+          <p className="text-sm text-danger">
+            <Trans>読み込みに失敗しました</Trans>
+          </p>
+        }
       >
         <Suspense fallback={<Skeleton className="h-96 rounded-2xl" />}>
           <GarmentDetailContent />

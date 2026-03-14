@@ -14,6 +14,7 @@ import {
   generateLabel,
 } from "../lib/d1-helpers";
 import type { StorageCaseRow, StorageLocationRow } from "../lib/d1-helpers";
+import { ERROR_CODE } from "../lib/errorCodes";
 
 const GARMENT_STATUS_CHECKED_OUT = "checked_out";
 
@@ -29,7 +30,7 @@ export const locationRouter = router({
       .catch((error: unknown) => {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "データベースクエリに失敗しました",
+          message: ERROR_CODE.DB_QUERY_FAILED,
           cause: error,
         });
       });
@@ -50,7 +51,7 @@ export const locationRouter = router({
         .catch((error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "データベースクエリに失敗しました",
+            message: ERROR_CODE.DB_QUERY_FAILED,
             cause: error,
           });
         });
@@ -58,7 +59,7 @@ export const locationRouter = router({
       if (caseRow == null) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "ケースが見つかりません",
+          message: ERROR_CODE.CASE_NOT_FOUND,
         });
       }
 
@@ -70,7 +71,7 @@ export const locationRouter = router({
         .catch((error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "データベースクエリに失敗しました",
+            message: ERROR_CODE.DB_QUERY_FAILED,
             cause: error,
           });
         });
@@ -109,7 +110,7 @@ export const locationRouter = router({
         (error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "ケースの作成に失敗しました",
+            message: ERROR_CODE.CASE_CREATE_FAILED,
             cause: error,
           });
         },
@@ -131,7 +132,7 @@ export const locationRouter = router({
         .catch((error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "データベースクエリに失敗しました",
+            message: ERROR_CODE.DB_QUERY_FAILED,
             cause: error,
           });
         });
@@ -139,7 +140,7 @@ export const locationRouter = router({
       if (existing == null) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "ケースが見つかりません",
+          message: ERROR_CODE.CASE_NOT_FOUND,
         });
       }
 
@@ -151,7 +152,7 @@ export const locationRouter = router({
         .catch((error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "ケースの更新に失敗しました",
+            message: ERROR_CODE.CASE_UPDATE_FAILED,
             cause: error,
           });
         });
@@ -173,7 +174,7 @@ export const locationRouter = router({
         .catch((error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "データベースクエリに失敗しました",
+            message: ERROR_CODE.DB_QUERY_FAILED,
             cause: error,
           });
         });
@@ -181,7 +182,7 @@ export const locationRouter = router({
       if (existing == null) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "ケースが見つかりません",
+          message: ERROR_CODE.CASE_NOT_FOUND,
         });
       }
 
@@ -207,7 +208,7 @@ export const locationRouter = router({
       ]).catch((error: unknown) => {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "ケースの削除に失敗しました",
+          message: ERROR_CODE.CASE_DELETE_FAILED,
           cause: error,
         });
       });
@@ -229,7 +230,7 @@ export const locationRouter = router({
         .catch((error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "データベースクエリに失敗しました",
+            message: ERROR_CODE.DB_QUERY_FAILED,
             cause: error,
           });
         });
@@ -237,7 +238,7 @@ export const locationRouter = router({
       if (caseRow == null) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "ケースが見つかりません",
+          message: ERROR_CODE.CASE_NOT_FOUND,
         });
       }
 
@@ -249,7 +250,7 @@ export const locationRouter = router({
         .catch((error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "データベースクエリに失敗しました",
+            message: ERROR_CODE.DB_QUERY_FAILED,
             cause: error,
           });
         });
@@ -257,7 +258,7 @@ export const locationRouter = router({
       if (duplicateRow != null) {
         throw new TRPCError({
           code: "CONFLICT",
-          message: "同じ行・列のロケーションが既に存在します",
+          message: ERROR_CODE.LOCATION_DUPLICATE,
         });
       }
 
@@ -279,7 +280,7 @@ export const locationRouter = router({
         .catch((error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "ロケーションの作成に失敗しました",
+            message: ERROR_CODE.LOCATION_CREATE_FAILED,
             cause: error,
           });
         });
@@ -301,7 +302,7 @@ export const locationRouter = router({
         .catch((error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "データベースクエリに失敗しました",
+            message: ERROR_CODE.DB_QUERY_FAILED,
             cause: error,
           });
         });
@@ -309,7 +310,7 @@ export const locationRouter = router({
       if (existing == null) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "ロケーションが見つかりません",
+          message: ERROR_CODE.LOCATION_NOT_FOUND,
         });
       }
 
@@ -327,7 +328,7 @@ export const locationRouter = router({
         (error: unknown) => {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "ロケーションの削除に失敗しました",
+            message: ERROR_CODE.LOCATION_DELETE_FAILED,
             cause: error,
           });
         },

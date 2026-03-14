@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { Plus, Search, Shirt } from "lucide-react";
 import clsx from "clsx";
+import { Trans } from "@lingui/react/macro";
+import { msg, t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import {
@@ -28,13 +31,8 @@ const isSortOptionValue = (value: string): value is SortOptionValue =>
 
 type ViewMode = "grid" | "list";
 
-type CategoryFilter = {
-  readonly value: GarmentCategory | "all";
-  readonly label: string;
-};
-
-const CATEGORY_FILTERS: readonly CategoryFilter[] = [
-  { value: "all", label: "すべて" },
+const CATEGORY_FILTERS = [
+  { value: "all" as const, label: msg`すべて` },
   ...GARMENT_CATEGORIES.map((key) => ({
     value: key,
     label: GARMENT_CATEGORY_LABEL[key],
@@ -52,6 +50,7 @@ const GARMENT_COMPARATORS = Object.freeze({
 
 const GarmentListContent = () => {
   const router = useRouter();
+  const { i18n } = useLingui();
   const garments = useAtomValue(garmentsAtom);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchQuery, setSearchQuery] = useState("");
@@ -85,9 +84,9 @@ const GarmentListContent = () => {
     return (
       <EmptyState
         icon={Shirt}
-        title="まだ服がありません"
-        description="最初のドール服を登録してみましょう"
-        actionLabel="服を登録"
+        title={t`まだ服がありません`}
+        description={t`最初のドール服を登録してみましょう`}
+        actionLabel={t`服を登録`}
         onAction={() => {
           router.push("/garments/new");
         }}
@@ -102,7 +101,7 @@ const GarmentListContent = () => {
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-tertiary" />
           <input
             type="search"
-            placeholder="名前やタグで検索..."
+            placeholder={t`名前やタグで検索...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-10 w-full rounded-lg border border-border-default bg-surface-overlay pl-9 pr-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
@@ -116,12 +115,12 @@ const GarmentListContent = () => {
               setSortOption(value);
             }
           }}
-          aria-label="並び替え"
+          aria-label={t`並び替え`}
           className="h-10 rounded-lg border border-border-default bg-surface-overlay px-2 text-xs text-text-secondary focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
         >
           {SORT_OPTIONS.map(({ value, label }) => (
             <option key={value} value={value}>
-              {label}
+              {i18n._(label)}
             </option>
           ))}
         </select>
@@ -140,7 +139,7 @@ const GarmentListContent = () => {
                 : "bg-surface-overlay text-text-secondary border border-border-default hover:bg-primary-50",
             )}
           >
-            {label}
+            {i18n._(label)}
           </button>
         ))}
       </div>
@@ -157,14 +156,14 @@ const GarmentListContent = () => {
                 : "bg-surface-overlay text-text-secondary border border-border-default hover:bg-primary-50",
             )}
           >
-            {label}
+            {i18n._(label)}
           </button>
         ))}
       </div>
 
       {filteredGarments.length === 0 ? (
         <p className="py-12 text-center text-sm text-text-tertiary">
-          一致する服が見つかりません
+          <Trans>一致する服が見つかりません</Trans>
         </p>
       ) : viewMode === "grid" ? (
         <GarmentGrid garments={filteredGarments} />
@@ -178,11 +177,17 @@ const GarmentListContent = () => {
 const GarmentsPage = () => (
   <div className="flex flex-col gap-4 p-4">
     <div className="animate-[fade-in_0.4s_ease-out]">
-      <h2 className="font-display text-xl font-bold">ワードローブ</h2>
+      <h2 className="font-display text-xl font-bold">
+        <Trans>ワードローブ</Trans>
+      </h2>
     </div>
 
     <ErrorBoundary
-      fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}
+      fallback={
+        <p className="text-sm text-danger">
+          <Trans>読み込みに失敗しました</Trans>
+        </p>
+      }
     >
       <Suspense
         fallback={

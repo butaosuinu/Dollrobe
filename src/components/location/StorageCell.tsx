@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { Trans } from "@lingui/react/macro";
 import type { Garment, StorageLocation } from "@/types";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_STATUS } from "@/lib/constants";
@@ -46,7 +47,7 @@ const StorageCell = ({ location, garments, onClick }: Props) => {
       </span>
       {garments.length > 0 && (
         <span className="mt-0.5 text-[10px] text-text-secondary">
-          {garments.length}着
+          <Trans>{garments.length}着</Trans>
         </span>
       )}
     </button>

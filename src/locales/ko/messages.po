@@ -1,0 +1,388 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-03-14 15:29+0900\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: ko\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. placeholder {0}: garments.length
+#: src/components/location/StorageCell.tsx
+msgid "{0}着"
+msgstr "{0}벌"
+
+#. placeholder {0}: orphaned.length
+#: src/components/dashboard/AlertPanel.tsx
+msgid "{0}着の服が3日以上取り出し中です"
+msgstr "{0}벌의 옷이 3일 이상 꺼낸 상태입니다"
+
+#. placeholder {0}: checkedOut.length
+#: src/components/dashboard/AlertPanel.tsx
+msgid "{0}着の服を取り出し中"
+msgstr "{0}벌의 옷을 꺼낸 중"
+
+#. placeholder {0}: scannedIds.length
+#: src/components/scan/ScanSessionPanel.tsx
+msgid "{0}着をスキャンしました"
+msgstr "{0}벌 스캔 완료"
+
+#. placeholder {0}: storageCase.rows
+#. placeholder {1}: storageCase.cols
+#: src/components/location/StorageCaseCard.tsx
+msgid "{0}行 x {1}列"
+msgstr "{0}행 x {1}열"
+
+#: src/lib/constants.ts
+msgid "1/3 (SD17/DD等)"
+msgstr "1/3 (SD17/DD 등)"
+
+#: src/lib/constants.ts
+msgid "1/6 (ピュアニーモ等)"
+msgstr "1/6 (퓨어니모 등)"
+
+#: src/components/auth/LoginButton.tsx
+msgid "Google でログイン"
+msgstr "Google로 로그인"
+
+#: src/lib/constants.ts
+msgid "MSD (1/4)"
+msgstr "MSD (1/4)"
+
+#: src/app/print/page.tsx
+msgid "QR ラベル印刷"
+msgstr "QR 라벨 인쇄"
+
+#: src/app/scan/page.tsx
+msgid "QRスキャン"
+msgstr "QR 스캔"
+
+#: src/components/dashboard/AlertPanel.tsx
+msgid "QRスキャンで戻す場所を記録できます"
+msgstr "QR 스캔으로 반납 장소를 기록할 수 있습니다"
+
+#: src/components/garment/GarmentDetail.tsx
+msgid "QRを印刷"
+msgstr "QR 인쇄"
+
+#: src/lib/constants.ts
+msgid "SD (1/3)"
+msgstr "SD (1/3)"
+
+#: src/components/auth/LoginButton.tsx
+msgid "X (Twitter) でログイン"
+msgstr "X (Twitter)로 로그인"
+
+#: src/lib/constants.ts
+msgid "YoSD (1/6)"
+msgstr "YoSD (1/6)"
+
+#: src/lib/constants.ts
+msgid "アウター"
+msgstr "아우터"
+
+#: src/lib/constants.ts
+msgid "アクセサリー"
+msgstr "액세서리"
+
+#: src/app/page.tsx
+msgid "おかえりなさい"
+msgstr "다녀오셨습니까"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "カテゴリ"
+msgstr "카테고리"
+
+#: src/components/garment/ViewToggle.tsx
+msgid "グリッド表示"
+msgstr "그리드 보기"
+
+#: src/app/locations/page.tsx
+msgid "ケースを追加"
+msgstr "케이스 추가"
+
+#: src/components/scan/ScanSessionPanel.tsx
+msgid "この場所の全服を確認済みにする"
+msgstr "이 장소의 모든 옷을 확인 완료로 표시"
+
+#: src/lib/constants.ts
+msgid "シューズ"
+msgstr "슈즈"
+
+#: src/components/layout/BottomNav.tsx
+msgid "スキャン"
+msgstr "스캔"
+
+#: src/app/scan/page.tsx
+msgid "スキャンしました"
+msgstr "스캔 완료"
+
+#: src/components/scan/ScanSessionPanel.tsx
+msgid "スキャン中の場所"
+msgstr "스캔 중인 장소"
+
+#: src/components/dashboard/StatsOverview.tsx
+#: src/components/garment/GarmentDetail.tsx
+msgid "ステータス"
+msgstr "상태"
+
+#: src/app/garments/page.tsx
+#: src/lib/constants.ts
+msgid "すべて"
+msgstr "전체"
+
+#: src/components/dashboard/RecentItems.tsx
+msgid "すべて見る"
+msgstr "모두 보기"
+
+#: src/lib/constants.ts
+#: src/lib/constants.ts
+msgid "その他"
+msgstr "기타"
+
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
+msgid "タグ"
+msgstr "태그"
+
+#: src/app/page.tsx
+msgid "ダッシュボード"
+msgstr "대시보드"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "ドールサイズ"
+msgstr "인형 사이즈"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "ドール服の名前"
+msgstr "인형 옷 이름"
+
+#: src/lib/constants.ts
+msgid "トップス"
+msgstr "상의"
+
+#: src/lib/constants.ts
+msgid "ドレス"
+msgstr "드레스"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "プレビュー"
+msgstr "미리보기"
+
+#: src/app/print/page.tsx
+msgid "ページの読み込みに失敗しました"
+msgstr "페이지 로딩에 실패했습니다"
+
+#: src/components/layout/BottomNav.tsx
+msgid "ホーム"
+msgstr "홈"
+
+#: src/lib/constants.ts
+msgid "ボトムス"
+msgstr "하의"
+
+#: src/app/locations/page.tsx
+msgid "まだ収納場所がありません"
+msgstr "아직 수납 장소가 없습니다"
+
+#: src/app/garments/page.tsx
+msgid "まだ服がありません"
+msgstr "아직 옷이 없습니다"
+
+#: src/lib/constants.ts
+msgid "よく着る服 (14日)"
+msgstr "자주 입는 옷 (14일)"
+
+#: src/components/garment/ViewToggle.tsx
+msgid "リスト表示"
+msgstr "리스트 보기"
+
+#: src/components/scan/ScanSessionPanel.tsx
+msgid "リセット"
+msgstr "초기화"
+
+#: src/components/auth/UserMenu.tsx
+msgid "ログアウト"
+msgstr "로그아웃"
+
+#: src/app/garments/page.tsx
+#: src/components/layout/BottomNav.tsx
+msgid "ワードローブ"
+msgstr "옷장"
+
+#: src/app/garments/page.tsx
+msgid "一致する服が見つかりません"
+msgstr "일치하는 옷을 찾을 수 없습니다"
+
+#: src/app/garments/[id]/page.tsx
+msgid "一覧に戻る"
+msgstr "목록으로 돌아가기"
+
+#: src/lib/constants.ts
+#: src/lib/constants.ts
+msgid "不明"
+msgstr "불명"
+
+#: src/app/garments/page.tsx
+msgid "並び替え"
+msgstr "정렬"
+
+#: src/lib/constants.ts
+msgid "信頼度: 低い順"
+msgstr "신뢰도: 낮은 순"
+
+#: src/lib/constants.ts
+msgid "信頼度: 高い順"
+msgstr "신뢰도: 높은 순"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "信頼度の減衰期間"
+msgstr "신뢰도 감쇠 기간"
+
+#: src/app/garments/page.tsx
+msgid "最初のドール服を登録してみましょう"
+msgstr "첫 번째 인형 옷을 등록해 보세요"
+
+#: src/components/dashboard/RecentItems.tsx
+msgid "最近のアイテム"
+msgstr "최근 아이템"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "写真を追加"
+msgstr "사진 추가"
+
+#: src/components/garment/GarmentDetail.tsx
+msgid "削除"
+msgstr "삭제"
+
+#: src/app/print/page.tsx
+msgid "印刷"
+msgstr "인쇄"
+
+#: src/app/print/page.tsx
+msgid "印刷する QR コードが選択されていません"
+msgstr "인쇄할 QR 코드가 선택되지 않았습니다"
+
+#: src/components/layout/BottomNav.tsx
+msgid "収納"
+msgstr "수납"
+
+#: src/lib/constants.ts
+msgid "収納中"
+msgstr "수납 중"
+
+#: src/app/locations/page.tsx
+msgid "収納場所"
+msgstr "수납 장소"
+
+#: src/components/dashboard/AlertPanel.tsx
+msgid "収納場所を確認して状態を更新しましょう"
+msgstr "수납 장소를 확인하고 상태를 업데이트하세요"
+
+#: src/components/garment/GarmentCard.tsx
+#: src/lib/constants.ts
+msgid "取り出し中"
+msgstr "꺼낸 중"
+
+#: src/lib/constants.ts
+msgid "古い順"
+msgstr "오래된 순"
+
+#: src/components/confidence/ConfidenceStats.tsx
+msgid "合計"
+msgstr "합계"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "名前"
+msgstr "이름"
+
+#: src/app/garments/page.tsx
+msgid "名前やタグで検索..."
+msgstr "이름이나 태그로 검색..."
+
+#: src/components/scan/ScanSessionPanel.tsx
+msgid "場所のQRをスキャンして、収納場所を設定してください"
+msgstr "장소의 QR을 스캔하여 수납 장소를 설정하세요"
+
+#: src/app/scan/page.tsx
+msgid "場所を設定しました"
+msgstr "장소가 설정되었습니다"
+
+#: src/lib/constants.ts
+msgid "季節物 (90日)"
+msgstr "계절 옷 (90일)"
+
+#: src/lib/constants.ts
+msgid "新しい順"
+msgstr "최신 순"
+
+#: src/app/garments/[id]/page.tsx
+msgid "服が見つかりません"
+msgstr "옷을 찾을 수 없습니다"
+
+#: src/app/garments/new/page.tsx
+#: src/app/garments/page.tsx
+msgid "服を登録"
+msgstr "옷 등록"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "登録する"
+msgstr "등록"
+
+#: src/components/confidence/ConfidenceStats.tsx
+msgid "着"
+msgstr "벌"
+
+#: src/components/confidence/ConfidenceStats.tsx
+#: src/lib/constants.ts
+#: src/lib/constants.ts
+msgid "確定"
+msgstr "확인됨"
+
+#: src/components/dashboard/AlertPanel.tsx
+msgid "確認"
+msgstr "확인"
+
+#: src/lib/constants.ts
+msgid "紛失"
+msgstr "분실"
+
+#: src/components/garment/GarmentDetail.tsx
+msgid "編集"
+msgstr "편집"
+
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
+msgid "色"
+msgstr "색상"
+
+#: src/app/locations/page.tsx
+msgid "衣装ケースを追加して、服の収納場所を管理しましょう"
+msgstr "의상 케이스를 추가하여 옷의 수납 장소를 관리하세요"
+
+#: src/components/confidence/ConfidenceStats.tsx
+#: src/lib/constants.ts
+#: src/lib/constants.ts
+msgid "要確認"
+msgstr "확인 필요"
+
+#: src/app/garments/[id]/page.tsx
+msgid "詳細"
+msgstr "상세"
+
+#: src/app/garments/[id]/page.tsx
+#: src/app/garments/page.tsx
+#: src/app/locations/page.tsx
+#: src/app/page.tsx
+msgid "読み込みに失敗しました"
+msgstr "로딩에 실패했습니다"
+
+#: src/lib/constants.ts
+msgid "通常 (30日)"
+msgstr "보통 (30일)"

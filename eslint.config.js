@@ -17,6 +17,9 @@ export default tseslint.config(
       "postcss.config.mjs",
       "next.config.ts",
       "vitest.config.ts",
+      "lingui.config.ts",
+      "lingui-macro-loader.cjs",
+      "src/locales/**/*.js",
     ],
   },
   js.configs.recommended,
@@ -97,6 +100,17 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/i18n/**/*.ts"],
+    rules: {
+      "functional/no-expression-statements": "off",
+      "functional/no-return-void": "off",
+      "functional/no-conditional-statements": "off",
+      "functional/immutable-data": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+    },
+  },
+  {
     files: ["src/stores/**/*.ts", "src/lib/db/**/*.ts"],
     rules: {
       "functional/no-expression-statements": "off",
@@ -122,7 +136,12 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.test.ts", "**/*.test.tsx", "src/test/**/*.ts"],
+    files: [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "src/test/**/*.ts",
+      "src/test/**/*.tsx",
+    ],
     rules: {
       "functional/no-expression-statements": "off",
       "functional/no-return-void": "off",

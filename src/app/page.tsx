@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { Trans } from "@lingui/react/macro";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import AlertPanel from "@/components/dashboard/AlertPanel";
@@ -21,12 +22,20 @@ const StatsLoading = () => (
 const DashboardPage = () => (
   <div className="flex flex-col gap-6 p-4">
     <div className="animate-[fade-in_0.4s_ease-out]">
-      <p className="text-sm text-text-secondary">おかえりなさい</p>
-      <h2 className="font-display text-xl font-bold">ダッシュボード</h2>
+      <p className="text-sm text-text-secondary">
+        <Trans>おかえりなさい</Trans>
+      </p>
+      <h2 className="font-display text-xl font-bold">
+        <Trans>ダッシュボード</Trans>
+      </h2>
     </div>
 
     <ErrorBoundary
-      fallback={<p className="text-sm text-danger">読み込みに失敗しました</p>}
+      fallback={
+        <p className="text-sm text-danger">
+          <Trans>読み込みに失敗しました</Trans>
+        </p>
+      }
     >
       <Suspense fallback={<StatsLoading />}>
         <StatsOverview />

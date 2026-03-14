@@ -4,16 +4,19 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Home, Shirt, ScanLine, LayoutGrid } from "lucide-react";
 import clsx from "clsx";
+import { msg } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "ホーム", icon: Home },
-  { href: "/garments", label: "ワードローブ", icon: Shirt },
-  { href: "/scan", label: "スキャン", icon: ScanLine },
-  { href: "/locations", label: "収納", icon: LayoutGrid },
-] as const;
+  { href: "/", label: msg`ホーム`, icon: Home },
+  { href: "/garments", label: msg`ワードローブ`, icon: Shirt },
+  { href: "/scan", label: msg`スキャン`, icon: ScanLine },
+  { href: "/locations", label: msg`収納`, icon: LayoutGrid },
+];
 
 const BottomNav = () => {
   const pathname = usePathname();
+  const { i18n } = useLingui();
 
   return (
     <nav
@@ -58,7 +61,7 @@ const BottomNav = () => {
               <span
                 className={clsx("text-[10px] font-medium", isScan && "mt-0.5")}
               >
-                {label}
+                {i18n._(label)}
               </span>
             </Link>
           );

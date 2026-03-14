@@ -10,6 +10,7 @@ import {
 import { TEMP_USER_ID } from "../lib/d1-helpers";
 import type { GarmentRow } from "../lib/d1-helpers";
 import { GARMENT_STATUS } from "@/lib/constants";
+import { ERROR_CODE } from "../lib/errorCodes";
 
 export const scanRouter = router({
   checkin: publicProcedure
@@ -43,7 +44,7 @@ export const scanRouter = router({
       if (totalChanges < garmentIds.length) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `${String(garmentIds.length - totalChanges)}件の服が見つかりませんでした`,
+          message: ERROR_CODE.CHECKIN_PARTIAL_NOT_FOUND,
         });
       }
 
@@ -66,7 +67,7 @@ export const scanRouter = router({
       if (existing === null) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "指定された服が見つかりません",
+          message: ERROR_CODE.GARMENT_NOT_FOUND,
         });
       }
 
@@ -149,14 +150,14 @@ export const scanRouter = router({
       if (existing === null) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "指定された服が見つかりません",
+          message: ERROR_CODE.GARMENT_NOT_FOUND,
         });
       }
 
       if (existing.status !== GARMENT_STATUS.CHECKED_OUT) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "チェックアウト状態の服のみ解決できます",
+          message: ERROR_CODE.CHECKOUT_ONLY_RESOLVE,
         });
       }
 
