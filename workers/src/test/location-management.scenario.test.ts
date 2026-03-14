@@ -1,10 +1,10 @@
-import { TRPCError } from "@trpc/server";
 import {
   createTestCaller,
   resetDatabase,
   createTestGarmentInput,
   createTestCaseInput,
   getTestDb,
+  expectTRPCError,
 } from "./helpers";
 
 describe("収納場所管理シナリオ", () => {
@@ -82,8 +82,7 @@ describe("収納場所管理シナリオ", () => {
         .updateCase({ id: "nonexistent", name: "test" })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 
@@ -120,8 +119,7 @@ describe("収納場所管理シナリオ", () => {
         })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("CONFLICT");
+      expectTRPCError(error, "CONFLICT");
     });
 
     it("存在しないケースに location を作成すると NOT_FOUND になる", async () => {
@@ -136,8 +134,7 @@ describe("収納場所管理シナリオ", () => {
         })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 
@@ -170,8 +167,7 @@ describe("収納場所管理シナリオ", () => {
         .deleteCase("nonexistent")
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 
@@ -202,8 +198,7 @@ describe("収納場所管理シナリオ", () => {
         .deleteLocation("nonexistent")
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 });

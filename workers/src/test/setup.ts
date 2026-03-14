@@ -25,11 +25,6 @@ const readMigrationStatements = (): readonly string[] => {
   });
 };
 
-declare global {
-  var __miniflare: Miniflare;
-  var __testDb: D1Database;
-}
-
 beforeAll(async () => {
   const mf = new Miniflare({
     modules: true,
@@ -37,9 +32,13 @@ beforeAll(async () => {
     d1Databases: { DB: "test-db" },
     kvNamespaces: { KV: "test-kv" },
     r2Buckets: { BUCKET: "test-bucket" },
+    queueProducers: { QUEUE: "test-queue" },
   });
 
   const db = await mf.getD1Database("DB");
+  const kv = await mf.getKVNamespace("KV");
+  const bucket = await mf.getR2Bucket("BUCKET");
+  const queue = await mf.getQueueProducer("QUEUE");
 
   const statements = readMigrationStatements();
   for (const sql of statements) {
@@ -48,6 +47,9 @@ beforeAll(async () => {
 
   globalThis.__miniflare = mf;
   globalThis.__testDb = db;
+  globalThis.__testKv = kv;
+  globalThis.__testBucket = bucket;
+  globalThis.__testQueue = queue;
 });
 
 afterAll(async () => {

@@ -1,10 +1,10 @@
-import { TRPCError } from "@trpc/server";
 import {
   createTestCaller,
   resetDatabase,
   createTestGarmentInput,
   createTestCaseInput,
   getTestDb,
+  expectTRPCError,
 } from "./helpers";
 
 describe("スキャン操作シナリオ", () => {
@@ -82,8 +82,7 @@ describe("スキャン操作シナリオ", () => {
         .checkin({ locationId, garmentIds: ["nonexistent"] })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 
@@ -115,8 +114,7 @@ describe("スキャン操作シナリオ", () => {
         .checkout({ garmentId: "nonexistent" })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 
@@ -147,12 +145,8 @@ describe("スキャン操作シナリオ", () => {
       const after1 = await caller.garment.get({ id: garment1.id });
       const after2 = await caller.garment.get({ id: garment2.id });
 
-      expect(after1.lastScannedAt).toBeGreaterThanOrEqual(
-        before1.lastScannedAt,
-      );
-      expect(after2.lastScannedAt).toBeGreaterThanOrEqual(
-        before2.lastScannedAt,
-      );
+      expect(after1.lastScannedAt).toBeGreaterThan(before1.lastScannedAt);
+      expect(after2.lastScannedAt).toBeGreaterThan(before2.lastScannedAt);
     });
 
     it("checked_out の服は confirmAll の対象外", async () => {
@@ -195,6 +189,8 @@ describe("スキャン操作シナリオ", () => {
         garmentIds: [garment1.id, garment2.id],
       });
 
+      const before1 = await caller.garment.get({ id: garment1.id });
+
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       const result = await caller.scan.confirmPartial({
@@ -209,6 +205,7 @@ describe("スキャン操作シナリオ", () => {
 
       const after1 = await caller.garment.get({ id: garment1.id });
       expect(after1.status).toBe("stored");
+      expect(after1.lastScannedAt).toBeGreaterThan(before1.lastScannedAt);
 
       const after2 = await caller.garment.get({ id: garment2.id });
       expect(after2.status).toBe("checked_out");
@@ -293,8 +290,7 @@ describe("スキャン操作シナリオ", () => {
         })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("BAD_REQUEST");
+      expectTRPCError(error, "BAD_REQUEST");
     });
 
     it("存在しない服に orphanResolve すると NOT_FOUND になる", async () => {
@@ -307,8 +303,7 @@ describe("スキャン操作シナリオ", () => {
         })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 });

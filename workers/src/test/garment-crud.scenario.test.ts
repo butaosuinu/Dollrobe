@@ -1,10 +1,10 @@
-import { TRPCError } from "@trpc/server";
 import {
   createTestCaller,
   resetDatabase,
   createTestGarmentInput,
   createTestCaseInput,
   getTestDb,
+  expectTRPCError,
 } from "./helpers";
 
 describe("服 CRUD シナリオ", () => {
@@ -154,8 +154,7 @@ describe("服 CRUD シナリオ", () => {
         .update({ id: "nonexistent", name: "test" })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 
@@ -170,8 +169,7 @@ describe("服 CRUD シナリオ", () => {
       const error = await caller.garment
         .get({ id: created.id })
         .catch((e: unknown) => e);
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
 
     it("存在しない服を削除すると NOT_FOUND になる", async () => {
@@ -181,8 +179,7 @@ describe("服 CRUD シナリオ", () => {
         .delete({ id: "nonexistent" })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 
@@ -194,8 +191,7 @@ describe("服 CRUD シナリオ", () => {
         .get({ id: "nonexistent" })
         .catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 });

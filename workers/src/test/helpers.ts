@@ -1,37 +1,38 @@
-import type { D1Database } from "@cloudflare/workers-types";
+import { TRPCError } from "@trpc/server";
 import { createCallerFactory } from "../trpc/index";
 import { appRouter } from "../trpc/router";
 import type { TRPCContext } from "../trpc/index";
-import type { Env } from "../types";
 
 const createCaller = createCallerFactory(appRouter);
 
-export const getTestDb = (): D1Database =>
-  globalThis.__testDb as unknown as D1Database;
+export const getTestDb = () => globalThis.__testDb;
 
 export const createTestCaller = (db: D1Database) => {
-  const mockEnv: Env = {
-    DB: db,
-    BUCKET: {} as Env["BUCKET"],
-    KV: {} as Env["KV"],
-    QUEUE: {} as Env["QUEUE"],
-    R2_PUBLIC_URL: "https://test.example.com",
-    BETTER_AUTH_SECRET: "test-secret",
-    TWITTER_CLIENT_ID: "",
-    TWITTER_CLIENT_SECRET: "",
-    GOOGLE_CLIENT_ID: "",
-    GOOGLE_CLIENT_SECRET: "",
-    TRUSTED_ORIGINS: "http://localhost:3000",
-    ALLOWED_ORIGINS: "http://localhost:3000",
-  };
-
   const mockCtx: TRPCContext = {
-    env: mockEnv,
-    honoContext: {} as TRPCContext["honoContext"],
-    auth: {} as TRPCContext["auth"],
+    env: {
+      DB: db,
+      BUCKET: globalThis.__testBucket,
+      KV: globalThis.__testKv,
+      QUEUE: globalThis.__testQueue,
+      R2_PUBLIC_URL: "https://test.example.com",
+      BETTER_AUTH_SECRET: "test-secret",
+      TWITTER_CLIENT_ID: "",
+      TWITTER_CLIENT_SECRET: "",
+      GOOGLE_CLIENT_ID: "",
+      GOOGLE_CLIENT_SECRET: "",
+      TRUSTED_ORIGINS: "http://localhost:3000",
+      ALLOWED_ORIGINS: "http://localhost:3000",
+    },
   };
 
   return createCaller(mockCtx);
+};
+
+export const expectTRPCError = (error: unknown, code: string) => {
+  expect(error).toBeInstanceOf(TRPCError);
+  if (error instanceof TRPCError) {
+    expect(error.code).toBe(code);
+  }
 };
 
 export const resetDatabase = async (db: D1Database) => {

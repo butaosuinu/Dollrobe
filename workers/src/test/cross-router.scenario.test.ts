@@ -41,7 +41,7 @@ describe("ルーター横断シナリオ", () => {
     expect(confirmResult.confirmedCount).toBe(1);
 
     const afterConfirm = await caller.garment.get({ id: garment.id });
-    expect(afterConfirm.lastScannedAt).toBeGreaterThanOrEqual(
+    expect(afterConfirm.lastScannedAt).toBeGreaterThan(
       afterCheckin.lastScannedAt,
     );
 
