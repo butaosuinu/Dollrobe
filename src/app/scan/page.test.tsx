@@ -5,9 +5,11 @@ import { createTestGarment, createTestStorageLocation } from "@/test/factories";
 import { renderWithProviders } from "@/test/testUtils";
 import ScanPage from "./page";
 
-const scanTrigger = vi.hoisted(() => ({
-  onScan: undefined as ((data: string) => void) | undefined,
-}));
+const scanTrigger = vi.hoisted(
+  (): { onScan: ((data: string) => void) | undefined } => ({
+    onScan: undefined,
+  }),
+);
 
 vi.mock("@/components/scan/QrScanner", () => ({
   default: ({
@@ -21,12 +23,12 @@ vi.mock("@/components/scan/QrScanner", () => ({
   },
 }));
 
-const mockGarments = vi.hoisted(() => ({
-  value: [] as Garment[],
+const mockGarments = vi.hoisted((): { value: Garment[] } => ({
+  value: [],
 }));
 
-const mockLocations = vi.hoisted(() => ({
-  value: [] as StorageLocation[],
+const mockLocations = vi.hoisted((): { value: StorageLocation[] } => ({
+  value: [],
 }));
 
 const mockConfirmAll = vi.hoisted(() => vi.fn());

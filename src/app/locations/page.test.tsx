@@ -25,16 +25,16 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const mockCases = vi.hoisted(() => ({
-  value: [] as StorageCase[],
+const mockCases = vi.hoisted((): { value: StorageCase[] } => ({
+  value: [],
 }));
 
-const mockLocations = vi.hoisted(() => ({
-  value: [] as StorageLocation[],
+const mockLocations = vi.hoisted((): { value: StorageLocation[] } => ({
+  value: [],
 }));
 
-const mockGarments = vi.hoisted(() => ({
-  value: [] as Garment[],
+const mockGarments = vi.hoisted((): { value: Garment[] } => ({
+  value: [],
 }));
 
 vi.mock("@/stores/locationAtoms", async () => {

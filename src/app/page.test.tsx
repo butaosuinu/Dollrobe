@@ -21,8 +21,8 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const mockGarments = vi.hoisted(() => ({
-  value: [] as Garment[],
+const mockGarments = vi.hoisted((): { value: Garment[] } => ({
+  value: [],
 }));
 
 vi.mock("@/stores/garmentAtoms", async () => {

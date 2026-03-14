@@ -34,8 +34,8 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const mockGarments = vi.hoisted(() => ({
-  value: [] as Garment[],
+const mockGarments = vi.hoisted((): { value: Garment[] } => ({
+  value: [],
 }));
 
 const mockDeleteGarment = vi.hoisted(() => vi.fn());
