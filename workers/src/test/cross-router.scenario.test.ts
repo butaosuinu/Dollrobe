@@ -7,7 +7,7 @@ import {
 } from "./helpers";
 
 describe("ルーター横断シナリオ", () => {
-  const getCaller = () => createTestCaller(getTestDb());
+  const getCaller = () => createTestCaller();
 
   beforeEach(async () => {
     await resetDatabase(getTestDb());

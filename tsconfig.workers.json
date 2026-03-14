@@ -5,7 +5,11 @@
     "noEmit": true,
     "declaration": false,
     "declarationMap": false,
-    "types": ["@cloudflare/workers-types", "vitest/globals"],
+    "types": [
+      "@cloudflare/workers-types",
+      "vitest/globals",
+      "@cloudflare/vitest-pool-workers"
+    ],
     "paths": {
       "@/*": ["./src/*"],
       "@shared/lib/*": ["./src/lib/*"],

@@ -8,7 +8,7 @@ import {
 } from "./helpers";
 
 describe("収納場所管理シナリオ", () => {
-  const getCaller = () => createTestCaller(getTestDb());
+  const getCaller = () => createTestCaller();
 
   beforeEach(async () => {
     await resetDatabase(getTestDb());

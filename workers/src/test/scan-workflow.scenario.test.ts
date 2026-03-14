@@ -8,7 +8,7 @@ import {
 } from "./helpers";
 
 describe("スキャン操作シナリオ", () => {
-  const getCaller = () => createTestCaller(getTestDb());
+  const getCaller = () => createTestCaller();
 
   beforeEach(async () => {
     await resetDatabase(getTestDb());

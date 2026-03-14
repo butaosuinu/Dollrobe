@@ -8,7 +8,7 @@ import {
 } from "./helpers";
 
 describe("服 CRUD シナリオ", () => {
-  const getCaller = () => createTestCaller(getTestDb());
+  const getCaller = () => createTestCaller();
 
   beforeEach(async () => {
     await resetDatabase(getTestDb());
