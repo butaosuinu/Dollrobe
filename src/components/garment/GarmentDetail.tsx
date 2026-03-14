@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
 import { Shirt, Trash2, Edit3, QrCode } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react";
 import type { Garment } from "@/types";
 import {
   GARMENT_CATEGORY_LABEL,
@@ -21,6 +23,7 @@ type Props = {
 };
 
 const GarmentDetail = ({ garment }: Props) => {
+  const { i18n } = useLingui();
   const router = useRouter();
   const deleteGarment = useSetAtom(deleteGarmentAtom);
 
@@ -49,8 +52,8 @@ const GarmentDetail = ({ garment }: Props) => {
         <div>
           <h2 className="font-display text-2xl font-bold">{garment.name}</h2>
           <p className="mt-1 text-sm text-text-secondary">
-            {GARMENT_CATEGORY_LABEL[garment.category]} ・{" "}
-            {DOLL_SIZE_LABEL[garment.dollSize]}
+            {i18n._(GARMENT_CATEGORY_LABEL[garment.category])} ・{" "}
+            {i18n._(DOLL_SIZE_LABEL[garment.dollSize])}
           </p>
         </div>
         <ConfidenceIndicator garment={garment} compact />
@@ -59,7 +62,9 @@ const GarmentDetail = ({ garment }: Props) => {
       <Card>
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-text-secondary">ステータス</span>
+            <span className="text-sm text-text-secondary">
+              <Trans>ステータス</Trans>
+            </span>
             <Badge
               variant={
                 garment.status === GARMENT_STATUS.STORED
@@ -69,7 +74,7 @@ const GarmentDetail = ({ garment }: Props) => {
                     : "unknown"
               }
             >
-              {GARMENT_STATUS_LABEL[garment.status]}
+              {i18n._(GARMENT_STATUS_LABEL[garment.status])}
             </Badge>
           </div>
           <ConfidenceIndicator garment={garment} />
@@ -78,7 +83,9 @@ const GarmentDetail = ({ garment }: Props) => {
 
       {garment.colors.length > 0 && (
         <Card>
-          <p className="mb-2 text-sm font-medium text-text-secondary">色</p>
+          <p className="mb-2 text-sm font-medium text-text-secondary">
+            <Trans>色</Trans>
+          </p>
           <div className="flex flex-wrap gap-2">
             {garment.colors.map((color) => (
               <span
@@ -93,7 +100,9 @@ const GarmentDetail = ({ garment }: Props) => {
 
       {garment.tags.length > 0 && (
         <Card>
-          <p className="mb-2 text-sm font-medium text-text-secondary">タグ</p>
+          <p className="mb-2 text-sm font-medium text-text-secondary">
+            <Trans>タグ</Trans>
+          </p>
           <div className="flex flex-wrap gap-1.5">
             {garment.tags.map((tag) => (
               <Badge key={tag} variant="primary">
@@ -107,7 +116,7 @@ const GarmentDetail = ({ garment }: Props) => {
       <div className="flex flex-col gap-2 pt-2">
         <Button variant="secondary" size="lg" fullWidth>
           <Edit3 className="size-4" />
-          編集
+          <Trans>編集</Trans>
         </Button>
         <Button
           variant="secondary"
@@ -122,11 +131,11 @@ const GarmentDetail = ({ garment }: Props) => {
           }}
         >
           <QrCode className="size-4" />
-          QRを印刷
+          <Trans>QRを印刷</Trans>
         </Button>
         <Button variant="danger" size="lg" fullWidth onClick={handleDelete}>
           <Trash2 className="size-4" />
-          削除
+          <Trans>削除</Trans>
         </Button>
       </div>
     </div>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useAtomValue } from "jotai";
 import { Shirt } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_CATEGORY_LABEL } from "@/lib/constants";
@@ -13,6 +15,7 @@ const RECENT_COUNT = 8;
 
 const RecentItems = () => {
   const garments = useAtomValue(garmentsAtom);
+  const { i18n } = useLingui();
 
   const recentGarments = [...garments]
     .sort((a, b) => b.lastScannedAt - a.lastScannedAt)
@@ -26,13 +29,13 @@ const RecentItems = () => {
     <section>
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-display text-sm font-bold text-text-secondary">
-          最近のアイテム
+          <Trans>最近のアイテム</Trans>
         </h2>
         <Link
           href="/garments"
           className="text-xs font-medium text-primary-500 transition-colors hover:text-primary-600"
         >
-          すべて見る
+          <Trans>すべて見る</Trans>
         </Link>
       </div>
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 [scroll-snap-type:x_mandatory]">
@@ -62,7 +65,7 @@ const RecentItems = () => {
                   {garment.name}
                 </p>
                 <p className="text-xs text-text-tertiary">
-                  {GARMENT_CATEGORY_LABEL[garment.category]}
+                  {i18n._(GARMENT_CATEGORY_LABEL[garment.category])}
                 </p>
                 <div className="mt-1.5">
                   <ConfidenceBadge label={label} />

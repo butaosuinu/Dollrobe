@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { zenMaruGothic, notoSansJP } from "@/lib/fonts";
+import { zenMaruGothic, notoSansJP, notoSansKR, notoSansSC } from "@/lib/fonts";
 import AppShell from "@/components/layout/AppShell";
 import "@/app/globals.css";
 import { SerwistProvider } from "@/app/serwist-provider";
+import LinguiClientProvider from "@/components/i18n/LinguiProvider";
 
 export const metadata: Metadata = {
   title: "Doll Wardrobe",
@@ -19,13 +20,17 @@ export const viewport: Viewport = {
 export const dynamic = "force-dynamic";
 
 const RootLayout = ({ children }: { readonly children: React.ReactNode }) => (
-  <html lang="ja">
-    <body className={`${zenMaruGothic.variable} ${notoSansJP.variable}`}>
+  <html lang="ja" suppressHydrationWarning>
+    <body
+      className={`${zenMaruGothic.variable} ${notoSansJP.variable} ${notoSansKR.variable} ${notoSansSC.variable}`}
+    >
       <SerwistProvider
         swUrl="/serwist/sw.js"
         disable={process.env.NODE_ENV === "development"}
       >
-        <AppShell>{children}</AppShell>
+        <LinguiClientProvider>
+          <AppShell>{children}</AppShell>
+        </LinguiClientProvider>
       </SerwistProvider>
     </body>
   </html>

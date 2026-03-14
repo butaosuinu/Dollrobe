@@ -2,6 +2,9 @@
 
 import { useCallback, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
+import { Trans } from "@lingui/react/macro";
+import { msg } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import {
   activeLocationIdAtom,
   scannedGarmentIdsAtom,
@@ -15,6 +18,7 @@ import ScanResult from "@/components/scan/ScanResult";
 import ScanSessionPanel from "@/components/scan/ScanSessionPanel";
 
 const ScanPage = () => {
+  const { i18n } = useLingui();
   const garments = useAtomValue(garmentsAtom);
   const locations = useAtomValue(storageLocationsAtom);
   const activeLocationId = useAtomValue(activeLocationIdAtom);
@@ -39,7 +43,7 @@ const ScanPage = () => {
         setLastScan({
           type: "location",
           name: loc?.label ?? locationId,
-          subtitle: "場所を設定しました",
+          subtitle: i18n._(msg`場所を設定しました`),
         });
         return;
       }
@@ -53,11 +57,11 @@ const ScanPage = () => {
         setLastScan({
           type: "garment",
           name: garment?.name ?? garmentId,
-          subtitle: "スキャンしました",
+          subtitle: i18n._(msg`スキャンしました`),
         });
       }
     },
-    [locations, garments, setActiveLocationId, setScannedIds],
+    [locations, garments, setActiveLocationId, setScannedIds, i18n],
   );
 
   const handleConfirmAll = async () => {
@@ -70,7 +74,9 @@ const ScanPage = () => {
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="animate-[fade-in_0.4s_ease-out]">
-        <h2 className="font-display text-xl font-bold">QRスキャン</h2>
+        <h2 className="font-display text-xl font-bold">
+          <Trans>QRスキャン</Trans>
+        </h2>
       </div>
 
       <QrScanner onScan={handleScan} isActive />

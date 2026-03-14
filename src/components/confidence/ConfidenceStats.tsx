@@ -1,5 +1,8 @@
 "use client";
 
+import { msg } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react";
 import Card from "@/components/ui/Card";
 import type { Garment } from "@/types";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
@@ -9,6 +12,7 @@ type Props = {
 };
 
 const ConfidenceStats = ({ garments }: Props) => {
+  const { i18n } = useLingui();
   const stored = garments.filter((g) => g.status === "stored");
   const counts = stored.reduce(
     (acc, g) => {
@@ -20,29 +24,31 @@ const ConfidenceStats = ({ garments }: Props) => {
 
   const stats = [
     {
-      label: "合計",
+      label: msg`合計`,
       value: garments.length,
       accent: "bg-primary-50 text-primary-700",
     },
     {
-      label: "確定",
+      label: msg`確定`,
       value: counts.confirmed,
       accent: "bg-emerald-50 text-emerald-700",
     },
     {
-      label: "要確認",
+      label: msg`要確認`,
       value: counts.uncertain + counts.unknown,
       accent: "bg-amber-50 text-amber-700",
     },
-  ] as const;
+  ];
 
   return (
     <div className="grid grid-cols-3 gap-3">
       {stats.map(({ label, value, accent }) => (
-        <Card key={label} className={accent}>
-          <p className="text-xs font-medium opacity-70">{label}</p>
+        <Card key={i18n._(label)} className={accent}>
+          <p className="text-xs font-medium opacity-70">{i18n._(label)}</p>
           <p className="font-display text-2xl font-bold">{value}</p>
-          <p className="text-[10px] opacity-50">着</p>
+          <p className="text-[10px] opacity-50">
+            <Trans>着</Trans>
+          </p>
         </Card>
       ))}
     </div>

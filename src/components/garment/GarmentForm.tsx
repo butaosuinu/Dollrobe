@@ -5,6 +5,9 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
 import { createId } from "@paralleldrive/cuid2";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { addGarmentAtom } from "@/stores/garmentAtoms";
 import { authSessionAtom } from "@/stores/authAtoms";
 import type { DollSize, GarmentCategory } from "@/types";
@@ -22,25 +25,21 @@ import Button from "@/components/ui/Button";
 import TagInput from "@/components/ui/TagInput";
 import ColorPicker from "@/components/ui/ColorPicker";
 
-const CATEGORY_OPTIONS = Object.entries(GARMENT_CATEGORY_LABEL).map(
-  ([value, label]) => ({
-    value,
-    label,
-  }),
-);
-
-const SIZE_OPTIONS = Object.entries(DOLL_SIZE_LABEL).map(([value, label]) => ({
-  value,
-  label,
-}));
-
-const DECAY_OPTIONS = CONFIDENCE_DECAY_OPTIONS.map(({ value, label }) => ({
-  value: String(value),
-  label,
-}));
-
 const GarmentForm = () => {
+  const { i18n } = useLingui();
   const router = useRouter();
+
+  const categoryOptions = Object.entries(GARMENT_CATEGORY_LABEL).map(
+    ([value, label]) => ({ value, label: i18n._(label) }),
+  );
+  const sizeOptions = Object.entries(DOLL_SIZE_LABEL).map(([value, label]) => ({
+    value,
+    label: i18n._(label),
+  }));
+  const decayOptions = CONFIDENCE_DECAY_OPTIONS.map(({ value, label }) => ({
+    value: String(value),
+    label: i18n._(label),
+  }));
   const addGarment = useSetAtom(addGarmentAtom);
   const authState = useAtomValue(authSessionAtom);
   const [name, setName] = useState("");
@@ -105,13 +104,15 @@ const GarmentForm = () => {
         {imagePreview !== undefined ? (
           <img
             src={imagePreview}
-            alt="プレビュー"
+            alt={t`プレビュー`}
             className="size-full object-cover"
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-text-tertiary">
             <Camera className="size-8" />
-            <span className="text-sm">写真を追加</span>
+            <span className="text-sm">
+              <Trans>写真を追加</Trans>
+            </span>
           </div>
         )}
         <input
@@ -124,16 +125,16 @@ const GarmentForm = () => {
       </label>
 
       <Input
-        label="名前"
-        placeholder="ドール服の名前"
+        label={t`名前`}
+        placeholder={t`ドール服の名前`}
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
       />
 
       <Select
-        label="カテゴリ"
-        options={CATEGORY_OPTIONS}
+        label={t`カテゴリ`}
+        options={categoryOptions}
         value={category}
         onChange={(e) => {
           if (isGarmentCategory(e.target.value)) {
@@ -143,8 +144,8 @@ const GarmentForm = () => {
       />
 
       <Select
-        label="ドールサイズ"
-        options={SIZE_OPTIONS}
+        label={t`ドールサイズ`}
+        options={sizeOptions}
         value={dollSize}
         onChange={(e) => {
           if (isDollSize(e.target.value)) {
@@ -153,19 +154,19 @@ const GarmentForm = () => {
         }}
       />
 
-      <ColorPicker label="色" colors={colors} onChangeColors={setColors} />
+      <ColorPicker label={t`色`} colors={colors} onChangeColors={setColors} />
 
-      <TagInput label="タグ" tags={tags} onChangeTags={setTags} />
+      <TagInput label={t`タグ`} tags={tags} onChangeTags={setTags} />
 
       <Select
-        label="信頼度の減衰期間"
-        options={DECAY_OPTIONS}
+        label={t`信頼度の減衰期間`}
+        options={decayOptions}
         value={String(decayDays)}
         onChange={(e) => setDecayDays(Number(e.target.value))}
       />
 
       <Button type="submit" fullWidth size="lg" disabled={name.trim() === ""}>
-        登録する
+        <Trans>登録する</Trans>
       </Button>
     </form>
   );

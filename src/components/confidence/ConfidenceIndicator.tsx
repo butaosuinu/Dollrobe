@@ -1,11 +1,10 @@
 "use client";
 
+import { useAtomValue } from "jotai";
 import type { Garment } from "@/types";
-import {
-  getConfidence,
-  getConfidenceLabel,
-  getElapsedDays,
-} from "@/lib/confidence";
+import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
+import { formatRelativeDays } from "@/lib/formatDate";
+import { localeAtom } from "@/i18n/localeAtom";
 import ConfidenceBadge from "@/components/confidence/ConfidenceBadge";
 import ConfidenceBar from "@/components/confidence/ConfidenceBar";
 
@@ -17,7 +16,7 @@ type Props = {
 const ConfidenceIndicator = ({ garment, compact = false }: Props) => {
   const confidence = getConfidence(garment);
   const label = getConfidenceLabel(confidence);
-  const elapsedDays = getElapsedDays(garment.lastScannedAt);
+  const locale = useAtomValue(localeAtom);
 
   if (compact) {
     return <ConfidenceBadge label={label} />;
@@ -28,7 +27,7 @@ const ConfidenceIndicator = ({ garment, compact = false }: Props) => {
       <div className="flex items-center justify-between">
         <ConfidenceBadge label={label} />
         <span className="text-xs text-text-tertiary">
-          最終スキャンから {elapsedDays}日
+          {formatRelativeDays({ timestamp: garment.lastScannedAt, locale })}
         </span>
       </div>
       <ConfidenceBar confidence={confidence} />
