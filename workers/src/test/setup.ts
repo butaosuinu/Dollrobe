@@ -1,0 +1,53 @@
+import { Miniflare } from "miniflare";
+import fs from "node:fs";
+import path from "node:path";
+import { beforeAll, afterAll } from "vitest";
+
+const MIGRATIONS_DIR = path.resolve(import.meta.dirname, "../../migrations");
+
+const readMigrationStatements = (): readonly string[] => {
+  const files = fs
+    .readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+
+  return files.flatMap((f) => {
+    const content = fs.readFileSync(path.join(MIGRATIONS_DIR, f), "utf-8");
+    return content
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+      .map((s) => `${s};`);
+  });
+};
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __miniflare: Miniflare;
+  // eslint-disable-next-line no-var
+  var __testDb: D1Database;
+}
+
+beforeAll(async () => {
+  const mf = new Miniflare({
+    modules: true,
+    script: "export default { fetch() { return new Response('ok'); } }",
+    d1Databases: { DB: "test-db" },
+    kvNamespaces: { KV: "test-kv" },
+    r2Buckets: { BUCKET: "test-bucket" },
+  });
+
+  const db = await mf.getD1Database("DB");
+
+  const statements = readMigrationStatements();
+  for (const sql of statements) {
+    await db.prepare(sql).run();
+  }
+
+  globalThis.__miniflare = mf;
+  globalThis.__testDb = db;
+});
+
+afterAll(async () => {
+  await globalThis.__miniflare?.dispose();
+});
