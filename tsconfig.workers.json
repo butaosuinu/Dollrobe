@@ -3,7 +3,13 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "noEmit": true,
-    "types": ["@cloudflare/workers-types"],
+    "declaration": false,
+    "declarationMap": false,
+    "types": [
+      "@cloudflare/workers-types",
+      "vitest/globals",
+      "@cloudflare/vitest-pool-workers"
+    ],
     "paths": {
       "@/*": ["./src/*"],
       "@shared/lib/*": ["./src/lib/*"],

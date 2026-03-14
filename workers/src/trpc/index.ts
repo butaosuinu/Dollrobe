@@ -5,8 +5,8 @@ import type { Auth } from "../auth";
 
 export type TRPCContext = {
   readonly env: Env;
-  readonly honoContext: HonoContext;
-  readonly auth: Auth;
+  readonly honoContext?: HonoContext;
+  readonly auth?: Auth;
 };
 
 export type AuthenticatedTRPCContext = TRPCContext & {
@@ -16,6 +16,10 @@ export type AuthenticatedTRPCContext = TRPCContext & {
 const t = initTRPC.context<TRPCContext>().create();
 
 const authMiddleware = t.middleware(async ({ ctx, next }) => {
+  if (ctx.auth === undefined || ctx.honoContext === undefined) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
   const session = await ctx.auth.api
     .getSession({
       headers: ctx.honoContext.req.raw.headers,
@@ -32,5 +36,6 @@ const authMiddleware = t.middleware(async ({ ctx, next }) => {
 });
 
 export const { router } = t;
+export const createCallerFactory = t.createCallerFactory;
 export const publicProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(authMiddleware);

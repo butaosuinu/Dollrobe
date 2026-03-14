@@ -1,78 +1,62 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
-import type { Miniflare } from "miniflare";
-import { createTestD1, cleanAllTables } from "../../../test/helpers/d1";
-import { createTestCaller } from "../../../test/helpers/trpc-caller";
+import { describe, it, expect, beforeEach } from "vitest";
+import { createTestCaller, resetDatabase, getTestDb } from "../../test/helpers";
 import {
   insertGarment,
   insertStorageLocation,
   insertStorageCase,
 } from "../../../test/helpers/factories";
 
-type TestCaller = ReturnType<typeof createTestCaller>;
-
-const state = {} as {
-  db: D1Database;
-  mf: Miniflare;
-  caller: TestCaller;
-};
-
-beforeAll(async () => {
-  const { db, mf } = await createTestD1();
-  Object.assign(state, { db, mf, caller: createTestCaller({ db }) });
-});
-
-afterAll(async () => {
-  await state.mf.dispose();
-});
+const db = getTestDb();
+const caller = createTestCaller();
 
 beforeEach(async () => {
-  await cleanAllTables(state.db);
+  await resetDatabase(db);
 });
 
 describe("garmentRouter", () => {
   describe("list", () => {
     it("空の DB で空配列を返す", async () => {
-      const result = await state.caller.garment.list({});
+      const result = await caller.garment.list({});
       expect(result).toEqual([]);
     });
 
     it("登録済みの garment を返す", async () => {
-      await insertGarment({ db: state.db, overrides: { name: "赤いドレス" } });
+      await insertGarment({ db, overrides: { name: "赤いドレス" } });
       await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "青いスカート" },
       });
 
-      const result = await state.caller.garment.list({});
+      const result = await caller.garment.list({});
       expect(result).toHaveLength(2);
     });
 
     it("category フィルターが動作する", async () => {
       await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "ドレス", category: "dress" },
       });
       await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "トップス", category: "tops" },
       });
 
-      const result = await state.caller.garment.list({ category: "dress" });
+      const result = await caller.garment.list({ category: "dress" });
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("ドレス");
     });
 
     it("status フィルターが動作する", async () => {
       await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "収納中", status: "stored" },
       });
       await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "取り出し中", status: "checked_out" },
       });
 
-      const result = await state.caller.garment.list({
+      const result = await caller.garment.list({
         status: "checked_out",
       });
       expect(result).toHaveLength(1);
@@ -81,36 +65,36 @@ describe("garmentRouter", () => {
 
     it("dollSize フィルターが動作する", async () => {
       await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "MSD服", dollSize: "MSD" },
       });
       await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "SD服", dollSize: "SD" },
       });
 
-      const result = await state.caller.garment.list({ dollSize: "MSD" });
+      const result = await caller.garment.list({ dollSize: "MSD" });
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("MSD服");
     });
 
     it("locationId フィルターが動作する", async () => {
-      const { id: caseId } = await insertStorageCase({ db: state.db });
+      const { id: caseId } = await insertStorageCase({ db });
       const { id: locId } = await insertStorageLocation({
-        db: state.db,
+        db,
         overrides: { caseId },
       });
 
       await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "場所あり", locationId: locId },
       });
       await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "場所なし" },
       });
 
-      const result = await state.caller.garment.list({ locationId: locId });
+      const result = await caller.garment.list({ locationId: locId });
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("場所あり");
     });
@@ -119,7 +103,7 @@ describe("garmentRouter", () => {
   describe("get", () => {
     it("存在する garment を返す", async () => {
       const { id } = await insertGarment({
-        db: state.db,
+        db,
         overrides: {
           name: "テストドレス",
           category: "dress",
@@ -129,7 +113,7 @@ describe("garmentRouter", () => {
         },
       });
 
-      const result = await state.caller.garment.get({ id });
+      const result = await caller.garment.get({ id });
       expect(result.id).toBe(id);
       expect(result.name).toBe("テストドレス");
       expect(result.category).toBe("dress");
@@ -140,20 +124,20 @@ describe("garmentRouter", () => {
 
     it("存在しない id で NOT_FOUND エラー", async () => {
       await expect(
-        state.caller.garment.get({ id: "nonexistent-id" }),
+        caller.garment.get({ id: "nonexistent-id" }),
       ).rejects.toMatchObject({ code: "NOT_FOUND" });
     });
   });
 
   describe("create", () => {
     it("locationId ありの場合 status が stored になる", async () => {
-      const { id: caseId } = await insertStorageCase({ db: state.db });
+      const { id: caseId } = await insertStorageCase({ db });
       const { id: locId } = await insertStorageLocation({
-        db: state.db,
+        db,
         overrides: { caseId },
       });
 
-      const result = await state.caller.garment.create({
+      const result = await caller.garment.create({
         name: "新しいドレス",
         category: "dress",
         dollSize: "MSD",
@@ -166,7 +150,7 @@ describe("garmentRouter", () => {
     });
 
     it("locationId なしの場合 status が checked_out になる", async () => {
-      const result = await state.caller.garment.create({
+      const result = await caller.garment.create({
         name: "取り出し中ドレス",
         category: "dress",
         dollSize: "MSD",
@@ -178,7 +162,7 @@ describe("garmentRouter", () => {
     });
 
     it("confidenceDecayDays のデフォルト値は 30", async () => {
-      const result = await state.caller.garment.create({
+      const result = await caller.garment.create({
         name: "デフォルト減衰",
         category: "tops",
         dollSize: "SD",
@@ -188,7 +172,7 @@ describe("garmentRouter", () => {
     });
 
     it("colors と tags が保存される", async () => {
-      const result = await state.caller.garment.create({
+      const result = await caller.garment.create({
         name: "カラフルドレス",
         category: "dress",
         dollSize: "MSD",
@@ -201,13 +185,13 @@ describe("garmentRouter", () => {
     });
 
     it("作成した garment を get で取得できる", async () => {
-      const created = await state.caller.garment.create({
+      const created = await caller.garment.create({
         name: "取得テスト",
         category: "bottoms",
         dollSize: "YoSD",
       });
 
-      const fetched = await state.caller.garment.get({ id: created.id });
+      const fetched = await caller.garment.get({ id: created.id });
       expect(fetched.name).toBe("取得テスト");
       expect(fetched.category).toBe("bottoms");
       expect(fetched.dollSize).toBe("YoSD");
@@ -217,11 +201,11 @@ describe("garmentRouter", () => {
   describe("update", () => {
     it("name を更新する", async () => {
       const { id } = await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "元の名前" },
       });
 
-      const result = await state.caller.garment.update({
+      const result = await caller.garment.update({
         id,
         name: "新しい名前",
       });
@@ -231,11 +215,11 @@ describe("garmentRouter", () => {
 
     it("複数フィールドを同時に更新する", async () => {
       const { id } = await insertGarment({
-        db: state.db,
+        db,
         overrides: { name: "元", category: "dress", dollSize: "MSD" },
       });
 
-      const result = await state.caller.garment.update({
+      const result = await caller.garment.update({
         id,
         name: "更新後",
         category: "tops",
@@ -249,13 +233,13 @@ describe("garmentRouter", () => {
 
     it("存在しない id で NOT_FOUND エラー", async () => {
       await expect(
-        state.caller.garment.update({ id: "nonexistent", name: "test" }),
+        caller.garment.update({ id: "nonexistent", name: "test" }),
       ).rejects.toMatchObject({ code: "NOT_FOUND" });
     });
 
     it("部分更新で指定しないフィールドは変更されない", async () => {
       const { id } = await insertGarment({
-        db: state.db,
+        db,
         overrides: {
           name: "元の名前",
           category: "dress",
@@ -264,7 +248,7 @@ describe("garmentRouter", () => {
         },
       });
 
-      const result = await state.caller.garment.update({
+      const result = await caller.garment.update({
         id,
         name: "新しい名前",
       });
@@ -276,10 +260,10 @@ describe("garmentRouter", () => {
     });
 
     it("updatedAt が更新される", async () => {
-      const { id } = await insertGarment({ db: state.db });
-      const before = await state.caller.garment.get({ id });
+      const { id } = await insertGarment({ db });
+      const before = await caller.garment.get({ id });
 
-      const result = await state.caller.garment.update({
+      const result = await caller.garment.update({
         id,
         name: "更新",
       });
@@ -290,24 +274,24 @@ describe("garmentRouter", () => {
 
   describe("delete", () => {
     it("既存の garment を削除する", async () => {
-      const { id } = await insertGarment({ db: state.db });
+      const { id } = await insertGarment({ db });
 
-      const result = await state.caller.garment.delete({ id });
+      const result = await caller.garment.delete({ id });
       expect(result.success).toBe(true);
     });
 
     it("削除後に get で NOT_FOUND になる", async () => {
-      const { id } = await insertGarment({ db: state.db });
-      await state.caller.garment.delete({ id });
+      const { id } = await insertGarment({ db });
+      await caller.garment.delete({ id });
 
-      await expect(state.caller.garment.get({ id })).rejects.toMatchObject({
+      await expect(caller.garment.get({ id })).rejects.toMatchObject({
         code: "NOT_FOUND",
       });
     });
 
     it("存在しない id で NOT_FOUND エラー", async () => {
       await expect(
-        state.caller.garment.delete({ id: "nonexistent" }),
+        caller.garment.delete({ id: "nonexistent" }),
       ).rejects.toMatchObject({ code: "NOT_FOUND" });
     });
   });
