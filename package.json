@@ -16,6 +16,8 @@
     "format:check": "oxfmt --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:workers": "vitest run --config vitest.config.workers.ts",
+    "test:workers:watch": "vitest --config vitest.config.workers.ts",
     "deploy:workers": "wrangler deploy",
     "db:migrate": "wrangler d1 migrations apply doll-wardrobe-db",
     "db:migrate:local": "wrangler d1 migrations apply doll-wardrobe-db --local"
@@ -62,6 +64,7 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^5.2.0",
     "happy-dom": "^17.4.6",
+    "miniflare": "^4.20260312.0",
     "msw": "^2.8.4",
     "oxfmt": "^0.40.0",
     "oxlint": "^1.1.0",
