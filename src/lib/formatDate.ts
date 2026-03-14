@@ -11,6 +11,14 @@ const DATE_FNS_LOCALE_MAP = Object.freeze({
 
 const getDateFnsLocale = (locale: Locale) => DATE_FNS_LOCALE_MAP[locale];
 
+const DATE_FORMAT_PATTERN = Object.freeze({
+  en: { dateTime: "MMM d, yyyy HH:mm", date: "MMM d, yyyy" },
+  default: { dateTime: "yyyy/MM/dd HH:mm", date: "yyyy/MM/dd" },
+} as const);
+
+const getFormatPattern = (locale: Locale) =>
+  locale === "en" ? DATE_FORMAT_PATTERN.en : DATE_FORMAT_PATTERN.default;
+
 export const formatRelativeDays = ({
   timestamp,
   locale,
@@ -29,12 +37,10 @@ export const formatDateTime = ({
 }: {
   readonly timestamp: number;
   readonly locale: Locale;
-}): string => {
-  const pattern = locale === "en" ? "MMM d, yyyy HH:mm" : "yyyy/MM/dd HH:mm";
-  return format(new Date(timestamp), pattern, {
+}): string =>
+  format(new Date(timestamp), getFormatPattern(locale).dateTime, {
     locale: getDateFnsLocale(locale),
   });
-};
 
 export const formatDate = ({
   timestamp,
@@ -42,9 +48,7 @@ export const formatDate = ({
 }: {
   readonly timestamp: number;
   readonly locale: Locale;
-}): string => {
-  const pattern = locale === "en" ? "MMM d, yyyy" : "yyyy/MM/dd";
-  return format(new Date(timestamp), pattern, {
+}): string =>
+  format(new Date(timestamp), getFormatPattern(locale).date, {
     locale: getDateFnsLocale(locale),
   });
-};

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Globe } from "lucide-react";
 import { useAtomValue, useSetAtom } from "jotai";
+import { t } from "@lingui/core/macro";
 import { localeAtom, setLocaleAtom } from "@/i18n/localeAtom";
 import {
   SUPPORTED_LOCALES,
@@ -19,7 +20,11 @@ const LocaleSelector = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current !== null && !ref.current.contains(event.target as Node)) {
+      if (
+        ref.current !== null &&
+        event.target instanceof Node &&
+        !ref.current.contains(event.target)
+      ) {
         setIsOpen(false);
       }
     };
@@ -38,7 +43,7 @@ const LocaleSelector = () => {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex size-8 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-primary-50 hover:text-text-secondary"
-        aria-label="Language"
+        aria-label={t`言語`}
       >
         <Globe className="size-4" />
       </button>
