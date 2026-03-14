@@ -16,5 +16,5 @@
     "src/lib/confidence.ts",
     "src/lib/constants.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "workers/**/*.test.ts", "workers/test/**"]
 }

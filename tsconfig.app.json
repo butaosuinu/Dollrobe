@@ -27,5 +27,10 @@
     ".next/types/**/*.ts",
     "workers/src/trpc/**/*.ts"
   ],
-  "exclude": ["node_modules", "src/app/sw.ts"]
+  "exclude": [
+    "node_modules",
+    "src/app/sw.ts",
+    "workers/**/*.test.ts",
+    "workers/test/**"
+  ]
 }

@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.workers.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types", "node"],
+    "noUncheckedIndexedAccess": false,
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": [
+    "workers/**/*.ts",
+    "src/types/**/*.ts",
+    "src/lib/confidence.ts",
+    "src/lib/constants.ts"
+  ],
+  "exclude": ["node_modules"]
+}
