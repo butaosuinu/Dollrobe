@@ -143,8 +143,11 @@ describe("GarmentDetailPage", () => {
     expect(mockRouter.push).toHaveBeenCalledWith(
       expect.stringContaining("/print?"),
     );
-    const calledUrl: string = mockRouter.push.mock.calls[0][0];
-    expect(calledUrl).toContain("type=garment");
-    expect(calledUrl).toContain("ids=garment-1");
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      expect.stringContaining("type=garment"),
+    );
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      expect.stringContaining("ids=garment-1"),
+    );
   });
 });

@@ -42,15 +42,6 @@ vi.mock("@/stores/garmentAtoms", async () => {
   };
 });
 
-const findButtonByText = (text: string) => {
-  const elements = screen.getAllByText(text);
-  const button = elements.find((el) => el.tagName.toLowerCase() === "button");
-  if (button === undefined) {
-    throw new Error(`No button found with text: ${text}`);
-  }
-  return button;
-};
-
 describe("GarmentsPage", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -129,7 +120,7 @@ describe("GarmentsPage", () => {
     ];
     renderWithProviders(<GarmentsPage />);
 
-    fireEvent.click(findButtonByText("ドレス"));
+    fireEvent.click(screen.getByRole("button", { name: "ドレス" }));
 
     expect(screen.getByText("白いドレス")).toBeInTheDocument();
     expect(screen.queryByText("黒いコート")).not.toBeInTheDocument();
@@ -150,7 +141,7 @@ describe("GarmentsPage", () => {
     ];
     renderWithProviders(<GarmentsPage />);
 
-    fireEvent.click(findButtonByText("要確認"));
+    fireEvent.click(screen.getByRole("button", { name: "要確認" }));
 
     expect(screen.queryByText("確定の服")).not.toBeInTheDocument();
     expect(screen.getByText("要確認の服")).toBeInTheDocument();
@@ -202,7 +193,7 @@ describe("GarmentsPage", () => {
     ];
     renderWithProviders(<GarmentsPage />);
 
-    fireEvent.click(findButtonByText("ドレス"));
+    fireEvent.click(screen.getByRole("button", { name: "ドレス" }));
     fireEvent.change(screen.getByPlaceholderText("名前やタグで検索..."), {
       target: { value: "白い" },
     });

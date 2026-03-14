@@ -92,13 +92,16 @@ describe("GarmentForm", () => {
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
     expect(mockAddGarment).toHaveBeenCalledTimes(1);
-    const calledWith = mockAddGarment.mock.calls[0][0];
-    expect(calledWith.name).toBe("新しいドレス");
-    expect(calledWith.id).toBe("test-cuid");
-    expect(calledWith.userId).toBe("user-1");
-    expect(calledWith.category).toBe("tops");
-    expect(calledWith.dollSize).toBe("1/3");
-    expect(calledWith.status).toBe("stored");
+    expect(mockAddGarment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "新しいドレス",
+        id: "test-cuid",
+        userId: "user-1",
+        category: "tops",
+        dollSize: "1/3",
+        status: "stored",
+      }),
+    );
     expect(mockRouter.push).toHaveBeenCalledWith("/garments");
   });
 
@@ -110,7 +113,9 @@ describe("GarmentForm", () => {
     await user.selectOptions(screen.getByLabelText("カテゴリ"), "dress");
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
-    expect(mockAddGarment.mock.calls[0][0].category).toBe("dress");
+    expect(mockAddGarment).toHaveBeenCalledWith(
+      expect.objectContaining({ category: "dress" }),
+    );
   });
 
   it("空白のみの名前ではdisabledのままになる", async () => {
