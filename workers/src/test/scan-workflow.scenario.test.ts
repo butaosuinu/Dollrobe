@@ -4,25 +4,21 @@ import {
   resetDatabase,
   createTestGarmentInput,
   createTestCaseInput,
+  getTestDb,
 } from "./helpers";
 
 describe("スキャン操作シナリオ", () => {
-  const getCaller = () =>
-    createTestCaller(
-      globalThis.__testDb as unknown as import("@cloudflare/workers-types").D1Database,
-    );
+  const getCaller = () => createTestCaller(getTestDb());
 
   beforeEach(async () => {
-    await resetDatabase(
-      globalThis.__testDb as unknown as import("@cloudflare/workers-types").D1Database,
-    );
+    await resetDatabase(getTestDb());
   });
 
   const setupLocationAndGarment = async () => {
     const caller = getCaller();
     const caseResult = await caller.location.createCase(createTestCaseInput());
     const detail = await caller.location.getCase(caseResult.id);
-    const locationId = detail.locations[0].id;
+    const locationId = detail.locations[0]!.id;
     const garment = await caller.garment.create(createTestGarmentInput());
 
     return { caller, locationId, garment, caseId: caseResult.id, detail };
@@ -52,7 +48,7 @@ describe("スキャン操作シナリオ", () => {
         createTestCaseInput(),
       );
       const detail = await caller.location.getCase(caseResult.id);
-      const locationId = detail.locations[0].id;
+      const locationId = detail.locations[0]!.id;
 
       const garment1 = await caller.garment.create(
         createTestGarmentInput({ name: "服1" }),
@@ -185,7 +181,7 @@ describe("スキャン操作シナリオ", () => {
         createTestCaseInput(),
       );
       const detail = await caller.location.getCase(caseResult.id);
-      const locationId = detail.locations[0].id;
+      const locationId = detail.locations[0]!.id;
 
       const garment1 = await caller.garment.create(
         createTestGarmentInput({ name: "確認済み" }),

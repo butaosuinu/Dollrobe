@@ -6,6 +6,9 @@ import type { Env } from "../types";
 
 const createCaller = createCallerFactory(appRouter);
 
+export const getTestDb = (): D1Database =>
+  globalThis.__testDb as unknown as D1Database;
+
 export const createTestCaller = (db: D1Database) => {
   const mockEnv: Env = {
     DB: db,

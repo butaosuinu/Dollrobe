@@ -1,9 +1,13 @@
 import { Miniflare } from "miniflare";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { beforeAll, afterAll } from "vitest";
 
-const MIGRATIONS_DIR = path.resolve(import.meta.dirname, "../../migrations");
+const MIGRATIONS_DIR = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../migrations",
+);
 
 const readMigrationStatements = (): readonly string[] => {
   const files = fs
@@ -22,9 +26,7 @@ const readMigrationStatements = (): readonly string[] => {
 };
 
 declare global {
-  // eslint-disable-next-line no-var
   var __miniflare: Miniflare;
-  // eslint-disable-next-line no-var
   var __testDb: D1Database;
 }
 

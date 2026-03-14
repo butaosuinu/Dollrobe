@@ -4,18 +4,14 @@ import {
   resetDatabase,
   createTestGarmentInput,
   createTestCaseInput,
+  getTestDb,
 } from "./helpers";
 
 describe("服 CRUD シナリオ", () => {
-  const getCaller = () =>
-    createTestCaller(
-      globalThis.__testDb as unknown as import("@cloudflare/workers-types").D1Database,
-    );
+  const getCaller = () => createTestCaller(getTestDb());
 
   beforeEach(async () => {
-    await resetDatabase(
-      globalThis.__testDb as unknown as import("@cloudflare/workers-types").D1Database,
-    );
+    await resetDatabase(getTestDb());
   });
 
   describe("服の作成と取得", () => {
@@ -49,7 +45,7 @@ describe("服 CRUD シナリオ", () => {
         createTestCaseInput(),
       );
       const caseDetail = await caller.location.getCase(caseResult.id);
-      const locationId = caseDetail.locations[0].id;
+      const locationId = caseDetail.locations[0]!.id;
 
       const created = await caller.garment.create(
         createTestGarmentInput({ locationId }),
@@ -80,7 +76,7 @@ describe("服 CRUD シナリオ", () => {
 
       const tops = await caller.garment.list({ category: "tops" });
       expect(tops).toHaveLength(1);
-      expect(tops[0].name).toBe("トップスA");
+      expect(tops[0]!.name).toBe("トップスA");
     });
 
     it("dollSize でフィルタリングできる", async () => {
@@ -94,7 +90,7 @@ describe("服 CRUD シナリオ", () => {
 
       const msdGarments = await caller.garment.list({ dollSize: "MSD" });
       expect(msdGarments).toHaveLength(1);
-      expect(msdGarments[0].name).toBe("MSD服");
+      expect(msdGarments[0]!.name).toBe("MSD服");
     });
 
     it("status でフィルタリングできる", async () => {
@@ -103,7 +99,7 @@ describe("服 CRUD シナリオ", () => {
         createTestCaseInput(),
       );
       const caseDetail = await caller.location.getCase(caseResult.id);
-      const locationId = caseDetail.locations[0].id;
+      const locationId = caseDetail.locations[0]!.id;
 
       await caller.garment.create(
         createTestGarmentInput({ name: "収納中", locationId }),
@@ -114,11 +110,11 @@ describe("服 CRUD シナリオ", () => {
 
       const stored = await caller.garment.list({ status: "stored" });
       expect(stored).toHaveLength(1);
-      expect(stored[0].name).toBe("収納中");
+      expect(stored[0]!.name).toBe("収納中");
 
       const checkedOut = await caller.garment.list({ status: "checked_out" });
       expect(checkedOut).toHaveLength(1);
-      expect(checkedOut[0].name).toBe("取り出し中");
+      expect(checkedOut[0]!.name).toBe("取り出し中");
     });
 
     it("フィルタなしで全件取得できる", async () => {

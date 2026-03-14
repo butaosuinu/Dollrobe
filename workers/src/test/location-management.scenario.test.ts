@@ -4,18 +4,14 @@ import {
   resetDatabase,
   createTestGarmentInput,
   createTestCaseInput,
+  getTestDb,
 } from "./helpers";
 
 describe("収納場所管理シナリオ", () => {
-  const getCaller = () =>
-    createTestCaller(
-      globalThis.__testDb as unknown as import("@cloudflare/workers-types").D1Database,
-    );
+  const getCaller = () => createTestCaller(getTestDb());
 
   beforeEach(async () => {
-    await resetDatabase(
-      globalThis.__testDb as unknown as import("@cloudflare/workers-types").D1Database,
-    );
+    await resetDatabase(getTestDb());
   });
 
   describe("ケース作成と location 自動生成", () => {
@@ -44,7 +40,7 @@ describe("収納場所管理シナリオ", () => {
 
       const detail = await caller.location.getCase(caseResult.id);
       expect(detail.locations).toHaveLength(1);
-      expect(detail.locations[0].label).toBe("A-1");
+      expect(detail.locations[0]!.label).toBe("A-1");
     });
   });
 
@@ -152,7 +148,7 @@ describe("収納場所管理シナリオ", () => {
         createTestCaseInput(),
       );
       const detail = await caller.location.getCase(caseResult.id);
-      const locationId = detail.locations[0].id;
+      const locationId = detail.locations[0]!.id;
 
       const garment = await caller.garment.create(
         createTestGarmentInput({ locationId }),
@@ -186,7 +182,7 @@ describe("収納場所管理シナリオ", () => {
         createTestCaseInput(),
       );
       const detail = await caller.location.getCase(caseResult.id);
-      const locationId = detail.locations[0].id;
+      const locationId = detail.locations[0]!.id;
 
       const garment = await caller.garment.create(
         createTestGarmentInput({ locationId }),

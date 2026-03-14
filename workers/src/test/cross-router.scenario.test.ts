@@ -3,18 +3,14 @@ import {
   resetDatabase,
   createTestGarmentInput,
   createTestCaseInput,
+  getTestDb,
 } from "./helpers";
 
 describe("ルーター横断シナリオ", () => {
-  const getCaller = () =>
-    createTestCaller(
-      globalThis.__testDb as unknown as import("@cloudflare/workers-types").D1Database,
-    );
+  const getCaller = () => createTestCaller(getTestDb());
 
   beforeEach(async () => {
-    await resetDatabase(
-      globalThis.__testDb as unknown as import("@cloudflare/workers-types").D1Database,
-    );
+    await resetDatabase(getTestDb());
   });
 
   it("服のライフサイクル全体: 作成 → チェックイン → confirmAll → チェックアウト → orphanResolve(stored_back)", async () => {
@@ -24,7 +20,7 @@ describe("ルーター横断シナリオ", () => {
       createTestCaseInput({ name: "メインケース" }),
     );
     const caseDetail = await caller.location.getCase(caseResult.id);
-    const locationId = caseDetail.locations[0].id;
+    const locationId = caseDetail.locations[0]!.id;
 
     const garment = await caller.garment.create(
       createTestGarmentInput({ name: "ライフサイクルテスト服" }),
@@ -73,7 +69,7 @@ describe("ルーター横断シナリオ", () => {
       createTestCaseInput({ name: "旧ケース" }),
     );
     const oldDetail = await caller.location.getCase(oldCase.id);
-    const oldLocationId = oldDetail.locations[0].id;
+    const oldLocationId = oldDetail.locations[0]!.id;
 
     const garment1 = await caller.garment.create(
       createTestGarmentInput({ name: "服1", locationId: oldLocationId }),
@@ -100,7 +96,7 @@ describe("ルーター横断シナリオ", () => {
       createTestCaseInput({ name: "新ケース" }),
     );
     const newDetail = await caller.location.getCase(newCase.id);
-    const newLocationId = newDetail.locations[0].id;
+    const newLocationId = newDetail.locations[0]!.id;
 
     await caller.scan.checkin({
       locationId: newLocationId,
@@ -120,7 +116,7 @@ describe("ルーター横断シナリオ", () => {
 
     const caseResult = await caller.location.createCase(createTestCaseInput());
     const detail = await caller.location.getCase(caseResult.id);
-    const locationId = detail.locations[0].id;
+    const locationId = detail.locations[0]!.id;
 
     const garment1 = await caller.garment.create(
       createTestGarmentInput({ name: "存在する服" }),
