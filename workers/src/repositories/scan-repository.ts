@@ -1,6 +1,6 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import { GARMENT_STATUS } from "@shared/lib/constants";
-import { type GarmentRow, wrapDbError } from "../trpc/lib/d1-helpers";
+import type { GarmentRow } from "../trpc/lib/d1-helpers";
 
 export const batchCheckin = async ({
   db,
