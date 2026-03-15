@@ -1,15 +1,15 @@
-import type { D1Database } from "@cloudflare/workers-types";
 import { GARMENT_STATUS } from "@shared/lib/constants";
+import type { DrizzleDB } from "../db/client";
 import * as scanRepo from "../repositories/scan-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
 export const checkin = async ({
-  db,
+  drizzleDb,
   userId,
   locationId,
   garmentIds,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly locationId: string;
   readonly garmentIds: readonly string[];
@@ -17,7 +17,7 @@ export const checkin = async ({
   ServiceResult<{ readonly success: true; readonly checkedInCount: number }>
 > => {
   const totalChanges = await scanRepo.batchCheckin({
-    db,
+    drizzleDb,
     userId,
     locationId,
     garmentIds,
@@ -34,16 +34,16 @@ export const checkin = async ({
 };
 
 export const checkout = async ({
-  db,
+  drizzleDb,
   userId,
   garmentId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly garmentId: string;
 }): Promise<ServiceResult<{ readonly success: true }>> => {
   const existing = await scanRepo.findGarmentIdAndStatus({
-    db,
+    drizzleDb,
     userId,
     garmentId,
   });
@@ -51,23 +51,23 @@ export const checkout = async ({
     return serviceError("NOT_FOUND", "指定された服が見つかりません");
   }
 
-  await scanRepo.checkout({ db, userId, garmentId });
+  await scanRepo.checkout({ drizzleDb, userId, garmentId });
   return serviceOk({ success: true });
 };
 
 export const confirmAll = async ({
-  db,
+  drizzleDb,
   userId,
   locationId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly locationId: string;
 }): Promise<
   ServiceResult<{ readonly success: true; readonly confirmedCount: number }>
 > => {
   const confirmedCount = await scanRepo.confirmAllAtLocation({
-    db,
+    drizzleDb,
     userId,
     locationId,
   });
@@ -80,11 +80,11 @@ type Confirmation = {
 };
 
 export const confirmPartial = async ({
-  db,
+  drizzleDb,
   userId,
   confirmations,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly confirmations: readonly Confirmation[];
 }): Promise<
@@ -94,7 +94,7 @@ export const confirmPartial = async ({
     readonly deniedCount: number;
   }>
 > => {
-  await scanRepo.batchConfirmPartial({ db, userId, confirmations });
+  await scanRepo.batchConfirmPartial({ drizzleDb, userId, confirmations });
 
   const confirmedCount = confirmations.filter((c) => c.confirmed).length;
   const deniedCount = confirmations.length - confirmedCount;
@@ -103,20 +103,20 @@ export const confirmPartial = async ({
 };
 
 export const orphanResolve = async ({
-  db,
+  drizzleDb,
   userId,
   garmentId,
   resolution,
   locationId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly garmentId: string;
   readonly resolution: "stored_back" | "still_using" | "lost";
   readonly locationId?: string;
 }): Promise<ServiceResult<{ readonly success: true }>> => {
   const existing = await scanRepo.findGarmentIdAndStatus({
-    db,
+    drizzleDb,
     userId,
     garmentId,
   });
@@ -132,7 +132,7 @@ export const orphanResolve = async ({
   }
 
   await scanRepo.resolveOrphan({
-    db,
+    drizzleDb,
     userId,
     garmentId,
     resolution,

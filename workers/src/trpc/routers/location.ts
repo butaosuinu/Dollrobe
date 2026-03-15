@@ -1,19 +1,20 @@
+import { createDrizzle } from "../../db/client";
+import * as locationService from "../../services/location-service";
+import { throwIfError } from "../../services/types";
 import { router, publicProcedure } from "../index";
+import { TEMP_USER_ID } from "../lib/d1-helpers";
 import {
   cuidSchema,
   createCaseInputSchema,
   updateCaseInputSchema,
   createLocationInputSchema,
 } from "../lib/schemas";
-import { TEMP_USER_ID } from "../lib/d1-helpers";
-import * as locationService from "../../services/location-service";
-import { throwIfError } from "../../services/types";
 
 export const locationRouter = router({
   listCases: publicProcedure.query(async ({ ctx }) =>
     throwIfError(
       await locationService.listCases({
-        db: ctx.env.DB,
+        drizzleDb: createDrizzle(ctx.env.DB),
         userId: TEMP_USER_ID,
       }),
     ),
@@ -22,7 +23,7 @@ export const locationRouter = router({
   getCase: publicProcedure.input(cuidSchema).query(async ({ ctx, input: id }) =>
     throwIfError(
       await locationService.getCase({
-        db: ctx.env.DB,
+        drizzleDb: createDrizzle(ctx.env.DB),
         id,
         userId: TEMP_USER_ID,
       }),
@@ -34,7 +35,7 @@ export const locationRouter = router({
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await locationService.createCase({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           input,
         }),
@@ -46,7 +47,7 @@ export const locationRouter = router({
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await locationService.updateCase({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           input,
         }),
@@ -58,7 +59,7 @@ export const locationRouter = router({
     .mutation(async ({ ctx, input: id }) =>
       throwIfError(
         await locationService.deleteCase({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           id,
           userId: TEMP_USER_ID,
         }),
@@ -70,7 +71,7 @@ export const locationRouter = router({
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await locationService.createLocation({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           input,
         }),
@@ -82,7 +83,7 @@ export const locationRouter = router({
     .mutation(async ({ ctx, input: id }) =>
       throwIfError(
         await locationService.deleteLocation({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           id,
           userId: TEMP_USER_ID,
         }),

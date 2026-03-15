@@ -1,26 +1,26 @@
-import type { D1Database } from "@cloudflare/workers-types";
 import type { StorageCase, StorageLocation } from "@/types";
 import { GARMENT_STATUS } from "@shared/lib/constants";
+import type { DrizzleDB } from "../db/client";
 import * as locationRepo from "../repositories/location-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
 export const listCases = async ({
-  db,
+  drizzleDb,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
 }): Promise<ServiceResult<{ readonly cases: readonly StorageCase[] }>> => {
-  const cases = await locationRepo.findCasesByUserId({ db, userId });
+  const cases = await locationRepo.findCasesByUserId({ drizzleDb, userId });
   return serviceOk({ cases });
 };
 
 export const getCase = async ({
-  db,
+  drizzleDb,
   id,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
 }): Promise<
@@ -29,13 +29,17 @@ export const getCase = async ({
     readonly locations: readonly StorageLocation[];
   }>
 > => {
-  const storageCase = await locationRepo.findCaseById({ db, id, userId });
+  const storageCase = await locationRepo.findCaseById({
+    drizzleDb,
+    id,
+    userId,
+  });
   if (storageCase === undefined) {
     return serviceError("NOT_FOUND", "ケースが見つかりません");
   }
 
   const locations = await locationRepo.findLocationsByCaseId({
-    db,
+    drizzleDb,
     caseId: id,
     userId,
   });
@@ -43,11 +47,11 @@ export const getCase = async ({
 };
 
 export const createCase = async ({
-  db,
+  drizzleDb,
   userId,
   input,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly input: {
     readonly name: string;
@@ -56,7 +60,7 @@ export const createCase = async ({
   };
 }): Promise<ServiceResult<{ readonly id: string }>> => {
   const id = await locationRepo.insertCaseWithLocations({
-    db,
+    drizzleDb,
     userId,
     name: input.name,
     rows: input.rows,
@@ -66,11 +70,11 @@ export const createCase = async ({
 };
 
 export const updateCase = async ({
-  db,
+  drizzleDb,
   userId,
   input,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly input: {
     readonly id: string;
@@ -78,7 +82,7 @@ export const updateCase = async ({
   };
 }): Promise<ServiceResult<{ readonly id: string }>> => {
   const existing = await locationRepo.findCaseById({
-    db,
+    drizzleDb,
     id: input.id,
     userId,
   });
@@ -87,7 +91,7 @@ export const updateCase = async ({
   }
 
   await locationRepo.updateCaseName({
-    db,
+    drizzleDb,
     id: input.id,
     userId,
     name: input.name,
@@ -96,21 +100,21 @@ export const updateCase = async ({
 };
 
 export const deleteCase = async ({
-  db,
+  drizzleDb,
   id,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
 }): Promise<ServiceResult<{ readonly id: string }>> => {
-  const existing = await locationRepo.findCaseById({ db, id, userId });
+  const existing = await locationRepo.findCaseById({ drizzleDb, id, userId });
   if (existing === undefined) {
     return serviceError("NOT_FOUND", "ケースが見つかりません");
   }
 
   await locationRepo.deleteCaseWithCascade({
-    db,
+    drizzleDb,
     id,
     userId,
     garmentStatus: GARMENT_STATUS.CHECKED_OUT,
@@ -119,11 +123,11 @@ export const deleteCase = async ({
 };
 
 export const createLocation = async ({
-  db,
+  drizzleDb,
   userId,
   input,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly input: {
     readonly caseId: string;
@@ -133,7 +137,7 @@ export const createLocation = async ({
   };
 }): Promise<ServiceResult<{ readonly id: string }>> => {
   const caseExists = await locationRepo.findCaseById({
-    db,
+    drizzleDb,
     id: input.caseId,
     userId,
   });
@@ -142,7 +146,7 @@ export const createLocation = async ({
   }
 
   const duplicate = await locationRepo.findLocationByPosition({
-    db,
+    drizzleDb,
     caseId: input.caseId,
     row: input.row,
     col: input.col,
@@ -152,7 +156,7 @@ export const createLocation = async ({
   }
 
   const id = await locationRepo.insertLocation({
-    db,
+    drizzleDb,
     userId,
     caseId: input.caseId,
     label: input.label,
@@ -163,21 +167,25 @@ export const createLocation = async ({
 };
 
 export const deleteLocation = async ({
-  db,
+  drizzleDb,
   id,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
 }): Promise<ServiceResult<{ readonly id: string }>> => {
-  const existing = await locationRepo.findLocationById({ db, id, userId });
+  const existing = await locationRepo.findLocationById({
+    drizzleDb,
+    id,
+    userId,
+  });
   if (existing === undefined) {
     return serviceError("NOT_FOUND", "ロケーションが見つかりません");
   }
 
   await locationRepo.deleteLocationWithCascade({
-    db,
+    drizzleDb,
     id,
     userId,
     garmentStatus: GARMENT_STATUS.CHECKED_OUT,

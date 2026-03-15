@@ -1,131 +1,154 @@
-import type { D1Database } from "@cloudflare/workers-types";
 import type { StorageCase, StorageLocation } from "@/types";
 import { createId } from "@paralleldrive/cuid2";
-import {
-  type StorageCaseRow,
-  type StorageLocationRow,
-  toStorageCase,
-  toStorageLocation,
-  generateLabel,
-  wrapDbError,
-} from "../trpc/lib/d1-helpers";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import type { DrizzleDB } from "../db/client";
+import { garments, storageCases, storageLocations } from "../db/schema";
+import { generateLabel } from "../trpc/lib/d1-helpers";
+
+const toStorageCase = (row: typeof storageCases.$inferSelect): StorageCase => ({
+  id: row.id,
+  userId: row.userId,
+  name: row.name,
+  rows: row.rows,
+  cols: row.cols,
+  createdAt: row.createdAt,
+});
+
+const toStorageLocation = (
+  row: typeof storageLocations.$inferSelect,
+): StorageLocation => ({
+  id: row.id,
+  userId: row.userId,
+  caseId: row.caseId,
+  label: row.label,
+  row: row.row,
+  col: row.col,
+  createdAt: row.createdAt,
+});
 
 export const findCasesByUserId = async ({
-  db,
+  drizzleDb,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
 }): Promise<readonly StorageCase[]> => {
-  const { results } = await db
-    .prepare(
-      "SELECT * FROM storage_cases WHERE user_id = ? ORDER BY created_at DESC",
-    )
-    .bind(userId)
-    .all<StorageCaseRow>()
-    .catch(wrapDbError("fetch storage cases"));
+  const rows = await drizzleDb
+    .select()
+    .from(storageCases)
+    .where(eq(storageCases.userId, userId))
+    .orderBy(desc(storageCases.createdAt));
 
-  return results.map(toStorageCase);
+  return rows.map(toStorageCase);
 };
 
 export const findCaseById = async ({
-  db,
+  drizzleDb,
   id,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
 }): Promise<StorageCase | undefined> => {
-  const row = await db
-    .prepare("SELECT * FROM storage_cases WHERE id = ? AND user_id = ?")
-    .bind(id, userId)
-    .first<StorageCaseRow>()
-    .catch(wrapDbError("fetch storage case"));
+  const rows = await drizzleDb
+    .select()
+    .from(storageCases)
+    .where(and(eq(storageCases.id, id), eq(storageCases.userId, userId)));
 
-  if (row == null) {
+  const first = rows[0];
+  if (first === undefined) {
     return undefined;
   }
 
-  return toStorageCase(row);
+  return toStorageCase(first);
 };
 
 export const findLocationsByCaseId = async ({
-  db,
+  drizzleDb,
   caseId,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly caseId: string;
   readonly userId: string;
 }): Promise<readonly StorageLocation[]> => {
-  const { results } = await db
-    .prepare(
-      "SELECT * FROM storage_locations WHERE case_id = ? AND user_id = ? ORDER BY row_num, col_num",
+  const rows = await drizzleDb
+    .select()
+    .from(storageLocations)
+    .where(
+      and(
+        eq(storageLocations.caseId, caseId),
+        eq(storageLocations.userId, userId),
+      ),
     )
-    .bind(caseId, userId)
-    .all<StorageLocationRow>()
-    .catch(wrapDbError("fetch storage locations"));
+    .orderBy(asc(storageLocations.row), asc(storageLocations.col));
 
-  return results.map(toStorageLocation);
+  return rows.map(toStorageLocation);
 };
 
 export const findLocationByPosition = async ({
-  db,
+  drizzleDb,
   caseId,
   row,
   col,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly caseId: string;
   readonly row: number;
   readonly col: number;
 }): Promise<StorageLocation | undefined> => {
-  const locationRow = await db
-    .prepare(
-      "SELECT * FROM storage_locations WHERE case_id = ? AND row_num = ? AND col_num = ?",
-    )
-    .bind(caseId, row, col)
-    .first<StorageLocationRow>()
-    .catch(wrapDbError("check duplicate location"));
+  const rows = await drizzleDb
+    .select()
+    .from(storageLocations)
+    .where(
+      and(
+        eq(storageLocations.caseId, caseId),
+        eq(storageLocations.row, row),
+        eq(storageLocations.col, col),
+      ),
+    );
 
-  if (locationRow == null) {
+  const first = rows[0];
+  if (first === undefined) {
     return undefined;
   }
 
-  return toStorageLocation(locationRow);
+  return toStorageLocation(first);
 };
 
 export const findLocationById = async ({
-  db,
+  drizzleDb,
   id,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
 }): Promise<StorageLocation | undefined> => {
-  const row = await db
-    .prepare("SELECT * FROM storage_locations WHERE id = ? AND user_id = ?")
-    .bind(id, userId)
-    .first<StorageLocationRow>()
-    .catch(wrapDbError("fetch storage location"));
+  const rows = await drizzleDb
+    .select()
+    .from(storageLocations)
+    .where(
+      and(eq(storageLocations.id, id), eq(storageLocations.userId, userId)),
+    );
 
-  if (row == null) {
+  const first = rows[0];
+  if (first === undefined) {
     return undefined;
   }
 
-  return toStorageLocation(row);
+  return toStorageLocation(first);
 };
 
 export const insertCaseWithLocations = async ({
-  db,
+  drizzleDb,
   userId,
   name,
   rows,
   cols,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly name: string;
   readonly rows: number;
@@ -134,92 +157,107 @@ export const insertCaseWithLocations = async ({
   const caseId = createId();
   const now = Date.now();
 
-  const locationStatements = Array.from({ length: rows * cols }, (_, i) => {
-    const row = Math.floor(i / cols);
-    const col = i % cols;
-    const label = generateLabel({ row, col });
-
-    return db
-      .prepare(
-        "INSERT INTO storage_locations (id, user_id, case_id, label, row_num, col_num, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      )
-      .bind(createId(), userId, caseId, label, row, col, now);
+  const locationValues = Array.from({ length: rows * cols }, (_, i) => {
+    const rowIdx = Math.floor(i / cols);
+    const colIdx = i % cols;
+    return {
+      id: createId(),
+      userId,
+      caseId,
+      label: generateLabel({ row: rowIdx, col: colIdx }),
+      row: rowIdx,
+      col: colIdx,
+      createdAt: now,
+    };
   });
 
-  const caseStatement = db
-    .prepare(
-      "INSERT INTO storage_cases (id, user_id, name, rows, cols, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-    )
-    .bind(caseId, userId, name, rows, cols, now);
+  const insertCase = drizzleDb.insert(storageCases).values({
+    id: caseId,
+    userId,
+    name,
+    rows,
+    cols,
+    createdAt: now,
+  });
 
-  await db
-    .batch([caseStatement, ...locationStatements])
-    .catch(wrapDbError("create case with locations"));
+  const insertLocations = drizzleDb
+    .insert(storageLocations)
+    .values(locationValues);
+
+  await drizzleDb.batch([insertCase, insertLocations]);
 
   return caseId;
 };
 
 export const updateCaseName = async ({
-  db,
+  drizzleDb,
   id,
   userId,
   name,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
   readonly name: string;
 }): Promise<void> => {
-  await db
-    .prepare("UPDATE storage_cases SET name = ? WHERE id = ? AND user_id = ?")
-    .bind(name, id, userId)
-    .run()
-    .catch(wrapDbError("update case name"));
+  await drizzleDb
+    .update(storageCases)
+    .set({ name })
+    .where(and(eq(storageCases.id, id), eq(storageCases.userId, userId)));
 };
 
 export const deleteCaseWithCascade = async ({
-  db,
+  drizzleDb,
   id,
   userId,
   garmentStatus,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
   readonly garmentStatus: string;
 }): Promise<void> => {
   const now = Date.now();
 
-  const clearGarments = db
-    .prepare(
-      `UPDATE garments SET location_id = NULL, status = ?, checked_out_at = ?
-       WHERE location_id IN (SELECT id FROM storage_locations WHERE case_id = ? AND user_id = ?)
-       AND user_id = ?`,
-    )
-    .bind(garmentStatus, now, id, userId, userId);
+  const locationSubquery = drizzleDb
+    .select({ id: storageLocations.id })
+    .from(storageLocations)
+    .where(
+      and(eq(storageLocations.caseId, id), eq(storageLocations.userId, userId)),
+    );
 
-  const deleteLocations = db
-    .prepare("DELETE FROM storage_locations WHERE case_id = ? AND user_id = ?")
-    .bind(id, userId);
+  const clearGarments = drizzleDb
+    .update(garments)
+    .set({ locationId: null, status: garmentStatus, checkedOutAt: now })
+    .where(
+      and(
+        inArray(garments.locationId, locationSubquery),
+        eq(garments.userId, userId),
+      ),
+    );
 
-  const deleteCase = db
-    .prepare("DELETE FROM storage_cases WHERE id = ? AND user_id = ?")
-    .bind(id, userId);
+  const deleteLocations = drizzleDb
+    .delete(storageLocations)
+    .where(
+      and(eq(storageLocations.caseId, id), eq(storageLocations.userId, userId)),
+    );
 
-  await db
-    .batch([clearGarments, deleteLocations, deleteCase])
-    .catch(wrapDbError("delete case with cascade"));
+  const deleteCase = drizzleDb
+    .delete(storageCases)
+    .where(and(eq(storageCases.id, id), eq(storageCases.userId, userId)));
+
+  await drizzleDb.batch([clearGarments, deleteLocations, deleteCase]);
 };
 
 export const insertLocation = async ({
-  db,
+  drizzleDb,
   userId,
   caseId,
   label,
   row,
   col,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly caseId: string;
   readonly label: string;
@@ -229,42 +267,46 @@ export const insertLocation = async ({
   const locationId = createId();
   const now = Date.now();
 
-  await db
-    .prepare(
-      "INSERT INTO storage_locations (id, user_id, case_id, label, row_num, col_num, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    )
-    .bind(locationId, userId, caseId, label, row, col, now)
-    .run()
-    .catch(wrapDbError("create location"));
+  await drizzleDb.insert(storageLocations).values({
+    id: locationId,
+    userId,
+    caseId,
+    label,
+    row,
+    col,
+    createdAt: now,
+  });
 
   return locationId;
 };
 
 export const deleteLocationWithCascade = async ({
-  db,
+  drizzleDb,
   id,
   userId,
   garmentStatus,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
   readonly garmentStatus: string;
 }): Promise<void> => {
   const now = Date.now();
 
-  const clearGarments = db
-    .prepare(
-      `UPDATE garments SET location_id = NULL, status = ?, checked_out_at = ?
-       WHERE location_id = ? AND user_id = ?`,
-    )
-    .bind(garmentStatus, now, id, userId);
+  const clearGarments = drizzleDb
+    .update(garments)
+    .set({
+      locationId: null,
+      status: garmentStatus,
+      checkedOutAt: now,
+    })
+    .where(and(eq(garments.locationId, id), eq(garments.userId, userId)));
 
-  const deleteLocation = db
-    .prepare("DELETE FROM storage_locations WHERE id = ? AND user_id = ?")
-    .bind(id, userId);
+  const deleteLocation = drizzleDb
+    .delete(storageLocations)
+    .where(
+      and(eq(storageLocations.id, id), eq(storageLocations.userId, userId)),
+    );
 
-  await db
-    .batch([clearGarments, deleteLocation])
-    .catch(wrapDbError("delete location with cascade"));
+  await drizzleDb.batch([clearGarments, deleteLocation]);
 };

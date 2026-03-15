@@ -61,6 +61,7 @@ QR スキャンで物理的な収納場所とデジタル在庫を紐づけ、�
 | QR スキャン     | jsQR（ブラウザネイティブ、アプリ不要）                 |
 | API             | Cloudflare Workers + Hono                              |
 | DB              | Cloudflare D1 (SQLite)                                 |
+| ORM             | Drizzle ORM + drizzle-zod                              |
 | 画像            | Cloudflare R2 (S3 互換)                                |
 | KV / セッション | Cloudflare KV                                          |
 | Cron / Queue    | Cloudflare Queues + Cron Triggers                      |
@@ -74,6 +75,7 @@ QR スキャンで物理的な収納場所とデジタル在庫を紐づけ、�
 /
 ├── CLAUDE.md
 ├── wrangler.toml
+├── drizzle.config.ts          # Drizzle Kit マイグレーション設定
 ├── src/
 │   ├── app/                   # Next.js App Router
 │   │   ├── page.tsx           # ダッシュボード
@@ -96,12 +98,17 @@ QR スキャンで物理的な収納場所とデジタル在庫を紐づけ、�
     │   ├── index.ts           # Hono + tRPC サーバー
     │   ├── auth.ts            # better-auth 設定
     │   ├── types.ts           # Env 型定義
+    │   ├── db/                # Drizzle ORM（ドメインモデル層）
+    │   │   ├── schema.ts      # テーブル定義（source of truth）
+    │   │   ├── client.ts      # DrizzleDB インスタンス生成
+    │   │   ├── helpers.ts     # JSON 配列 customType
+    │   │   └── validation.ts  # drizzle-zod による Zod バリデーション
     │   ├── trpc/
     │   │   ├── index.ts       # tRPC 初期化・ミドルウェア
     │   │   ├── router.ts      # AppRouter 合成
     │   │   ├── lib/
-    │   │   │   ├── schemas.ts     # Zod 入力スキーマ
-    │   │   │   └── d1-helpers.ts  # Row 型・マッパー
+    │   │   │   ├── schemas.ts     # Zod 入力スキーマ（validation.ts から re-export + スキャン系）
+    │   │   │   └── d1-helpers.ts  # ユーティリティ（wrapDbError, generateLabel）
     │   │   └── routers/       # 薄い tRPC ルーター
     │   │       ├── garment.ts
     │   │       ├── location.ts
@@ -112,7 +119,7 @@ QR スキャンで物理的な収納場所とデジタル在庫を紐づけ、�
     │   │   ├── garment-service.ts
     │   │   ├── location-service.ts
     │   │   └── scan-service.ts
-    │   └── repositories/      # データアクセス層
+    │   └── repositories/      # データアクセス層（Drizzle query builder）
     │       ├── garment-repository.ts
     │       ├── location-repository.ts
     │       └── scan-repository.ts
@@ -189,52 +196,14 @@ export type Coordinate = {
 
 ---
 
-## D1 スキーマ（`workers/migrations/0001_initial.sql`）
+## DB スキーマ
 
-```sql
-CREATE TABLE garments (
-  id                    TEXT PRIMARY KEY,
-  user_id               TEXT NOT NULL,
-  name                  TEXT NOT NULL,
-  category              TEXT NOT NULL,
-  doll_size             TEXT NOT NULL,
-  colors                TEXT NOT NULL DEFAULT '[]',
-  tags                  TEXT NOT NULL DEFAULT '[]',
-  image_url             TEXT,
-  location_id           TEXT REFERENCES storage_locations(id),
-  status                TEXT NOT NULL DEFAULT 'stored',
-  last_scanned_at       INTEGER NOT NULL,
-  confidence_decay_days INTEGER NOT NULL DEFAULT 30,
-  checked_out_at        INTEGER,
-  created_at            INTEGER NOT NULL,
-  updated_at            INTEGER NOT NULL
-);
+**スキーマ定義の source of truth は `workers/src/db/schema.ts`（Drizzle ORM テーブル定義）。**
 
-CREATE TABLE storage_cases (
-  id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
-  name TEXT NOT NULL, rows INTEGER NOT NULL DEFAULT 5,
-  cols INTEGER NOT NULL DEFAULT 3, created_at INTEGER NOT NULL
-);
-
-CREATE TABLE storage_locations (
-  id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
-  case_id TEXT NOT NULL REFERENCES storage_cases(id),
-  label TEXT NOT NULL, row_num INTEGER NOT NULL,
-  col_num INTEGER NOT NULL, created_at INTEGER NOT NULL
-);
-
-CREATE TABLE coordinates (
-  id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
-  name TEXT NOT NULL, garment_ids TEXT NOT NULL DEFAULT '[]',
-  is_ai_generated INTEGER NOT NULL DEFAULT 0,
-  memo TEXT, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
-);
-
-CREATE INDEX idx_garments_user_id     ON garments(user_id);
-CREATE INDEX idx_garments_location_id ON garments(location_id);
-CREATE INDEX idx_garments_status      ON garments(status);
-CREATE INDEX idx_locations_case_id    ON storage_locations(case_id);
-```
+- マイグレーション SQL は `workers/migrations/0001_initial.sql` に存在するが、スキーマの主体は Drizzle に移行済み
+- バリデーションスキーマは `workers/src/db/validation.ts` で drizzle-zod により自動生成
+- JSON 配列カラム（colors, tags, garmentIds）は `db/helpers.ts` の `jsonArrayColumn` customType で SQLite TEXT ↔ `string[]` をマッピング
+- リポジトリ層は raw SQL ではなく Drizzle query builder を使用
 
 ---
 
@@ -374,6 +343,7 @@ crons = ["0 9 * * 1"]  # 毎週月曜 9:00 UTC
 5. **孤立チェックアウトは 3 択** — どの答えでも状態が前進する設計。
 6. **`/api/coordinate` は独立** — 他ルーターと密結合させない。Phase 3 の切り出し口。
 7. **オフラインファースト** — 読み取りは IndexedDB から。Workers への書き込みは非同期同期。
+8. **ドメインモデルは Drizzle テーブル定義が source of truth** — `db/schema.ts` から型・バリデーションを導出する。
 
 ---
 

@@ -1,93 +1,131 @@
-import type { D1Database } from "@cloudflare/workers-types";
-import type { Garment } from "@/types";
+import type {
+  Garment,
+  GarmentCategory,
+  DollSize,
+  GarmentStatus,
+} from "@/types";
+import { TRPCError } from "@trpc/server";
+import { and, desc, eq } from "drizzle-orm";
 import {
-  type GarmentRow,
-  toGarment,
-  wrapDbError,
-} from "../trpc/lib/d1-helpers";
+  GARMENT_CATEGORY_LABEL,
+  DOLL_SIZE_LABEL,
+  GARMENT_STATUS_LABEL,
+} from "@shared/lib/constants";
+import type { DrizzleDB } from "../db/client";
+import { garments } from "../db/schema";
+import { wrapDbError } from "../trpc/lib/d1-helpers";
 
-type FilterCandidate = {
-  readonly column: string;
-  readonly value: string | undefined;
+type GarmentSelectRow = typeof garments.$inferSelect;
+
+const isGarmentCategory = (value: string): value is GarmentCategory =>
+  Object.hasOwn(GARMENT_CATEGORY_LABEL, value);
+
+const isDollSize = (value: string): value is DollSize =>
+  Object.hasOwn(DOLL_SIZE_LABEL, value);
+
+const isGarmentStatus = (value: string): value is GarmentStatus =>
+  Object.hasOwn(GARMENT_STATUS_LABEL, value);
+
+const toGarment = (row: GarmentSelectRow): Garment => {
+  if (!isGarmentCategory(row.category)) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `Invalid category: ${row.category}`,
+    });
+  }
+
+  if (!isDollSize(row.dollSize)) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `Invalid doll_size: ${row.dollSize}`,
+    });
+  }
+
+  if (!isGarmentStatus(row.status)) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `Invalid status: ${row.status}`,
+    });
+  }
+
+  return {
+    id: row.id,
+    userId: row.userId,
+    name: row.name,
+    category: row.category,
+    dollSize: row.dollSize,
+    colors: row.colors,
+    tags: row.tags,
+    imageUrl: row.imageUrl ?? undefined,
+    locationId: row.locationId ?? undefined,
+    status: row.status,
+    lastScannedAt: row.lastScannedAt,
+    confidenceDecayDays: row.confidenceDecayDays,
+    checkedOutAt: row.checkedOutAt ?? undefined,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
 };
 
-type FieldCandidate = {
-  readonly column: string;
-  readonly value: string | number | undefined;
+type GarmentFilters = {
+  readonly category?: string;
+  readonly status?: string;
+  readonly dollSize?: string;
+  readonly locationId?: string;
 };
-
-type FieldUpdate = {
-  readonly column: string;
-  readonly value: string | number;
-};
-
-const isDefinedFilter = (
-  f: FilterCandidate,
-): f is { readonly column: string; readonly value: string } =>
-  f.value !== undefined;
-
-const isDefinedField = (f: FieldCandidate): f is FieldUpdate =>
-  f.value !== undefined;
 
 export const findGarments = async ({
-  db,
+  drizzleDb,
   userId,
   filters,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
-  readonly filters: {
-    readonly category?: string;
-    readonly status?: string;
-    readonly dollSize?: string;
-    readonly locationId?: string;
-  };
+  readonly filters: GarmentFilters;
 }): Promise<readonly Garment[]> => {
-  const filterCandidates: readonly FilterCandidate[] = [
-    { column: "category", value: filters.category },
-    { column: "status", value: filters.status },
-    { column: "doll_size", value: filters.dollSize },
-    { column: "location_id", value: filters.locationId },
-  ];
-
-  const activeFilters = filterCandidates.filter(isDefinedFilter);
-
   const conditions = [
-    "user_id = ?1",
-    ...activeFilters.map((f, i) => `${f.column} = ?${String(i + 2)}`),
-  ];
-  const params: ReadonlyArray<string | number> = [
-    userId,
-    ...activeFilters.map((f) => f.value),
+    eq(garments.userId, userId),
+    ...(filters.category !== undefined
+      ? [eq(garments.category, filters.category)]
+      : []),
+    ...(filters.status !== undefined
+      ? [eq(garments.status, filters.status)]
+      : []),
+    ...(filters.dollSize !== undefined
+      ? [eq(garments.dollSize, filters.dollSize)]
+      : []),
+    ...(filters.locationId !== undefined
+      ? [eq(garments.locationId, filters.locationId)]
+      : []),
   ];
 
-  const sql = `SELECT * FROM garments WHERE ${conditions.join(" AND ")} ORDER BY updated_at DESC`;
-
-  const result = await db
-    .prepare(sql)
-    .bind(...params)
-    .all<GarmentRow>()
+  const rows = await drizzleDb
+    .select()
+    .from(garments)
+    .where(and(...conditions))
+    .orderBy(desc(garments.updatedAt))
     .catch(wrapDbError("fetch garments"));
 
-  return result.results.map(toGarment);
+  return rows.map(toGarment);
 };
 
 export const findGarmentById = async ({
-  db,
+  drizzleDb,
   id,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
 }): Promise<Garment | undefined> => {
-  const row = await db
-    .prepare("SELECT * FROM garments WHERE id = ?1 AND user_id = ?2")
-    .bind(id, userId)
-    .first<GarmentRow>()
+  const rows = await drizzleDb
+    .select()
+    .from(garments)
+    .where(and(eq(garments.id, id), eq(garments.userId, userId)))
     .catch(wrapDbError("fetch garment"));
 
-  if (row === null) {
+  const row = rows[0];
+  if (row === undefined) {
     return undefined;
   }
 
@@ -95,133 +133,83 @@ export const findGarmentById = async ({
 };
 
 export const insertGarment = async ({
-  db,
-  id,
-  userId,
-  name,
-  category,
-  dollSize,
-  colors,
-  tags,
-  imageUrl,
-  locationId,
-  status,
-  lastScannedAt,
-  confidenceDecayDays,
-  checkedOutAt,
-  createdAt,
-  updatedAt,
+  drizzleDb,
+  garment,
 }: {
-  readonly db: D1Database;
-  readonly id: string;
-  readonly userId: string;
-  readonly name: string;
-  readonly category: string;
-  readonly dollSize: string;
-  readonly colors: readonly string[];
-  readonly tags: readonly string[];
-  readonly imageUrl: string | undefined;
-  readonly locationId: string | undefined;
-  readonly status: string;
-  readonly lastScannedAt: number;
-  readonly confidenceDecayDays: number;
-  readonly checkedOutAt: number | undefined;
-  readonly createdAt: number;
-  readonly updatedAt: number;
+  readonly drizzleDb: DrizzleDB;
+  readonly garment: typeof garments.$inferInsert;
 }): Promise<void> => {
-  await db
-    .prepare(
-      `INSERT INTO garments (id, user_id, name, category, doll_size, colors, tags, image_url, location_id, status, last_scanned_at, confidence_decay_days, checked_out_at, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)`,
-    )
-    .bind(
-      id,
-      userId,
-      name,
-      category,
-      dollSize,
-      JSON.stringify(colors),
-      JSON.stringify(tags),
-      imageUrl ?? null,
-      locationId ?? null,
-      status,
-      lastScannedAt,
-      confidenceDecayDays,
-      checkedOutAt ?? null,
-      createdAt,
-      updatedAt,
-    )
-    .run()
+  await drizzleDb
+    .insert(garments)
+    .values(garment)
     .catch(wrapDbError("create garment"));
 };
 
+type GarmentUpdatableFields = {
+  readonly name?: string;
+  readonly category?: string;
+  readonly dollSize?: string;
+  readonly colors?: readonly string[];
+  readonly tags?: readonly string[];
+  readonly imageUrl?: string;
+  readonly locationId?: string;
+  readonly confidenceDecayDays?: number;
+};
+
+const UPDATABLE_FIELD_KEYS = [
+  "name",
+  "category",
+  "dollSize",
+  "colors",
+  "tags",
+  "imageUrl",
+  "locationId",
+  "confidenceDecayDays",
+] as const;
+
+const buildSetObject = (
+  fields: GarmentUpdatableFields,
+): Record<string, string | number | readonly string[]> => {
+  const entries = UPDATABLE_FIELD_KEYS.flatMap((key) => {
+    const value = fields[key];
+    if (value === undefined) {
+      return [];
+    }
+    return [[key, value]] as const;
+  });
+  return Object.fromEntries(entries);
+};
+
 export const updateGarmentFields = async ({
-  db,
+  drizzleDb,
   id,
   userId,
   fields,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
-  readonly fields: {
-    readonly name?: string;
-    readonly category?: string;
-    readonly dollSize?: string;
-    readonly colors?: readonly string[];
-    readonly tags?: readonly string[];
-    readonly imageUrl?: string;
-    readonly locationId?: string;
-    readonly confidenceDecayDays?: number;
-  };
+  readonly fields: GarmentUpdatableFields;
 }): Promise<Garment | undefined> => {
-  const fieldCandidates: readonly FieldCandidate[] = [
-    { column: "name", value: fields.name },
-    { column: "category", value: fields.category },
-    { column: "doll_size", value: fields.dollSize },
-    {
-      column: "colors",
-      value:
-        fields.colors !== undefined ? JSON.stringify(fields.colors) : undefined,
-    },
-    {
-      column: "tags",
-      value:
-        fields.tags !== undefined ? JSON.stringify(fields.tags) : undefined,
-    },
-    { column: "image_url", value: fields.imageUrl },
-    { column: "location_id", value: fields.locationId },
-    { column: "confidence_decay_days", value: fields.confidenceDecayDays },
-  ];
+  const setObject = {
+    ...buildSetObject(fields),
+    updatedAt: Date.now(),
+  };
 
-  const updates = fieldCandidates.filter(isDefinedField);
-
-  const now = Date.now();
-  const setClauses = [
-    ...updates.map((f, i) => `${f.column} = ?${String(i + 1)}`),
-    `updated_at = ?${String(updates.length + 1)}`,
-  ];
-  const setParams: ReadonlyArray<string | number> = [
-    ...updates.map((f) => f.value),
-    now,
-  ];
-
-  const sql = `UPDATE garments SET ${setClauses.join(", ")} WHERE id = ?${String(setParams.length + 1)} AND user_id = ?${String(setParams.length + 2)}`;
-  const allParams = [...setParams, id, userId];
-
-  await db
-    .prepare(sql)
-    .bind(...allParams)
-    .run()
+  await drizzleDb
+    .update(garments)
+    .set(setObject)
+    .where(and(eq(garments.id, id), eq(garments.userId, userId)))
     .catch(wrapDbError("update garment"));
 
-  const row = await db
-    .prepare("SELECT * FROM garments WHERE id = ?1 AND user_id = ?2")
-    .bind(id, userId)
-    .first<GarmentRow>()
+  const rows = await drizzleDb
+    .select()
+    .from(garments)
+    .where(and(eq(garments.id, id), eq(garments.userId, userId)))
     .catch(wrapDbError("fetch updated garment"));
 
-  if (row === null) {
+  const row = rows[0];
+  if (row === undefined) {
     return undefined;
   }
 
@@ -229,19 +217,18 @@ export const updateGarmentFields = async ({
 };
 
 export const deleteGarmentById = async ({
-  db,
+  drizzleDb,
   id,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
 }): Promise<number> => {
-  const result = await db
-    .prepare("DELETE FROM garments WHERE id = ?1 AND user_id = ?2")
-    .bind(id, userId)
-    .run()
+  const result = await drizzleDb
+    .delete(garments)
+    .where(and(eq(garments.id, id), eq(garments.userId, userId)))
     .catch(wrapDbError("delete garment"));
 
-  return result.meta.changes;
+  return Number(result.meta.changes);
 };
