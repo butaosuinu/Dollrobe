@@ -42,7 +42,7 @@ export default defineConfig({
     globals: true,
     environment: "happy-dom",
     setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}", "workers/**/*.test.ts"],
+    include: ["src/**/*.test.{ts,tsx}"],
     css: true,
   },
   resolve: {

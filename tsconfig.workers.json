@@ -3,7 +3,13 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "noEmit": true,
-    "types": ["@cloudflare/workers-types"],
+    "declaration": false,
+    "declarationMap": false,
+    "types": [
+      "@cloudflare/workers-types",
+      "vitest/globals",
+      "@cloudflare/vitest-pool-workers"
+    ],
     "paths": {
       "@/*": ["./src/*"],
       "@shared/lib/*": ["./src/lib/*"],
@@ -16,5 +22,5 @@
     "src/lib/confidence.ts",
     "src/lib/constants.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "workers/**/*.test.ts", "workers/test/**"]
 }
