@@ -1,8 +1,8 @@
 import type { DollSize, GarmentCategory } from "@/types";
-import { DOLL_SIZE_LABEL, GARMENT_CATEGORY_LABEL } from "@/lib/constants";
+import { GARMENT_CATEGORIES, DOLL_SIZES } from "@/lib/constants";
 
 export const isGarmentCategory = (value: string): value is GarmentCategory =>
-  Object.hasOwn(GARMENT_CATEGORY_LABEL, value);
+  GARMENT_CATEGORIES.some((c) => c === value);
 
 export const isDollSize = (value: string): value is DollSize =>
-  Object.hasOwn(DOLL_SIZE_LABEL, value);
+  DOLL_SIZES.some((s) => s === value);

@@ -3,7 +3,7 @@
 import { Check, AlertTriangle, HelpCircle } from "lucide-react";
 import { useLingui } from "@lingui/react";
 import type { ConfidenceLabel } from "@/types";
-import { CONFIDENCE_LABEL_TEXT } from "@/lib/constants";
+import { CONFIDENCE_LABEL_TEXT } from "@/lib/i18n-labels";
 import Badge from "@/components/ui/Badge";
 
 type Props = {

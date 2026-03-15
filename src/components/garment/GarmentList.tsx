@@ -5,7 +5,7 @@ import { Shirt } from "lucide-react";
 import clsx from "clsx";
 import { useLingui } from "@lingui/react";
 import type { Garment } from "@/types";
-import { GARMENT_CATEGORY_LABEL, DOLL_SIZE_LABEL } from "@/lib/constants";
+import { GARMENT_CATEGORY_LABEL, DOLL_SIZE_LABEL } from "@/lib/i18n-labels";
 import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
 
 type Props = {

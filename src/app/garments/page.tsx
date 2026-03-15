@@ -11,12 +11,12 @@ import { msg, t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
+import { GARMENT_CATEGORIES } from "@/lib/constants";
 import {
   GARMENT_CATEGORY_LABEL,
-  GARMENT_CATEGORIES,
   CONFIDENCE_FILTER_OPTIONS,
   SORT_OPTIONS,
-} from "@/lib/constants";
+} from "@/lib/i18n-labels";
 import type { ConfidenceFilterValue, SortOptionValue } from "@/lib/constants";
 import type { GarmentCategory, Garment } from "@/types";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";

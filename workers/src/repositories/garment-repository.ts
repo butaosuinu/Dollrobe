@@ -7,9 +7,9 @@ import type {
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import {
-  GARMENT_CATEGORY_LABEL,
-  DOLL_SIZE_LABEL,
-  GARMENT_STATUS_LABEL,
+  GARMENT_CATEGORIES,
+  DOLL_SIZES,
+  GARMENT_STATUSES,
 } from "@shared/lib/constants";
 import type { DrizzleDB } from "../db/client";
 import { garments } from "../db/schema";
@@ -18,13 +18,13 @@ import { wrapDbError } from "../trpc/lib/d1-helpers";
 type GarmentSelectRow = typeof garments.$inferSelect;
 
 const isGarmentCategory = (value: string): value is GarmentCategory =>
-  Object.hasOwn(GARMENT_CATEGORY_LABEL, value);
+  GARMENT_CATEGORIES.some((c) => c === value);
 
 const isDollSize = (value: string): value is DollSize =>
-  Object.hasOwn(DOLL_SIZE_LABEL, value);
+  DOLL_SIZES.some((s) => s === value);
 
 const isGarmentStatus = (value: string): value is GarmentStatus =>
-  Object.hasOwn(GARMENT_STATUS_LABEL, value);
+  GARMENT_STATUSES.some((s) => s === value);
 
 const toGarment = (row: GarmentSelectRow): Garment => {
   if (!isGarmentCategory(row.category)) {

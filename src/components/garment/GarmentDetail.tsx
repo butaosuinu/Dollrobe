@@ -6,12 +6,12 @@ import { Shirt, Trash2, Edit3, QrCode } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import type { Garment } from "@/types";
+import { GARMENT_STATUS } from "@/lib/constants";
 import {
   GARMENT_CATEGORY_LABEL,
   DOLL_SIZE_LABEL,
-  GARMENT_STATUS,
   GARMENT_STATUS_LABEL,
-} from "@/lib/constants";
+} from "@/lib/i18n-labels";
 import { deleteGarmentAtom } from "@/stores/garmentAtoms";
 import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
 import Badge from "@/components/ui/Badge";

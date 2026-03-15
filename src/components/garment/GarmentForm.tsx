@@ -11,13 +11,12 @@ import { useLingui } from "@lingui/react";
 import { addGarmentAtom } from "@/stores/garmentAtoms";
 import { authSessionAtom } from "@/stores/authAtoms";
 import type { DollSize, GarmentCategory } from "@/types";
+import { GARMENT_STATUS, DEFAULT_CONFIDENCE_DECAY_DAYS } from "@/lib/constants";
 import {
   GARMENT_CATEGORY_LABEL,
   DOLL_SIZE_LABEL,
-  GARMENT_STATUS,
   CONFIDENCE_DECAY_OPTIONS,
-  DEFAULT_CONFIDENCE_DECAY_DAYS,
-} from "@/lib/constants";
+} from "@/lib/i18n-labels";
 import { isGarmentCategory, isDollSize } from "@/lib/typeGuards";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
