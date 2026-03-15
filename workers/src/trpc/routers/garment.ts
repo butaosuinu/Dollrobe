@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createDrizzle } from "../../db/client";
 import { router, publicProcedure } from "../index";
 import {
   listGarmentsInputSchema,
@@ -16,7 +17,7 @@ export const garmentRouter = router({
     .query(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.listGarments({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           filters: input,
         }),
@@ -28,7 +29,7 @@ export const garmentRouter = router({
     .query(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.getGarment({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           id: input.id,
           userId: TEMP_USER_ID,
         }),
@@ -40,7 +41,7 @@ export const garmentRouter = router({
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.createGarment({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           input,
         }),
@@ -52,7 +53,7 @@ export const garmentRouter = router({
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.updateGarment({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           input,
         }),
@@ -64,7 +65,7 @@ export const garmentRouter = router({
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.deleteGarment({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           id: input.id,
           userId: TEMP_USER_ID,
         }),

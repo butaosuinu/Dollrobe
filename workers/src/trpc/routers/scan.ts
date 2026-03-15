@@ -7,6 +7,7 @@ import {
   orphanResolveInputSchema,
 } from "../lib/schemas";
 import { TEMP_USER_ID } from "../lib/d1-helpers";
+import { createDrizzle } from "../../db/client";
 import * as scanService from "../../services/scan-service";
 import { throwIfError } from "../../services/types";
 
@@ -16,7 +17,7 @@ export const scanRouter = router({
     .mutation(async ({ input, ctx }) =>
       throwIfError(
         await scanService.checkin({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           locationId: input.locationId,
           garmentIds: input.garmentIds,
@@ -29,7 +30,7 @@ export const scanRouter = router({
     .mutation(async ({ input, ctx }) =>
       throwIfError(
         await scanService.checkout({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           garmentId: input.garmentId,
         }),
@@ -41,7 +42,7 @@ export const scanRouter = router({
     .mutation(async ({ input, ctx }) =>
       throwIfError(
         await scanService.confirmAll({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           locationId: input.locationId,
         }),
@@ -53,7 +54,7 @@ export const scanRouter = router({
     .mutation(async ({ input, ctx }) =>
       throwIfError(
         await scanService.confirmPartial({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           confirmations: input.confirmations,
         }),
@@ -65,7 +66,7 @@ export const scanRouter = router({
     .mutation(async ({ input, ctx }) =>
       throwIfError(
         await scanService.orphanResolve({
-          db: ctx.env.DB,
+          drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           garmentId: input.garmentId,
           resolution: input.resolution,

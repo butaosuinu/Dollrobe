@@ -1,16 +1,16 @@
-import type { D1Database } from "@cloudflare/workers-types";
 import type { Garment } from "@/types";
 import { createId } from "@paralleldrive/cuid2";
 import { GARMENT_STATUS } from "@shared/lib/constants";
+import type { DrizzleDB } from "../db/client";
 import * as garmentRepo from "../repositories/garment-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
 export const listGarments = async ({
-  db,
+  drizzleDb,
   userId,
   filters,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly filters: {
     readonly category?: string;
@@ -19,20 +19,24 @@ export const listGarments = async ({
     readonly locationId?: string;
   };
 }): Promise<ServiceResult<readonly Garment[]>> => {
-  const garments = await garmentRepo.findGarments({ db, userId, filters });
+  const garments = await garmentRepo.findGarments({
+    drizzleDb,
+    userId,
+    filters,
+  });
   return serviceOk(garments);
 };
 
 export const getGarment = async ({
-  db,
+  drizzleDb,
   id,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
 }): Promise<ServiceResult<Garment>> => {
-  const garment = await garmentRepo.findGarmentById({ db, id, userId });
+  const garment = await garmentRepo.findGarmentById({ drizzleDb, id, userId });
   if (garment === undefined) {
     return serviceError("NOT_FOUND", `Garment not found: ${id}`);
   }
@@ -40,11 +44,11 @@ export const getGarment = async ({
 };
 
 export const createGarment = async ({
-  db,
+  drizzleDb,
   userId,
   input,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly input: {
     readonly name: string;
@@ -66,25 +70,27 @@ export const createGarment = async ({
   const checkedOutAt = input.locationId !== undefined ? undefined : now;
 
   await garmentRepo.insertGarment({
-    db,
-    id,
-    userId,
-    name: input.name,
-    category: input.category,
-    dollSize: input.dollSize,
-    colors: input.colors,
-    tags: input.tags,
-    imageUrl: input.imageUrl,
-    locationId: input.locationId,
-    status,
-    lastScannedAt: now,
-    confidenceDecayDays: input.confidenceDecayDays,
-    checkedOutAt,
-    createdAt: now,
-    updatedAt: now,
+    drizzleDb,
+    garment: {
+      id,
+      userId,
+      name: input.name,
+      category: input.category,
+      dollSize: input.dollSize,
+      colors: input.colors,
+      tags: input.tags,
+      imageUrl: input.imageUrl,
+      locationId: input.locationId,
+      status,
+      lastScannedAt: now,
+      confidenceDecayDays: input.confidenceDecayDays,
+      checkedOutAt,
+      createdAt: now,
+      updatedAt: now,
+    },
   });
 
-  const garment = await garmentRepo.findGarmentById({ db, id, userId });
+  const garment = await garmentRepo.findGarmentById({ drizzleDb, id, userId });
   if (garment === undefined) {
     return serviceError("INTERNAL_ERROR", "Created garment not found");
   }
@@ -92,11 +98,11 @@ export const createGarment = async ({
 };
 
 export const updateGarment = async ({
-  db,
+  drizzleDb,
   userId,
   input,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly input: {
     readonly id: string;
@@ -111,7 +117,7 @@ export const updateGarment = async ({
   };
 }): Promise<ServiceResult<Garment>> => {
   const existing = await garmentRepo.findGarmentById({
-    db,
+    drizzleDb,
     id: input.id,
     userId,
   });
@@ -120,7 +126,7 @@ export const updateGarment = async ({
   }
 
   const garment = await garmentRepo.updateGarmentFields({
-    db,
+    drizzleDb,
     id: input.id,
     userId,
     fields: {
@@ -141,15 +147,19 @@ export const updateGarment = async ({
 };
 
 export const deleteGarment = async ({
-  db,
+  drizzleDb,
   id,
   userId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
 }): Promise<ServiceResult<{ readonly success: true }>> => {
-  const changes = await garmentRepo.deleteGarmentById({ db, id, userId });
+  const changes = await garmentRepo.deleteGarmentById({
+    drizzleDb,
+    id,
+    userId,
+  });
   if (changes === 0) {
     return serviceError("NOT_FOUND", `Garment not found: ${id}`);
   }

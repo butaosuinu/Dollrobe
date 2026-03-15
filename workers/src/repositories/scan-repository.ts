@@ -1,90 +1,138 @@
-import type { D1Database } from "@cloudflare/workers-types";
+import { eq, and } from "drizzle-orm";
 import { GARMENT_STATUS } from "@shared/lib/constants";
-import type { GarmentRow } from "../trpc/lib/d1-helpers";
+import type { DrizzleDB } from "../db/client";
+import { garments } from "../db/schema";
+
+const buildCheckinUpdate = ({
+  drizzleDb,
+  userId,
+  locationId,
+  garmentId,
+  now,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly locationId: string;
+  readonly garmentId: string;
+  readonly now: number;
+}) =>
+  drizzleDb
+    .update(garments)
+    .set({
+      locationId,
+      status: GARMENT_STATUS.STORED,
+      lastScannedAt: now,
+      checkedOutAt: null,
+      updatedAt: now,
+    })
+    .where(and(eq(garments.id, garmentId), eq(garments.userId, userId)));
 
 export const batchCheckin = async ({
-  db,
+  drizzleDb,
   userId,
   locationId,
   garmentIds,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly locationId: string;
   readonly garmentIds: readonly string[];
 }): Promise<number> => {
-  const now = Date.now();
+  if (garmentIds.length === 0) {
+    return 0;
+  }
 
-  const statements = garmentIds.map((garmentId) =>
-    db
-      .prepare(
-        `UPDATE garments SET location_id = ?, status = ?, last_scanned_at = ?, checked_out_at = NULL, updated_at = ? WHERE id = ? AND user_id = ?`,
-      )
-      .bind(locationId, GARMENT_STATUS.STORED, now, now, garmentId, userId),
+  const now = Date.now();
+  const firstId = garmentIds[0];
+  if (firstId === undefined) {
+    return 0;
+  }
+  const restIds = garmentIds.slice(1);
+  const firstStatement = buildCheckinUpdate({
+    drizzleDb,
+    userId,
+    locationId,
+    garmentId: firstId,
+    now,
+  });
+  const restStatements = restIds.map((garmentId) =>
+    buildCheckinUpdate({ drizzleDb, userId, locationId, garmentId, now }),
   );
 
-  const results = await db.batch(statements);
-  return results.reduce((sum, result) => sum + result.meta.changes, 0);
+  const results = await drizzleDb.batch([firstStatement, ...restStatements]);
+  const changesPerResult: readonly number[] = results.map((result) =>
+    Number(result.meta.changes),
+  );
+  return changesPerResult.reduce((sum, changes) => sum + changes, 0);
 };
 
 export const checkout = async ({
-  db,
+  drizzleDb,
   userId,
   garmentId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly garmentId: string;
 }): Promise<void> => {
   const now = Date.now();
 
-  await db
-    .prepare(
-      `UPDATE garments SET location_id = NULL, status = ?, checked_out_at = ?, updated_at = ? WHERE id = ? AND user_id = ?`,
-    )
-    .bind(GARMENT_STATUS.CHECKED_OUT, now, now, garmentId, userId)
-    .run();
+  await drizzleDb
+    .update(garments)
+    .set({
+      locationId: null,
+      status: GARMENT_STATUS.CHECKED_OUT,
+      checkedOutAt: now,
+      updatedAt: now,
+    })
+    .where(and(eq(garments.id, garmentId), eq(garments.userId, userId)));
 };
 
 export const findGarmentIdAndStatus = async ({
-  db,
+  drizzleDb,
   userId,
   garmentId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly garmentId: string;
-}): Promise<Pick<GarmentRow, "id" | "status"> | undefined> => {
-  const row = await db
-    .prepare(`SELECT id, status FROM garments WHERE id = ? AND user_id = ?`)
-    .bind(garmentId, userId)
-    .first<Pick<GarmentRow, "id" | "status">>();
+}): Promise<{ readonly id: string; readonly status: string } | undefined> => {
+  const row = await drizzleDb
+    .select({ id: garments.id, status: garments.status })
+    .from(garments)
+    .where(and(eq(garments.id, garmentId), eq(garments.userId, userId)))
+    .get();
 
-  if (row === null) {
-    return undefined;
-  }
-  return row;
+  return row ?? undefined;
 };
 
 export const confirmAllAtLocation = async ({
-  db,
+  drizzleDb,
   userId,
   locationId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly locationId: string;
 }): Promise<number> => {
   const now = Date.now();
 
-  const result = await db
-    .prepare(
-      `UPDATE garments SET last_scanned_at = ?, updated_at = ? WHERE location_id = ? AND user_id = ? AND status = ?`,
-    )
-    .bind(now, now, locationId, userId, GARMENT_STATUS.STORED)
-    .run();
+  const result = await drizzleDb
+    .update(garments)
+    .set({
+      lastScannedAt: now,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(garments.locationId, locationId),
+        eq(garments.userId, userId),
+        eq(garments.status, GARMENT_STATUS.STORED),
+      ),
+    );
 
-  return result.meta.changes;
+  const changes: number = result.meta.changes;
+  return changes;
 };
 
 type Confirmation = {
@@ -92,76 +140,127 @@ type Confirmation = {
   readonly confirmed: boolean;
 };
 
+const buildConfirmUpdate = ({
+  drizzleDb,
+  userId,
+  confirmation,
+  now,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly confirmation: Confirmation;
+  readonly now: number;
+}) => {
+  if (confirmation.confirmed) {
+    return drizzleDb
+      .update(garments)
+      .set({
+        lastScannedAt: now,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(garments.id, confirmation.garmentId),
+          eq(garments.userId, userId),
+        ),
+      );
+  }
+  return drizzleDb
+    .update(garments)
+    .set({
+      locationId: null,
+      status: GARMENT_STATUS.CHECKED_OUT,
+      checkedOutAt: now,
+      updatedAt: now,
+    })
+    .where(
+      and(eq(garments.id, confirmation.garmentId), eq(garments.userId, userId)),
+    );
+};
+
 export const batchConfirmPartial = async ({
-  db,
+  drizzleDb,
   userId,
   confirmations,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly confirmations: readonly Confirmation[];
 }): Promise<void> => {
+  if (confirmations.length === 0) {
+    return;
+  }
+
   const now = Date.now();
-
-  const statements = confirmations.map((confirmation) => {
-    if (confirmation.confirmed) {
-      return db
-        .prepare(
-          `UPDATE garments SET last_scanned_at = ?, updated_at = ? WHERE id = ? AND user_id = ?`,
-        )
-        .bind(now, now, confirmation.garmentId, userId);
-    }
-    return db
-      .prepare(
-        `UPDATE garments SET location_id = NULL, status = ?, checked_out_at = ?, updated_at = ? WHERE id = ? AND user_id = ?`,
-      )
-      .bind(
-        GARMENT_STATUS.CHECKED_OUT,
-        now,
-        now,
-        confirmation.garmentId,
-        userId,
-      );
+  const firstConfirmation = confirmations[0];
+  if (firstConfirmation === undefined) {
+    return;
+  }
+  const restConfirmations = confirmations.slice(1);
+  const firstStatement = buildConfirmUpdate({
+    drizzleDb,
+    userId,
+    confirmation: firstConfirmation,
+    now,
   });
+  const restStatements = restConfirmations.map((confirmation) =>
+    buildConfirmUpdate({ drizzleDb, userId, confirmation, now }),
+  );
 
-  await db.batch(statements);
+  await drizzleDb.batch([firstStatement, ...restStatements]);
 };
 
 export const resolveOrphan = async ({
-  db,
+  drizzleDb,
   userId,
   garmentId,
   resolution,
   locationId,
 }: {
-  readonly db: D1Database;
+  readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly garmentId: string;
   readonly resolution: "stored_back" | "still_using" | "lost";
   readonly locationId?: string;
 }): Promise<void> => {
   const now = Date.now();
+  const whereClause = and(
+    eq(garments.id, garmentId),
+    eq(garments.userId, userId),
+  );
 
   if (resolution === "stored_back") {
-    await db
-      .prepare(
-        `UPDATE garments SET location_id = ?, status = ?, last_scanned_at = ?, checked_out_at = NULL, updated_at = ? WHERE id = ? AND user_id = ?`,
-      )
-      .bind(locationId, GARMENT_STATUS.STORED, now, now, garmentId, userId)
-      .run();
-  } else if (resolution === "still_using") {
-    await db
-      .prepare(
-        `UPDATE garments SET checked_out_at = ?, updated_at = ? WHERE id = ? AND user_id = ?`,
-      )
-      .bind(now, now, garmentId, userId)
-      .run();
-  } else {
-    await db
-      .prepare(
-        `UPDATE garments SET status = ?, location_id = NULL, checked_out_at = NULL, updated_at = ? WHERE id = ? AND user_id = ?`,
-      )
-      .bind(GARMENT_STATUS.LOST, now, garmentId, userId)
-      .run();
+    await drizzleDb
+      .update(garments)
+      .set({
+        locationId: locationId ?? null,
+        status: GARMENT_STATUS.STORED,
+        lastScannedAt: now,
+        checkedOutAt: null,
+        updatedAt: now,
+      })
+      .where(whereClause);
+    return;
   }
+
+  if (resolution === "still_using") {
+    await drizzleDb
+      .update(garments)
+      .set({
+        checkedOutAt: now,
+        updatedAt: now,
+      })
+      .where(whereClause);
+    return;
+  }
+
+  await drizzleDb
+    .update(garments)
+    .set({
+      status: GARMENT_STATUS.LOST,
+      locationId: null,
+      checkedOutAt: null,
+      updatedAt: now,
+    })
+    .where(whereClause);
 };
