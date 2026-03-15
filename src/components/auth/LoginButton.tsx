@@ -1,5 +1,7 @@
 "use client";
 
+import { msg } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { signInSocial } from "@/lib/auth";
 import Button from "@/components/ui/Button";
 
@@ -8,11 +10,12 @@ type Props = {
 };
 
 const PROVIDER_LABEL = Object.freeze({
-  twitter: "X (Twitter) でログイン",
-  google: "Google でログイン",
-} as const);
+  twitter: msg`X (Twitter) でログイン`,
+  google: msg`Google でログイン`,
+});
 
 const LoginButton = ({ provider }: Props) => {
+  const { i18n } = useLingui();
   const handleLogin = async () => {
     await signInSocial({ provider }).catch((error: unknown) => {
       // eslint-disable-next-line no-console -- OAuth errors should be visible for debugging
@@ -22,7 +25,7 @@ const LoginButton = ({ provider }: Props) => {
 
   return (
     <Button variant="secondary" size="lg" fullWidth onClick={handleLogin}>
-      {PROVIDER_LABEL[provider]}
+      {i18n._(PROVIDER_LABEL[provider])}
     </Button>
   );
 };

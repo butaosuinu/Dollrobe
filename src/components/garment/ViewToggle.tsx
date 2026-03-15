@@ -2,6 +2,7 @@
 
 import { Grid3X3, List } from "lucide-react";
 import clsx from "clsx";
+import { t } from "@lingui/core/macro";
 
 type ViewMode = "grid" | "list";
 
@@ -20,7 +21,7 @@ const ViewToggle = ({ mode, onChangeMode }: Props) => (
           ? "bg-primary-100 text-primary-600"
           : "text-text-tertiary hover:bg-primary-50",
       )}
-      aria-label="グリッド表示"
+      aria-label={t`グリッド表示`}
       aria-pressed={mode === "grid"}
     >
       <Grid3X3 className="size-4" />
@@ -33,7 +34,7 @@ const ViewToggle = ({ mode, onChangeMode }: Props) => (
           ? "bg-primary-100 text-primary-600"
           : "text-text-tertiary hover:bg-primary-50",
       )}
-      aria-label="リスト表示"
+      aria-label={t`リスト表示`}
       aria-pressed={mode === "list"}
     >
       <List className="size-4" />

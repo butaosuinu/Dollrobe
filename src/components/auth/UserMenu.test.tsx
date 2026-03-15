@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { Provider, createStore, atom } from "jotai";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { I18nTestWrapper } from "@/test/i18nWrapper";
 import UserMenu from "./UserMenu";
 
 type AuthUser = {
@@ -50,9 +51,11 @@ describe("UserMenu", () => {
     };
 
     render(
-      <Provider store={createStore()}>
-        <UserMenu />
-      </Provider>,
+      <I18nTestWrapper>
+        <Provider store={createStore()}>
+          <UserMenu />
+        </Provider>
+      </I18nTestWrapper>,
     );
 
     expect(screen.getByText("テ")).toBeInTheDocument();
@@ -71,9 +74,11 @@ describe("UserMenu", () => {
     };
 
     render(
-      <Provider store={createStore()}>
-        <UserMenu />
-      </Provider>,
+      <I18nTestWrapper>
+        <Provider store={createStore()}>
+          <UserMenu />
+        </Provider>
+      </I18nTestWrapper>,
     );
 
     const img = screen.getByAltText("テストユーザー");

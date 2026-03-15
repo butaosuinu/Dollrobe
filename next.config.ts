@@ -1,9 +1,44 @@
 import type { NextConfig } from "next";
-import { withSerwist } from "@serwist/turbopack";
+import path from "node:path";
+import withSerwistInit from "@serwist/next";
+
+const withSerwist = withSerwistInit({
+  swSrc: "src/app/sw.ts",
+  swDest: "public/sw.js",
+  disable: process.env.NODE_ENV !== "production",
+});
 
 const nextConfig: NextConfig = {
   typescript: {
     tsconfigPath: "./tsconfig.app.json",
+  },
+  turbopack: {
+    rules: {
+      "*.{js,jsx,ts,tsx}": {
+        loaders: [
+          {
+            loader: path.resolve(
+              import.meta.dirname,
+              "lingui-macro-loader.cjs",
+            ),
+            options: {},
+          },
+        ],
+        as: "*.{js,jsx,ts,tsx}",
+      },
+    },
+  },
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.[jt]sx?$/,
+      exclude: /node_modules/,
+      use: [
+        {
+          loader: path.resolve(import.meta.dirname, "lingui-macro-loader.cjs"),
+        },
+      ],
+    });
+    return config;
   },
 };
 

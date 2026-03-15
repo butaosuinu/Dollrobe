@@ -2,6 +2,7 @@
 
 import { useAtomValue, useSetAtom } from "jotai";
 import { MapPin, RotateCcw } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
 import {
   activeLocationIdAtom,
   scannedGarmentIdsAtom,
@@ -25,7 +26,7 @@ const ScanSessionPanel = ({ locationName, onConfirmAll }: Props) => {
         <div className="flex items-center gap-3 text-text-secondary">
           <MapPin className="size-5 shrink-0" />
           <p className="text-sm">
-            場所のQRをスキャンして、収納場所を設定してください
+            <Trans>場所のQRをスキャンして、収納場所を設定してください</Trans>
           </p>
         </div>
       </div>
@@ -40,7 +41,9 @@ const ScanSessionPanel = ({ locationName, onConfirmAll }: Props) => {
             <MapPin className="size-4 text-primary-600" />
           </div>
           <div>
-            <p className="text-xs text-text-tertiary">スキャン中の場所</p>
+            <p className="text-xs text-text-tertiary">
+              <Trans>スキャン中の場所</Trans>
+            </p>
             <p className="text-sm font-bold">
               {locationName ?? activeLocationId}
             </p>
@@ -51,19 +54,19 @@ const ScanSessionPanel = ({ locationName, onConfirmAll }: Props) => {
           className="flex items-center gap-1 text-xs text-text-tertiary transition-colors hover:text-text-secondary"
         >
           <RotateCcw className="size-3" />
-          リセット
+          <Trans>リセット</Trans>
         </button>
       </div>
 
       {scannedIds.length > 0 && (
         <p className="text-xs text-text-secondary">
-          {scannedIds.length}着をスキャンしました
+          <Trans>{scannedIds.length}着をスキャンしました</Trans>
         </p>
       )}
 
       <div className="flex gap-2">
         <Button variant="primary" size="sm" fullWidth onClick={onConfirmAll}>
-          この場所の全服を確認済みにする
+          <Trans>この場所の全服を確認済みにする</Trans>
         </Button>
       </div>
     </div>

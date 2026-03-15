@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
 import GarmentForm from "@/components/garment/GarmentForm";
 import Skeleton from "@/components/ui/Skeleton";
 
@@ -15,7 +16,9 @@ const NewGarmentPage = () => (
       >
         <ArrowLeft className="size-5" />
       </Link>
-      <h2 className="font-display text-xl font-bold">服を登録</h2>
+      <h2 className="font-display text-xl font-bold">
+        <Trans>服を登録</Trans>
+      </h2>
     </div>
 
     <Suspense fallback={<Skeleton className="h-96" />}>

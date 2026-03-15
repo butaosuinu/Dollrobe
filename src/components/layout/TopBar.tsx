@@ -4,6 +4,7 @@ import { useAtomValue } from "jotai";
 import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import { syncStatusAtom } from "@/stores/syncAtoms";
 import { SYNC_STATUS } from "@/lib/constants";
+import LocaleSelector from "@/components/settings/LocaleSelector";
 import UserMenu from "@/components/auth/UserMenu";
 
 const SyncIndicator = () => {
@@ -27,6 +28,7 @@ const TopBar = () => (
     </h1>
     <div className="flex items-center gap-3">
       <SyncIndicator />
+      <LocaleSelector />
       <UserMenu />
     </div>
   </header>

@@ -20,6 +20,7 @@ vi.mock("@/components/qr/QrLabel", () => ({
   }) => <div data-testid="qr-label">{name}</div>,
 }));
 
+import { I18nTestWrapper } from "@/test/i18nWrapper";
 import PrintPage from "./page";
 
 describe("PrintPage", () => {
@@ -28,7 +29,7 @@ describe("PrintPage", () => {
   });
 
   it("パラメータなしで「選択されていません」メッセージが表示される", () => {
-    render(<PrintPage />);
+    render(<PrintPage />, { wrapper: I18nTestWrapper });
     expect(
       screen.getByText("印刷する QR コードが選択されていません"),
     ).toBeInTheDocument();
@@ -38,7 +39,7 @@ describe("PrintPage", () => {
     mockSearchParams.value = new URLSearchParams(
       "type=garment&ids=g1&ids=g2&names=ドレスA&names=ドレスB",
     );
-    render(<PrintPage />);
+    render(<PrintPage />, { wrapper: I18nTestWrapper });
     expect(screen.getByText("QR ラベル印刷")).toBeInTheDocument();
     expect(screen.getByText("ドレスA")).toBeInTheDocument();
     expect(screen.getByText("ドレスB")).toBeInTheDocument();
@@ -48,19 +49,19 @@ describe("PrintPage", () => {
     mockSearchParams.value = new URLSearchParams(
       "type=garment&ids=g1&names=テスト",
     );
-    render(<PrintPage />);
+    render(<PrintPage />, { wrapper: I18nTestWrapper });
     expect(screen.getByRole("button", { name: /印刷/ })).toBeInTheDocument();
   });
 
   it("names が指定されていない場合は id がラベルに使われる", () => {
     mockSearchParams.value = new URLSearchParams("type=location&ids=loc-1");
-    render(<PrintPage />);
+    render(<PrintPage />, { wrapper: I18nTestWrapper });
     expect(screen.getByText("loc-1")).toBeInTheDocument();
   });
 
   it("無効な type の場合は「選択されていません」が表示される", () => {
     mockSearchParams.value = new URLSearchParams("type=invalid&ids=g1");
-    render(<PrintPage />);
+    render(<PrintPage />, { wrapper: I18nTestWrapper });
     expect(
       screen.getByText("印刷する QR コードが選択されていません"),
     ).toBeInTheDocument();

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAtomValue } from "jotai";
 import { AlertTriangle, ArrowRight } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { getOrphanedCheckouts } from "@/lib/confidence";
 import Card from "@/components/ui/Card";
@@ -37,21 +38,25 @@ const AlertPanel = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-bold text-text-primary">
-              {orphaned.length > 0
-                ? `${orphaned.length}着の服が3日以上取り出し中です`
-                : `${checkedOut.length}着の服を取り出し中`}
+              {orphaned.length > 0 ? (
+                <Trans>{orphaned.length}着の服が3日以上取り出し中です</Trans>
+              ) : (
+                <Trans>{checkedOut.length}着の服を取り出し中</Trans>
+              )}
             </p>
             <p className="mt-0.5 text-xs text-text-secondary">
-              {orphaned.length > 0
-                ? "収納場所を確認して状態を更新しましょう"
-                : "QRスキャンで戻す場所を記録できます"}
+              {orphaned.length > 0 ? (
+                <Trans>収納場所を確認して状態を更新しましょう</Trans>
+              ) : (
+                <Trans>QRスキャンで戻す場所を記録できます</Trans>
+              )}
             </p>
           </div>
           <Link
             href="/garments?status=checked_out"
             className="flex items-center gap-1 self-center text-xs font-medium text-primary-500 transition-colors hover:text-primary-600"
           >
-            確認
+            <Trans>確認</Trans>
             <ArrowRight className="size-3" />
           </Link>
         </div>
