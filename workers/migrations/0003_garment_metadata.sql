@@ -1,5 +1,3 @@
--- Issue #44: ドール服メタデータ変更
--- brand カラム追加
 ALTER TABLE garments ADD COLUMN brand TEXT;
 
 -- DollSize マイグレーション: "1/3" → "SD", "1/6" → "other"
