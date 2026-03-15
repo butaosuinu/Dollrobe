@@ -1,13 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import { withSentryConfig } from "@sentry/nextjs";
-import withSerwistInit from "@serwist/next";
-
-const withSerwist = withSerwistInit({
-  swSrc: "src/app/sw.ts",
-  swDest: "public/sw.js",
-  disable: process.env.NODE_ENV !== "production",
-});
+import { withSerwist } from "@serwist/turbopack";
 
 const nextConfig: NextConfig = {
   typescript: {
