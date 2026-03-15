@@ -23,6 +23,25 @@ class DollWardrobeDB extends Dexie {
       coordinates: "id, userId",
       syncQueue: "++id, type, createdAt",
     });
+    this.version(2)
+      .stores({
+        garments: "id, userId, locationId, status, category",
+        storageCases: "id, userId",
+        storageLocations: "id, userId, caseId",
+        coordinates: "id, userId",
+        syncQueue: "++id, type, createdAt",
+      })
+      .upgrade(async (tx) => {
+        const table = tx.table("garments");
+        await table
+          .toCollection()
+          .filter((g) => g.dollSize === "1/3")
+          .modify({ dollSize: "SD" });
+        await table
+          .toCollection()
+          .filter((g) => g.dollSize === "1/6")
+          .modify({ dollSize: "other" });
+      });
   }
 }
 

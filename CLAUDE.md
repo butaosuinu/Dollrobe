@@ -124,7 +124,9 @@ QR スキャンで物理的な収納場所とデジタル在庫を紐づけ、�
     │       ├── location-repository.ts
     │       └── scan-repository.ts
     └── migrations/
-        └── 0001_initial.sql
+        ├── 0001_initial.sql
+        ├── 0002_auth.sql
+        └── 0003_garment_metadata.sql
 ```
 
 ---
@@ -132,13 +134,29 @@ QR スキャンで物理的な収納場所とデジタル在庫を紐づけ、�
 ## コアデータモデル（`src/types/index.ts`）
 
 ```typescript
-type DollSize = "1/3" | "MSD" | "SD" | "YoSD" | "1/6" | "other";
+type DollSize =
+  | "SD"
+  | "SD13"
+  | "SD17"
+  | "MSD"
+  | "YoSD"
+  | "DD"
+  | "DDdy"
+  | "DDS"
+  | "DDP"
+  | "MDD"
+  | "other";
 type GarmentCategory =
   | "tops"
   | "bottoms"
+  | "onepiece"
   | "dress"
+  | "set"
   | "outer"
+  | "underwear"
+  | "socks"
   | "shoes"
+  | "hat"
   | "accessory"
   | "other";
 type GarmentStatus = "stored" | "checked_out" | "lost";
@@ -158,6 +176,7 @@ export type Garment = {
   status: GarmentStatus;
   lastScannedAt: number; // Unix timestamp (ms)
   confidenceDecayDays: number; // デフォルト 30。季節物は 90 など
+  brand: string | undefined; // メーカー/ディーラー名
   checkedOutAt: number | null;
   createdAt: number;
   updatedAt: number;

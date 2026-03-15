@@ -55,6 +55,9 @@ const GarmentDetail = ({ garment }: Props) => {
             {i18n._(GARMENT_CATEGORY_LABEL[garment.category])} ・{" "}
             {i18n._(DOLL_SIZE_LABEL[garment.dollSize])}
           </p>
+          {garment.brand !== undefined && (
+            <p className="mt-0.5 text-sm text-text-tertiary">{garment.brand}</p>
+          )}
         </div>
         <ConfidenceIndicator garment={garment} compact />
       </div>

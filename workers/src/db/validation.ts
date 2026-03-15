@@ -88,6 +88,7 @@ export const createGarmentInputSchema = garmentInsertSchema
     tags: z.array(z.string()).default([]),
     imageUrl: z.url().optional(),
     locationId: z.string().optional(),
+    brand: z.string().max(GARMENT_NAME_MAX_LENGTH).optional(),
     confidenceDecayDays: z
       .number()
       .int()
@@ -106,6 +107,7 @@ export const updateGarmentInputSchema = z.object({
   tags: z.array(z.string()).optional(),
   imageUrl: z.url().optional(),
   locationId: z.string().optional(),
+  brand: z.string().max(GARMENT_NAME_MAX_LENGTH).optional(),
   confidenceDecayDays: z
     .number()
     .int()

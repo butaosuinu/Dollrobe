@@ -9,19 +9,29 @@ import type {
 export const GARMENT_CATEGORY_LABEL = Object.freeze({
   tops: msg`トップス`,
   bottoms: msg`ボトムス`,
+  onepiece: msg`ワンピース`,
   dress: msg`ドレス`,
+  set: msg`セット`,
   outer: msg`アウター`,
+  underwear: msg`インナー`,
+  socks: msg`ソックス/タイツ`,
   shoes: msg`シューズ`,
+  hat: msg`帽子/ヘッドドレス`,
   accessory: msg`アクセサリー`,
   other: msg`その他`,
 }) satisfies Record<GarmentCategory, ReturnType<typeof msg>>;
 
 export const DOLL_SIZE_LABEL = Object.freeze({
-  "1/3": msg`1/3 (SD17/DD等)`,
-  MSD: msg`MSD (1/4)`,
-  SD: msg`SD (1/3)`,
-  YoSD: msg`YoSD (1/6)`,
-  "1/6": msg`1/6 (ピュアニーモ等)`,
+  SD: msg`SD (~57cm)`,
+  SD13: msg`SD13 (~57cm)`,
+  SD17: msg`SD17 (~65cm)`,
+  MSD: msg`MSD (~43cm)`,
+  YoSD: msg`YoSD (~26cm)`,
+  DD: msg`DD (~58cm)`,
+  DDdy: msg`DDdy (~58cm)`,
+  DDS: msg`DDS (~55cm)`,
+  DDP: msg`DDP (~43.5cm)`,
+  MDD: msg`MDD (~40cm)`,
   other: msg`その他`,
 }) satisfies Record<DollSize, ReturnType<typeof msg>>;
 

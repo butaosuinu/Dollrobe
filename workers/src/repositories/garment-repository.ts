@@ -61,6 +61,7 @@ const toGarment = (row: GarmentSelectRow): Garment => {
     status: row.status,
     lastScannedAt: row.lastScannedAt,
     confidenceDecayDays: row.confidenceDecayDays,
+    brand: row.brand ?? undefined,
     checkedOutAt: row.checkedOutAt ?? undefined,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -153,6 +154,7 @@ type GarmentUpdatableFields = {
   readonly tags?: readonly string[];
   readonly imageUrl?: string;
   readonly locationId?: string;
+  readonly brand?: string;
   readonly confidenceDecayDays?: number;
 };
 
@@ -164,6 +166,7 @@ const UPDATABLE_FIELD_KEYS = [
   "tags",
   "imageUrl",
   "locationId",
+  "brand",
   "confidenceDecayDays",
 ] as const;
 

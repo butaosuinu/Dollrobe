@@ -21,6 +21,7 @@ export const garments = sqliteTable(
     status: text("status").notNull().default("stored"),
     lastScannedAt: integer("last_scanned_at").notNull(),
     confidenceDecayDays: integer("confidence_decay_days").notNull().default(30),
+    brand: text("brand"),
     checkedOutAt: integer("checked_out_at"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
