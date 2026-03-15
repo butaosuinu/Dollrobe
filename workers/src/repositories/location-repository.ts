@@ -219,31 +219,22 @@ export const deleteCaseWithCascade = async ({
 }): Promise<void> => {
   const now = Date.now();
 
-  const locationIds = await drizzleDb
+  const locationSubquery = drizzleDb
     .select({ id: storageLocations.id })
     .from(storageLocations)
     .where(
       and(eq(storageLocations.caseId, id), eq(storageLocations.userId, userId)),
     );
 
-  const locationIdValues = locationIds.map((loc) => loc.id);
-
-  const clearGarments =
-    locationIdValues.length > 0
-      ? drizzleDb
-          .update(garments)
-          .set({
-            locationId: null,
-            status: garmentStatus,
-            checkedOutAt: now,
-          })
-          .where(
-            and(
-              inArray(garments.locationId, locationIdValues),
-              eq(garments.userId, userId),
-            ),
-          )
-      : undefined;
+  const clearGarments = drizzleDb
+    .update(garments)
+    .set({ locationId: null, status: garmentStatus, checkedOutAt: now })
+    .where(
+      and(
+        inArray(garments.locationId, locationSubquery),
+        eq(garments.userId, userId),
+      ),
+    );
 
   const deleteLocations = drizzleDb
     .delete(storageLocations)
@@ -255,12 +246,7 @@ export const deleteCaseWithCascade = async ({
     .delete(storageCases)
     .where(and(eq(storageCases.id, id), eq(storageCases.userId, userId)));
 
-  const batchItems =
-    clearGarments !== undefined
-      ? ([clearGarments, deleteLocations, deleteCase] as const)
-      : ([deleteLocations, deleteCase] as const);
-
-  await drizzleDb.batch(batchItems);
+  await drizzleDb.batch([clearGarments, deleteLocations, deleteCase]);
 };
 
 export const insertLocation = async ({
