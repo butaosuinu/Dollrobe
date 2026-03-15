@@ -42,9 +42,14 @@ export const SYNC_ACTION_TYPE = Object.freeze({
 export const GARMENT_CATEGORIES: readonly GarmentCategory[] = [
   "tops",
   "bottoms",
+  "onepiece",
   "dress",
+  "set",
   "outer",
+  "underwear",
+  "socks",
   "shoes",
+  "hat",
   "accessory",
   "other",
 ];
@@ -62,11 +67,16 @@ export type SortOptionValue =
   | "confidence_desc";
 
 export const DOLL_SIZES: readonly DollSize[] = [
-  "1/3",
-  "MSD",
   "SD",
+  "SD13",
+  "SD17",
+  "MSD",
   "YoSD",
-  "1/6",
+  "DD",
+  "DDdy",
+  "DDS",
+  "DDP",
+  "MDD",
   "other",
 ];
 

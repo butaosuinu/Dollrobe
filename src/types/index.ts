@@ -1,11 +1,27 @@
-export type DollSize = "1/3" | "MSD" | "SD" | "YoSD" | "1/6" | "other";
+export type DollSize =
+  | "SD"
+  | "SD13"
+  | "SD17"
+  | "MSD"
+  | "YoSD"
+  | "DD"
+  | "DDdy"
+  | "DDS"
+  | "DDP"
+  | "MDD"
+  | "other";
 
 export type GarmentCategory =
   | "tops"
   | "bottoms"
+  | "onepiece"
   | "dress"
+  | "set"
   | "outer"
+  | "underwear"
+  | "socks"
   | "shoes"
+  | "hat"
   | "accessory"
   | "other";
 
@@ -26,6 +42,7 @@ export type Garment = {
   readonly status: GarmentStatus;
   readonly lastScannedAt: number;
   readonly confidenceDecayDays: number;
+  readonly brand: string | undefined;
   readonly checkedOutAt: number | undefined;
   readonly createdAt: number;
   readonly updatedAt: number;

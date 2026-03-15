@@ -43,9 +43,10 @@ const GarmentForm = () => {
   const authState = useAtomValue(authSessionAtom);
   const [name, setName] = useState("");
   const [category, setCategory] = useState<GarmentCategory>("tops");
-  const [dollSize, setDollSize] = useState<DollSize>("1/3");
+  const [dollSize, setDollSize] = useState<DollSize>("SD");
   const [colors, setColors] = useState<readonly string[]>([]);
   const [tags, setTags] = useState<readonly string[]>([]);
+  const [brand, setBrand] = useState("");
   const [decayDays, setDecayDays] = useState(DEFAULT_CONFIDENCE_DECAY_DAYS);
   const [imagePreview, setImagePreview] = useState<string | undefined>(
     undefined,
@@ -86,6 +87,7 @@ const GarmentForm = () => {
       colors: [...colors],
       tags: [...tags],
       imageUrl: imagePreview,
+      brand: brand.trim() === "" ? undefined : brand.trim(),
       locationId: undefined,
       status: GARMENT_STATUS.STORED,
       lastScannedAt: now,
@@ -151,6 +153,13 @@ const GarmentForm = () => {
             setDollSize(e.target.value);
           }
         }}
+      />
+
+      <Input
+        label={t`ブランド/メーカー`}
+        placeholder={t`ボークス、アゾン等`}
+        value={brand}
+        onChange={(e) => setBrand(e.target.value)}
       />
 
       <ColorPicker label={t`色`} colors={colors} onChangeColors={setColors} />

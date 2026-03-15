@@ -98,7 +98,7 @@ describe("GarmentForm", () => {
         id: "test-cuid",
         userId: "user-1",
         category: "tops",
-        dollSize: "1/3",
+        dollSize: "SD",
         status: "stored",
       }),
     );

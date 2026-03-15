@@ -58,6 +58,7 @@ export const createGarment = async ({
     readonly tags: readonly string[];
     readonly imageUrl?: string;
     readonly locationId?: string;
+    readonly brand?: string;
     readonly confidenceDecayDays: number;
   };
 }): Promise<ServiceResult<Garment>> => {
@@ -81,6 +82,7 @@ export const createGarment = async ({
       tags: input.tags,
       imageUrl: input.imageUrl,
       locationId: input.locationId,
+      brand: input.brand,
       status,
       lastScannedAt: now,
       confidenceDecayDays: input.confidenceDecayDays,
@@ -113,6 +115,7 @@ export const updateGarment = async ({
     readonly tags?: readonly string[];
     readonly imageUrl?: string;
     readonly locationId?: string;
+    readonly brand?: string;
     readonly confidenceDecayDays?: number;
   };
 }): Promise<ServiceResult<Garment>> => {
@@ -137,6 +140,7 @@ export const updateGarment = async ({
       tags: input.tags,
       imageUrl: input.imageUrl,
       locationId: input.locationId,
+      brand: input.brand,
       confidenceDecayDays: input.confidenceDecayDays,
     },
   });
