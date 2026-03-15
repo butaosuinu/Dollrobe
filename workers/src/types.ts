@@ -18,4 +18,5 @@ export type Env = {
   readonly GOOGLE_CLIENT_SECRET: string;
   readonly TRUSTED_ORIGINS: string;
   readonly ALLOWED_ORIGINS: string;
+  readonly LOG_LEVEL?: string;
 };

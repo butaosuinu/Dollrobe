@@ -3,13 +3,17 @@ import { TRPCError } from "@trpc/server";
 import { createCallerFactory } from "../trpc/index";
 import { appRouter } from "../trpc/router";
 import type { TRPCContext } from "../trpc/index";
+import { createLogger } from "../lib/logger";
 
 const createCaller = createCallerFactory(appRouter);
 
 export const getTestDb = () => env.DB;
 
 export const createTestCaller = () => {
-  const mockCtx: TRPCContext = { env };
+  const mockCtx: TRPCContext = {
+    env,
+    logger: createLogger({ minLevel: "error" }),
+  };
   return createCaller(mockCtx);
 };
 

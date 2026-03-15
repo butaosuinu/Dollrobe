@@ -23,6 +23,9 @@ export default tseslint.config(
       "vitest.workspace.ts",
       "vitest.config.workers.ts",
       "drizzle.config.ts",
+      "sentry.client.config.ts",
+      "sentry.server.config.ts",
+      "sentry.edge.config.ts",
     ],
   },
   js.configs.recommended,
@@ -126,6 +129,14 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-type-assertion": "off",
+    },
+  },
+  {
+    files: ["src/instrumentation.ts"],
+    rules: {
+      "functional/no-expression-statements": "off",
+      "functional/no-conditional-statements": "off",
+      "@typescript-eslint/prefer-destructuring": "off",
     },
   },
   {
