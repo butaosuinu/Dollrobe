@@ -19,6 +19,7 @@ export default tseslint.config(
       "vitest.config.ts",
       "vitest.workspace.ts",
       "vitest.config.workers.ts",
+      "drizzle.config.ts",
     ],
   },
   js.configs.recommended,
