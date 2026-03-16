@@ -288,7 +288,8 @@ describe("LocationsPage CRUD操作", () => {
 
     const buttons = screen.getAllByRole("button", { name: "ケースを追加" });
     const firstButton = buttons[0];
-    if (firstButton === undefined) throw new Error("Expected button");
+    expect(firstButton).toBeDefined();
+    if (firstButton === undefined) return;
     fireEvent.click(firstButton);
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -372,7 +373,8 @@ describe("LocationsPage CRUD操作", () => {
     fireEvent.click(screen.getByLabelText("削除"));
     const deleteButtons = screen.getAllByRole("button", { name: "削除" });
     const lastDeleteButton = deleteButtons[deleteButtons.length - 1];
-    if (lastDeleteButton === undefined) throw new Error("Expected button");
+    expect(lastDeleteButton).toBeDefined();
+    if (lastDeleteButton === undefined) return;
     fireEvent.click(lastDeleteButton);
 
     expect(mockDeleteCase).toHaveBeenCalledWith("case-1");
