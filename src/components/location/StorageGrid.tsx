@@ -27,22 +27,24 @@ const StorageGrid = ({ storageCase, locations, garments }: Props) => {
 
   return (
     <>
-      <div
-        className="grid gap-1.5"
-        style={{
-          gridTemplateColumns: `repeat(${storageCase.cols}, 1fr)`,
-        }}
-      >
-        {[...locations]
-          .sort((a, b) => (a.row !== b.row ? a.row - b.row : a.col - b.col))
-          .map((location) => (
-            <StorageCell
-              key={location.id}
-              location={location}
-              garments={getGarmentsForLocation(location.id)}
-              onClick={() => setSelectedLocation(location)}
-            />
-          ))}
+      <div className="overflow-x-auto">
+        <div
+          className="grid gap-1.5"
+          style={{
+            gridTemplateColumns: `repeat(${storageCase.cols}, minmax(48px, 1fr))`,
+          }}
+        >
+          {[...locations]
+            .sort((a, b) => (a.row !== b.row ? a.row - b.row : a.col - b.col))
+            .map((location) => (
+              <StorageCell
+                key={location.id}
+                location={location}
+                garments={getGarmentsForLocation(location.id)}
+                onClick={() => setSelectedLocation(location)}
+              />
+            ))}
+        </div>
       </div>
 
       <BottomSheet
