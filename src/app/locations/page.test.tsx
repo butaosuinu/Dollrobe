@@ -287,7 +287,9 @@ describe("LocationsPage CRUD操作", () => {
     renderWithProviders(<LocationsPage />);
 
     const buttons = screen.getAllByRole("button", { name: "ケースを追加" });
-    fireEvent.click(buttons[0]);
+    const firstButton = buttons[0];
+    if (firstButton === undefined) throw new Error("Expected button");
+    fireEvent.click(firstButton);
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
@@ -369,7 +371,9 @@ describe("LocationsPage CRUD操作", () => {
 
     fireEvent.click(screen.getByLabelText("削除"));
     const deleteButtons = screen.getAllByRole("button", { name: "削除" });
-    fireEvent.click(deleteButtons[deleteButtons.length - 1]);
+    const lastDeleteButton = deleteButtons[deleteButtons.length - 1];
+    if (lastDeleteButton === undefined) throw new Error("Expected button");
+    fireEvent.click(lastDeleteButton);
 
     expect(mockDeleteCase).toHaveBeenCalledWith("case-1");
   });
