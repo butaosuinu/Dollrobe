@@ -2,6 +2,7 @@
 
 import { Component } from "react";
 import type { ErrorInfo, ReactNode } from "react";
+import * as Sentry from "@sentry/nextjs";
 
 type Props = {
   readonly children: ReactNode;
@@ -23,7 +24,9 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error("ErrorBoundary caught:", error, errorInfo);
+    Sentry.captureException(error, {
+      contexts: { react: { componentStack: errorInfo.componentStack } },
+    });
   }
 
   override render(): ReactNode {

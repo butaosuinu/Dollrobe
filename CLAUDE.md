@@ -280,6 +280,66 @@ export function getOrphanedCheckouts(garments: Garment[], thresholdDays = 3) {
 
 ---
 
+## 構造化ロガー（`workers/src/lib/logger.ts`）
+
+リクエストスコープ化された構造化ロガー。すべてのログは JSON 形式で出力され、`requestId` で相関可能。
+
+### アーキテクチャ
+
+```
+リクエスト受信
+  → requestId ミドルウェア（Hono 組み込み）
+  → createLogger() で requestId 付きロガー生成 → c.set("logger", ...)
+  → tRPC loggingMiddleware（procedure/type をコンテキスト追加）
+  → サービス層 → リポジトリ層（引数でロガーを受け取る）
+```
+
+### 使い方のルール
+
+- **`console.log` の直接使用は禁止** — 必ずロガーを使うこと
+- ロガーは `createLogger()` で生成（`workers/src/lib/logger.ts`）
+- 各層（サービス・リポジトリ）ではロガーを**引数として受け取る**（DI パターン）
+- コンテキスト拡張には `logger.child()` を使用
+
+```typescript
+// サービス層での使い方
+export const listGarments = async ({
+  drizzleDb,
+  userId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDb;
+  readonly userId: string;
+  readonly logger: Logger;
+}): Promise<ServiceResult<readonly Garment[]>> => {
+  // ...
+};
+```
+
+### ログレベル
+
+環境変数 `LOG_LEVEL` で設定（デフォルト: `"info"`）。レベル: `debug` | `info` | `warn` | `error`
+
+### エラーハンドリング
+
+リポジトリ層の DB エラーは `wrapDbError({ context, logger })` でキャッチし、構造化ログ出力 + `TRPCError` をスロー。
+
+```typescript
+.catch(wrapDbError({ context: "fetch garments", logger }))
+```
+
+### テストでのロガー
+
+テストでは `createLogger({ minLevel: "error" })` を使用し、info/debug ログを抑制する。
+
+### Sentry 連携
+
+- `NEXT_PUBLIC_SENTRY_DSN` が設定されている場合のみ有効化
+- クライアント: セッションリプレイ 10%、エラー時 100%
+- サーバー: トレース 100% サンプリング
+
+---
+
 ## Workers API（`workers/src/index.ts`）
 
 ```typescript

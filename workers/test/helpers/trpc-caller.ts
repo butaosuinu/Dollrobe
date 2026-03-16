@@ -1,6 +1,7 @@
 import { initTRPC } from "@trpc/server";
 import { appRouter } from "../../src/trpc/router";
 import type { TRPCContext } from "../../src/trpc/index";
+import { createLogger } from "../../src/lib/logger";
 
 type CreateTestCallerParams = {
   readonly db: D1Database;
@@ -27,6 +28,7 @@ export const createTestCaller = ({ db }: CreateTestCallerParams) => {
     },
     honoContext: {} as TRPCContext["honoContext"],
     auth: {} as TRPCContext["auth"],
+    logger: createLogger({ minLevel: "error" }),
   };
 
   return createCaller(ctx);
