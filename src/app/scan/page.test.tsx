@@ -234,7 +234,7 @@ describe("ScanPage", () => {
       expect(screen.queryByText("全部ある")).toBeNull();
     });
 
-    it("ダイアログの「全部ある」後もスキャンセッションが継続する", async () => {
+    it("ダイアログの「全部ある」後もスキャンセッションが継続する", () => {
       mockLocations.value = [
         createTestStorageLocation({ id: "loc-1", label: "A-1" }),
       ];
@@ -252,7 +252,7 @@ describe("ScanPage", () => {
 
       simulateScan("dwg://l/loc-1");
 
-      await act(async () => {
+      act(() => {
         fireEvent.click(screen.getByRole("button", { name: "全部ある" }));
       });
 
