@@ -38,7 +38,7 @@ export const resolveLostAtom = atom(
         .map(async (garment) => {
           await set(updateGarmentAtom, {
             ...garment,
-            status: GARMENT_STATUS.LOST as typeof garment.status,
+            status: GARMENT_STATUS.LOST,
             locationId: undefined,
             checkedOutAt: undefined,
             updatedAt: now,

@@ -3,50 +3,60 @@ import { db } from "@/lib/db/dexie";
 import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { Garment } from "@/types";
 
-export const garmentsAtom = atom(async () => {
+const garmentsRefreshTriggerAtom = atom(0);
+
+export const garmentsAtom = atom(async (get) => {
+  get(garmentsRefreshTriggerAtom);
   const garments = await db.garments.toArray();
   return garments;
 });
 
+export const refreshGarmentsAtom = atom(undefined, (_get, set) => {
+  set(garmentsRefreshTriggerAtom, (prev) => prev + 1);
+});
+
 export const addGarmentAtom = atom(
   undefined,
-  async (_get, _set, garment: Garment) => {
+  async (_get, set, garment: Garment) => {
     await db.garments.add(garment);
     await db.syncQueue.add({
       type: SYNC_ACTION_TYPE.GARMENT_CREATE,
       payload: garment,
       createdAt: Date.now(),
     });
+    set(refreshGarmentsAtom);
   },
 );
 
 export const updateGarmentAtom = atom(
   undefined,
-  async (_get, _set, garment: Garment) => {
+  async (_get, set, garment: Garment) => {
     await db.garments.put(garment);
     await db.syncQueue.add({
       type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
       payload: garment,
       createdAt: Date.now(),
     });
+    set(refreshGarmentsAtom);
   },
 );
 
 export const deleteGarmentAtom = atom(
   undefined,
-  async (_get, _set, id: string) => {
+  async (_get, set, id: string) => {
     await db.garments.delete(id);
     await db.syncQueue.add({
       type: SYNC_ACTION_TYPE.GARMENT_DELETE,
       payload: { id },
       createdAt: Date.now(),
     });
+    set(refreshGarmentsAtom);
   },
 );
 
 export const confirmAllGarmentsAtom = atom(
   undefined,
-  async (_get, _set, locationId: string) => {
+  async (_get, set, locationId: string) => {
     const now = Date.now();
     const garments = await db.garments
       .where("locationId")
@@ -67,5 +77,6 @@ export const confirmAllGarmentsAtom = atom(
         createdAt: now,
       })),
     );
+    set(refreshGarmentsAtom);
   },
 );
