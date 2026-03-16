@@ -78,6 +78,11 @@ export type Coordinate = {
   readonly updatedAt: number;
 };
 
+export type ScanConfirmation = {
+  readonly garmentId: string;
+  readonly confirmed: boolean;
+};
+
 export type SyncQueueItem = {
   readonly id?: number;
   readonly type: string;

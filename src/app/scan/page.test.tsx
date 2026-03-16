@@ -1,8 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import type { Garment, StorageLocation } from "@/types";
-import { createTestGarment, createTestStorageLocation } from "@/test/factories";
+import {
+  createTestGarment,
+  createTestStorageLocation,
+  FIXED_NOW,
+} from "@/test/factories";
 import { renderWithProviders } from "@/test/testUtils";
+import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
 
 const scanTrigger = vi.hoisted(
@@ -32,6 +37,7 @@ const mockLocations = vi.hoisted((): { value: StorageLocation[] } => ({
 }));
 
 const mockConfirmAll = vi.hoisted(() => vi.fn());
+const mockConfirmPartial = vi.hoisted(() => vi.fn());
 
 vi.mock("@/stores/garmentAtoms", async () => {
   const { atom } = await import("jotai");
@@ -41,6 +47,12 @@ vi.mock("@/stores/garmentAtoms", async () => {
       undefined,
       (_get: unknown, _set: unknown, locationId: unknown) => {
         mockConfirmAll(locationId);
+      },
+    ),
+    confirmPartialGarmentsAtom: atom(
+      undefined,
+      (_get: unknown, _set: unknown, confirmations: unknown) => {
+        mockConfirmPartial(confirmations);
       },
     ),
   };
@@ -65,6 +77,7 @@ describe("ScanPage", () => {
     mockGarments.value = [];
     mockLocations.value = [];
     mockConfirmAll.mockClear();
+    mockConfirmPartial.mockClear();
     scanTrigger.onScan = undefined;
   });
 
@@ -166,5 +179,88 @@ describe("ScanPage", () => {
     expect(
       screen.getByText("場所のQRをスキャンして、収納場所を設定してください"),
     ).toBeInTheDocument();
+  });
+
+  describe("機会確認ダイアログ", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(FIXED_NOW);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("信頼度低アイテムがある場所QRスキャンでダイアログが表示される", () => {
+      mockLocations.value = [
+        createTestStorageLocation({ id: "loc-1", label: "A-1" }),
+      ];
+      mockGarments.value = [
+        createTestGarment({
+          id: "g-1",
+          name: "古いドレス",
+          locationId: "loc-1",
+          status: "stored",
+          lastScannedAt: FIXED_NOW - 20 * MS_PER_DAY,
+          confidenceDecayDays: 30,
+        }),
+      ];
+      renderWithProviders(<ScanPage />);
+
+      simulateScan("dwg://l/loc-1");
+
+      expect(screen.getByText("古いドレス")).toBeInTheDocument();
+      expect(screen.getByText("全部ある")).toBeInTheDocument();
+    });
+
+    it("全アイテム信頼度高の場合ダイアログは表示されない", () => {
+      mockLocations.value = [
+        createTestStorageLocation({ id: "loc-1", label: "A-1" }),
+      ];
+      mockGarments.value = [
+        createTestGarment({
+          id: "g-1",
+          name: "新しいドレス",
+          locationId: "loc-1",
+          status: "stored",
+          lastScannedAt: FIXED_NOW,
+          confidenceDecayDays: 30,
+        }),
+      ];
+      renderWithProviders(<ScanPage />);
+
+      simulateScan("dwg://l/loc-1");
+
+      expect(screen.queryByText("全部ある")).toBeNull();
+    });
+
+    it("ダイアログの「全部ある」後もスキャンセッションが継続する", async () => {
+      mockLocations.value = [
+        createTestStorageLocation({ id: "loc-1", label: "A-1" }),
+      ];
+      mockGarments.value = [
+        createTestGarment({
+          id: "g-1",
+          name: "古いドレス",
+          locationId: "loc-1",
+          status: "stored",
+          lastScannedAt: FIXED_NOW - 20 * MS_PER_DAY,
+          confidenceDecayDays: 30,
+        }),
+      ];
+      renderWithProviders(<ScanPage />);
+
+      simulateScan("dwg://l/loc-1");
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "全部ある" }));
+      });
+
+      expect(mockConfirmAll).toHaveBeenCalledWith("loc-1");
+      expect(screen.queryByText("全部ある")).toBeNull();
+      expect(
+        screen.getByText("この場所の全服を確認済みにする"),
+      ).toBeInTheDocument();
+    });
   });
 });
