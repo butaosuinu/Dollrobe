@@ -166,13 +166,21 @@ describe("OrphanCheckoutDialog", () => {
     const stillUsingButtons = screen.getAllByRole("button", {
       name: /まだ使用中/,
     });
-    fireEvent.click(stillUsingButtons[0]);
+    const firstStillUsingButton = stillUsingButtons[0];
+    if (firstStillUsingButton === undefined) {
+      throw new Error("Expected at least one 'まだ使用中' button");
+    }
+    fireEvent.click(firstStillUsingButton);
 
     expect(screen.queryByText("テストドレスA")).not.toBeInTheDocument();
     expect(screen.getByText("テストドレスB")).toBeInTheDocument();
 
     const lostButtons = screen.getAllByRole("button", { name: /なくした/ });
-    fireEvent.click(lostButtons[0]);
+    const firstLostButton = lostButtons[0];
+    if (firstLostButton === undefined) {
+      throw new Error("Expected at least one 'なくした' button");
+    }
+    fireEvent.click(firstLostButton);
 
     expect(
       screen.queryByText("取り出し中の服を確認", { exact: false }),

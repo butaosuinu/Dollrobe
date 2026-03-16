@@ -40,8 +40,8 @@ vi.mock("@/stores/orphanAtoms", async () => {
   const { atom } = await import("jotai");
   return {
     orphanedCheckoutsAtom: atom((): readonly Garment[] => []),
-    resolveStillUsingAtom: atom(undefined, () => {}),
-    resolveLostAtom: atom(undefined, () => {}),
+    resolveStillUsingAtom: atom(undefined, () => undefined),
+    resolveLostAtom: atom(undefined, () => undefined),
   };
 });
 
