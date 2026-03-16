@@ -6,6 +6,7 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import AlertPanel from "@/components/dashboard/AlertPanel";
 import RecentItems from "@/components/dashboard/RecentItems";
+import OrphanCheckoutDialog from "@/components/scan/OrphanCheckoutDialog";
 import Skeleton from "@/components/ui/Skeleton";
 
 const StatsLoading = () => (
@@ -51,6 +52,12 @@ const DashboardPage = () => (
     <ErrorBoundary fallback={<></>}>
       <Suspense fallback={<Skeleton className="h-48 rounded-xl" />}>
         <RecentItems />
+      </Suspense>
+    </ErrorBoundary>
+
+    <ErrorBoundary fallback={<></>}>
+      <Suspense>
+        <OrphanCheckoutDialog />
       </Suspense>
     </ErrorBoundary>
   </div>
