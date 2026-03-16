@@ -126,7 +126,8 @@ describe("OpportunisticReviewDialog", () => {
 
     const naiButtons = screen.getAllByRole("button", { name: "ない" });
     const firstNaiButton = naiButtons[0];
-    if (firstNaiButton === undefined) throw new Error("button not found");
+    expect(firstNaiButton).toBeDefined();
+    if (firstNaiButton === undefined) return;
     fireEvent.click(firstNaiButton);
 
     expect(firstNaiButton).toHaveClass("bg-red-500");
@@ -147,7 +148,8 @@ describe("OpportunisticReviewDialog", () => {
 
     const naiButtons = screen.getAllByRole("button", { name: "ない" });
     const secondNaiButton = naiButtons[1];
-    if (secondNaiButton === undefined) throw new Error("button not found");
+    expect(secondNaiButton).toBeDefined();
+    if (secondNaiButton === undefined) return;
     fireEvent.click(secondNaiButton);
 
     fireEvent.click(screen.getByRole("button", { name: "確定する" }));
