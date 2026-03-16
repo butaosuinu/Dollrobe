@@ -125,9 +125,11 @@ describe("OpportunisticReviewDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "ズレを直す" }));
 
     const naiButtons = screen.getAllByRole("button", { name: "ない" });
-    fireEvent.click(naiButtons[0]);
+    const firstNaiButton = naiButtons[0];
+    if (firstNaiButton === undefined) throw new Error("button not found");
+    fireEvent.click(firstNaiButton);
 
-    expect(naiButtons[0]).toHaveClass("bg-red-500");
+    expect(firstNaiButton).toHaveClass("bg-red-500");
   });
 
   it("個別選択モードで「確定する」が正しいconfirmationsを渡す", () => {
@@ -144,7 +146,9 @@ describe("OpportunisticReviewDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "ズレを直す" }));
 
     const naiButtons = screen.getAllByRole("button", { name: "ない" });
-    fireEvent.click(naiButtons[1]);
+    const secondNaiButton = naiButtons[1];
+    if (secondNaiButton === undefined) throw new Error("button not found");
+    fireEvent.click(secondNaiButton);
 
     fireEvent.click(screen.getByRole("button", { name: "確定する" }));
 
