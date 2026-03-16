@@ -9,32 +9,45 @@
 
 ## Static Analysis Rules
 
-### TypeScript Type Checking
+### 自動チェック（PostToolUse hook）
 
-- **lspの使用を優先してください**
-- lspが使えない場合の代替手段
-  - **ファイル単位での型チェックを実行すること**
-  - 全体型チェックよりも、作業対象ファイルの型チェックを優先する
-  - ファイル単位での実行コマンド: `npx tsc-files --noEmit path/to/file.ts` または `npx tsc-files --noEmit path/to/file.tsx`
-  - プロジェクト全体の型チェック: `pnpm typecheck` または `pnpm build`
+以下は Edit/Write のたびに自動実行される（手動実行不要）:
 
-#### 注意事項
+- **oxfmt** — フォーマット自動修正
+- **oxlint** — 高速 lint チェック
 
-- `npx tsc --noEmit path/to/file.ts` は使用禁止（tsconfig.json設定が無視されるため）
-- ファイル単位の型チェックには必ず `tsc-files` を使用すること
+### ファイル変更完了時のチェック（必須）
 
-### Linting (OxLint + ESLint)
+1ファイルの変更が完了した時点で、以下を**必ず手動実行**すること:
 
-- **ファイル単位でのLint実行を優先すること**
-- 全体lintingよりも、作業対象ファイルのlintingを優先する
-- ファイル単位での実行コマンド: `npx oxlint path/to/file.ts && npx eslint path/to/file.ts` または `npx oxlint path/to/file.tsx && npx eslint path/to/file.tsx`
-- プロジェクト全体のlinting: `pnpm lint` （必要な場合のみ使用）
+1. **型チェック**: `npx tsc-files --noEmit -p <tsconfig> <file>`
+2. **ESLint**: `npx eslint <file>`
+
+#### tsconfig 選択ルール（`-p` フラグ必須）
+
+| ファイルの場所                            | 使用する tsconfig               |
+| ----------------------------------------- | ------------------------------- |
+| `src/` 配下（`src/app/sw.ts` 除く）       | `-p tsconfig.app.json`          |
+| `workers/` 本体コード（`*.test.ts` 除く） | `-p tsconfig.workers.json`      |
+| `workers/` テストコード（`*.test.ts`）    | `-p tsconfig.workers-test.json` |
+| `src/app/sw.ts`                           | `-p tsconfig.sw.json`           |
+
+#### 禁止事項
+
+- `npx tsc --noEmit path/to/file.ts` は使用禁止（tsconfig.json 設定が無視されるため）
+- `-p` なしの `npx tsc-files --noEmit path/to/file.ts` は使用禁止（CI と異なる tsconfig が使われるため）
+
+### PR 作成前の最終チェック（必須）
+
+- **PR 作成前に `pnpm precheck` を必ず実行すること**
+- エラーが残っている状態での PR 作成は禁止
+- テストも含めた完全チェック: `pnpm precheck:full`
 
 ### Formatting (OxFmt)
 
-- **ファイル単位でのフォーマット実行を優先すること**
-- 全ファイル: `npx oxfmt path/to/file --write`
-- プロジェクト全体のフォーマット: `pnpm format` （必要な場合のみ使用）
+- PostToolUse hook で自動実行されるため、通常は手動実行不要
+- 手動実行が必要な場合: `npx oxfmt path/to/file --write`
+- プロジェクト全体のフォーマット: `pnpm format`（必要な場合のみ使用）
 
 ## Github Guidelines
 

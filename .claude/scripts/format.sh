@@ -14,4 +14,10 @@ case "$ext" in
     ;;
 esac
 
+case "$ext" in
+  ts|tsx)
+    pnpm exec oxlint "$file_path" 2>&1
+    ;;
+esac
+
 exit 0
