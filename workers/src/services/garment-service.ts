@@ -1,9 +1,11 @@
 import type { Garment } from "@/types";
+import type { R2Bucket } from "@cloudflare/workers-types";
 import { createId } from "@paralleldrive/cuid2";
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import * as garmentRepo from "../repositories/garment-repository";
+import * as imageService from "./image-service";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
 export const listGarments = async ({
@@ -177,13 +179,27 @@ export const deleteGarment = async ({
   drizzleDb,
   id,
   userId,
+  bucket,
+  r2PublicUrl,
   logger,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
+  readonly bucket: R2Bucket;
+  readonly r2PublicUrl: string;
   readonly logger: Logger;
 }): Promise<ServiceResult<{ readonly success: true }>> => {
+  const garment = await garmentRepo.findGarmentById({
+    drizzleDb,
+    id,
+    userId,
+    logger,
+  });
+  if (garment === undefined) {
+    return serviceError("NOT_FOUND", `Garment not found: ${id}`);
+  }
+
   const changes = await garmentRepo.deleteGarmentById({
     drizzleDb,
     id,
@@ -193,5 +209,16 @@ export const deleteGarment = async ({
   if (changes === 0) {
     return serviceError("NOT_FOUND", `Garment not found: ${id}`);
   }
+
+  if (garment.imageUrl !== undefined) {
+    const r2Key = imageService.extractR2KeyFromUrl({
+      r2PublicUrl,
+      imageUrl: garment.imageUrl,
+    });
+    if (r2Key !== undefined) {
+      await imageService.deleteImage({ bucket, key: r2Key, logger });
+    }
+  }
+
   return serviceOk({ success: true });
 };

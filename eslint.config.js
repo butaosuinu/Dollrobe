@@ -132,6 +132,29 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/hooks/**/*.ts"],
+    rules: {
+      "functional/no-expression-statements": "off",
+      "functional/no-return-void": "off",
+      "functional/no-conditional-statements": "off",
+      "functional/no-throw-statements": "off",
+      "functional/immutable-data": "off",
+      "@typescript-eslint/no-confusing-void-expression": "off",
+      "promise/avoid-new": "off",
+    },
+  },
+  {
+    files: ["src/lib/image/**/*.ts"],
+    rules: {
+      "functional/no-expression-statements": "off",
+      "functional/no-return-void": "off",
+      "functional/no-conditional-statements": "off",
+      "functional/no-throw-statements": "off",
+      "functional/immutable-data": "off",
+      "promise/avoid-new": "off",
+    },
+  },
+  {
     files: ["src/instrumentation.ts"],
     rules: {
       "functional/no-expression-statements": "off",

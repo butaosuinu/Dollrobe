@@ -11,6 +11,7 @@ import { createAuth } from "./auth";
 import type { Auth } from "./auth";
 import { createLogger, DEFAULT_LOG_LEVEL } from "./lib/logger";
 import type { Logger, LogLevel } from "./lib/logger";
+import { imageRoutes } from "./routes/image";
 
 type Variables = {
   auth: Auth;
@@ -69,6 +70,8 @@ app.all("/api/auth/*", async (c) => {
   const auth = c.get("auth");
   return await auth.handler(c.req.raw);
 });
+
+app.route("/api/images", imageRoutes);
 
 app.use("/trpc/*", async (c, next) => {
   await trpcServer({

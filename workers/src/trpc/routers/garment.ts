@@ -72,6 +72,8 @@ export const garmentRouter = router({
           drizzleDb: createDrizzle(ctx.env.DB),
           id: input.id,
           userId: TEMP_USER_ID,
+          bucket: ctx.env.BUCKET,
+          r2PublicUrl: ctx.env.R2_PUBLIC_URL,
           logger: ctx.logger,
         }),
       ),
