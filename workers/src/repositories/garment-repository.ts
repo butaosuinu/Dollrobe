@@ -11,6 +11,7 @@ import {
   DOLL_SIZES,
   GARMENT_STATUSES,
 } from "@shared/lib/constants";
+import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import { garments } from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
@@ -78,10 +79,12 @@ export const findGarments = async ({
   drizzleDb,
   userId,
   filters,
+  logger,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly filters: GarmentFilters;
+  readonly logger: Logger;
 }): Promise<readonly Garment[]> => {
   const conditions = [
     eq(garments.userId, userId),
@@ -104,7 +107,7 @@ export const findGarments = async ({
     .from(garments)
     .where(and(...conditions))
     .orderBy(desc(garments.updatedAt))
-    .catch(wrapDbError("fetch garments"));
+    .catch(wrapDbError({ context: "fetch garments", logger }));
 
   return rows.map(toGarment);
 };
@@ -113,16 +116,18 @@ export const findGarmentById = async ({
   drizzleDb,
   id,
   userId,
+  logger,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
+  readonly logger: Logger;
 }): Promise<Garment | undefined> => {
   const rows = await drizzleDb
     .select()
     .from(garments)
     .where(and(eq(garments.id, id), eq(garments.userId, userId)))
-    .catch(wrapDbError("fetch garment"));
+    .catch(wrapDbError({ context: "fetch garment", logger }));
 
   const row = rows[0];
   if (row === undefined) {
@@ -135,14 +140,16 @@ export const findGarmentById = async ({
 export const insertGarment = async ({
   drizzleDb,
   garment,
+  logger,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly garment: typeof garments.$inferInsert;
+  readonly logger: Logger;
 }): Promise<void> => {
   await drizzleDb
     .insert(garments)
     .values(garment)
-    .catch(wrapDbError("create garment"));
+    .catch(wrapDbError({ context: "create garment", logger }));
 };
 
 type GarmentUpdatableFields = {
@@ -185,11 +192,13 @@ export const updateGarmentFields = async ({
   id,
   userId,
   fields,
+  logger,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
   readonly fields: GarmentUpdatableFields;
+  readonly logger: Logger;
 }): Promise<Garment | undefined> => {
   const setObject = {
     ...buildSetObject(fields),
@@ -200,13 +209,13 @@ export const updateGarmentFields = async ({
     .update(garments)
     .set(setObject)
     .where(and(eq(garments.id, id), eq(garments.userId, userId)))
-    .catch(wrapDbError("update garment"));
+    .catch(wrapDbError({ context: "update garment", logger }));
 
   const rows = await drizzleDb
     .select()
     .from(garments)
     .where(and(eq(garments.id, id), eq(garments.userId, userId)))
-    .catch(wrapDbError("fetch updated garment"));
+    .catch(wrapDbError({ context: "fetch updated garment", logger }));
 
   const row = rows[0];
   if (row === undefined) {
@@ -220,15 +229,17 @@ export const deleteGarmentById = async ({
   drizzleDb,
   id,
   userId,
+  logger,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
+  readonly logger: Logger;
 }): Promise<number> => {
   const result = await drizzleDb
     .delete(garments)
     .where(and(eq(garments.id, id), eq(garments.userId, userId)))
-    .catch(wrapDbError("delete garment"));
+    .catch(wrapDbError({ context: "delete garment", logger }));
 
   return Number(result.meta.changes);
 };

@@ -1,17 +1,21 @@
 import { TRPCError } from "@trpc/server";
-import { createLogger } from "../../lib/logger";
+import type { Logger } from "../../lib/logger";
 
 export const TEMP_USER_ID = "temp-user-001";
 
-const dbErrorLogger = createLogger({ minLevel: "error" });
-
 export const wrapDbError =
-  (context: string) =>
+  ({
+    context,
+    logger,
+  }: {
+    readonly context: string;
+    readonly logger: Logger;
+  }) =>
   (err: unknown): never => {
     const message = err instanceof Error ? err.message : `Failed to ${context}`;
     const stack = err instanceof Error ? err.stack : undefined;
 
-    dbErrorLogger.error("database error", {
+    logger.error("database error", {
       context,
       errorMessage: message,
       stack,

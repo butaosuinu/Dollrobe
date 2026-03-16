@@ -9,7 +9,7 @@ import type { TRPCContext } from "./trpc/index";
 import type { Env } from "./types";
 import { createAuth } from "./auth";
 import type { Auth } from "./auth";
-import { createLogger } from "./lib/logger";
+import { createLogger, DEFAULT_LOG_LEVEL } from "./lib/logger";
 import type { Logger, LogLevel } from "./lib/logger";
 
 type Variables = {
@@ -32,7 +32,7 @@ const parseLogLevel = (value: string | undefined): LogLevel => {
   if (value !== undefined && isLogLevel(value)) {
     return value;
   }
-  return "info";
+  return DEFAULT_LOG_LEVEL;
 };
 
 app.use("*", async (c, next) => {
@@ -44,13 +44,13 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-app.use(
-  "*",
-  logger((str) => {
-    const appLogger = createLogger();
+app.use("*", async (c, next) => {
+  const appLogger = c.get("logger");
+  const logMiddleware = logger((str) => {
     appLogger.info(str);
-  }),
-);
+  });
+  await logMiddleware(c, next);
+});
 
 app.use("*", timing());
 

@@ -10,6 +10,8 @@ type Logger = {
   readonly child: (childContext: LogContext) => Logger;
 };
 
+export const DEFAULT_LOG_LEVEL: LogLevel = "info";
+
 const LOG_LEVEL_PRIORITY = Object.freeze({
   debug: 0,
   info: 1,
@@ -33,7 +35,7 @@ const serializeContext = (context: LogContext): LogContext =>
   );
 
 export const createLogger = ({
-  minLevel = "info",
+  minLevel = DEFAULT_LOG_LEVEL,
   baseContext = {},
 }: {
   readonly minLevel?: LogLevel;
