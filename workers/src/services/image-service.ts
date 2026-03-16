@@ -88,15 +88,19 @@ export const uploadImage = async ({
   readonly mimeType: string;
   readonly logger: Logger;
 }): Promise<ServiceResult<{ readonly key: string }>> => {
-  await bucket
+  const putResult = await bucket
     .put(key, body, {
       httpMetadata: { contentType: mimeType },
     })
     .catch((err: unknown) => {
       const message = err instanceof Error ? err.message : "R2 upload failed";
       logger.error("R2 upload error", { key, errorMessage: message });
-      throw err;
+      return message;
     });
+
+  if (typeof putResult === "string") {
+    return serviceError("INTERNAL_ERROR", putResult);
+  }
 
   logger.info("image uploaded to R2", { key });
   return serviceOk({ key });
@@ -111,11 +115,15 @@ export const deleteImage = async ({
   readonly key: string;
   readonly logger: Logger;
 }): Promise<ServiceResult<{ readonly success: true }>> => {
-  await bucket.delete(key).catch((err: unknown) => {
+  const deleteResult = await bucket.delete(key).catch((err: unknown) => {
     const message = err instanceof Error ? err.message : "R2 delete failed";
     logger.error("R2 delete error", { key, errorMessage: message });
-    throw err;
+    return message;
   });
+
+  if (typeof deleteResult === "string") {
+    return serviceError("INTERNAL_ERROR", deleteResult);
+  }
 
   logger.info("image deleted from R2", { key });
   return serviceOk({ success: true });

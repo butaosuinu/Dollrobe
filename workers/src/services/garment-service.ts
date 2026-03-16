@@ -216,7 +216,18 @@ export const deleteGarment = async ({
       imageUrl: garment.imageUrl,
     });
     if (r2Key !== undefined) {
-      await imageService.deleteImage({ bucket, key: r2Key, logger });
+      const deleteResult = await imageService.deleteImage({
+        bucket,
+        key: r2Key,
+        logger,
+      });
+      if (!deleteResult.ok) {
+        logger.warn("R2 image cleanup failed after garment deletion", {
+          garmentId: id,
+          r2Key,
+          error: deleteResult.error.message,
+        });
+      }
     }
   }
 

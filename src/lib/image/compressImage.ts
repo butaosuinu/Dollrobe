@@ -1,4 +1,8 @@
-import { IMAGE_COMPRESSION, IMAGE_UPLOAD } from "@/lib/constants";
+import {
+  IMAGE_COMPRESSION,
+  IMAGE_UPLOAD,
+  MIME_TO_EXTENSION,
+} from "@/lib/constants";
 
 type CompressImageResult = {
   readonly file: File;
@@ -119,7 +123,9 @@ export const compressImage = async ({
   const outputFormat = webpSupported
     ? IMAGE_COMPRESSION.OUTPUT_FORMAT
     : IMAGE_COMPRESSION.FALLBACK_FORMAT;
-  const extension = webpSupported ? "webp" : "jpg";
+  const extension = webpSupported
+    ? MIME_TO_EXTENSION["image/webp"]
+    : MIME_TO_EXTENSION["image/jpeg"];
 
   const blob = await canvasToBlob({ canvas, format: outputFormat, quality });
 

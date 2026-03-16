@@ -17,11 +17,11 @@ const uploadResponseSchema = z.object({ imageUrl: z.string() });
 const errorResponseSchema = z.object({ error: z.string() });
 
 const parseJsonSafe = (text: string): unknown => {
-  const result = z.string().safeParse(text);
-  if (!result.success) {
-    return undefined;
-  }
-  return JSON.parse(text) as unknown;
+  const result = z
+    .string()
+    .transform((s) => JSON.parse(s) as unknown)
+    .safeParse(text);
+  return result.success ? result.data : undefined;
 };
 
 const isAllowedMimeType = (type: string): boolean =>
