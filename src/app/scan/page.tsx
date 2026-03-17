@@ -5,17 +5,25 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import type { ScanConfirmation } from "@/types";
 import {
   activeLocationIdAtom,
   scannedGarmentIdsAtom,
   resetScanSessionAtom,
+  reviewDialogOpenAtom,
 } from "@/stores/scanSessionAtoms";
-import { confirmAllGarmentsAtom, garmentsAtom } from "@/stores/garmentAtoms";
+import {
+  confirmAllGarmentsAtom,
+  confirmPartialGarmentsAtom,
+  garmentsAtom,
+} from "@/stores/garmentAtoms";
 import { storageLocationsAtom } from "@/stores/locationAtoms";
 import { QR_SCHEME } from "@/lib/constants";
+import { getItemsNeedingReview } from "@/lib/confidence";
 import QrScanner from "@/components/scan/QrScanner";
 import ScanResult from "@/components/scan/ScanResult";
 import ScanSessionPanel from "@/components/scan/ScanSessionPanel";
+import OpportunisticReviewDialog from "@/components/scan/OpportunisticReviewDialog";
 
 const ScanPage = () => {
   const { i18n } = useLingui();
@@ -25,7 +33,10 @@ const ScanPage = () => {
   const setActiveLocationId = useSetAtom(activeLocationIdAtom);
   const setScannedIds = useSetAtom(scannedGarmentIdsAtom);
   const confirmAll = useSetAtom(confirmAllGarmentsAtom);
+  const confirmPartial = useSetAtom(confirmPartialGarmentsAtom);
   const resetSession = useSetAtom(resetScanSessionAtom);
+  const reviewDialogOpen = useAtomValue(reviewDialogOpenAtom);
+  const setReviewDialogOpen = useSetAtom(reviewDialogOpenAtom);
 
   const [lastScan, setLastScan] = useState<
     | { type: "garment" | "location"; name: string; subtitle?: string }
@@ -45,6 +56,11 @@ const ScanPage = () => {
           name: loc?.label ?? locationId,
           subtitle: i18n._(msg`場所を設定しました`),
         });
+
+        const needsReview = getItemsNeedingReview(garments, locationId);
+        if (needsReview.length > 0) {
+          setReviewDialogOpen(true);
+        }
         return;
       }
 
@@ -61,7 +77,14 @@ const ScanPage = () => {
         });
       }
     },
-    [locations, garments, setActiveLocationId, setScannedIds, i18n],
+    [
+      locations,
+      garments,
+      setActiveLocationId,
+      setScannedIds,
+      setReviewDialogOpen,
+      i18n,
+    ],
   );
 
   const handleConfirmAll = async () => {
@@ -69,6 +92,28 @@ const ScanPage = () => {
     await confirmAll(activeLocationId);
     resetSession();
     setLastScan(undefined);
+  };
+
+  const itemsNeedingReview =
+    activeLocationId !== undefined
+      ? getItemsNeedingReview(garments, activeLocationId)
+      : [];
+
+  const handleReviewConfirmAll = async () => {
+    if (activeLocationId === undefined) return;
+    await confirmAll(activeLocationId);
+    setReviewDialogOpen(false);
+  };
+
+  const handleReviewConfirmPartial = async (
+    confirmations: readonly ScanConfirmation[],
+  ) => {
+    await confirmPartial(confirmations);
+    setReviewDialogOpen(false);
+  };
+
+  const handleReviewClose = () => {
+    setReviewDialogOpen(false);
   };
 
   return (
@@ -79,7 +124,7 @@ const ScanPage = () => {
         </h2>
       </div>
 
-      <QrScanner onScan={handleScan} isActive />
+      <QrScanner onScan={handleScan} isActive={!reviewDialogOpen} />
 
       {lastScan !== undefined && (
         <ScanResult
@@ -92,6 +137,14 @@ const ScanPage = () => {
       <ScanSessionPanel
         locationName={activeLocation?.label}
         onConfirmAll={handleConfirmAll}
+      />
+
+      <OpportunisticReviewDialog
+        isOpen={reviewDialogOpen}
+        onClose={handleReviewClose}
+        itemsNeedingReview={itemsNeedingReview}
+        onConfirmAll={handleReviewConfirmAll}
+        onConfirmPartial={handleReviewConfirmPartial}
       />
     </div>
   );
