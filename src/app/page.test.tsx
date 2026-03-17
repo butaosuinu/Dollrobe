@@ -6,6 +6,10 @@ import { createTestGarment, FIXED_NOW } from "@/test/factories";
 import { renderWithProviders } from "@/test/testUtils";
 import DashboardPage from "./page";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 vi.mock("next/link", () => ({
   default: ({
     href,
@@ -29,6 +33,15 @@ vi.mock("@/stores/garmentAtoms", async () => {
   const { atom } = await import("jotai");
   return {
     garmentsAtom: atom(() => mockGarments.value),
+  };
+});
+
+vi.mock("@/stores/orphanAtoms", async () => {
+  const { atom } = await import("jotai");
+  return {
+    orphanedCheckoutsAtom: atom((): readonly Garment[] => []),
+    resolveStillUsingAtom: atom(undefined, () => undefined),
+    resolveLostAtom: atom(undefined, () => undefined),
   };
 });
 

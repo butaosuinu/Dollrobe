@@ -92,6 +92,15 @@ export const GARMENT_STATUSES: readonly GarmentStatus[] = [
   "lost",
 ];
 
+export const ORPHAN_RESOLUTION = Object.freeze({
+  STORED_BACK: "stored_back",
+  STILL_USING: "still_using",
+  LOST: "lost",
+} as const);
+
+export type OrphanResolution =
+  (typeof ORPHAN_RESOLUTION)[keyof typeof ORPHAN_RESOLUTION];
+
 export const TOP_BAR_HEIGHT = 56;
 export const BOTTOM_NAV_HEIGHT = 64;
 
