@@ -6,7 +6,7 @@ import { compressImage } from "@/lib/image/compressImage";
 export type UploadState =
   | { readonly status: "idle" }
   | { readonly status: "compressing" }
-  | { readonly status: "uploading"; readonly progress: number }
+  | { readonly status: "uploading" }
   | { readonly status: "success"; readonly imageUrl: string }
   | { readonly status: "error"; readonly message: string };
 
@@ -31,7 +31,7 @@ export const useImageUpload = () => {
   const [uploadState, setUploadState] = useState<UploadState>({
     status: "idle",
   });
-  const xhrRef = useRef<XMLHttpRequest | undefined>(undefined);
+  const abortControllerRef = useRef<AbortController | undefined>(undefined);
 
   const upload = useCallback(
     async ({
@@ -57,65 +57,58 @@ export const useImageUpload = () => {
 
       const compressed = await compressImage({ file });
 
-      return await new Promise<string>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhrRef.current = xhr;
-        const formData = new FormData();
-        formData.append("file", compressed.file);
+      setUploadState({ status: "uploading" });
 
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            const progress = e.loaded / e.total;
-            setUploadState({ status: "uploading", progress });
-          }
-        });
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
 
-        xhr.addEventListener("load", () => {
-          const parsed = parseJsonSafe(xhr.responseText);
+      const formData = new FormData();
+      formData.append("file", compressed.file);
 
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const result = uploadResponseSchema.safeParse(parsed);
-            if (result.success) {
-              setUploadState({
-                status: "success",
-                imageUrl: result.data.imageUrl,
-              });
-              resolve(result.data.imageUrl);
-              return;
-            }
-            const message = "不正なレスポンス形式です";
-            setUploadState({ status: "error", message });
-            reject(new Error(message));
-            return;
-          }
-
-          const errorResult = errorResponseSchema.safeParse(parsed);
-          const message = errorResult.success
-            ? errorResult.data.error
-            : "アップロードに失敗しました";
-          setUploadState({ status: "error", message });
-          reject(new Error(message));
-        });
-
-        xhr.addEventListener("error", () => {
-          const message = "アップロードに失敗しました";
-          setUploadState({ status: "error", message });
-          reject(new Error(message));
-        });
-
-        setUploadState({ status: "uploading", progress: 0 });
-        xhr.open("POST", `${WORKERS_URL}/api/images/upload/${garmentId}`);
-        xhr.withCredentials = true;
-        xhr.send(formData);
+      const response = await fetch(
+        `${WORKERS_URL}/api/images/upload/${garmentId}`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+          signal: abortController.signal,
+        },
+      ).catch((error: unknown) => {
+        const message = "アップロードに失敗しました";
+        setUploadState({ status: "error", message });
+        throw error instanceof Error ? error : new Error(message);
       });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        const parsed = parseJsonSafe(text);
+        const errorResult = errorResponseSchema.safeParse(parsed);
+        const message = errorResult.success
+          ? errorResult.data.error
+          : "アップロードに失敗しました";
+        setUploadState({ status: "error", message });
+        throw new Error(message);
+      }
+
+      const text = await response.text().catch(() => "");
+      const parsed = parseJsonSafe(text);
+      const result = uploadResponseSchema.safeParse(parsed);
+      if (!result.success) {
+        const message = "不正なレスポンス形式です";
+        setUploadState({ status: "error", message });
+        throw new Error(message);
+      }
+
+      setUploadState({ status: "success", imageUrl: result.data.imageUrl });
+      return result.data.imageUrl;
     },
     [],
   );
 
   const reset = useCallback(() => {
-    if (xhrRef.current !== undefined) {
-      xhrRef.current.abort();
-      xhrRef.current = undefined;
+    if (abortControllerRef.current !== undefined) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = undefined;
     }
     setUploadState({ status: "idle" });
   }, []);

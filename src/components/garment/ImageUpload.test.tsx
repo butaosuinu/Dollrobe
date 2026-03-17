@@ -42,16 +42,16 @@ describe("ImageUpload", () => {
     expect(screen.getByText("圧縮中...")).toBeInTheDocument();
   });
 
-  it("アップロード中にプログレスが表示される", () => {
+  it("アップロード中にテキストが表示される", () => {
     renderWithProviders(
       <ImageUpload
         {...defaultProps}
         imagePreview="blob:http://localhost/test"
-        uploadState={{ status: "uploading", progress: 0.75 }}
+        uploadState={{ status: "uploading" }}
       />,
     );
 
-    expect(screen.getByText("75%")).toBeInTheDocument();
+    expect(screen.getByText("アップロード中...")).toBeInTheDocument();
   });
 
   it("エラー状態でエラーメッセージが表示される", () => {
@@ -72,10 +72,7 @@ describe("ImageUpload", () => {
 
   it("アップロード中は file input が disabled になる", () => {
     renderWithProviders(
-      <ImageUpload
-        {...defaultProps}
-        uploadState={{ status: "uploading", progress: 0.5 }}
-      />,
+      <ImageUpload {...defaultProps} uploadState={{ status: "uploading" }} />,
     );
 
     const input = document.querySelector("input[type='file']");

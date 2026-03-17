@@ -38,7 +38,7 @@ const ProgressOverlay = ({
         <div className="flex flex-col items-center gap-2 text-white">
           <Loader2 className="size-8 animate-spin" />
           <span className="text-sm">
-            {Math.round(uploadState.progress * 100)}%
+            <Trans>アップロード中...</Trans>
           </span>
         </div>
       </div>

@@ -19,7 +19,7 @@ const mockUploadState = vi.hoisted(() => ({
   value: { status: "idle" } as
     | { status: "idle" }
     | { status: "compressing" }
-    | { status: "uploading"; progress: number }
+    | { status: "uploading" }
     | { status: "success"; imageUrl: string }
     | { status: "error"; message: string },
 }));
@@ -156,7 +156,7 @@ describe("GarmentForm", () => {
   });
 
   it("アップロード中はボタンが disabled + テキスト変更", () => {
-    mockUploadState.value = { status: "uploading", progress: 0.5 };
+    mockUploadState.value = { status: "uploading" };
     renderWithProviders(<GarmentForm />);
 
     expect(
