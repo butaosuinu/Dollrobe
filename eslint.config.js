@@ -139,8 +139,6 @@ export default tseslint.config(
       "functional/no-conditional-statements": "off",
       "functional/no-throw-statements": "off",
       "functional/immutable-data": "off",
-      "@typescript-eslint/no-confusing-void-expression": "off",
-      "promise/avoid-new": "off",
     },
   },
   {

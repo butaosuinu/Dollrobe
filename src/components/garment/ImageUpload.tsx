@@ -12,7 +12,7 @@ type Props = {
   readonly onFileSelect: (file: File) => void;
 };
 
-const ACCEPT_STRING = IMAGE_UPLOAD.ALLOWED_MIME_TYPES.join(",");
+const ACCEPT_STRING = IMAGE_UPLOAD.ALLOWED_INPUT_MIME_TYPES.join(",");
 
 const ProgressOverlay = ({
   uploadState,

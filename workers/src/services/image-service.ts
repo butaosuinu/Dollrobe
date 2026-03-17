@@ -3,10 +3,10 @@ import { IMAGE_UPLOAD, MIME_TO_EXTENSION } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
-type ValidMimeType = (typeof IMAGE_UPLOAD.ALLOWED_MIME_TYPES)[number];
+type ValidMimeType = (typeof IMAGE_UPLOAD.ALLOWED_UPLOAD_MIME_TYPES)[number];
 
 const isValidMimeType = (mime: string): mime is ValidMimeType =>
-  IMAGE_UPLOAD.ALLOWED_MIME_TYPES.some((t) => t === mime);
+  IMAGE_UPLOAD.ALLOWED_UPLOAD_MIME_TYPES.some((t) => t === mime);
 
 export const buildR2Key = ({
   userId,
@@ -59,12 +59,9 @@ export const validateFile = ({
   readonly size: number;
   readonly mimeType: string;
 }): ServiceResult<{ readonly validMimeType: ValidMimeType }> => {
+  const formatErrorMessage = `許可されていないファイル形式です: ${mimeType}`;
   if (!isValidMimeType(mimeType)) {
-    return serviceError(
-      "BAD_REQUEST",
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- mimeType is narrowed but still string
-      `許可されていないファイル形式です: ${mimeType}`,
-    );
+    return serviceError("BAD_REQUEST", formatErrorMessage);
   }
   if (size > IMAGE_UPLOAD.MAX_UPLOAD_SIZE_BYTES) {
     return serviceError(

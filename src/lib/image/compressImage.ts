@@ -1,8 +1,4 @@
-import {
-  IMAGE_COMPRESSION,
-  IMAGE_UPLOAD,
-  MIME_TO_EXTENSION,
-} from "@/lib/constants";
+import { IMAGE_COMPRESSION, IMAGE_UPLOAD } from "@/lib/constants";
 
 type CompressImageResult = {
   readonly file: File;
@@ -30,48 +26,37 @@ const calculateDimensions = ({
   };
 };
 
-const supportsWebP = (): boolean => {
-  const canvas = document.createElement("canvas");
-  canvas.width = 1;
-  canvas.height = 1;
-  const dataUrl = canvas.toDataURL("image/webp");
-  return dataUrl.startsWith("data:image/webp");
-};
-
 const canvasToBlob = async ({
   canvas,
   format,
-  quality,
 }: {
   readonly canvas: HTMLCanvasElement;
   readonly format: string;
-  readonly quality: number;
 }): Promise<Blob> =>
   await new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob === null) {
-          reject(new Error("Canvas toBlob returned null"));
-          return;
-        }
-        resolve(blob);
-      },
-      format,
-      quality,
-    );
+    canvas.toBlob((blob) => {
+      if (blob === null) {
+        reject(new Error("Canvas toBlob returned null"));
+        return;
+      }
+      resolve(blob);
+    }, format);
   });
 
-const needsCompression = ({
+const needsConversion = ({
   width,
   height,
   fileSize,
+  mimeType,
   maxDimension,
 }: {
   readonly width: number;
   readonly height: number;
   readonly fileSize: number;
+  readonly mimeType: string;
   readonly maxDimension: number;
 }): boolean =>
+  mimeType !== IMAGE_COMPRESSION.OUTPUT_FORMAT ||
   width > maxDimension ||
   height > maxDimension ||
   fileSize > IMAGE_UPLOAD.MAX_UPLOAD_SIZE_BYTES;
@@ -79,20 +64,19 @@ const needsCompression = ({
 export const compressImage = async ({
   file,
   maxDimension = IMAGE_COMPRESSION.MAX_DIMENSION,
-  quality = IMAGE_COMPRESSION.OUTPUT_QUALITY,
 }: {
   readonly file: File;
   readonly maxDimension?: number;
-  readonly quality?: number;
 }): Promise<CompressImageResult> => {
   const bitmap = await createImageBitmap(file);
   const { width: originalWidth, height: originalHeight } = bitmap;
 
   if (
-    !needsCompression({
+    !needsConversion({
       width: originalWidth,
       height: originalHeight,
       fileSize: file.size,
+      mimeType: file.type,
       maxDimension,
     })
   ) {
@@ -119,18 +103,13 @@ export const compressImage = async ({
   ctx.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
 
-  const webpSupported = supportsWebP();
-  const outputFormat = webpSupported
-    ? IMAGE_COMPRESSION.OUTPUT_FORMAT
-    : IMAGE_COMPRESSION.FALLBACK_FORMAT;
-  const extension = webpSupported
-    ? MIME_TO_EXTENSION["image/webp"]
-    : MIME_TO_EXTENSION["image/jpeg"];
+  const blob = await canvasToBlob({
+    canvas,
+    format: IMAGE_COMPRESSION.OUTPUT_FORMAT,
+  });
 
-  const blob = await canvasToBlob({ canvas, format: outputFormat, quality });
-
-  const compressedFile = new File([blob], `compressed.${extension}`, {
-    type: outputFormat,
+  const compressedFile = new File([blob], "compressed.png", {
+    type: IMAGE_COMPRESSION.OUTPUT_FORMAT,
   });
 
   return { file: compressedFile, width, height };

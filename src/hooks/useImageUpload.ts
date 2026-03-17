@@ -25,7 +25,7 @@ const parseJsonSafe = (text: string): unknown => {
 };
 
 const isAllowedMimeType = (type: string): boolean =>
-  IMAGE_UPLOAD.ALLOWED_MIME_TYPES.some((t) => t === type);
+  IMAGE_UPLOAD.ALLOWED_INPUT_MIME_TYPES.some((t) => t === type);
 
 export const useImageUpload = () => {
   const [uploadState, setUploadState] = useState<UploadState>({

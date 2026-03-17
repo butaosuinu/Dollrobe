@@ -20,9 +20,9 @@ describe("画像アップロード シナリオ", () => {
       const caller = getCaller();
       const bucket = env.BUCKET;
 
-      const key = "garments/temp-user-001/test-garment/123.jpg";
+      const key = "garments/temp-user-001/test-garment/123.png";
       await bucket.put(key, new ArrayBuffer(100), {
-        httpMetadata: { contentType: "image/jpeg" },
+        httpMetadata: { contentType: "image/png" },
       });
 
       const objectBefore = await bucket.head(key);
