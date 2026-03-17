@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { Camera } from "lucide-react";
 import { createId } from "@paralleldrive/cuid2";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -18,11 +17,13 @@ import {
   CONFIDENCE_DECAY_OPTIONS,
 } from "@/lib/i18n-labels";
 import { isGarmentCategory, isDollSize } from "@/lib/typeGuards";
+import { useImageUpload } from "@/hooks/useImageUpload";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import TagInput from "@/components/ui/TagInput";
 import ColorPicker from "@/components/ui/ColorPicker";
+import ImageUpload from "@/components/garment/ImageUpload";
 
 const GarmentForm = () => {
   const { i18n } = useLingui();
@@ -41,6 +42,7 @@ const GarmentForm = () => {
   }));
   const addGarment = useSetAtom(addGarmentAtom);
   const authState = useAtomValue(authSessionAtom);
+  const { uploadState, upload, reset: resetUpload } = useImageUpload();
   const [name, setName] = useState("");
   const [category, setCategory] = useState<GarmentCategory>("tops");
   const [dollSize, setDollSize] = useState<DollSize>("SD");
@@ -51,6 +53,7 @@ const GarmentForm = () => {
   const [imagePreview, setImagePreview] = useState<string | undefined>(
     undefined,
   );
+  const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined);
   const previousImageUrlRef = useRef<string | undefined>(undefined);
 
   useEffect(
@@ -62,31 +65,41 @@ const GarmentForm = () => {
     [],
   );
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file === undefined) return;
+  const handleFileSelect = (file: File) => {
     if (previousImageUrlRef.current !== undefined) {
       URL.revokeObjectURL(previousImageUrlRef.current);
     }
     const url = URL.createObjectURL(file);
     previousImageUrlRef.current = url;
     setImagePreview(url);
+    setSelectedFile(file);
+    resetUpload();
   };
+
+  const isProcessing =
+    uploadState.status === "compressing" || uploadState.status === "uploading";
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (name.trim() === "") return;
+    if (name.trim() === "" || isProcessing) return;
 
+    const garmentId = createId();
     const now = Date.now();
+
+    const imageUrl =
+      selectedFile !== undefined
+        ? await upload({ file: selectedFile, garmentId }).catch(() => undefined)
+        : undefined;
+
     await addGarment({
-      id: createId(),
+      id: garmentId,
       userId: authState.user?.id ?? "local",
       name: name.trim(),
       category,
       dollSize,
       colors: [...colors],
       tags: [...tags],
-      imageUrl: imagePreview,
+      imageUrl,
       brand: brand.trim() === "" ? undefined : brand.trim(),
       locationId: undefined,
       status: GARMENT_STATUS.STORED,
@@ -101,29 +114,11 @@ const GarmentForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <label className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-border-strong bg-surface-raised transition-colors hover:border-primary-300 hover:bg-primary-50/50">
-        {imagePreview !== undefined ? (
-          <img
-            src={imagePreview}
-            alt={t`プレビュー`}
-            className="size-full object-cover"
-          />
-        ) : (
-          <div className="flex flex-col items-center gap-2 text-text-tertiary">
-            <Camera className="size-8" />
-            <span className="text-sm">
-              <Trans>写真を追加</Trans>
-            </span>
-          </div>
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="sr-only"
-          onChange={handleImageChange}
-        />
-      </label>
+      <ImageUpload
+        imagePreview={imagePreview}
+        uploadState={uploadState}
+        onFileSelect={handleFileSelect}
+      />
 
       <Input
         label={t`名前`}
@@ -173,8 +168,17 @@ const GarmentForm = () => {
         onChange={(e) => setDecayDays(Number(e.target.value))}
       />
 
-      <Button type="submit" fullWidth size="lg" disabled={name.trim() === ""}>
-        <Trans>登録する</Trans>
+      <Button
+        type="submit"
+        fullWidth
+        size="lg"
+        disabled={name.trim() === "" || isProcessing}
+      >
+        {isProcessing ? (
+          <Trans>アップロード中...</Trans>
+        ) : (
+          <Trans>登録する</Trans>
+        )}
       </Button>
     </form>
   );

@@ -94,3 +94,27 @@ export const GARMENT_STATUSES: readonly GarmentStatus[] = [
 
 export const TOP_BAR_HEIGHT = 56;
 export const BOTTOM_NAV_HEIGHT = 64;
+
+export const IMAGE_UPLOAD = Object.freeze({
+  MAX_UPLOAD_SIZE_BYTES: 5 * 1024 * 1024,
+  MAX_INPUT_SIZE_BYTES: 50 * 1024 * 1024,
+  ALLOWED_INPUT_MIME_TYPES: [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+  ] as const,
+  ALLOWED_UPLOAD_MIME_TYPES: ["image/png"] as const,
+});
+
+export const IMAGE_COMPRESSION = Object.freeze({
+  MAX_DIMENSION: 1200,
+  OUTPUT_FORMAT: "image/png",
+});
+
+export const MIME_TO_EXTENSION = Object.freeze({
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/heic": "heic",
+} as const);

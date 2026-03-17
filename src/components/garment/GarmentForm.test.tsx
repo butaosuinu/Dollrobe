@@ -13,6 +13,25 @@ vi.mock("next/navigation", () => ({
   useRouter: () => mockRouter,
 }));
 
+const mockUpload = vi.hoisted(() => vi.fn());
+const mockResetUpload = vi.hoisted(() => vi.fn());
+const mockUploadState = vi.hoisted(() => ({
+  value: { status: "idle" } as
+    | { status: "idle" }
+    | { status: "compressing" }
+    | { status: "uploading" }
+    | { status: "success"; imageUrl: string }
+    | { status: "error"; message: string },
+}));
+
+vi.mock("@/hooks/useImageUpload", () => ({
+  useImageUpload: () => ({
+    uploadState: mockUploadState.value,
+    upload: mockUpload,
+    reset: mockResetUpload,
+  }),
+}));
+
 const mockAddGarment = vi.hoisted(() => vi.fn());
 
 const mockAuthState = vi.hoisted(() => ({
@@ -55,6 +74,9 @@ describe("GarmentForm", () => {
   beforeEach(() => {
     mockRouter.push.mockClear();
     mockAddGarment.mockClear();
+    mockUpload.mockClear();
+    mockResetUpload.mockClear();
+    mockUploadState.value = { status: "idle" };
   });
 
   it("フォームの各フィールドが表示される", () => {
@@ -125,5 +147,29 @@ describe("GarmentForm", () => {
     await user.type(screen.getByLabelText("名前"), "   ");
 
     expect(screen.getByRole("button", { name: "登録する" })).toBeDisabled();
+  });
+
+  it("画像選択エリアが表示される", () => {
+    renderWithProviders(<GarmentForm />);
+
+    expect(screen.getByText("写真を追加")).toBeInTheDocument();
+  });
+
+  it("アップロード中はボタンが disabled + テキスト変更", () => {
+    mockUploadState.value = { status: "uploading" };
+    renderWithProviders(<GarmentForm />);
+
+    expect(
+      screen.getByRole("button", { name: "アップロード中..." }),
+    ).toBeDisabled();
+  });
+
+  it("圧縮中はボタンが disabled + テキスト変更", () => {
+    mockUploadState.value = { status: "compressing" };
+    renderWithProviders(<GarmentForm />);
+
+    expect(
+      screen.getByRole("button", { name: "アップロード中..." }),
+    ).toBeDisabled();
   });
 });
