@@ -36,8 +36,14 @@ export const SYNC_ACTION_TYPE = Object.freeze({
   GARMENT_UPDATE: "garment:update",
   GARMENT_DELETE: "garment:delete",
   STORAGE_CASE_CREATE: "storageCase:create",
+  STORAGE_CASE_UPDATE: "storageCase:update",
+  STORAGE_CASE_DELETE: "storageCase:delete",
   STORAGE_LOCATION_CREATE: "storageLocation:create",
 });
+
+export const CASE_NAME_MAX_LENGTH = 100;
+export const GRID_SIZE_MIN = 1;
+export const GRID_SIZE_MAX = 20;
 
 export const GARMENT_CATEGORIES: readonly GarmentCategory[] = [
   "tops",
