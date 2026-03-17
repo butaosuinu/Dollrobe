@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtils";
 import StorageCaseForm from "./StorageCaseForm";
@@ -67,5 +67,81 @@ describe("StorageCaseForm", () => {
     await user.type(screen.getByLabelText("ケース名"), "   ");
 
     expect(screen.getByRole("button", { name: "作成" })).toBeDisabled();
+  });
+
+  it("行数に0を入力した場合、最小値1にクランプされて送信される", async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(
+      <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
+    );
+
+    await user.type(screen.getByLabelText("ケース名"), "テストケース");
+    fireEvent.change(screen.getByLabelText("行数"), {
+      target: { value: "0" },
+    });
+    await user.click(screen.getByRole("button", { name: "作成" }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      name: "テストケース",
+      rows: 1,
+      cols: 3,
+    });
+  });
+
+  it("列数に0を入力した場合、最小値1にクランプされて送信される", async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(
+      <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
+    );
+
+    await user.type(screen.getByLabelText("ケース名"), "テストケース");
+    fireEvent.change(screen.getByLabelText("列数"), {
+      target: { value: "0" },
+    });
+    await user.click(screen.getByRole("button", { name: "作成" }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      name: "テストケース",
+      rows: 2,
+      cols: 1,
+    });
+  });
+
+  it("行数フィールドを空にした場合、最小値1にクランプされて送信される", async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(
+      <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
+    );
+
+    await user.type(screen.getByLabelText("ケース名"), "テストケース");
+    await user.clear(screen.getByLabelText("行数"));
+    await user.click(screen.getByRole("button", { name: "作成" }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      name: "テストケース",
+      rows: 1,
+      cols: 3,
+    });
+  });
+
+  it("列数フィールドを空にした場合、最小値1にクランプされて送信される", async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(
+      <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
+    );
+
+    await user.type(screen.getByLabelText("ケース名"), "テストケース");
+    await user.clear(screen.getByLabelText("列数"));
+    await user.click(screen.getByRole("button", { name: "作成" }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      name: "テストケース",
+      rows: 2,
+      cols: 1,
+    });
   });
 });
