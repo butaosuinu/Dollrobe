@@ -5,14 +5,28 @@ import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import { generateLabel } from "@/lib/generateLabel";
 import type { StorageCase, StorageLocation } from "@/types";
 
-export const storageCasesAtom = atom(async () => {
+const storageCasesRefreshTriggerAtom = atom(0);
+
+export const storageCasesAtom = atom(async (get) => {
+  get(storageCasesRefreshTriggerAtom);
   const cases = await db.storageCases.toArray();
   return cases;
 });
 
-export const storageLocationsAtom = atom(async () => {
+export const refreshStorageCasesAtom = atom(undefined, (_get, set) => {
+  set(storageCasesRefreshTriggerAtom, (prev) => prev + 1);
+});
+
+const storageLocationsRefreshTriggerAtom = atom(0);
+
+export const storageLocationsAtom = atom(async (get) => {
+  get(storageLocationsRefreshTriggerAtom);
   const locations = await db.storageLocations.toArray();
   return locations;
+});
+
+export const refreshStorageLocationsAtom = atom(undefined, (_get, set) => {
+  set(storageLocationsRefreshTriggerAtom, (prev) => prev + 1);
 });
 
 export const addStorageCaseAtom = atom(

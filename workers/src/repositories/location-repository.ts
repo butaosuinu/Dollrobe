@@ -141,6 +141,22 @@ export const findLocationById = async ({
   return toStorageLocation(first);
 };
 
+export const findLocationsByUserId = async ({
+  drizzleDb,
+  userId,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+}): Promise<readonly StorageLocation[]> => {
+  const rows = await drizzleDb
+    .select()
+    .from(storageLocations)
+    .where(eq(storageLocations.userId, userId))
+    .orderBy(asc(storageLocations.row), asc(storageLocations.col));
+
+  return rows.map(toStorageLocation);
+};
+
 export const insertCaseWithLocations = async ({
   drizzleDb,
   userId,
