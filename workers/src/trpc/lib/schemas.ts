@@ -12,6 +12,8 @@ export {
   createCaseInputSchema,
   updateCaseInputSchema,
   createLocationInputSchema,
+  listDigestsInputSchema,
+  markDigestReadInputSchema,
 } from "../../db/validation";
 
 const MIN_GARMENT_IDS_LENGTH = 1;

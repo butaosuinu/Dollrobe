@@ -7,6 +7,7 @@ import StatsOverview from "@/components/dashboard/StatsOverview";
 import AlertPanel from "@/components/dashboard/AlertPanel";
 import RecentItems from "@/components/dashboard/RecentItems";
 import OrphanCheckoutDialog from "@/components/scan/OrphanCheckoutDialog";
+import DigestBanner from "@/components/digest/DigestBanner";
 import Skeleton from "@/components/ui/Skeleton";
 
 const StatsLoading = () => (
@@ -30,6 +31,12 @@ const DashboardPage = () => (
         <Trans>ダッシュボード</Trans>
       </h2>
     </div>
+
+    <ErrorBoundary fallback={<></>}>
+      <Suspense fallback={<></>}>
+        <DigestBanner />
+      </Suspense>
+    </ErrorBoundary>
 
     <ErrorBoundary
       fallback={

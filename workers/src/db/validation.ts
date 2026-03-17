@@ -10,6 +10,7 @@ import {
   storageCases,
   storageLocations,
   coordinates,
+  digests,
 } from "./schema";
 
 const GARMENT_NAME_MAX_LENGTH = 100;
@@ -141,4 +142,23 @@ export const createLocationInputSchema = storageLocationInsertSchema.pick({
   label: true,
   row: true,
   col: true,
+});
+
+export const digestSelectSchema = createSelectSchema(digests);
+export const digestInsertSchema = createInsertSchema(digests);
+
+const DIGEST_LIST_MAX_LIMIT = 50;
+const DIGEST_LIST_DEFAULT_LIMIT = 10;
+
+export const listDigestsInputSchema = z.object({
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(DIGEST_LIST_MAX_LIMIT)
+    .default(DIGEST_LIST_DEFAULT_LIMIT),
+});
+
+export const markDigestReadInputSchema = z.object({
+  id: cuidSchema,
 });

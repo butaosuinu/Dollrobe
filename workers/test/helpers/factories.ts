@@ -1,4 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
+import type { DigestUnknownItem, DigestOrphanedItem } from "@/types";
 import { TEMP_USER_ID } from "../../src/trpc/lib/d1-helpers";
 
 type InsertGarmentParams = {
@@ -125,4 +126,47 @@ export const insertStorageLocation = async ({
     .run();
 
   return { id, caseId };
+};
+
+type InsertDigestParams = {
+  readonly db: D1Database;
+  readonly overrides?: Partial<{
+    readonly id: string;
+    readonly unknownItems: readonly DigestUnknownItem[];
+    readonly orphanedItems: readonly DigestOrphanedItem[];
+    readonly unknownCount: number;
+    readonly orphanedCount: number;
+    readonly totalGarments: number;
+    readonly isRead: boolean;
+    readonly generatedAt: number;
+  }>;
+};
+
+export const insertDigest = async ({
+  db,
+  overrides = {},
+}: InsertDigestParams) => {
+  const id = overrides.id ?? createId();
+  const now = Date.now();
+
+  await db
+    .prepare(
+      `INSERT INTO digests (id, user_id, unknown_items, orphaned_items, unknown_count, orphaned_count, total_garments, is_read, generated_at, created_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`,
+    )
+    .bind(
+      id,
+      TEMP_USER_ID,
+      JSON.stringify(overrides.unknownItems ?? []),
+      JSON.stringify(overrides.orphanedItems ?? []),
+      overrides.unknownCount ?? 0,
+      overrides.orphanedCount ?? 0,
+      overrides.totalGarments ?? 0,
+      overrides.isRead === true ? 1 : 0,
+      overrides.generatedAt ?? now,
+      now,
+    )
+    .run();
+
+  return { id };
 };

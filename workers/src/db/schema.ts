@@ -72,3 +72,23 @@ export const coordinates = sqliteTable("coordinates", {
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
 });
+
+export const digests = sqliteTable(
+  "digests",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    unknownItems: text("unknown_items").notNull().default("[]"),
+    orphanedItems: text("orphaned_items").notNull().default("[]"),
+    unknownCount: integer("unknown_count").notNull().default(0),
+    orphanedCount: integer("orphaned_count").notNull().default(0),
+    totalGarments: integer("total_garments").notNull().default(0),
+    isRead: integer("is_read", { mode: "boolean" }).notNull().default(false),
+    generatedAt: integer("generated_at").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    index("idx_digests_user_id").on(table.userId),
+    index("idx_digests_generated_at").on(table.generatedAt),
+  ],
+);

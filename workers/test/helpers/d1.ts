@@ -45,6 +45,7 @@ export const createTestD1 = async (): Promise<D1Setup> => {
 
 export const cleanAllTables = async (db: D1Database): Promise<void> => {
   await db.batch([
+    db.prepare("DELETE FROM digests"),
     db.prepare("DELETE FROM garments"),
     db.prepare("DELETE FROM storage_locations"),
     db.prepare("DELETE FROM storage_cases"),

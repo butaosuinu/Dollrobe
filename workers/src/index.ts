@@ -12,6 +12,8 @@ import type { Auth } from "./auth";
 import { createLogger, DEFAULT_LOG_LEVEL } from "./lib/logger";
 import type { Logger, LogLevel } from "./lib/logger";
 import { imageRoutes } from "./routes/image";
+import { handleDigestCron } from "./scheduled/digest-cron";
+import { handleDigestQueue } from "./queues/digest-consumer";
 
 type Variables = {
   auth: Auth;
@@ -95,4 +97,34 @@ app.use("/trpc/*", async (c, next) => {
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-export default app;
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
+    return await app.fetch(request, env, ctx);
+  },
+
+  scheduled(
+    controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext,
+  ): void {
+    const cronLogger = createLogger({
+      minLevel: parseLogLevel(env.LOG_LEVEL),
+      baseContext: { handler: "scheduled", cron: controller.cron },
+    });
+
+    ctx.waitUntil(handleDigestCron({ env, logger: cronLogger }));
+  },
+
+  async queue(batch: MessageBatch, env: Env): Promise<void> {
+    const queueLogger = createLogger({
+      minLevel: parseLogLevel(env.LOG_LEVEL),
+      baseContext: { handler: "queue", queueName: "digest" },
+    });
+
+    await handleDigestQueue({ batch, env, logger: queueLogger });
+  },
+} satisfies ExportedHandler<Env>;
