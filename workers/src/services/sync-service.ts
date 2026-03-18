@@ -66,11 +66,15 @@ type ProcessContext = {
   readonly logger: Logger;
 };
 
-const toGarmentInsertValues = (
-  parsed: z.infer<typeof garmentPayloadSchema>,
-) => ({
+const toGarmentInsertValues = ({
+  parsed,
+  authenticatedUserId,
+}: {
+  readonly parsed: z.infer<typeof garmentPayloadSchema>;
+  readonly authenticatedUserId: string;
+}) => ({
   id: parsed.id,
-  userId: parsed.userId,
+  userId: authenticatedUserId,
   name: parsed.name,
   category: parsed.category,
   dollSize: parsed.dollSize,
@@ -87,20 +91,30 @@ const toGarmentInsertValues = (
   updatedAt: parsed.updatedAt,
 });
 
-const toCaseInsertValues = (parsed: z.infer<typeof storageCaseSchema>) => ({
+const toCaseInsertValues = ({
+  parsed,
+  authenticatedUserId,
+}: {
+  readonly parsed: z.infer<typeof storageCaseSchema>;
+  readonly authenticatedUserId: string;
+}) => ({
   id: parsed.id,
-  userId: parsed.userId,
+  userId: authenticatedUserId,
   name: parsed.name,
   rows: parsed.rows,
   cols: parsed.cols,
   createdAt: parsed.createdAt,
 });
 
-const toLocationInsertValues = (
-  parsed: z.infer<typeof storageLocationSchema>,
-) => ({
+const toLocationInsertValues = ({
+  parsed,
+  authenticatedUserId,
+}: {
+  readonly parsed: z.infer<typeof storageLocationSchema>;
+  readonly authenticatedUserId: string;
+}) => ({
   id: parsed.id,
-  userId: parsed.userId,
+  userId: authenticatedUserId,
   caseId: parsed.caseId,
   label: parsed.label,
   row: parsed.row,
@@ -123,7 +137,10 @@ const processGarmentUpsert = async (
   }
   await syncRepo.upsertGarment({
     drizzleDb: ctx.drizzleDb,
-    garmentValues: toGarmentInsertValues(parsed.data),
+    garmentValues: toGarmentInsertValues({
+      parsed: parsed.data,
+      authenticatedUserId: ctx.userId,
+    }),
     logger: ctx.logger,
   });
   return serviceOk({ processed: true });
@@ -157,14 +174,20 @@ const processStorageCaseCreate = async (
   if (withLocations.success) {
     await syncRepo.upsertStorageCase({
       drizzleDb: ctx.drizzleDb,
-      caseValues: toCaseInsertValues(withLocations.data.storageCase),
+      caseValues: toCaseInsertValues({
+        parsed: withLocations.data.storageCase,
+        authenticatedUserId: ctx.userId,
+      }),
       logger: ctx.logger,
     });
     await Promise.all(
       withLocations.data.locations.map(async (loc) => {
         await syncRepo.upsertStorageLocation({
           drizzleDb: ctx.drizzleDb,
-          locationValues: toLocationInsertValues(loc),
+          locationValues: toLocationInsertValues({
+            parsed: loc,
+            authenticatedUserId: ctx.userId,
+          }),
           logger: ctx.logger,
         });
       }),
@@ -181,7 +204,10 @@ const processStorageCaseCreate = async (
   }
   await syncRepo.upsertStorageCase({
     drizzleDb: ctx.drizzleDb,
-    caseValues: toCaseInsertValues(caseOnly.data),
+    caseValues: toCaseInsertValues({
+      parsed: caseOnly.data,
+      authenticatedUserId: ctx.userId,
+    }),
     logger: ctx.logger,
   });
   return serviceOk({ processed: true });
@@ -200,7 +226,10 @@ const processStorageCaseUpdate = async (
   }
   await syncRepo.upsertStorageCase({
     drizzleDb: ctx.drizzleDb,
-    caseValues: toCaseInsertValues(parsed.data),
+    caseValues: toCaseInsertValues({
+      parsed: parsed.data,
+      authenticatedUserId: ctx.userId,
+    }),
     logger: ctx.logger,
   });
   return serviceOk({ processed: true });
@@ -239,7 +268,10 @@ const processStorageLocationCreate = async (
   }
   await syncRepo.upsertStorageLocation({
     drizzleDb: ctx.drizzleDb,
-    locationValues: toLocationInsertValues(parsed.data),
+    locationValues: toLocationInsertValues({
+      parsed: parsed.data,
+      authenticatedUserId: ctx.userId,
+    }),
     logger: ctx.logger,
   });
   return serviceOk({ processed: true });

@@ -72,17 +72,20 @@ const isValidSyncType = (type: string): type is SyncActionType =>
 const pushQueuedItems = async (): Promise<SyncResult> => {
   const items = await db.syncQueue.orderBy("createdAt").toArray();
 
-  const validItems = items
-    .filter((item) => isValidSyncType(item.type))
-    .map(({ id: _id, type, ...rest }) => ({
-      ...rest,
-      type: type as SyncActionType,
-    }));
+  const validItems = items.flatMap(({ id: _id, type, ...rest }) =>
+    isValidSyncType(type) ? [{ ...rest, type }] : [],
+  );
 
   await (validItems.length > 0
     ? trpcClient.sync.push.mutate({ items: validItems })
     : Promise.resolve());
-  await (items.length > 0 ? db.syncQueue.clear() : Promise.resolve());
+
+  const itemIds = items.flatMap((item) =>
+    item.id === undefined ? [] : [item.id],
+  );
+  await (itemIds.length > 0
+    ? db.syncQueue.bulkDelete(itemIds)
+    : Promise.resolve());
 
   return { ok: true };
 };

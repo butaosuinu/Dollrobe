@@ -35,7 +35,10 @@ export const upsertGarment = async ({
         checkedOutAt: sql`excluded.checked_out_at`,
         updatedAt: sql`excluded.updated_at`,
       },
-      setWhere: lte(garments.updatedAt, sql`excluded.updated_at`),
+      setWhere: and(
+        eq(garments.userId, sql`excluded.user_id`),
+        lte(garments.updatedAt, sql`excluded.updated_at`),
+      ),
     })
     .catch(wrapDbError({ context: "upsert garment", logger }));
 };
@@ -76,6 +79,7 @@ export const upsertStorageCase = async ({
         rows: sql`excluded.rows`,
         cols: sql`excluded.cols`,
       },
+      setWhere: eq(storageCases.userId, sql`excluded.user_id`),
     })
     .catch(wrapDbError({ context: "upsert storage case", logger }));
 };
