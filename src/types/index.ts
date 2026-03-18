@@ -89,3 +89,28 @@ export type SyncQueueItem = {
   readonly payload: unknown;
   readonly createdAt: number;
 };
+
+export type DigestUnknownItem = {
+  readonly garmentId: string;
+  readonly garmentName: string;
+  readonly confidence: number;
+};
+
+export type DigestOrphanedItem = {
+  readonly garmentId: string;
+  readonly garmentName: string;
+  readonly checkedOutAt: number;
+};
+
+export type Digest = {
+  readonly id: string;
+  readonly userId: string;
+  readonly unknownItems: readonly DigestUnknownItem[];
+  readonly orphanedItems: readonly DigestOrphanedItem[];
+  readonly unknownCount: number;
+  readonly orphanedCount: number;
+  readonly totalGarments: number;
+  readonly isRead: boolean;
+  readonly generatedAt: number;
+  readonly createdAt: number;
+};
