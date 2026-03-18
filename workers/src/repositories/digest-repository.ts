@@ -2,7 +2,7 @@ import type { Digest, DigestUnknownItem, DigestOrphanedItem } from "@/types";
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
-import { digests } from "../db/schema";
+import { digests, garments } from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
 
 type DigestSelectRow = typeof digests.$inferSelect;
@@ -178,8 +178,9 @@ export const findAllUserIds = async ({
   readonly logger: Logger;
 }): Promise<readonly string[]> => {
   const rows = await drizzleDb
-    .all<{ id: string }>(sql`SELECT id FROM "user"`)
+    .selectDistinct({ userId: garments.userId })
+    .from(garments)
     .catch(wrapDbError({ context: "fetch all user ids", logger }));
 
-  return rows.map((row) => row.id);
+  return rows.map((row) => row.userId);
 };
