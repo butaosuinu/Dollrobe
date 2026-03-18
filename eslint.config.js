@@ -20,6 +20,8 @@ export default tseslint.config(
       "lingui.config.ts",
       "lingui-macro-loader.cjs",
       "src/locales/**/*.js",
+      "src/locales/**/*.mjs",
+      ".wrangler/",
       "vitest.workspace.ts",
       "vitest.config.workers.ts",
       "drizzle.config.ts",
