@@ -5,7 +5,7 @@ import { DEFAULT_LOCALE, isSupportedLocale } from "@/i18n/types";
 const STORAGE_KEY = "dw-locale";
 
 const loadCatalog = async (locale: Locale): Promise<void> => {
-  const { messages } = await import(`../locales/${locale}/messages.js`);
+  const { messages } = await import(`../locales/${locale}/messages.mjs`);
   i18n.load(locale, messages);
   i18n.activate(locale);
 };

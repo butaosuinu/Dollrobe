@@ -16,7 +16,10 @@ module.exports = function linguiMacroLoader(source) {
     {
       filename,
       plugins: ["@lingui/babel-plugin-lingui-macro"],
-      presets: [["@babel/preset-typescript", { isTSX, allExtensions: true }]],
+      presets: [],
+      parserOpts: {
+        plugins: isTSX ? ["typescript", "jsx"] : ["typescript"],
+      },
       sourceType: "module",
       sourceMaps: true,
     },

@@ -19,7 +19,6 @@ const nextConfig: NextConfig = {
             options: {},
           },
         ],
-        as: "*.{js,jsx,ts,tsx}",
       },
     },
   },
