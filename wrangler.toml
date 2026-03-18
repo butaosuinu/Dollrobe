@@ -1,6 +1,7 @@
 name = "doll-wardrobe-api"
 main = "workers/src/index.ts"
 compatibility_date = "2025-01-01"
+tsconfig = "tsconfig.workers.json"
 
 [[d1_databases]]
 binding = "DB"
@@ -25,9 +26,6 @@ max_batch_size = 10
 
 [triggers]
 crons = ["0 9 * * 1"]
-
-[alias]
-"@shared/lib/constants" = "./src/lib/constants.ts"
 
 [vars]
 TRUSTED_ORIGINS = "http://localhost:3000"
