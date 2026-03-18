@@ -43,6 +43,28 @@ export const confirmPartialInputSchema = z.object({
     .min(MIN_CONFIRMATIONS_LENGTH),
 });
 
+const SYNC_ACTION_TYPES = [
+  "garment:create",
+  "garment:update",
+  "garment:delete",
+  "storageCase:create",
+  "storageCase:update",
+  "storageCase:delete",
+  "storageLocation:create",
+] as const;
+
+const syncQueueItemSchema = z.object({
+  type: z.enum(SYNC_ACTION_TYPES),
+  payload: z.unknown(),
+  createdAt: z.number(),
+});
+
+const MIN_SYNC_ITEMS_LENGTH = 1;
+
+export const syncPushInputSchema = z.object({
+  items: z.array(syncQueueItemSchema).min(MIN_SYNC_ITEMS_LENGTH),
+});
+
 const ORPHAN_RESOLUTIONS = ["stored_back", "still_using", "lost"] as const;
 
 export const orphanResolveInputSchema = z

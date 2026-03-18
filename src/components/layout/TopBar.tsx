@@ -4,6 +4,7 @@ import { useAtomValue } from "jotai";
 import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import { syncStatusAtom } from "@/stores/syncAtoms";
 import { SYNC_STATUS } from "@/lib/constants";
+import { useOnlineSync } from "@/hooks/useOnlineSync";
 import LocaleSelector from "@/components/settings/LocaleSelector";
 import UserMenu from "@/components/auth/UserMenu";
 
@@ -21,17 +22,21 @@ const SyncIndicator = () => {
   return <Cloud className={`${iconClass} text-text-tertiary`} />;
 };
 
-const TopBar = () => (
-  <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border-default bg-surface-overlay/80 px-4 backdrop-blur-xl">
-    <h1 className="font-display text-lg font-bold tracking-tight text-primary-700">
-      Doll Wardrobe
-    </h1>
-    <div className="flex items-center gap-3">
-      <SyncIndicator />
-      <LocaleSelector />
-      <UserMenu />
-    </div>
-  </header>
-);
+const TopBar = () => {
+  useOnlineSync();
+
+  return (
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border-default bg-surface-overlay/80 px-4 backdrop-blur-xl">
+      <h1 className="font-display text-lg font-bold tracking-tight text-primary-700">
+        Doll Wardrobe
+      </h1>
+      <div className="flex items-center gap-3">
+        <SyncIndicator />
+        <LocaleSelector />
+        <UserMenu />
+      </div>
+    </header>
+  );
+};
 
 export default TopBar;
