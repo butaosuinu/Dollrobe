@@ -43,6 +43,7 @@ const GarmentEditPage = () => {
       <div className="flex items-center gap-3 animate-[fade-in_0.4s_ease-out]">
         <button
           onClick={() => router.back()}
+          aria-label="戻る"
           className="flex size-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-primary-50"
         >
           <ArrowLeft className="size-5" />

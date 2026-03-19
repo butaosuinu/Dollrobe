@@ -165,8 +165,7 @@ describe("GarmentEditPage", () => {
     mockGarments.value = [createTestGarment({ id: "garment-1" })];
     renderWithProviders(<GarmentEditPage />);
 
-    const buttons = screen.getAllByRole("button");
-    await user.click(buttons[0]);
+    await user.click(screen.getByRole("button", { name: "戻る" }));
 
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
   });
