@@ -149,6 +149,7 @@ next-env.d.ts
 
 # Wrangler (Cloudflare)
 .wrangler/
+.dev.vars
 
 # macOS
 .DS_Store

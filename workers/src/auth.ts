@@ -5,6 +5,7 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
   betterAuth({
     database: env.DB,
     secret: env.BETTER_AUTH_SECRET,
+    baseURL: env.BETTER_AUTH_URL,
     basePath: "/api/auth",
     socialProviders: {
       twitter: {

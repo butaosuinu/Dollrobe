@@ -75,25 +75,27 @@ app.all("/api/auth/*", async (c) => {
 
 app.route("/api/images", imageRoutes);
 
-app.use("/trpc/*", async (c, next) => {
-  await trpcServer({
+app.use(
+  "/trpc/*",
+  trpcServer({
     router: appRouter,
-    createContext: (): TRPCContext => ({
+    createContext: (_opts, c): TRPCContext => ({
       env: c.env,
       honoContext: c,
       auth: c.get("auth"),
       logger: c.get("logger"),
     }),
-    onError: ({ error, path }) => {
-      const appLogger = c.get("logger");
-      appLogger.error("tRPC error", {
-        procedure: path,
-        code: error.code,
-        errorMessage: error.message,
-      });
+    onError: ({ error, path, ctx }) => {
+      if (ctx !== undefined) {
+        ctx.logger.error("tRPC error", {
+          procedure: path,
+          code: error.code,
+          errorMessage: error.message,
+        });
+      }
     },
-  })(c, next);
-});
+  }),
+);
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 

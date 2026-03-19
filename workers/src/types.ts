@@ -12,6 +12,7 @@ export type Env = {
   readonly QUEUE: Queue;
   readonly R2_PUBLIC_URL: string;
   readonly BETTER_AUTH_SECRET: string;
+  readonly BETTER_AUTH_URL: string;
   readonly TWITTER_CLIENT_ID: string;
   readonly TWITTER_CLIENT_SECRET: string;
   readonly GOOGLE_CLIENT_ID: string;
