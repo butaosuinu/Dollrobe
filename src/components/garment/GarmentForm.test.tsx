@@ -33,6 +33,7 @@ vi.mock("@/hooks/useImageUpload", () => ({
 }));
 
 const mockAddGarment = vi.hoisted(() => vi.fn());
+const mockUpdateGarment = vi.hoisted(() => vi.fn());
 
 const mockAuthState = vi.hoisted(() => ({
   value: {
@@ -63,6 +64,12 @@ vi.mock("@/stores/garmentAtoms", async () => {
         mockAddGarment(garment);
       },
     ),
+    updateGarmentAtom: atom(
+      undefined,
+      (_get: unknown, _set: unknown, garment: unknown) => {
+        mockUpdateGarment(garment);
+      },
+    ),
   };
 });
 
@@ -74,6 +81,7 @@ describe("GarmentForm", () => {
   beforeEach(() => {
     mockRouter.push.mockClear();
     mockAddGarment.mockClear();
+    mockUpdateGarment.mockClear();
     mockUpload.mockClear();
     mockResetUpload.mockClear();
     mockUploadState.value = { status: "idle" };
