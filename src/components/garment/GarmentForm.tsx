@@ -7,9 +7,9 @@ import { createId } from "@paralleldrive/cuid2";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { addGarmentAtom } from "@/stores/garmentAtoms";
+import { addGarmentAtom, updateGarmentAtom } from "@/stores/garmentAtoms";
 import { authSessionAtom } from "@/stores/authAtoms";
-import type { DollSize, GarmentCategory } from "@/types";
+import type { DollSize, Garment, GarmentCategory } from "@/types";
 import { GARMENT_STATUS, DEFAULT_CONFIDENCE_DECAY_DAYS } from "@/lib/constants";
 import {
   GARMENT_CATEGORY_LABEL,
@@ -25,7 +25,49 @@ import TagInput from "@/components/ui/TagInput";
 import ColorPicker from "@/components/ui/ColorPicker";
 import ImageUpload from "@/components/garment/ImageUpload";
 
-const GarmentForm = () => {
+type Props = {
+  readonly garment?: Garment;
+};
+
+type FormValues = {
+  readonly name: string;
+  readonly category: GarmentCategory;
+  readonly dollSize: DollSize;
+  readonly colors: readonly string[];
+  readonly tags: readonly string[];
+  readonly brand: string;
+  readonly decayDays: number;
+  readonly imagePreview: string | undefined;
+};
+
+const DEFAULT_FORM_VALUES: FormValues = {
+  name: "",
+  category: "tops",
+  dollSize: "SD",
+  colors: [],
+  tags: [],
+  brand: "",
+  decayDays: DEFAULT_CONFIDENCE_DECAY_DAYS,
+  imagePreview: undefined,
+};
+
+const getInitialValues = (garment: Garment | undefined): FormValues => {
+  if (garment === undefined) {
+    return DEFAULT_FORM_VALUES;
+  }
+  return {
+    name: garment.name,
+    category: garment.category,
+    dollSize: garment.dollSize,
+    colors: garment.colors,
+    tags: garment.tags,
+    brand: garment.brand ?? "",
+    decayDays: garment.confidenceDecayDays,
+    imagePreview: garment.imageUrl ?? undefined,
+  };
+};
+
+const GarmentForm = ({ garment }: Props) => {
   const { i18n } = useLingui();
   const router = useRouter();
 
@@ -41,17 +83,19 @@ const GarmentForm = () => {
     label: i18n._(label),
   }));
   const addGarment = useSetAtom(addGarmentAtom);
+  const updateGarment = useSetAtom(updateGarmentAtom);
   const authState = useAtomValue(authSessionAtom);
   const { uploadState, upload, reset: resetUpload } = useImageUpload();
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState<GarmentCategory>("tops");
-  const [dollSize, setDollSize] = useState<DollSize>("SD");
-  const [colors, setColors] = useState<readonly string[]>([]);
-  const [tags, setTags] = useState<readonly string[]>([]);
-  const [brand, setBrand] = useState("");
-  const [decayDays, setDecayDays] = useState(DEFAULT_CONFIDENCE_DECAY_DAYS);
+  const initial = getInitialValues(garment);
+  const [name, setName] = useState(initial.name);
+  const [category, setCategory] = useState<GarmentCategory>(initial.category);
+  const [dollSize, setDollSize] = useState<DollSize>(initial.dollSize);
+  const [colors, setColors] = useState<readonly string[]>(initial.colors);
+  const [tags, setTags] = useState<readonly string[]>(initial.tags);
+  const [brand, setBrand] = useState(initial.brand);
+  const [decayDays, setDecayDays] = useState(initial.decayDays);
   const [imagePreview, setImagePreview] = useState<string | undefined>(
-    undefined,
+    initial.imagePreview,
   );
   const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined);
   const previousImageUrlRef = useRef<string | undefined>(undefined);
@@ -79,37 +123,54 @@ const GarmentForm = () => {
   const isProcessing =
     uploadState.status === "compressing" || uploadState.status === "uploading";
 
+  const collectFields = () => ({
+    name: name.trim(),
+    category,
+    dollSize,
+    colors: [...colors],
+    tags: [...tags],
+    brand: brand.trim() === "" ? undefined : brand.trim(),
+    confidenceDecayDays: decayDays,
+  });
+
+  const uploadImage = async (garmentId: string) =>
+    selectedFile !== undefined
+      ? await upload({ file: selectedFile, garmentId }).catch(() => undefined)
+      : garment?.imageUrl;
+
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (name.trim() === "" || isProcessing) return;
 
-    const garmentId = createId();
     const now = Date.now();
+    const fields = collectFields();
 
-    const imageUrl =
-      selectedFile !== undefined
-        ? await upload({ file: selectedFile, garmentId }).catch(() => undefined)
-        : undefined;
-
-    await addGarment({
-      id: garmentId,
-      userId: authState.user?.id ?? "local",
-      name: name.trim(),
-      category,
-      dollSize,
-      colors: [...colors],
-      tags: [...tags],
-      imageUrl,
-      brand: brand.trim() === "" ? undefined : brand.trim(),
-      locationId: undefined,
-      status: GARMENT_STATUS.STORED,
-      lastScannedAt: now,
-      confidenceDecayDays: decayDays,
-      checkedOutAt: undefined,
-      createdAt: now,
-      updatedAt: now,
-    });
-    router.push("/garments");
+    if (garment !== undefined) {
+      const imageUrl = await uploadImage(garment.id);
+      await updateGarment({
+        ...garment,
+        ...fields,
+        imageUrl,
+        updatedAt: now,
+      });
+      router.push(`/garments/${garment.id}`);
+    } else {
+      const garmentId = createId();
+      const imageUrl = await uploadImage(garmentId);
+      await addGarment({
+        ...fields,
+        id: garmentId,
+        userId: authState.user?.id ?? "local",
+        imageUrl,
+        locationId: undefined,
+        status: GARMENT_STATUS.STORED,
+        lastScannedAt: now,
+        checkedOutAt: undefined,
+        createdAt: now,
+        updatedAt: now,
+      });
+      router.push("/garments");
+    }
   };
 
   return (
@@ -176,6 +237,8 @@ const GarmentForm = () => {
       >
         {isProcessing ? (
           <Trans>アップロード中...</Trans>
+        ) : garment !== undefined ? (
+          <Trans>更新する</Trans>
         ) : (
           <Trans>登録する</Trans>
         )}
