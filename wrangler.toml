@@ -1,12 +1,14 @@
 name = "doll-wardrobe-api"
 main = "workers/src/index.ts"
 compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
 tsconfig = "tsconfig.workers.json"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "doll-wardrobe-db"
 database_id = "YOUR_D1_ID"
+migrations_dir = "workers/migrations"
 
 [[r2_buckets]]
 binding = "BUCKET"
@@ -28,6 +30,6 @@ max_batch_size = 10
 crons = ["0 9 * * 1"]
 
 [vars]
-TRUSTED_ORIGINS = "http://localhost:3000"
-ALLOWED_ORIGINS = "http://localhost:3000"
+TRUSTED_ORIGINS = "http://localhost:3000,http://localhost:3001"
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001"
 LOG_LEVEL = "info"

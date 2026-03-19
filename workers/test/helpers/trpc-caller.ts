@@ -19,6 +19,7 @@ export const createTestCaller = ({ db }: CreateTestCallerParams) => {
       QUEUE: {} as TRPCContext["env"]["QUEUE"],
       R2_PUBLIC_URL: "https://test.example.com",
       BETTER_AUTH_SECRET: "test-secret",
+      BETTER_AUTH_URL: "http://localhost:8787",
       TWITTER_CLIENT_ID: "",
       TWITTER_CLIENT_SECRET: "",
       GOOGLE_CLIENT_ID: "",
