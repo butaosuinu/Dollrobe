@@ -135,8 +135,10 @@ const GarmentForm = ({ garment }: Props) => {
 
   const uploadImage = async (garmentId: string) =>
     selectedFile !== undefined
-      ? await upload({ file: selectedFile, garmentId }).catch(() => undefined)
-      : garment?.imageUrl;
+      ? await upload({ file: selectedFile, garmentId }).catch(
+          () => garment?.imageUrl ?? undefined,
+        )
+      : (garment?.imageUrl ?? undefined);
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
