@@ -117,7 +117,12 @@ const GarmentDetail = ({ garment }: Props) => {
       )}
 
       <div className="flex flex-col gap-2 pt-2">
-        <Button variant="secondary" size="lg" fullWidth>
+        <Button
+          variant="secondary"
+          size="lg"
+          fullWidth
+          onClick={() => router.push(`/garments/${garment.id}/edit`)}
+        >
           <Edit3 className="size-4" />
           <Trans>編集</Trans>
         </Button>
