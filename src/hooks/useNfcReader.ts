@@ -111,7 +111,6 @@ export const useNfcReader = ({
 
       const error = await reader
         .scan({ signal: abortController.signal })
-        .then(() => undefined)
         .catch((e: unknown) => e);
 
       if (error !== undefined) {

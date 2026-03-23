@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useNfcReader } from "./useNfcReader";
-import { NFC_SCAN_COOLDOWN_MS } from "@/lib/constants";
+import { NFC_SCAN_COOLDOWN_MS, VIBRATION_DURATION_MS } from "@/lib/constants";
 
 type MockListenerData = {
   readonly type: string;
@@ -327,6 +327,6 @@ describe("useNfcReader", () => {
       mockReaderRef.current.triggerReading(event);
     });
 
-    expect(vibrateMock).toHaveBeenCalledWith(100);
+    expect(vibrateMock).toHaveBeenCalledWith(VIBRATION_DURATION_MS);
   });
 });
