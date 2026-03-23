@@ -28,6 +28,7 @@ export default tseslint.config(
       "sentry.client.config.ts",
       "sentry.server.config.ts",
       "sentry.edge.config.ts",
+      "src/types/**/*.d.ts",
     ],
   },
   js.configs.recommended,
