@@ -22,18 +22,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.[jt]sx?$/,
-      exclude: /node_modules/,
-      use: [
-        {
-          loader: path.resolve(import.meta.dirname, "lingui-macro-loader.cjs"),
-        },
-      ],
-    });
-    return config;
-  },
 };
 
 export default withSentryConfig(withSerwist(nextConfig), {
