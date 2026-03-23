@@ -66,7 +66,7 @@ describe("writeNfcTag", () => {
 
     expect(result).toStrictEqual({ ok: true });
     expect(mockWrite).toHaveBeenCalledWith(
-      [{ recordType: "url", data: "dwg://g/test-1" }],
+      { records: [{ recordType: "url", data: "dwg://g/test-1" }] },
       { signal: undefined },
     );
   });
@@ -121,7 +121,7 @@ describe("writeNfcTag", () => {
     });
 
     expect(mockWrite).toHaveBeenCalledWith(
-      [{ recordType: "url", data: "dwg://l/loc-1" }],
+      { records: [{ recordType: "url", data: "dwg://l/loc-1" }] },
       { signal: controller.signal },
     );
   });
