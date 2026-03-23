@@ -68,9 +68,12 @@ const createReadingEvent = ({
       records: [
         {
           recordType,
+          mediaType: "",
+          id: "",
+          encoding: encoding ?? "",
+          lang: "",
           data: dataView,
-          encoding,
-          toJSON: () => ({}),
+          toRecords: () => [],
         },
       ],
     },

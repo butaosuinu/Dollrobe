@@ -42,7 +42,7 @@ const decodeRecord = (record: NDEFRecord): string | undefined => {
   }
 
   if (record.recordType === "text") {
-    const decoder = new TextDecoder(record.encoding ?? "utf-8");
+    const decoder = new TextDecoder(record.encoding);
     const text = decoder.decode(record.data);
     return isDwgScheme(text) ? text : undefined;
   }
