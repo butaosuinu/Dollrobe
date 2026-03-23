@@ -307,6 +307,8 @@ const useNfcWriteState = (): NfcWriteState => {
 
     const result = await writeNfcTag({ scheme, signal: controller.signal });
 
+    if (controller.signal.aborted) return;
+
     abortControllerRef.current = undefined;
     setWriteResult(result);
     setStep("result");

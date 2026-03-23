@@ -54,15 +54,25 @@ const mapWriteError = (error: unknown): NfcWriteError =>
           error instanceof Error ? error.message : "Unknown NFC write error",
       };
 
-export const writeNfcTag = async ({
+const isWriteError = (result: unknown): result is NfcWriteError =>
+  result !== undefined;
+
+const writeToNfc = async ({
   scheme,
   signal,
-}: WriteNfcTagInput): Promise<NfcWriteResult> =>
+}: WriteNfcTagInput): Promise<NfcWriteResult> => {
+  const maybeError = await new NDEFReader()
+    .write({ records: [{ recordType: "url", data: scheme }] }, { signal })
+    .catch((e: unknown): NfcWriteError => mapWriteError(e));
+
+  return isWriteError(maybeError) ? maybeError : { ok: true };
+};
+
+export const writeNfcTag = async (
+  input: WriteNfcTagInput,
+): Promise<NfcWriteResult> =>
   isNfcSupported()
-    ? await new NDEFReader()
-        .write([{ recordType: "url", data: scheme }], { signal })
-        .then((): NfcWriteResult => ({ ok: true }))
-        .catch((error: unknown): NfcWriteResult => mapWriteError(error))
+    ? await writeToNfc(input)
     : {
         ok: false,
         errorKind: "not_supported",
