@@ -101,6 +101,9 @@ export const ORPHAN_RESOLUTION = Object.freeze({
 export type OrphanResolution =
   (typeof ORPHAN_RESOLUTION)[keyof typeof ORPHAN_RESOLUTION];
 
+export const NFC_SCAN_COOLDOWN_MS = 2000;
+export const VIBRATION_DURATION_MS = 100;
+
 export const TOP_BAR_HEIGHT = 56;
 export const BOTTOM_NAV_HEIGHT = 64;
 
