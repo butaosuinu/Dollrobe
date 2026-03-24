@@ -49,6 +49,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm i18n:compile
       - run: pnpm test
 
   build:
@@ -63,6 +64,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm i18n:compile
       - run: pnpm build
 
   build-workers:
