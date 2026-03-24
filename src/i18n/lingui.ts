@@ -1,11 +1,25 @@
 import { i18n } from "@lingui/core";
+import type { Messages } from "@lingui/core";
 import type { Locale } from "@/i18n/types";
 import { DEFAULT_LOCALE, isSupportedLocale } from "@/i18n/types";
 
 const STORAGE_KEY = "dw-locale";
 
+const loadMessages = async (locale: Locale): Promise<Messages> => {
+  switch (locale) {
+    case "ja":
+      return (await import("../locales/ja/messages.mjs")).messages;
+    case "en":
+      return (await import("../locales/en/messages.mjs")).messages;
+    case "ko":
+      return (await import("../locales/ko/messages.mjs")).messages;
+    case "zh":
+      return (await import("../locales/zh/messages.mjs")).messages;
+  }
+};
+
 const loadCatalog = async (locale: Locale): Promise<void> => {
-  const { messages } = await import(`../locales/${locale}/messages.mjs`);
+  const messages = await loadMessages(locale);
   i18n.load(locale, messages);
   i18n.activate(locale);
 };
