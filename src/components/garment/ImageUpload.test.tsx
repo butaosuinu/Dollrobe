@@ -11,14 +11,14 @@ const defaultProps = {
 };
 
 describe("ImageUpload", () => {
-  it("初期状態で写真追加テキストとカメラアイコンが表示される", () => {
-    renderWithProviders(<ImageUpload {...defaultProps} />);
+  it("初期状態で写真追加テキストとカメラアイコンが表示される", async () => {
+    await renderWithProviders(<ImageUpload {...defaultProps} />);
 
     expect(screen.getByText("写真を追加")).toBeInTheDocument();
   });
 
-  it("imagePreview がある場合はプレビュー画像が表示される", () => {
-    renderWithProviders(
+  it("imagePreview がある場合はプレビュー画像が表示される", async () => {
+    await renderWithProviders(
       <ImageUpload
         {...defaultProps}
         imagePreview="blob:http://localhost/test"
@@ -30,8 +30,8 @@ describe("ImageUpload", () => {
     expect(img).toHaveAttribute("src", "blob:http://localhost/test");
   });
 
-  it("圧縮中にオーバーレイが表示される", () => {
-    renderWithProviders(
+  it("圧縮中にオーバーレイが表示される", async () => {
+    await renderWithProviders(
       <ImageUpload
         {...defaultProps}
         imagePreview="blob:http://localhost/test"
@@ -42,8 +42,8 @@ describe("ImageUpload", () => {
     expect(screen.getByText("圧縮中...")).toBeInTheDocument();
   });
 
-  it("アップロード中にテキストが表示される", () => {
-    renderWithProviders(
+  it("アップロード中にテキストが表示される", async () => {
+    await renderWithProviders(
       <ImageUpload
         {...defaultProps}
         imagePreview="blob:http://localhost/test"
@@ -54,8 +54,8 @@ describe("ImageUpload", () => {
     expect(screen.getByText("アップロード中...")).toBeInTheDocument();
   });
 
-  it("エラー状態でエラーメッセージが表示される", () => {
-    renderWithProviders(
+  it("エラー状態でエラーメッセージが表示される", async () => {
+    await renderWithProviders(
       <ImageUpload
         {...defaultProps}
         uploadState={{
@@ -70,8 +70,8 @@ describe("ImageUpload", () => {
     ).toBeInTheDocument();
   });
 
-  it("アップロード中は file input が disabled になる", () => {
-    renderWithProviders(
+  it("アップロード中は file input が disabled になる", async () => {
+    await renderWithProviders(
       <ImageUpload {...defaultProps} uploadState={{ status: "uploading" }} />,
     );
 
@@ -79,8 +79,8 @@ describe("ImageUpload", () => {
     expect(input).toBeDisabled();
   });
 
-  it("idle 状態では file input が enabled になる", () => {
-    renderWithProviders(<ImageUpload {...defaultProps} />);
+  it("idle 状態では file input が enabled になる", async () => {
+    await renderWithProviders(<ImageUpload {...defaultProps} />);
 
     const input = document.querySelector("input[type='file']");
     expect(input).not.toBeDisabled();

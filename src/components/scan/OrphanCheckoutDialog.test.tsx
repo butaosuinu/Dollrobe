@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
-import type { Garment } from "@/types";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { MS_PER_DAY } from "@/lib/constants";
-import { createTestGarment, FIXED_NOW } from "@/test/factories";
+import { testDb, FIXED_NOW } from "@/test/mocks/db";
+import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import OrphanCheckoutDialog from "./OrphanCheckoutDialog";
 
@@ -12,155 +12,137 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-const mockOrphans = vi.hoisted((): { value: readonly Garment[] } => ({
-  value: [],
-}));
-const mockResolveStillUsing = vi.hoisted(() => vi.fn());
-const mockResolveLost = vi.hoisted(() => vi.fn());
-
-vi.mock("@/stores/orphanAtoms", async () => {
-  const { atom } = await import("jotai");
-  return {
-    orphanedCheckoutsAtom: atom(() => mockOrphans.value),
-    resolveStillUsingAtom: atom(
-      undefined,
-      (_get: unknown, _set: unknown, garmentId: string) => {
-        mockResolveStillUsing(garmentId);
-      },
-    ),
-    resolveLostAtom: atom(
-      undefined,
-      (_get: unknown, _set: unknown, garmentId: string) => {
-        mockResolveLost(garmentId);
-      },
-    ),
-  };
-});
-
 describe("OrphanCheckoutDialog", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(FIXED_NOW);
-    mockOrphans.value = [];
+    vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     mockPush.mockClear();
-    mockResolveStillUsing.mockClear();
-    mockResolveLost.mockClear();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
-  it("孤立アイテムがない場合はダイアログが表示されない", () => {
-    renderWithProviders(<OrphanCheckoutDialog />);
+  it("孤立アイテムがない場合はダイアログが表示されない", async () => {
+    await renderWithProviders(<OrphanCheckoutDialog />);
 
-    expect(
-      screen.queryByText("取り出し中の服を確認", { exact: false }),
-    ).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.queryByText("取り出し中の服を確認", { exact: false }),
+      ).not.toBeInTheDocument();
+    });
   });
 
-  it("孤立アイテムの名前と経過日数が表示される", () => {
-    mockOrphans.value = [
-      createTestGarment({
-        id: "g-1",
-        name: "テストドレスA",
-        status: "checked_out",
-        checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
-      }),
-      createTestGarment({
-        id: "g-2",
-        name: "テストドレスB",
-        status: "checked_out",
-        checkedOutAt: FIXED_NOW - 10 * MS_PER_DAY,
-      }),
-    ];
+  it("孤立アイテムの名前と経過日数が表示される", async () => {
+    testDb.garment.create({
+      id: "g-1",
+      name: "テストドレスA",
+      status: "checked_out",
+      checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
+    });
+    testDb.garment.create({
+      id: "g-2",
+      name: "テストドレスB",
+      status: "checked_out",
+      checkedOutAt: FIXED_NOW - 10 * MS_PER_DAY,
+    });
+    await seedDbFromTestDb();
 
-    renderWithProviders(<OrphanCheckoutDialog />);
+    await renderWithProviders(<OrphanCheckoutDialog />);
 
-    expect(screen.getByText("テストドレスA")).toBeInTheDocument();
+    expect(await screen.findByText("テストドレスA")).toBeInTheDocument();
     expect(screen.getByText("テストドレスB")).toBeInTheDocument();
     expect(screen.getByText("5日前から取り出し中")).toBeInTheDocument();
     expect(screen.getByText("10日前から取り出し中")).toBeInTheDocument();
     expect(screen.getByText("取り出し中の服を確認（2件）")).toBeInTheDocument();
   });
 
-  it("「まだ使用中」をクリックするとresolveStillUsingAtomが呼ばれリストから消える", () => {
-    mockOrphans.value = [
-      createTestGarment({
-        id: "g-1",
-        name: "テストドレスA",
-        status: "checked_out",
-        checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
-      }),
-    ];
+  it("「まだ使用中」をクリックするとcheckedOutAtが更新されリストから消える", async () => {
+    testDb.garment.create({
+      id: "g-1",
+      name: "テストドレスA",
+      status: "checked_out",
+      checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
+    });
+    await seedDbFromTestDb();
 
-    renderWithProviders(<OrphanCheckoutDialog />);
+    await renderWithProviders(<OrphanCheckoutDialog />);
 
-    const stillUsingButton = screen.getByRole("button", {
+    const stillUsingButton = await screen.findByRole("button", {
       name: /まだ使用中/,
     });
     fireEvent.click(stillUsingButton);
 
-    expect(mockResolveStillUsing).toHaveBeenCalledWith("g-1");
-    expect(screen.queryByText("テストドレスA")).not.toBeInTheDocument();
+    await waitFor(async () => {
+      const { db } = await import("@/lib/db/dexie");
+      const g = await db.garments.get("g-1");
+      expect(g?.checkedOutAt).toBeGreaterThan(FIXED_NOW - 5 * MS_PER_DAY);
+    });
+    await waitFor(() => {
+      expect(screen.queryByText("テストドレスA")).not.toBeInTheDocument();
+    });
   });
 
-  it("「なくした」をクリックするとresolveLostAtomが呼ばれリストから消える", () => {
-    mockOrphans.value = [
-      createTestGarment({
-        id: "g-1",
-        name: "テストドレスA",
-        status: "checked_out",
-        checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
-      }),
-    ];
+  it("「なくした」をクリックするとstatusがlostに更新されリストから消える", async () => {
+    testDb.garment.create({
+      id: "g-1",
+      name: "テストドレスA",
+      status: "checked_out",
+      checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
+    });
+    await seedDbFromTestDb();
 
-    renderWithProviders(<OrphanCheckoutDialog />);
+    await renderWithProviders(<OrphanCheckoutDialog />);
 
-    const lostButton = screen.getByRole("button", { name: /なくした/ });
+    const lostButton = await screen.findByRole("button", { name: /なくした/ });
     fireEvent.click(lostButton);
 
-    expect(mockResolveLost).toHaveBeenCalledWith("g-1");
-    expect(screen.queryByText("テストドレスA")).not.toBeInTheDocument();
+    await waitFor(async () => {
+      const { db } = await import("@/lib/db/dexie");
+      const g = await db.garments.get("g-1");
+      expect(g?.status).toBe("lost");
+    });
+    await waitFor(() => {
+      expect(screen.queryByText("テストドレスA")).not.toBeInTheDocument();
+    });
   });
 
-  it("「しまった」をクリックするとスキャン画面に遷移する", () => {
-    mockOrphans.value = [
-      createTestGarment({
-        id: "g-1",
-        name: "テストドレスA",
-        status: "checked_out",
-        checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
-      }),
-    ];
+  it("「しまった」をクリックするとスキャン画面に遷移する", async () => {
+    testDb.garment.create({
+      id: "g-1",
+      name: "テストドレスA",
+      status: "checked_out",
+      checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
+    });
+    await seedDbFromTestDb();
 
-    renderWithProviders(<OrphanCheckoutDialog />);
+    await renderWithProviders(<OrphanCheckoutDialog />);
 
-    const storedBackButton = screen.getByRole("button", { name: /しまった/ });
+    const storedBackButton = await screen.findByRole("button", {
+      name: /しまった/,
+    });
     fireEvent.click(storedBackButton);
 
     expect(mockPush).toHaveBeenCalledWith("/scan");
   });
 
-  it("全件解決するとダイアログが自動クローズする", () => {
-    mockOrphans.value = [
-      createTestGarment({
-        id: "g-1",
-        name: "テストドレスA",
-        status: "checked_out",
-        checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
-      }),
-      createTestGarment({
-        id: "g-2",
-        name: "テストドレスB",
-        status: "checked_out",
-        checkedOutAt: FIXED_NOW - 7 * MS_PER_DAY,
-      }),
-    ];
+  it("全件解決するとダイアログが自動クローズする", async () => {
+    testDb.garment.create({
+      id: "g-1",
+      name: "テストドレスA",
+      status: "checked_out",
+      checkedOutAt: FIXED_NOW - 5 * MS_PER_DAY,
+    });
+    testDb.garment.create({
+      id: "g-2",
+      name: "テストドレスB",
+      status: "checked_out",
+      checkedOutAt: FIXED_NOW - 7 * MS_PER_DAY,
+    });
+    await seedDbFromTestDb();
 
-    renderWithProviders(<OrphanCheckoutDialog />);
+    await renderWithProviders(<OrphanCheckoutDialog />);
 
-    expect(screen.getByText("テストドレスA")).toBeInTheDocument();
+    expect(await screen.findByText("テストドレスA")).toBeInTheDocument();
     expect(screen.getByText("テストドレスB")).toBeInTheDocument();
 
     const stillUsingButtons = screen.getAllByRole("button", {
@@ -171,7 +153,9 @@ describe("OrphanCheckoutDialog", () => {
     if (firstStillUsingButton === undefined) return;
     fireEvent.click(firstStillUsingButton);
 
-    expect(screen.queryByText("テストドレスA")).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText("テストドレスA")).not.toBeInTheDocument();
+    });
     expect(screen.getByText("テストドレスB")).toBeInTheDocument();
 
     const lostButtons = screen.getAllByRole("button", { name: /なくした/ });
@@ -180,8 +164,10 @@ describe("OrphanCheckoutDialog", () => {
     if (firstLostButton === undefined) return;
     fireEvent.click(firstLostButton);
 
-    expect(
-      screen.queryByText("取り出し中の服を確認", { exact: false }),
-    ).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.queryByText("取り出し中の服を確認", { exact: false }),
+      ).not.toBeInTheDocument();
+    });
   });
 });
