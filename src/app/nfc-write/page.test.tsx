@@ -1,41 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Garment, StorageCase, StorageLocation } from "@/types";
-import {
-  createTestGarment,
-  createTestStorageCase,
-  createTestStorageLocation,
-} from "@/test/factories";
+import { testDb } from "@/test/mocks/db";
+import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import NfcWritePage from "./page";
-
-const mockGarments = vi.hoisted((): { value: Garment[] } => ({
-  value: [],
-}));
-
-const mockLocations = vi.hoisted((): { value: StorageLocation[] } => ({
-  value: [],
-}));
-
-const mockCases = vi.hoisted((): { value: StorageCase[] } => ({
-  value: [],
-}));
-
-vi.mock("@/stores/garmentAtoms", async () => {
-  const { atom } = await import("jotai");
-  return {
-    garmentsAtom: atom(() => mockGarments.value),
-  };
-});
-
-vi.mock("@/stores/locationAtoms", async () => {
-  const { atom } = await import("jotai");
-  return {
-    storageCasesAtom: atom(() => mockCases.value),
-    storageLocationsAtom: atom(() => mockLocations.value),
-  };
-});
 
 const mockWriteNfcTag = vi.hoisted(() => vi.fn());
 const mockIsNfcSupported = vi.hoisted(() => vi.fn());
@@ -54,27 +23,28 @@ vi.mock("@/lib/nfc/writer", async () => {
 
 describe("NfcWritePage", () => {
   beforeEach(() => {
-    mockGarments.value = [];
-    mockLocations.value = [];
-    mockCases.value = [];
     mockWriteNfcTag.mockReset();
     mockIsNfcSupported.mockReset();
   });
 
-  it("NFC非対応デバイスで非対応メッセージを表示する", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("NFC非対応デバイスで非対応メッセージを表示する", async () => {
     mockIsNfcSupported.mockReturnValue(false);
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     expect(
-      screen.getByText(
+      await screen.findByText(
         "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。",
       ),
     ).toBeInTheDocument();
   });
 
-  it("NFC対応デバイスでタイプ選択画面を表示する", () => {
+  it("NFC対応デバイスでタイプ選択画面を表示する", async () => {
     mockIsNfcSupported.mockReturnValue(true);
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     expect(
       screen.getByText("書き込む対象を選択してください"),
@@ -85,9 +55,10 @@ describe("NfcWritePage", () => {
 
   it("「服」を選択するとアイテム選択画面に進む", async () => {
     mockIsNfcSupported.mockReturnValue(true);
-    mockGarments.value = [createTestGarment({ id: "g-1", name: "白いドレス" })];
+    testDb.garment.create({ id: "g-1", name: "白いドレス" });
+    await seedDbFromTestDb();
     const user = userEvent.setup();
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     await user.click(screen.getByText("服"));
 
@@ -96,18 +67,15 @@ describe("NfcWritePage", () => {
 
   it("「収納場所」を選択するとアイテム選択画面に進む", async () => {
     mockIsNfcSupported.mockReturnValue(true);
-    mockCases.value = [
-      createTestStorageCase({ id: "case-1", name: "ケースA" }),
-    ];
-    mockLocations.value = [
-      createTestStorageLocation({
-        id: "loc-1",
-        caseId: "case-1",
-        label: "A-1",
-      }),
-    ];
+    testDb.storageCase.create({ id: "case-1", name: "ケースA" });
+    testDb.storageLocation.create({
+      id: "loc-1",
+      caseId: "case-1",
+      label: "A-1",
+    });
+    await seedDbFromTestDb();
     const user = userEvent.setup();
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     await user.click(screen.getByText("収納場所"));
 
@@ -116,9 +84,10 @@ describe("NfcWritePage", () => {
 
   it("アイテムを選択して「次へ」で書き込み準備画面に進む", async () => {
     mockIsNfcSupported.mockReturnValue(true);
-    mockGarments.value = [createTestGarment({ id: "g-1", name: "白いドレス" })];
+    testDb.garment.create({ id: "g-1", name: "白いドレス" });
+    await seedDbFromTestDb();
     const user = userEvent.setup();
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     await user.click(screen.getByText("服"));
     await user.selectOptions(screen.getByRole("combobox"), "g-1");
@@ -131,9 +100,10 @@ describe("NfcWritePage", () => {
 
   it("「戻る」で前の画面に戻る", async () => {
     mockIsNfcSupported.mockReturnValue(true);
-    mockGarments.value = [createTestGarment({ id: "g-1", name: "白いドレス" })];
+    testDb.garment.create({ id: "g-1", name: "白いドレス" });
+    await seedDbFromTestDb();
     const user = userEvent.setup();
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     await user.click(screen.getByText("服"));
     expect(screen.getByText("書き込む服を選択")).toBeInTheDocument();
@@ -147,9 +117,10 @@ describe("NfcWritePage", () => {
   it("書き込み成功時にフィードバックを表示する", async () => {
     mockIsNfcSupported.mockReturnValue(true);
     mockWriteNfcTag.mockResolvedValueOnce({ ok: true });
-    mockGarments.value = [createTestGarment({ id: "g-1", name: "白いドレス" })];
+    testDb.garment.create({ id: "g-1", name: "白いドレス" });
+    await seedDbFromTestDb();
     const user = userEvent.setup();
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     await user.click(screen.getByText("服"));
     await user.selectOptions(screen.getByRole("combobox"), "g-1");
@@ -170,9 +141,10 @@ describe("NfcWritePage", () => {
       errorKind: "permission_denied",
       message: "Permission denied",
     });
-    mockGarments.value = [createTestGarment({ id: "g-1", name: "白いドレス" })];
+    testDb.garment.create({ id: "g-1", name: "白いドレス" });
+    await seedDbFromTestDb();
     const user = userEvent.setup();
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     await user.click(screen.getByText("服"));
     await user.selectOptions(screen.getByRole("combobox"), "g-1");
@@ -193,9 +165,10 @@ describe("NfcWritePage", () => {
       errorKind: "write_failed",
       message: "Tag not writable",
     });
-    mockGarments.value = [createTestGarment({ id: "g-1", name: "白いドレス" })];
+    testDb.garment.create({ id: "g-1", name: "白いドレス" });
+    await seedDbFromTestDb();
     const user = userEvent.setup();
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     await user.click(screen.getByText("服"));
     await user.selectOptions(screen.getByRole("combobox"), "g-1");
@@ -210,9 +183,10 @@ describe("NfcWritePage", () => {
   it("「もう1枚書き込む」でタイプ選択に戻る", async () => {
     mockIsNfcSupported.mockReturnValue(true);
     mockWriteNfcTag.mockResolvedValueOnce({ ok: true });
-    mockGarments.value = [createTestGarment({ id: "g-1", name: "白いドレス" })];
+    testDb.garment.create({ id: "g-1", name: "白いドレス" });
+    await seedDbFromTestDb();
     const user = userEvent.setup();
-    renderWithProviders(<NfcWritePage />);
+    await renderWithProviders(<NfcWritePage />);
 
     await user.click(screen.getByText("服"));
     await user.selectOptions(screen.getByRole("combobox"), "g-1");
