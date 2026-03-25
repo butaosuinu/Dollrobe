@@ -140,6 +140,7 @@ vite.config.ts.timestamp-*
 
 # Lingui compiled catalogs
 src/locales/*/messages.mjs
+src/locales/*/messages.js
 
 # Serwist generated service worker
 public/sw.js
