@@ -13,10 +13,18 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. placeholder {0}: caseGarments.length
 #. placeholder {0}: garments.length
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageCaseCard.tsx
 #: src/components/location/StorageCell.tsx
 msgid "{0}着"
 msgstr "{0}件"
+
+#. placeholder {0}: digest.orphanedCount
+#: src/components/digest/DigestCard.tsx
+msgid "{0}着が取り出されたままのようです"
+msgstr ""
 
 #. placeholder {0}: orphaned.length
 #: src/components/dashboard/AlertPanel.tsx
@@ -35,9 +43,24 @@ msgstr "已扫描{0}件"
 
 #. placeholder {0}: storageCase.rows
 #. placeholder {1}: storageCase.cols
+#: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 msgid "{0}行 x {1}列"
 msgstr "{0}行 x {1}列"
+
+#: src/components/scan/OrphanCheckoutDialog.tsx
+msgid "{elapsedDays}日前から取り出し中"
+msgstr ""
+
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageCaseCard.tsx
+msgid "{needsReviewCount}着 要確認"
+msgstr ""
+
+#. placeholder {0}: deletingCase.name
+#: src/app/locations/page.tsx
+msgid "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
+msgstr ""
 
 #: src/lib/constants.ts
 #~ msgid "1/3 (SD17/DD等)"
@@ -78,6 +101,30 @@ msgstr "MSD (~43cm)"
 #: src/lib/constants.ts
 #~ msgid "MSD (1/4)"
 #~ msgstr "MSD (1/4)"
+
+#: src/app/nfc-write/page.tsx
+msgid "NFC タグにタッチしてください..."
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "NFC タグへの書き込みが完了しました"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "NFC タグ書き込み"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "NFC の権限が拒否されました"
+msgstr ""
+
+#: src/components/scan/NfcCapabilityBadge.tsx
+msgid "NFC 対応"
+msgstr ""
+
+#: src/components/scan/NfcCapabilityBadge.tsx
+msgid "NFC 非対応"
+msgstr ""
 
 #: src/app/print/page.tsx
 msgid "QR ラベル印刷"
@@ -131,6 +178,15 @@ msgstr "外套"
 msgid "アクセサリー"
 msgstr "配饰"
 
+#: src/components/garment/GarmentForm.tsx
+#: src/components/garment/ImageUpload.tsx
+msgid "アップロード中..."
+msgstr ""
+
+#: src/components/scan/ReviewItemRow.tsx
+msgid "ある"
+msgstr ""
+
 #: src/lib/i18n-labels.ts
 msgid "インナー"
 msgstr "内衣"
@@ -143,17 +199,60 @@ msgstr "欢迎回来"
 msgid "カテゴリ"
 msgstr "类别"
 
+#: src/app/locations/page.tsx
+#: src/app/nfc-write/page.tsx
+#: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageCaseForm.tsx
+msgid "キャンセル"
+msgstr ""
+
 #: src/components/garment/ViewToggle.tsx
 msgid "グリッド表示"
 msgstr "网格视图"
 
+#: src/app/locations/[caseId]/page.tsx
+msgid "ケースが見つかりません"
+msgstr ""
+
+#: src/app/locations/page.tsx
+msgid "ケースを削除"
+msgstr ""
+
+#: src/app/locations/page.tsx
+msgid "ケースを編集"
+msgstr ""
+
+#: src/app/locations/page.tsx
+#: src/app/locations/page.tsx
 #: src/app/locations/page.tsx
 msgid "ケースを追加"
 msgstr "添加收纳箱"
 
+#: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageCaseForm.tsx
+msgid "ケース名"
+msgstr ""
+
+#: src/app/locations/[caseId]/page.tsx
+msgid "ケース詳細"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
+msgstr ""
+
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "この場所の全服を確認済みにする"
 msgstr "将此位置的所有衣服标记为已确认"
+
+#. placeholder {0}: digest.unknownCount
+#: src/components/digest/DigestCard.tsx
+msgid "しばらく確認していない服が{0}着あります"
+msgstr ""
+
+#: src/components/scan/OrphanCheckoutDialog.tsx
+msgid "しまった"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "シューズ"
@@ -181,9 +280,17 @@ msgstr "状态"
 msgid "すべて"
 msgstr "全部"
 
+#: src/components/digest/DigestCard.tsx
+msgid "すべて確認済みです！ワードローブは良い状態です"
+msgstr ""
+
 #: src/components/dashboard/RecentItems.tsx
 msgid "すべて見る"
 msgstr "查看全部"
+
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "ズレを直す"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "セット"
@@ -207,6 +314,10 @@ msgstr "标签"
 msgid "ダッシュボード"
 msgstr "仪表盘"
 
+#: src/components/digest/DigestBanner.tsx
+msgid "タップして確認する"
+msgstr ""
+
 #: src/components/garment/GarmentForm.tsx
 msgid "ドールサイズ"
 msgstr "娃娃尺寸"
@@ -223,14 +334,23 @@ msgstr "上衣"
 msgid "ドレス"
 msgstr "连衣裙"
 
+#: src/components/scan/ReviewItemRow.tsx
+msgid "ない"
+msgstr ""
+
+#: src/components/scan/OrphanCheckoutDialog.tsx
+msgid "なくした"
+msgstr ""
+
 #: src/components/garment/GarmentForm.tsx
 msgid "ブランド/メーカー"
 msgstr "品牌/厂商"
 
-#: src/components/garment/GarmentForm.tsx
+#: src/components/garment/ImageUpload.tsx
 msgid "プレビュー"
 msgstr "预览"
 
+#: src/app/nfc-write/page.tsx
 #: src/app/print/page.tsx
 msgid "ページの読み込みに失敗しました"
 msgstr "页面加载失败"
@@ -247,6 +367,14 @@ msgstr "首页"
 msgid "ボトムス"
 msgstr "下装"
 
+#: src/app/digest/page.tsx
+msgid "まだレポートがありません"
+msgstr ""
+
+#: src/components/scan/OrphanCheckoutDialog.tsx
+msgid "まだ使用中"
+msgstr ""
+
 #: src/app/locations/page.tsx
 msgid "まだ収納場所がありません"
 msgstr "尚无收纳位置"
@@ -254,6 +382,10 @@ msgstr "尚无收纳位置"
 #: src/app/garments/page.tsx
 msgid "まだ服がありません"
 msgstr "尚无衣服"
+
+#: src/app/nfc-write/page.tsx
+msgid "もう1枚書き込む"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "よく着る服 (14日)"
@@ -276,6 +408,10 @@ msgstr "退出登录"
 msgid "ワードローブ"
 msgstr "衣柜"
 
+#: src/app/digest/page.tsx
+msgid "ワードローブの状況をお伝えします"
+msgstr ""
+
 #: src/lib/i18n-labels.ts
 msgid "ワンピース"
 msgstr "连衣裙(一体式)"
@@ -284,7 +420,9 @@ msgstr "连衣裙(一体式)"
 msgid "一致する服が見つかりません"
 msgstr "未找到匹配的衣服"
 
+#: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
+#: src/app/locations/[caseId]/page.tsx
 msgid "一覧に戻る"
 msgstr "返回列表"
 
@@ -296,6 +434,18 @@ msgstr "未知"
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "排序"
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "作成"
+msgstr ""
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "例: 衣装ケース A"
+msgstr ""
+
+#: src/components/location/StorageCaseEditForm.tsx
+msgid "保存"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "信頼度: 低い順"
@@ -309,6 +459,14 @@ msgstr "可信度：从高到低"
 msgid "信頼度の減衰期間"
 msgstr "可信度衰减周期"
 
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "個別確認"
+msgstr ""
+
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "全部ある"
+msgstr ""
+
 #: src/app/garments/page.tsx
 msgid "最初のドール服を登録してみましょう"
 msgstr "来登记你的第一件娃衣吧"
@@ -317,11 +475,17 @@ msgstr "来登记你的第一件娃衣吧"
 msgid "最近のアイテム"
 msgstr "最近的物品"
 
-#: src/components/garment/GarmentForm.tsx
+#: src/components/garment/ImageUpload.tsx
 msgid "写真を追加"
 msgstr "添加照片"
 
+#: src/components/location/StorageCaseForm.tsx
+msgid "列数"
+msgstr ""
+
+#: src/app/locations/page.tsx
 #: src/components/garment/GarmentDetail.tsx
+#: src/components/location/StorageCaseCard.tsx
 msgid "削除"
 msgstr "删除"
 
@@ -342,6 +506,7 @@ msgid "収納中"
 msgstr "收纳中"
 
 #: src/app/locations/page.tsx
+#: src/app/nfc-write/page.tsx
 msgid "収納場所"
 msgstr "收纳位置"
 
@@ -370,6 +535,10 @@ msgstr "名称"
 msgid "名前やタグで検索..."
 msgstr "按名称或标签搜索..."
 
+#: src/components/garment/ImageUpload.tsx
+msgid "圧縮中..."
+msgstr ""
+
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "場所のQRをスキャンして、収納場所を設定してください"
 msgstr "请扫描位置QR码以设置收纳位置"
@@ -386,10 +555,65 @@ msgstr "季节性衣物 (90天)"
 msgid "帽子/ヘッドドレス"
 msgstr "帽子/头饰"
 
+#: src/app/nfc-write/page.tsx
+#: src/app/nfc-write/page.tsx
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "戻る"
+msgstr ""
+
+#: src/components/digest/DigestBanner.tsx
+msgid "新しい週間レポートが届いています"
+msgstr ""
+
 #: src/lib/i18n-labels.ts
 msgid "新しい順"
 msgstr "最新优先"
 
+#: src/components/digest/DigestCard.tsx
+msgid "既読にする"
+msgstr ""
+
+#: src/components/digest/DigestCard.tsx
+msgid "既読済み"
+msgstr ""
+
+#: src/components/garment/GarmentForm.tsx
+msgid "更新する"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込みがキャンセルされました"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込みに失敗しました"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込み対象"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込む"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込む収納場所を選択"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込む対象を選択してください"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込む服を選択"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "服"
+msgstr ""
+
+#: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
 msgid "服が見つかりません"
 msgstr "未找到衣服"
@@ -398,6 +622,22 @@ msgstr "未找到衣服"
 #: src/app/garments/page.tsx
 msgid "服を登録"
 msgstr "登记衣服"
+
+#: src/app/garments/[id]/edit/page.tsx
+msgid "服を編集"
+msgstr ""
+
+#: src/components/digest/DigestCard.tsx
+msgid "未読"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "次へ"
+msgstr ""
+
+#: src/app/digest/page.tsx
+msgid "毎週月曜日に自動生成されます"
+msgstr ""
 
 #: src/components/garment/GarmentForm.tsx
 msgid "登録する"
@@ -413,15 +653,25 @@ msgstr "件"
 msgid "確定"
 msgstr "已确认"
 
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "確定する"
+msgstr ""
+
 #: src/components/dashboard/AlertPanel.tsx
 msgid "確認"
 msgstr "确认"
+
+#. placeholder {0}: digest.totalGarments
+#: src/components/digest/DigestCard.tsx
+msgid "管理中の服: {0}着"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "紛失"
 msgstr "丢失"
 
 #: src/components/garment/GarmentDetail.tsx
+#: src/components/location/StorageCaseCard.tsx
 msgid "編集"
 msgstr "编辑"
 
@@ -429,6 +679,10 @@ msgstr "编辑"
 #: src/components/garment/GarmentForm.tsx
 msgid "色"
 msgstr "颜色"
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "行数"
+msgstr ""
 
 #: src/app/locations/page.tsx
 msgid "衣装ケースを追加して、服の収納場所を管理しましょう"
@@ -440,6 +694,11 @@ msgstr "添加收纳箱来管理衣服的存放位置"
 msgid "要確認"
 msgstr "待确认"
 
+#. placeholder {0}: itemsNeedingReview.length
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "要確認のアイテム（{0}件）"
+msgstr ""
+
 #: src/components/settings/LocaleSelector.tsx
 msgid "言語"
 msgstr ""
@@ -448,8 +707,11 @@ msgstr ""
 msgid "詳細"
 msgstr "详情"
 
+#: src/app/digest/page.tsx
+#: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
 #: src/app/garments/page.tsx
+#: src/app/locations/[caseId]/page.tsx
 #: src/app/locations/page.tsx
 #: src/app/page.tsx
 msgid "読み込みに失敗しました"
@@ -458,3 +720,11 @@ msgstr "加载失败"
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"
 msgstr "普通 (30天)"
+
+#: src/app/digest/page.tsx
+msgid "週間レポート"
+msgstr ""
+
+#: src/app/nfc-write/page.tsx
+msgid "選択してください"
+msgstr ""
