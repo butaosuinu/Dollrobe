@@ -13,10 +13,18 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. placeholder {0}: caseGarments.length
 #. placeholder {0}: garments.length
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageCaseCard.tsx
 #: src/components/location/StorageCell.tsx
 msgid "{0}着"
 msgstr "{0}着"
+
+#. placeholder {0}: digest.orphanedCount
+#: src/components/digest/DigestCard.tsx
+msgid "{0}着が取り出されたままのようです"
+msgstr "{0}着が取り出されたままのようです"
 
 #. placeholder {0}: orphaned.length
 #: src/components/dashboard/AlertPanel.tsx
@@ -35,9 +43,24 @@ msgstr "{0}着をスキャンしました"
 
 #. placeholder {0}: storageCase.rows
 #. placeholder {1}: storageCase.cols
+#: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 msgid "{0}行 x {1}列"
 msgstr "{0}行 x {1}列"
+
+#: src/components/scan/OrphanCheckoutDialog.tsx
+msgid "{elapsedDays}日前から取り出し中"
+msgstr "{elapsedDays}日前から取り出し中"
+
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageCaseCard.tsx
+msgid "{needsReviewCount}着 要確認"
+msgstr "{needsReviewCount}着 要確認"
+
+#. placeholder {0}: deletingCase.name
+#: src/app/locations/page.tsx
+msgid "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
+msgstr "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
 
 #: src/lib/constants.ts
 #~ msgid "1/3 (SD17/DD等)"
@@ -78,6 +101,30 @@ msgstr "MSD (~43cm)"
 #: src/lib/constants.ts
 #~ msgid "MSD (1/4)"
 #~ msgstr "MSD (1/4)"
+
+#: src/app/nfc-write/page.tsx
+msgid "NFC タグにタッチしてください..."
+msgstr "NFC タグにタッチしてください..."
+
+#: src/app/nfc-write/page.tsx
+msgid "NFC タグへの書き込みが完了しました"
+msgstr "NFC タグへの書き込みが完了しました"
+
+#: src/app/nfc-write/page.tsx
+msgid "NFC タグ書き込み"
+msgstr "NFC タグ書き込み"
+
+#: src/app/nfc-write/page.tsx
+msgid "NFC の権限が拒否されました"
+msgstr "NFC の権限が拒否されました"
+
+#: src/components/scan/NfcCapabilityBadge.tsx
+msgid "NFC 対応"
+msgstr "NFC 対応"
+
+#: src/components/scan/NfcCapabilityBadge.tsx
+msgid "NFC 非対応"
+msgstr "NFC 非対応"
 
 #: src/app/print/page.tsx
 msgid "QR ラベル印刷"
@@ -131,6 +178,15 @@ msgstr "アウター"
 msgid "アクセサリー"
 msgstr "アクセサリー"
 
+#: src/components/garment/GarmentForm.tsx
+#: src/components/garment/ImageUpload.tsx
+msgid "アップロード中..."
+msgstr "アップロード中..."
+
+#: src/components/scan/ReviewItemRow.tsx
+msgid "ある"
+msgstr "ある"
+
 #: src/lib/i18n-labels.ts
 msgid "インナー"
 msgstr "インナー"
@@ -143,17 +199,60 @@ msgstr "おかえりなさい"
 msgid "カテゴリ"
 msgstr "カテゴリ"
 
+#: src/app/locations/page.tsx
+#: src/app/nfc-write/page.tsx
+#: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageCaseForm.tsx
+msgid "キャンセル"
+msgstr "キャンセル"
+
 #: src/components/garment/ViewToggle.tsx
 msgid "グリッド表示"
 msgstr "グリッド表示"
 
+#: src/app/locations/[caseId]/page.tsx
+msgid "ケースが見つかりません"
+msgstr "ケースが見つかりません"
+
+#: src/app/locations/page.tsx
+msgid "ケースを削除"
+msgstr "ケースを削除"
+
+#: src/app/locations/page.tsx
+msgid "ケースを編集"
+msgstr "ケースを編集"
+
+#: src/app/locations/page.tsx
+#: src/app/locations/page.tsx
 #: src/app/locations/page.tsx
 msgid "ケースを追加"
 msgstr "ケースを追加"
 
+#: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageCaseForm.tsx
+msgid "ケース名"
+msgstr "ケース名"
+
+#: src/app/locations/[caseId]/page.tsx
+msgid "ケース詳細"
+msgstr "ケース詳細"
+
+#: src/app/nfc-write/page.tsx
+msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
+msgstr "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
+
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "この場所の全服を確認済みにする"
 msgstr "この場所の全服を確認済みにする"
+
+#. placeholder {0}: digest.unknownCount
+#: src/components/digest/DigestCard.tsx
+msgid "しばらく確認していない服が{0}着あります"
+msgstr "しばらく確認していない服が{0}着あります"
+
+#: src/components/scan/OrphanCheckoutDialog.tsx
+msgid "しまった"
+msgstr "しまった"
 
 #: src/lib/i18n-labels.ts
 msgid "シューズ"
@@ -181,9 +280,17 @@ msgstr "ステータス"
 msgid "すべて"
 msgstr "すべて"
 
+#: src/components/digest/DigestCard.tsx
+msgid "すべて確認済みです！ワードローブは良い状態です"
+msgstr "すべて確認済みです！ワードローブは良い状態です"
+
 #: src/components/dashboard/RecentItems.tsx
 msgid "すべて見る"
 msgstr "すべて見る"
+
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "ズレを直す"
+msgstr "ズレを直す"
 
 #: src/lib/i18n-labels.ts
 msgid "セット"
@@ -207,6 +314,10 @@ msgstr "タグ"
 msgid "ダッシュボード"
 msgstr "ダッシュボード"
 
+#: src/components/digest/DigestBanner.tsx
+msgid "タップして確認する"
+msgstr "タップして確認する"
+
 #: src/components/garment/GarmentForm.tsx
 msgid "ドールサイズ"
 msgstr "ドールサイズ"
@@ -223,14 +334,23 @@ msgstr "トップス"
 msgid "ドレス"
 msgstr "ドレス"
 
+#: src/components/scan/ReviewItemRow.tsx
+msgid "ない"
+msgstr "ない"
+
+#: src/components/scan/OrphanCheckoutDialog.tsx
+msgid "なくした"
+msgstr "なくした"
+
 #: src/components/garment/GarmentForm.tsx
 msgid "ブランド/メーカー"
 msgstr "ブランド/メーカー"
 
-#: src/components/garment/GarmentForm.tsx
+#: src/components/garment/ImageUpload.tsx
 msgid "プレビュー"
 msgstr "プレビュー"
 
+#: src/app/nfc-write/page.tsx
 #: src/app/print/page.tsx
 msgid "ページの読み込みに失敗しました"
 msgstr "ページの読み込みに失敗しました"
@@ -247,6 +367,14 @@ msgstr "ホーム"
 msgid "ボトムス"
 msgstr "ボトムス"
 
+#: src/app/digest/page.tsx
+msgid "まだレポートがありません"
+msgstr "まだレポートがありません"
+
+#: src/components/scan/OrphanCheckoutDialog.tsx
+msgid "まだ使用中"
+msgstr "まだ使用中"
+
 #: src/app/locations/page.tsx
 msgid "まだ収納場所がありません"
 msgstr "まだ収納場所がありません"
@@ -254,6 +382,10 @@ msgstr "まだ収納場所がありません"
 #: src/app/garments/page.tsx
 msgid "まだ服がありません"
 msgstr "まだ服がありません"
+
+#: src/app/nfc-write/page.tsx
+msgid "もう1枚書き込む"
+msgstr "もう1枚書き込む"
 
 #: src/lib/i18n-labels.ts
 msgid "よく着る服 (14日)"
@@ -276,6 +408,10 @@ msgstr "ログアウト"
 msgid "ワードローブ"
 msgstr "ワードローブ"
 
+#: src/app/digest/page.tsx
+msgid "ワードローブの状況をお伝えします"
+msgstr "ワードローブの状況をお伝えします"
+
 #: src/lib/i18n-labels.ts
 msgid "ワンピース"
 msgstr "ワンピース"
@@ -284,7 +420,9 @@ msgstr "ワンピース"
 msgid "一致する服が見つかりません"
 msgstr "一致する服が見つかりません"
 
+#: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
+#: src/app/locations/[caseId]/page.tsx
 msgid "一覧に戻る"
 msgstr "一覧に戻る"
 
@@ -296,6 +434,18 @@ msgstr "不明"
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "並び替え"
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "作成"
+msgstr "作成"
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "例: 衣装ケース A"
+msgstr "例: 衣装ケース A"
+
+#: src/components/location/StorageCaseEditForm.tsx
+msgid "保存"
+msgstr "保存"
 
 #: src/lib/i18n-labels.ts
 msgid "信頼度: 低い順"
@@ -309,6 +459,14 @@ msgstr "信頼度: 高い順"
 msgid "信頼度の減衰期間"
 msgstr "信頼度の減衰期間"
 
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "個別確認"
+msgstr "個別確認"
+
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "全部ある"
+msgstr "全部ある"
+
 #: src/app/garments/page.tsx
 msgid "最初のドール服を登録してみましょう"
 msgstr "最初のドール服を登録してみましょう"
@@ -317,11 +475,17 @@ msgstr "最初のドール服を登録してみましょう"
 msgid "最近のアイテム"
 msgstr "最近のアイテム"
 
-#: src/components/garment/GarmentForm.tsx
+#: src/components/garment/ImageUpload.tsx
 msgid "写真を追加"
 msgstr "写真を追加"
 
+#: src/components/location/StorageCaseForm.tsx
+msgid "列数"
+msgstr "列数"
+
+#: src/app/locations/page.tsx
 #: src/components/garment/GarmentDetail.tsx
+#: src/components/location/StorageCaseCard.tsx
 msgid "削除"
 msgstr "削除"
 
@@ -342,6 +506,7 @@ msgid "収納中"
 msgstr "収納中"
 
 #: src/app/locations/page.tsx
+#: src/app/nfc-write/page.tsx
 msgid "収納場所"
 msgstr "収納場所"
 
@@ -370,6 +535,10 @@ msgstr "名前"
 msgid "名前やタグで検索..."
 msgstr "名前やタグで検索..."
 
+#: src/components/garment/ImageUpload.tsx
+msgid "圧縮中..."
+msgstr "圧縮中..."
+
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "場所のQRをスキャンして、収納場所を設定してください"
 msgstr "場所のQRをスキャンして、収納場所を設定してください"
@@ -386,10 +555,65 @@ msgstr "季節物 (90日)"
 msgid "帽子/ヘッドドレス"
 msgstr "帽子/ヘッドドレス"
 
+#: src/app/nfc-write/page.tsx
+#: src/app/nfc-write/page.tsx
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "戻る"
+msgstr "戻る"
+
+#: src/components/digest/DigestBanner.tsx
+msgid "新しい週間レポートが届いています"
+msgstr "新しい週間レポートが届いています"
+
 #: src/lib/i18n-labels.ts
 msgid "新しい順"
 msgstr "新しい順"
 
+#: src/components/digest/DigestCard.tsx
+msgid "既読にする"
+msgstr "既読にする"
+
+#: src/components/digest/DigestCard.tsx
+msgid "既読済み"
+msgstr "既読済み"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "更新する"
+msgstr "更新する"
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込みがキャンセルされました"
+msgstr "書き込みがキャンセルされました"
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込みに失敗しました"
+msgstr "書き込みに失敗しました"
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込み対象"
+msgstr "書き込み対象"
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込む"
+msgstr "書き込む"
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込む収納場所を選択"
+msgstr "書き込む収納場所を選択"
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込む対象を選択してください"
+msgstr "書き込む対象を選択してください"
+
+#: src/app/nfc-write/page.tsx
+msgid "書き込む服を選択"
+msgstr "書き込む服を選択"
+
+#: src/app/nfc-write/page.tsx
+msgid "服"
+msgstr "服"
+
+#: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
 msgid "服が見つかりません"
 msgstr "服が見つかりません"
@@ -398,6 +622,22 @@ msgstr "服が見つかりません"
 #: src/app/garments/page.tsx
 msgid "服を登録"
 msgstr "服を登録"
+
+#: src/app/garments/[id]/edit/page.tsx
+msgid "服を編集"
+msgstr "服を編集"
+
+#: src/components/digest/DigestCard.tsx
+msgid "未読"
+msgstr "未読"
+
+#: src/app/nfc-write/page.tsx
+msgid "次へ"
+msgstr "次へ"
+
+#: src/app/digest/page.tsx
+msgid "毎週月曜日に自動生成されます"
+msgstr "毎週月曜日に自動生成されます"
 
 #: src/components/garment/GarmentForm.tsx
 msgid "登録する"
@@ -413,15 +653,25 @@ msgstr "着"
 msgid "確定"
 msgstr "確定"
 
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "確定する"
+msgstr "確定する"
+
 #: src/components/dashboard/AlertPanel.tsx
 msgid "確認"
 msgstr "確認"
+
+#. placeholder {0}: digest.totalGarments
+#: src/components/digest/DigestCard.tsx
+msgid "管理中の服: {0}着"
+msgstr "管理中の服: {0}着"
 
 #: src/lib/i18n-labels.ts
 msgid "紛失"
 msgstr "紛失"
 
 #: src/components/garment/GarmentDetail.tsx
+#: src/components/location/StorageCaseCard.tsx
 msgid "編集"
 msgstr "編集"
 
@@ -429,6 +679,10 @@ msgstr "編集"
 #: src/components/garment/GarmentForm.tsx
 msgid "色"
 msgstr "色"
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "行数"
+msgstr "行数"
 
 #: src/app/locations/page.tsx
 msgid "衣装ケースを追加して、服の収納場所を管理しましょう"
@@ -440,6 +694,11 @@ msgstr "衣装ケースを追加して、服の収納場所を管理しましょ
 msgid "要確認"
 msgstr "要確認"
 
+#. placeholder {0}: itemsNeedingReview.length
+#: src/components/scan/OpportunisticReviewDialog.tsx
+msgid "要確認のアイテム（{0}件）"
+msgstr "要確認のアイテム（{0}件）"
+
 #: src/components/settings/LocaleSelector.tsx
 msgid "言語"
 msgstr "言語"
@@ -448,8 +707,11 @@ msgstr "言語"
 msgid "詳細"
 msgstr "詳細"
 
+#: src/app/digest/page.tsx
+#: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
 #: src/app/garments/page.tsx
+#: src/app/locations/[caseId]/page.tsx
 #: src/app/locations/page.tsx
 #: src/app/page.tsx
 msgid "読み込みに失敗しました"
@@ -458,3 +720,11 @@ msgstr "読み込みに失敗しました"
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"
 msgstr "通常 (30日)"
+
+#: src/app/digest/page.tsx
+msgid "週間レポート"
+msgstr "週間レポート"
+
+#: src/app/nfc-write/page.tsx
+msgid "選択してください"
+msgstr "選択してください"
