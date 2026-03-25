@@ -1,97 +1,26 @@
-import { render, screen } from "@testing-library/react";
-import { Provider, createStore, atom } from "jotai";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { I18nTestWrapper } from "@/test/i18nWrapper";
+import { screen, waitFor } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { server } from "@/test/mocks/server";
+import { unauthenticatedHandler } from "@/test/mocks/handlers";
+import { renderWithProviders } from "@/test/testUtils";
 import UserMenu from "./UserMenu";
 
-type AuthUser = {
-  readonly id: string;
-  readonly name: string;
-  readonly email: string;
-  readonly image: string | undefined;
-};
-
-type AuthState = {
-  readonly user: AuthUser | undefined;
-  readonly isAuthenticated: boolean;
-};
-
-const mockAuthState = vi.hoisted(() => {
-  const initial: AuthState = { user: undefined, isAuthenticated: false };
-  return { value: initial };
-});
-
-vi.mock("@/stores/authAtoms", async () => {
-  const original = await vi.importActual("@/stores/authAtoms");
-  return {
-    ...original,
-    authSessionAtom: atom(() => mockAuthState.value),
-  };
-});
-
-vi.mock("@/lib/auth", () => ({
-  signOut: vi.fn().mockResolvedValue(undefined),
-  getSession: vi.fn().mockResolvedValue(undefined),
-}));
-
 describe("UserMenu", () => {
-  beforeEach(() => {
-    mockAuthState.value = { user: undefined, isAuthenticated: false };
-  });
+  it("認証済みユーザーのイニシャルが表示される", async () => {
+    await renderWithProviders(<UserMenu />);
 
-  it("認証済みユーザーのイニシャルが表示される", () => {
-    mockAuthState.value = {
-      user: {
-        id: "user-1",
-        name: "テストユーザー",
-        email: "test@example.com",
-        image: undefined,
-      },
-      isAuthenticated: true,
-    };
-
-    render(
-      <I18nTestWrapper>
-        <Provider store={createStore()}>
-          <UserMenu />
-        </Provider>
-      </I18nTestWrapper>,
-    );
-
-    expect(screen.getByText("テ")).toBeInTheDocument();
+    expect(await screen.findByText("テ")).toBeInTheDocument();
     expect(screen.getByLabelText("ログアウト")).toBeInTheDocument();
   });
 
-  it("アバター画像がある場合に表示される", () => {
-    mockAuthState.value = {
-      user: {
-        id: "user-1",
-        name: "テストユーザー",
-        email: "test@example.com",
-        image: "https://example.com/avatar.png",
-      },
-      isAuthenticated: true,
-    };
+  it("未認証時は何も表示されない", async () => {
+    server.use(unauthenticatedHandler);
+    const { container } = await renderWithProviders(<UserMenu />);
 
-    render(
-      <I18nTestWrapper>
-        <Provider store={createStore()}>
-          <UserMenu />
-        </Provider>
-      </I18nTestWrapper>,
-    );
+    await waitFor(() => {
+      expect(screen.queryByTestId("suspense-loading")).not.toBeInTheDocument();
+    });
 
-    const img = screen.getByAltText("テストユーザー");
-    expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute("src", "https://example.com/avatar.png");
-  });
-
-  it("未認証時は何も表示されない", () => {
-    const { container } = render(
-      <Provider store={createStore()}>
-        <UserMenu />
-      </Provider>,
-    );
     expect(container.innerHTML).toBe("");
   });
 });

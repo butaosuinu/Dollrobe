@@ -14,16 +14,16 @@ describe("NfcCapabilityBadge", () => {
     vi.restoreAllMocks();
   });
 
-  it("NFC 対応時に「NFC 対応」と表示される", () => {
+  it("NFC 対応時に「NFC 対応」と表示される", async () => {
     mockIsNfcSupported.mockReturnValue(true);
-    renderWithProviders(<NfcCapabilityBadge />);
+    await renderWithProviders(<NfcCapabilityBadge />);
 
     expect(screen.getByText("NFC 対応")).toBeInTheDocument();
   });
 
-  it("NFC 非対応時に「NFC 非対応」と表示される", () => {
+  it("NFC 非対応時に「NFC 非対応」と表示される", async () => {
     mockIsNfcSupported.mockReturnValue(false);
-    renderWithProviders(<NfcCapabilityBadge />);
+    await renderWithProviders(<NfcCapabilityBadge />);
 
     expect(screen.getByText("NFC 非対応")).toBeInTheDocument();
   });

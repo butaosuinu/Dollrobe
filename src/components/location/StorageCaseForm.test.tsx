@@ -10,8 +10,8 @@ const defaultProps = {
 };
 
 describe("StorageCaseForm", () => {
-  it("フォームの各フィールドを表示する", () => {
-    renderWithProviders(<StorageCaseForm {...defaultProps} />);
+  it("フォームの各フィールドを表示する", async () => {
+    await renderWithProviders(<StorageCaseForm {...defaultProps} />);
 
     expect(screen.getByLabelText("ケース名")).toBeInTheDocument();
     expect(screen.getByLabelText("行数")).toBeInTheDocument();
@@ -22,8 +22,8 @@ describe("StorageCaseForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("名前が空の場合は作成ボタンがdisabledになる", () => {
-    renderWithProviders(<StorageCaseForm {...defaultProps} />);
+  it("名前が空の場合は作成ボタンがdisabledになる", async () => {
+    await renderWithProviders(<StorageCaseForm {...defaultProps} />);
 
     expect(screen.getByRole("button", { name: "作成" })).toBeDisabled();
   });
@@ -31,7 +31,7 @@ describe("StorageCaseForm", () => {
   it("正しい値で送信するとonSubmitが呼ばれる", async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();
-    renderWithProviders(
+    await renderWithProviders(
       <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
     );
 
@@ -48,7 +48,7 @@ describe("StorageCaseForm", () => {
   it("キャンセルボタンでonCancelが呼ばれる", async () => {
     const onCancel = vi.fn();
     const user = userEvent.setup();
-    renderWithProviders(
+    await renderWithProviders(
       <StorageCaseForm {...defaultProps} onCancel={onCancel} />,
     );
 
@@ -60,7 +60,7 @@ describe("StorageCaseForm", () => {
   it("空白のみの名前では送信できない", async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();
-    renderWithProviders(
+    await renderWithProviders(
       <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
     );
 
@@ -72,7 +72,7 @@ describe("StorageCaseForm", () => {
   it("行数に0を入力した場合、最小値1にクランプされて送信される", async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();
-    renderWithProviders(
+    await renderWithProviders(
       <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
     );
 
@@ -92,7 +92,7 @@ describe("StorageCaseForm", () => {
   it("列数に0を入力した場合、最小値1にクランプされて送信される", async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();
-    renderWithProviders(
+    await renderWithProviders(
       <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
     );
 
@@ -112,7 +112,7 @@ describe("StorageCaseForm", () => {
   it("行数フィールドを空にした場合、最小値1にクランプされて送信される", async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();
-    renderWithProviders(
+    await renderWithProviders(
       <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
     );
 
@@ -130,7 +130,7 @@ describe("StorageCaseForm", () => {
   it("列数フィールドを空にした場合、最小値1にクランプされて送信される", async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();
-    renderWithProviders(
+    await renderWithProviders(
       <StorageCaseForm {...defaultProps} onSubmit={onSubmit} />,
     );
 

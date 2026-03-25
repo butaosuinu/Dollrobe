@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
-import type { Garment } from "@/types";
-import { createTestGarment, FIXED_NOW } from "@/test/factories";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { testDb, FIXED_NOW } from "@/test/mocks/db";
+import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentDetailPage from "./page";
 
@@ -34,75 +34,53 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const mockGarments = vi.hoisted((): { value: Garment[] } => ({
-  value: [],
-}));
-
-const mockDeleteGarment = vi.hoisted(() => vi.fn());
-
-vi.mock("@/stores/garmentAtoms", async () => {
-  const { atom } = await import("jotai");
-  return {
-    garmentsAtom: atom(() => mockGarments.value),
-    deleteGarmentAtom: atom(
-      undefined,
-      (_get: unknown, _set: unknown, id: unknown) => {
-        mockDeleteGarment(id);
-      },
-    ),
-  };
-});
-
 describe("GarmentDetailPage", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(FIXED_NOW);
+    vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     mockRouter.push.mockClear();
-    mockDeleteGarment.mockClear();
     mockParams.value = { id: "garment-1" };
-    mockGarments.value = [];
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
-  it("服の詳細情報を表示する", () => {
-    mockGarments.value = [
-      createTestGarment({
-        id: "garment-1",
-        name: "白いドレス",
-        category: "dress",
-        dollSize: "MSD",
-      }),
-    ];
-    renderWithProviders(<GarmentDetailPage />);
+  it("服の詳細情報を表示する", async () => {
+    testDb.garment.create({
+      id: "garment-1",
+      name: "白いドレス",
+      category: "dress",
+      dollSize: "MSD",
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentDetailPage />);
 
     expect(screen.getByText("白いドレス")).toBeInTheDocument();
     expect(screen.getByText(/MSD/)).toBeInTheDocument();
   });
 
-  it("タグを表示する", () => {
-    mockGarments.value = [
-      createTestGarment({
-        id: "garment-1",
-        tags: ["フォーマル", "レース"],
-      }),
-    ];
-    renderWithProviders(<GarmentDetailPage />);
+  it("タグを表示する", async () => {
+    testDb.garment.create({
+      id: "garment-1",
+      tags: ["フォーマル", "レース"],
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentDetailPage />);
 
     expect(screen.getByText("フォーマル")).toBeInTheDocument();
     expect(screen.getByText("レース")).toBeInTheDocument();
   });
 
-  it("色を表示する", () => {
-    mockGarments.value = [
-      createTestGarment({
-        id: "garment-1",
-        colors: ["hsl(0, 100%, 50%)", "hsl(240, 100%, 50%)"],
-      }),
-    ];
-    const { container } = renderWithProviders(<GarmentDetailPage />);
+  it("色を表示する", async () => {
+    testDb.garment.create({
+      id: "garment-1",
+      colors: ["hsl(0, 100%, 50%)", "hsl(240, 100%, 50%)"],
+    });
+    await seedDbFromTestDb();
+
+    const { container } = await renderWithProviders(<GarmentDetailPage />);
 
     const colorDots = container.querySelectorAll(
       'span[style*="background-color"]',
@@ -110,33 +88,38 @@ describe("GarmentDetailPage", () => {
     expect(colorDots.length).toBe(2);
   });
 
-  it("存在しない服の場合にメッセージを表示する", () => {
+  it("存在しない服の場合にメッセージを表示する", async () => {
     mockParams.value = { id: "non-existent" };
-    mockGarments.value = [];
-    renderWithProviders(<GarmentDetailPage />);
 
-    expect(screen.getByText("服が見つかりません")).toBeInTheDocument();
+    await renderWithProviders(<GarmentDetailPage />);
+
+    expect(await screen.findByText("服が見つかりません")).toBeInTheDocument();
     expect(screen.getByText("一覧に戻る")).toBeInTheDocument();
   });
 
   it("削除ボタンで服を削除しナビゲーションする", async () => {
-    mockGarments.value = [
-      createTestGarment({ id: "garment-1", name: "白いドレス" }),
-    ];
-    renderWithProviders(<GarmentDetailPage />);
+    testDb.garment.create({ id: "garment-1", name: "白いドレス" });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentDetailPage />);
 
     fireEvent.click(screen.getByText("削除"));
-    await vi.waitFor(() => {
-      expect(mockDeleteGarment).toHaveBeenCalledWith("garment-1");
+
+    const { db } = await import("@/lib/db/dexie");
+    await waitFor(async () => {
+      const garment = await db.garments.get("garment-1");
+      expect(garment).toBeUndefined();
     });
-    expect(mockRouter.push).toHaveBeenCalledWith("/garments");
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith("/garments");
+    });
   });
 
-  it("QR印刷ボタンで印刷ページに遷移する", () => {
-    mockGarments.value = [
-      createTestGarment({ id: "garment-1", name: "白いドレス" }),
-    ];
-    renderWithProviders(<GarmentDetailPage />);
+  it("QR印刷ボタンで印刷ページに遷移する", async () => {
+    testDb.garment.create({ id: "garment-1", name: "白いドレス" });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentDetailPage />);
 
     fireEvent.click(screen.getByText("QRを印刷"));
 

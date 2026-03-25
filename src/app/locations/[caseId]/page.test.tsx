@@ -1,12 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent } from "@testing-library/react";
-import type { Garment, StorageCase, StorageLocation } from "@/types";
-import {
-  createTestGarment,
-  createTestStorageCase,
-  createTestStorageLocation,
-  FIXED_NOW,
-} from "@/test/factories";
+import { testDb, FIXED_NOW } from "@/test/mocks/db";
+import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import CaseDetailPage from "./page";
 
@@ -33,89 +28,58 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const mockCases = vi.hoisted((): { value: StorageCase[] } => ({
-  value: [],
-}));
-
-const mockLocations = vi.hoisted((): { value: StorageLocation[] } => ({
-  value: [],
-}));
-
-const mockGarments = vi.hoisted((): { value: Garment[] } => ({
-  value: [],
-}));
-
-vi.mock("@/stores/locationAtoms", async () => {
-  const { atom } = await import("jotai");
-  return {
-    storageCasesAtom: atom(() => mockCases.value),
-    storageLocationsAtom: atom(() => mockLocations.value),
-  };
-});
-
-vi.mock("@/stores/garmentAtoms", async () => {
-  const { atom } = await import("jotai");
-  return {
-    garmentsAtom: atom(() => mockGarments.value),
-  };
-});
-
 describe("CaseDetailPage", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(FIXED_NOW);
-    mockCases.value = [];
-    mockLocations.value = [];
-    mockGarments.value = [];
+    vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     mockRouterBack.mockClear();
     mockRouterPush.mockClear();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
-  it("ケースが見つからない場合にフォールバックを表示する", () => {
-    renderWithProviders(<CaseDetailPage />);
+  it("ケースが見つからない場合にフォールバックを表示する", async () => {
+    await renderWithProviders(<CaseDetailPage />);
 
-    expect(screen.getByText("ケースが見つかりません")).toBeInTheDocument();
+    expect(
+      await screen.findByText("ケースが見つかりません"),
+    ).toBeInTheDocument();
   });
 
-  it("ケースのグリッドセルを正しく描画する", () => {
-    mockCases.value = [
-      createTestStorageCase({ id: "case-1", rows: 2, cols: 2 }),
-    ];
-    mockLocations.value = [
-      createTestStorageLocation({
-        id: "loc-1",
-        caseId: "case-1",
-        label: "A-1",
-        row: 0,
-        col: 0,
-      }),
-      createTestStorageLocation({
-        id: "loc-2",
-        caseId: "case-1",
-        label: "A-2",
-        row: 0,
-        col: 1,
-      }),
-      createTestStorageLocation({
-        id: "loc-3",
-        caseId: "case-1",
-        label: "B-1",
-        row: 1,
-        col: 0,
-      }),
-      createTestStorageLocation({
-        id: "loc-4",
-        caseId: "case-1",
-        label: "B-2",
-        row: 1,
-        col: 1,
-      }),
-    ];
-    renderWithProviders(<CaseDetailPage />);
+  it("ケースのグリッドセルを正しく描画する", async () => {
+    testDb.storageCase.create({ id: "case-1", rows: 2, cols: 2 });
+    testDb.storageLocation.create({
+      id: "loc-1",
+      caseId: "case-1",
+      label: "A-1",
+      row: 0,
+      col: 0,
+    });
+    testDb.storageLocation.create({
+      id: "loc-2",
+      caseId: "case-1",
+      label: "A-2",
+      row: 0,
+      col: 1,
+    });
+    testDb.storageLocation.create({
+      id: "loc-3",
+      caseId: "case-1",
+      label: "B-1",
+      row: 1,
+      col: 0,
+    });
+    testDb.storageLocation.create({
+      id: "loc-4",
+      caseId: "case-1",
+      label: "B-2",
+      row: 1,
+      col: 1,
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<CaseDetailPage />);
 
     expect(screen.getByText("A-1")).toBeInTheDocument();
     expect(screen.getByText("A-2")).toBeInTheDocument();
@@ -123,45 +87,37 @@ describe("CaseDetailPage", () => {
     expect(screen.getByText("B-2")).toBeInTheDocument();
   });
 
-  it("行列数とアイテム数サマリーを表示する", () => {
-    mockCases.value = [
-      createTestStorageCase({ id: "case-1", rows: 2, cols: 3 }),
-    ];
-    mockLocations.value = [
-      createTestStorageLocation({
-        id: "loc-1",
-        caseId: "case-1",
-        label: "A-1",
-      }),
-    ];
-    mockGarments.value = [
-      createTestGarment({ id: "g-1", locationId: "loc-1" }),
-    ];
-    renderWithProviders(<CaseDetailPage />);
+  it("行列数とアイテム数サマリーを表示する", async () => {
+    testDb.storageCase.create({ id: "case-1", rows: 2, cols: 3 });
+    testDb.storageLocation.create({
+      id: "loc-1",
+      caseId: "case-1",
+      label: "A-1",
+    });
+    testDb.garment.create({ id: "g-1", locationId: "loc-1" });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<CaseDetailPage />);
 
     expect(screen.getByText("2行 x 3列")).toBeInTheDocument();
     expect(screen.getAllByText("1着").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("セルクリックでBottomSheetを開く", () => {
-    mockCases.value = [
-      createTestStorageCase({ id: "case-1", name: "衣装ケース A" }),
-    ];
-    mockLocations.value = [
-      createTestStorageLocation({
-        id: "loc-1",
-        caseId: "case-1",
-        label: "A-1",
-      }),
-    ];
-    mockGarments.value = [
-      createTestGarment({
-        id: "g-1",
-        name: "白いドレス",
-        locationId: "loc-1",
-      }),
-    ];
-    renderWithProviders(<CaseDetailPage />);
+  it("セルクリックでBottomSheetを開く", async () => {
+    testDb.storageCase.create({ id: "case-1", name: "衣装ケース A" });
+    testDb.storageLocation.create({
+      id: "loc-1",
+      caseId: "case-1",
+      label: "A-1",
+    });
+    testDb.garment.create({
+      id: "g-1",
+      name: "白いドレス",
+      locationId: "loc-1",
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<CaseDetailPage />);
 
     fireEvent.click(screen.getByText("A-1"));
 

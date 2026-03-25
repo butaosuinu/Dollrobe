@@ -33,19 +33,18 @@ describe("OpportunisticReviewDialog", () => {
   const mockOnConfirmPartial = vi.fn();
 
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(FIXED_NOW);
+    vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     mockOnClose.mockClear();
     mockOnConfirmAll.mockClear();
     mockOnConfirmPartial.mockClear();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
-  it("isOpen=falseの場合は何も表示されない", () => {
-    renderWithProviders(
+  it("isOpen=falseの場合は何も表示されない", async () => {
+    await renderWithProviders(
       <OpportunisticReviewDialog
         isOpen={false}
         onClose={mockOnClose}
@@ -59,8 +58,8 @@ describe("OpportunisticReviewDialog", () => {
     expect(screen.queryByText("全部ある")).toBeNull();
   });
 
-  it("レビュー対象のアイテム名と信頼度バーが表示される", () => {
-    renderWithProviders(
+  it("レビュー対象のアイテム名と信頼度バーが表示される", async () => {
+    await renderWithProviders(
       <OpportunisticReviewDialog
         isOpen
         onClose={mockOnClose}
@@ -75,8 +74,8 @@ describe("OpportunisticReviewDialog", () => {
     expect(screen.getAllByRole("progressbar")).toHaveLength(2);
   });
 
-  it("「全部ある」ボタンでonConfirmAllが呼ばれる", () => {
-    renderWithProviders(
+  it("「全部ある」ボタンでonConfirmAllが呼ばれる", async () => {
+    await renderWithProviders(
       <OpportunisticReviewDialog
         isOpen
         onClose={mockOnClose}
@@ -91,8 +90,8 @@ describe("OpportunisticReviewDialog", () => {
     expect(mockOnConfirmAll).toHaveBeenCalledOnce();
   });
 
-  it("「ズレを直す」で個別選択モードに切り替わる", () => {
-    renderWithProviders(
+  it("「ズレを直す」で個別選択モードに切り替わる", async () => {
+    await renderWithProviders(
       <OpportunisticReviewDialog
         isOpen
         onClose={mockOnClose}
@@ -111,8 +110,8 @@ describe("OpportunisticReviewDialog", () => {
     ).toBeInTheDocument();
   });
 
-  it("個別選択モードでトグル切替が動作する", () => {
-    renderWithProviders(
+  it("個別選択モードでトグル切替が動作する", async () => {
+    await renderWithProviders(
       <OpportunisticReviewDialog
         isOpen
         onClose={mockOnClose}
@@ -133,8 +132,8 @@ describe("OpportunisticReviewDialog", () => {
     expect(firstNaiButton).toHaveClass("bg-red-500");
   });
 
-  it("個別選択モードで「確定する」が正しいconfirmationsを渡す", () => {
-    renderWithProviders(
+  it("個別選択モードで「確定する」が正しいconfirmationsを渡す", async () => {
+    await renderWithProviders(
       <OpportunisticReviewDialog
         isOpen
         onClose={mockOnClose}
@@ -160,8 +159,8 @@ describe("OpportunisticReviewDialog", () => {
     ]);
   });
 
-  it("「戻る」ボタンで概要モードに戻る", () => {
-    renderWithProviders(
+  it("「戻る」ボタンで概要モードに戻る", async () => {
+    await renderWithProviders(
       <OpportunisticReviewDialog
         isOpen
         onClose={mockOnClose}
