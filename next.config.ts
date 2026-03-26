@@ -22,6 +22,21 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  async rewrites() {
+    if (process.env.NODE_ENV !== "development") {
+      return [];
+    }
+    return [
+      {
+        source: "/trpc/:path*",
+        destination: "http://localhost:8787/trpc/:path*",
+      },
+      {
+        source: "/api/:path*",
+        destination: "http://localhost:8787/api/:path*",
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(withSerwist(nextConfig), {
