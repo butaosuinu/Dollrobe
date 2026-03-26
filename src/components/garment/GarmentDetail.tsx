@@ -14,6 +14,7 @@ import {
 } from "@/lib/i18n-labels";
 import { deleteGarmentAtom } from "@/stores/garmentAtoms";
 import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
+import GarmentLocationRow from "@/components/garment/GarmentLocationRow";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -86,6 +87,8 @@ const GarmentDetail = ({ garment }: Props) => {
             <ConfidenceIndicator garment={garment} />
           </div>
         </Card>
+
+        <GarmentLocationRow garment={garment} />
 
         {garment.colors.length > 0 && (
           <Card>

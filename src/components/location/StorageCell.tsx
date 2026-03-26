@@ -8,6 +8,7 @@ type Props = {
   readonly location: StorageLocation;
   readonly garments: readonly Garment[];
   readonly onClick: () => void;
+  readonly isSelected?: boolean;
 };
 
 const getWorstConfidence = (
@@ -29,7 +30,7 @@ const CELL_BG = {
   empty: "bg-surface-raised border-border-default",
 } as const;
 
-const StorageCell = ({ location, garments, onClick }: Props) => {
+const StorageCell = ({ location, garments, onClick, isSelected }: Props) => {
   const status = getWorstConfidence(garments);
 
   return (
@@ -40,6 +41,7 @@ const StorageCell = ({ location, garments, onClick }: Props) => {
         "hover:shadow-sm active:scale-95",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
         CELL_BG[status],
+        isSelected === true && "ring-2 ring-primary-500",
       )}
     >
       <span className="text-xs font-bold text-text-primary">
