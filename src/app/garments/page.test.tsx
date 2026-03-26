@@ -45,13 +45,15 @@ describe("GarmentsPage", () => {
     await renderWithProviders(<GarmentsPage />);
 
     expect(await screen.findByText("まだ服がありません")).toBeInTheDocument();
-    expect(screen.getByText("服を登録")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "服を登録" }),
+    ).toBeInTheDocument();
   });
 
   it("空状態のCTAクリックで新規登録ページに遷移する", async () => {
     await renderWithProviders(<GarmentsPage />);
 
-    fireEvent.click(await screen.findByText("服を登録"));
+    fireEvent.click(await screen.findByRole("button", { name: "服を登録" }));
     expect(mockRouter.push).toHaveBeenCalledWith("/garments/new");
   });
 
