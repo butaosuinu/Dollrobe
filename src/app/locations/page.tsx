@@ -64,6 +64,15 @@ const LocationsContent = () => {
 
   return (
     <>
+      <div className="hidden justify-end lg:flex">
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-primary-600"
+        >
+          <Plus className="size-4" />
+          <Trans>ケースを追加</Trans>
+        </button>
+      </div>
       {cases.length === 0 ? (
         <EmptyState
           icon={LayoutGrid}
@@ -73,7 +82,7 @@ const LocationsContent = () => {
           onAction={() => setIsCreateOpen(true)}
         />
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2">
           {cases.map((storageCase) => {
             const caseLocations = locations.filter(
               (l) => l.caseId === storageCase.id,
@@ -94,7 +103,7 @@ const LocationsContent = () => {
 
       <button
         onClick={() => setIsCreateOpen(true)}
-        className="fixed bottom-20 right-4 z-30 flex size-14 items-center justify-center rounded-full bg-primary-500 text-text-inverse shadow-lg transition-all hover:bg-primary-600 hover:shadow-xl active:scale-95"
+        className="fixed bottom-20 right-4 z-30 flex size-14 items-center justify-center rounded-full bg-primary-500 text-text-inverse shadow-lg transition-all hover:bg-primary-600 hover:shadow-xl active:scale-95 lg:hidden"
         aria-label={t`ケースを追加`}
       >
         <Plus className="size-6" />

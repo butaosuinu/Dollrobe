@@ -124,20 +124,26 @@ const ScanPage = () => {
         </h2>
       </div>
 
-      <QrScanner onScan={handleScan} isActive={!reviewDialogOpen} />
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-8">
+        <div className="lg:max-w-md lg:justify-self-center">
+          <QrScanner onScan={handleScan} isActive={!reviewDialogOpen} />
+        </div>
 
-      {lastScan !== undefined && (
-        <ScanResult
-          type={lastScan.type}
-          name={lastScan.name}
-          subtitle={lastScan.subtitle}
-        />
-      )}
+        <div className="flex flex-col gap-4">
+          {lastScan !== undefined && (
+            <ScanResult
+              type={lastScan.type}
+              name={lastScan.name}
+              subtitle={lastScan.subtitle}
+            />
+          )}
 
-      <ScanSessionPanel
-        locationName={activeLocation?.label}
-        onConfirmAll={handleConfirmAll}
-      />
+          <ScanSessionPanel
+            locationName={activeLocation?.label}
+            onConfirmAll={handleConfirmAll}
+          />
+        </div>
+      </div>
 
       <OpportunisticReviewDialog
         isOpen={reviewDialogOpen}

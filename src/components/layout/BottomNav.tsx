@@ -2,17 +2,9 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, Shirt, ScanLine, LayoutGrid } from "lucide-react";
 import clsx from "clsx";
-import { msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-
-const NAV_ITEMS = [
-  { href: "/", label: msg`ホーム`, icon: Home },
-  { href: "/garments", label: msg`ワードローブ`, icon: Shirt },
-  { href: "/scan", label: msg`スキャン`, icon: ScanLine },
-  { href: "/locations", label: msg`収納`, icon: LayoutGrid },
-];
+import { NAV_ITEMS } from "@/lib/nav-items";
 
 const BottomNav = () => {
   const pathname = usePathname();
@@ -20,7 +12,7 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-border-default bg-surface-overlay/90 backdrop-blur-xl"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-border-default bg-surface-overlay/90 backdrop-blur-xl lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="flex h-16 items-center justify-around">

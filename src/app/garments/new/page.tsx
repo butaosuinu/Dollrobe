@@ -8,7 +8,7 @@ import GarmentForm from "@/components/garment/GarmentForm";
 import Skeleton from "@/components/ui/Skeleton";
 
 const NewGarmentPage = () => (
-  <div className="flex flex-col gap-4 p-4">
+  <div className="flex flex-col gap-4 p-4 lg:mx-auto lg:max-w-2xl">
     <div className="flex items-center gap-3 animate-[fade-in_0.4s_ease-out]">
       <Link
         href="/garments"

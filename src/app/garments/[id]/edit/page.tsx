@@ -39,7 +39,7 @@ const GarmentEditPage = () => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4 lg:mx-auto lg:max-w-2xl">
       <div className="flex items-center gap-3 animate-[fade-in_0.4s_ease-out]">
         <button
           onClick={() => router.back()}

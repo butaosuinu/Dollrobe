@@ -33,8 +33,8 @@ const GarmentDetail = ({ garment }: Props) => {
   };
 
   return (
-    <div className="flex flex-col gap-4 animate-[fade-in_0.4s_ease-out]">
-      <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-primary-50">
+    <div className="flex flex-col gap-4 animate-[fade-in_0.4s_ease-out] lg:grid lg:grid-cols-2 lg:gap-8">
+      <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-primary-50 lg:sticky lg:top-20">
         {garment.imageUrl !== undefined ? (
           <img
             src={garment.imageUrl}
@@ -48,103 +48,107 @@ const GarmentDetail = ({ garment }: Props) => {
         )}
       </div>
 
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="font-display text-2xl font-bold">{garment.name}</h2>
-          <p className="mt-1 text-sm text-text-secondary">
-            {i18n._(GARMENT_CATEGORY_LABEL[garment.category])} ・{" "}
-            {i18n._(DOLL_SIZE_LABEL[garment.dollSize])}
-          </p>
-          {garment.brand !== undefined && (
-            <p className="mt-0.5 text-sm text-text-tertiary">{garment.brand}</p>
-          )}
-        </div>
-        <ConfidenceIndicator garment={garment} compact />
-      </div>
-
-      <Card>
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-text-secondary">
-              <Trans>ステータス</Trans>
-            </span>
-            <Badge
-              variant={
-                garment.status === GARMENT_STATUS.STORED
-                  ? "confirmed"
-                  : garment.status === GARMENT_STATUS.CHECKED_OUT
-                    ? "uncertain"
-                    : "unknown"
-              }
-            >
-              {i18n._(GARMENT_STATUS_LABEL[garment.status])}
-            </Badge>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="font-display text-2xl font-bold">{garment.name}</h2>
+            <p className="mt-1 text-sm text-text-secondary">
+              {i18n._(GARMENT_CATEGORY_LABEL[garment.category])} ・{" "}
+              {i18n._(DOLL_SIZE_LABEL[garment.dollSize])}
+            </p>
+            {garment.brand !== undefined && (
+              <p className="mt-0.5 text-sm text-text-tertiary">
+                {garment.brand}
+              </p>
+            )}
           </div>
-          <ConfidenceIndicator garment={garment} />
+          <ConfidenceIndicator garment={garment} compact />
         </div>
-      </Card>
 
-      {garment.colors.length > 0 && (
         <Card>
-          <p className="mb-2 text-sm font-medium text-text-secondary">
-            <Trans>色</Trans>
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {garment.colors.map((color) => (
-              <span
-                key={color}
-                className="size-7 rounded-full border border-border-default"
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {garment.tags.length > 0 && (
-        <Card>
-          <p className="mb-2 text-sm font-medium text-text-secondary">
-            <Trans>タグ</Trans>
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {garment.tags.map((tag) => (
-              <Badge key={tag} variant="primary">
-                {tag}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-text-secondary">
+                <Trans>ステータス</Trans>
+              </span>
+              <Badge
+                variant={
+                  garment.status === GARMENT_STATUS.STORED
+                    ? "confirmed"
+                    : garment.status === GARMENT_STATUS.CHECKED_OUT
+                      ? "uncertain"
+                      : "unknown"
+                }
+              >
+                {i18n._(GARMENT_STATUS_LABEL[garment.status])}
               </Badge>
-            ))}
+            </div>
+            <ConfidenceIndicator garment={garment} />
           </div>
         </Card>
-      )}
 
-      <div className="flex flex-col gap-2 pt-2">
-        <Button
-          variant="secondary"
-          size="lg"
-          fullWidth
-          onClick={() => router.push(`/garments/${garment.id}/edit`)}
-        >
-          <Edit3 className="size-4" />
-          <Trans>編集</Trans>
-        </Button>
-        <Button
-          variant="secondary"
-          size="lg"
-          fullWidth
-          onClick={() => {
-            const params = new URLSearchParams();
-            params.set("type", "garment");
-            params.append("ids", garment.id);
-            params.append("names", garment.name);
-            router.push(`/print?${params.toString()}`);
-          }}
-        >
-          <QrCode className="size-4" />
-          <Trans>QRを印刷</Trans>
-        </Button>
-        <Button variant="danger" size="lg" fullWidth onClick={handleDelete}>
-          <Trash2 className="size-4" />
-          <Trans>削除</Trans>
-        </Button>
+        {garment.colors.length > 0 && (
+          <Card>
+            <p className="mb-2 text-sm font-medium text-text-secondary">
+              <Trans>色</Trans>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {garment.colors.map((color) => (
+                <span
+                  key={color}
+                  className="size-7 rounded-full border border-border-default"
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {garment.tags.length > 0 && (
+          <Card>
+            <p className="mb-2 text-sm font-medium text-text-secondary">
+              <Trans>タグ</Trans>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {garment.tags.map((tag) => (
+                <Badge key={tag} variant="primary">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        <div className="flex flex-col gap-2 pt-2 lg:flex-row">
+          <Button
+            variant="secondary"
+            size="lg"
+            fullWidth
+            onClick={() => router.push(`/garments/${garment.id}/edit`)}
+          >
+            <Edit3 className="size-4" />
+            <Trans>編集</Trans>
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            fullWidth
+            onClick={() => {
+              const params = new URLSearchParams();
+              params.set("type", "garment");
+              params.append("ids", garment.id);
+              params.append("names", garment.name);
+              router.push(`/print?${params.toString()}`);
+            }}
+          >
+            <QrCode className="size-4" />
+            <Trans>QRを印刷</Trans>
+          </Button>
+          <Button variant="danger" size="lg" fullWidth onClick={handleDelete}>
+            <Trash2 className="size-4" />
+            <Trans>削除</Trans>
+          </Button>
+        </div>
       </div>
     </div>
   );

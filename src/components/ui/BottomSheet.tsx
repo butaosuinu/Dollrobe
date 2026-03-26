@@ -17,7 +17,7 @@ const BottomSheet = ({ isOpen, onClose, title, children }: Props) => {
   if (!isOpen) return undefined;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-0 z-50 flex items-end lg:items-center lg:justify-center">
       <div
         className="absolute inset-0 bg-black/30 animate-[fade-in_0.2s_ease-out]"
         onClick={onClose}
@@ -26,7 +26,7 @@ const BottomSheet = ({ isOpen, onClose, title, children }: Props) => {
       <div
         ref={sheetRef}
         className={clsx(
-          "relative w-full max-h-[85dvh] rounded-t-2xl bg-surface-overlay shadow-lg",
+          "relative w-full max-h-[85dvh] rounded-t-2xl bg-surface-overlay shadow-lg lg:max-w-lg lg:rounded-2xl",
           "animate-[slide-up_0.3s_ease-out]",
         )}
         role="dialog"
@@ -34,7 +34,7 @@ const BottomSheet = ({ isOpen, onClose, title, children }: Props) => {
         aria-label={title}
       >
         <div className="flex justify-center py-2">
-          <div className="h-1 w-8 rounded-full bg-border-strong" />
+          <div className="h-1 w-8 rounded-full bg-border-strong lg:hidden" />
         </div>
         {title !== undefined && (
           <div className="flex items-center justify-between border-b border-border-default px-4 pb-3">

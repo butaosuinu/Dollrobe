@@ -39,7 +39,7 @@ const GarmentDetailPage = () => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4 lg:mx-auto lg:max-w-5xl">
       <div className="flex items-center gap-3">
         <button
           onClick={() => router.back()}
