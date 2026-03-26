@@ -139,7 +139,6 @@ describe("GarmentDetailPage", () => {
     it("収納場所が未設定の服で「未配置」と「場所を設定」を表示する", async () => {
       testDb.garment.create({
         id: "garment-1",
-        locationId: null,
         status: "checked_out",
       });
       await seedDbFromTestDb();
@@ -191,7 +190,6 @@ describe("GarmentDetailPage", () => {
       });
       testDb.garment.create({
         id: "garment-1",
-        locationId: null,
         status: "checked_out",
       });
       await seedDbFromTestDb();
@@ -207,7 +205,6 @@ describe("GarmentDetailPage", () => {
       const user = userEvent.setup();
       testDb.garment.create({
         id: "garment-1",
-        locationId: null,
         status: "checked_out",
       });
       await seedDbFromTestDb();
@@ -243,7 +240,6 @@ describe("GarmentDetailPage", () => {
       });
       testDb.garment.create({
         id: "garment-1",
-        locationId: null,
         status: "checked_out",
       });
       await seedDbFromTestDb();
@@ -287,7 +283,6 @@ describe("GarmentDetailPage", () => {
       });
       testDb.garment.create({
         id: "garment-1",
-        locationId: null,
         status: "checked_out",
       });
       await seedDbFromTestDb();
@@ -345,7 +340,6 @@ describe("GarmentDetailPage", () => {
       });
       testDb.garment.create({
         id: "garment-1",
-        locationId: null,
         status: "checked_out",
       });
       await seedDbFromTestDb();
@@ -379,7 +373,6 @@ describe("GarmentDetailPage", () => {
       });
       testDb.garment.create({
         id: "garment-1",
-        locationId: null,
         status: "checked_out",
       });
       await seedDbFromTestDb();

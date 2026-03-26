@@ -123,6 +123,11 @@ const LocationPicker = ({
     onClose();
   };
 
+  const handleSelect = (locationId: string | undefined) => {
+    setSelectedCase(undefined);
+    onSelect(locationId);
+  };
+
   const activeCase = cases.length === 1 ? cases[0] : selectedCase;
 
   const activeLocations =
@@ -157,7 +162,7 @@ const LocationPicker = ({
           currentLocationId={currentLocationId}
           showBackButton={cases.length > 1}
           onBack={() => setSelectedCase(undefined)}
-          onSelect={onSelect}
+          onSelect={handleSelect}
         />
       )}
 
@@ -167,7 +172,7 @@ const LocationPicker = ({
             variant="ghost"
             size="sm"
             fullWidth
-            onClick={() => onSelect(undefined)}
+            onClick={() => handleSelect(undefined)}
           >
             <MapPinOff className="size-4" />
             <Trans>未配置にする</Trans>
