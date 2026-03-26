@@ -22,7 +22,7 @@ const StatsLoading = () => (
 );
 
 const DashboardPage = () => (
-  <div className="flex flex-col gap-6 p-4">
+  <div className="flex flex-col gap-6 p-4 lg:py-8">
     <div className="animate-[fade-in_0.4s_ease-out]">
       <p className="text-sm text-text-secondary">
         <Trans>おかえりなさい</Trans>
@@ -38,23 +38,25 @@ const DashboardPage = () => (
       </Suspense>
     </ErrorBoundary>
 
-    <ErrorBoundary
-      fallback={
-        <p className="text-sm text-danger">
-          <Trans>読み込みに失敗しました</Trans>
-        </p>
-      }
-    >
-      <Suspense fallback={<StatsLoading />}>
-        <StatsOverview />
-      </Suspense>
-    </ErrorBoundary>
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[2fr_1fr] lg:items-start lg:gap-8">
+      <ErrorBoundary
+        fallback={
+          <p className="text-sm text-danger">
+            <Trans>読み込みに失敗しました</Trans>
+          </p>
+        }
+      >
+        <Suspense fallback={<StatsLoading />}>
+          <StatsOverview />
+        </Suspense>
+      </ErrorBoundary>
 
-    <ErrorBoundary fallback={<></>}>
-      <Suspense fallback={<Skeleton className="h-20 rounded-xl" />}>
-        <AlertPanel />
-      </Suspense>
-    </ErrorBoundary>
+      <ErrorBoundary fallback={<></>}>
+        <Suspense fallback={<Skeleton className="h-20 rounded-xl" />}>
+          <AlertPanel />
+        </Suspense>
+      </ErrorBoundary>
+    </div>
 
     <ErrorBoundary fallback={<></>}>
       <Suspense fallback={<Skeleton className="h-48 rounded-xl" />}>

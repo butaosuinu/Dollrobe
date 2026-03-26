@@ -19,7 +19,9 @@ const AppShell = ({ children }: Props) => (
         <TopBar />
       </Suspense>
     </ErrorBoundary>
-    <main className="flex-1 pb-24">{children}</main>
+    <main className="flex-1 pb-24 lg:mx-auto lg:w-full lg:max-w-6xl lg:px-8 lg:pb-6">
+      {children}
+    </main>
     <BottomNav />
   </div>
 );

@@ -38,7 +38,7 @@ const RecentItems = () => {
           <Trans>すべて見る</Trans>
         </Link>
       </div>
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 [scroll-snap-type:x_mandatory]">
+      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 [scroll-snap-type:x_mandatory] lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
         {recentGarments.map((garment) => {
           const confidence = getConfidence(garment);
           const label = getConfidenceLabel(confidence);
@@ -49,7 +49,7 @@ const RecentItems = () => {
               href={`/garments/${garment.id}`}
               className="flex-shrink-0 [scroll-snap-align:start]"
             >
-              <Card hoverable className="w-36">
+              <Card hoverable className="w-36 lg:w-auto">
                 <div className="mb-2 flex aspect-square items-center justify-center rounded-lg bg-primary-50">
                   {garment.imageUrl !== undefined ? (
                     <img

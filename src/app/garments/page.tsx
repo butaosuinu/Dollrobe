@@ -127,7 +127,7 @@ const GarmentListContent = () => {
         <ViewToggle mode={viewMode} onChangeMode={setViewMode} />
       </div>
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
         {CATEGORY_FILTERS.map(({ value, label }) => (
           <button
             key={value}
@@ -144,7 +144,7 @@ const GarmentListContent = () => {
         ))}
       </div>
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
         {CONFIDENCE_FILTER_OPTIONS.map(({ value, label }) => (
           <button
             key={value}
@@ -176,10 +176,17 @@ const GarmentListContent = () => {
 
 const GarmentsPage = () => (
   <div className="flex flex-col gap-4 p-4">
-    <div className="animate-[fade-in_0.4s_ease-out]">
+    <div className="flex items-center justify-between animate-[fade-in_0.4s_ease-out]">
       <h2 className="font-display text-xl font-bold">
         <Trans>ワードローブ</Trans>
       </h2>
+      <Link
+        href="/garments/new"
+        className="hidden items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-primary-600 lg:inline-flex"
+      >
+        <Plus className="size-4" />
+        <Trans>服を登録</Trans>
+      </Link>
     </div>
 
     <ErrorBoundary
@@ -191,7 +198,7 @@ const GarmentsPage = () => (
     >
       <Suspense
         fallback={
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-64 rounded-xl" />
             ))}
@@ -204,7 +211,7 @@ const GarmentsPage = () => (
 
     <Link
       href="/garments/new"
-      className="fixed bottom-20 right-4 z-30 flex size-14 items-center justify-center rounded-full bg-primary-500 text-text-inverse shadow-lg transition-all hover:bg-primary-600 hover:shadow-xl active:scale-95"
+      className="fixed bottom-20 right-4 z-30 flex size-14 items-center justify-center rounded-full bg-primary-500 text-text-inverse shadow-lg transition-all hover:bg-primary-600 hover:shadow-xl active:scale-95 lg:hidden"
       style={{ marginBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <Plus className="size-6" />
