@@ -2,7 +2,7 @@ import { and, eq, lte, sql } from "drizzle-orm";
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
-import { garments, storageCases, storageLocations } from "../db/schema";
+import { dolls, garments, storageCases, storageLocations } from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
 import * as locationRepo from "./location-repository";
 
@@ -98,6 +98,53 @@ export const upsertStorageLocation = async ({
     .values(locationValues)
     .onConflictDoNothing({ target: storageLocations.id })
     .catch(wrapDbError({ context: "upsert storage location", logger }));
+};
+
+export const upsertDoll = async ({
+  drizzleDb,
+  dollValues,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly dollValues: typeof dolls.$inferInsert;
+  readonly logger: Logger;
+}): Promise<void> => {
+  await drizzleDb
+    .insert(dolls)
+    .values(dollValues)
+    .onConflictDoUpdate({
+      target: dolls.id,
+      set: {
+        name: sql`excluded.name`,
+        headModel: sql`excluded.head_model`,
+        bodySize: sql`excluded.body_size`,
+        imageUrl: sql`excluded.image_url`,
+        memo: sql`excluded.memo`,
+        updatedAt: sql`excluded.updated_at`,
+      },
+      setWhere: and(
+        eq(dolls.userId, sql`excluded.user_id`),
+        lte(dolls.updatedAt, sql`excluded.updated_at`),
+      ),
+    })
+    .catch(wrapDbError({ context: "upsert doll", logger }));
+};
+
+export const deleteDoll = async ({
+  drizzleDb,
+  userId,
+  dollId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly dollId: string;
+  readonly logger: Logger;
+}): Promise<void> => {
+  await drizzleDb
+    .delete(dolls)
+    .where(and(eq(dolls.id, dollId), eq(dolls.userId, userId)))
+    .catch(wrapDbError({ context: "delete doll (sync)", logger }));
 };
 
 export const deleteStorageCaseWithCascade = async ({

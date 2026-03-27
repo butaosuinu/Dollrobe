@@ -7,6 +7,7 @@ import {
   expectTRPCError,
 } from "../../test/helpers";
 import {
+  insertDoll,
   insertGarment,
   insertStorageCase,
   insertStorageLocation,
@@ -75,6 +76,7 @@ describe("sync router", () => {
       const caller = getCaller();
       const result = await caller.sync.pull();
 
+      expect(result.dolls).toEqual([]);
       expect(result.garments).toEqual([]);
       expect(result.storageCases).toEqual([]);
       expect(result.storageLocations).toEqual([]);
@@ -88,10 +90,12 @@ describe("sync router", () => {
         overrides: { caseId: caseResult.id },
       });
       await insertGarment({ db });
+      await insertDoll({ db });
 
       const caller = getCaller();
       const result = await caller.sync.pull();
 
+      expect(result.dolls).toHaveLength(1);
       expect(result.garments).toHaveLength(1);
       expect(result.storageCases).toHaveLength(1);
       expect(result.storageLocations).toHaveLength(1);

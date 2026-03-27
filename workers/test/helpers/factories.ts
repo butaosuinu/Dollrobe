@@ -128,6 +128,43 @@ export const insertStorageLocation = async ({
   return { id, caseId };
 };
 
+type InsertDollParams = {
+  readonly db: D1Database;
+  readonly overrides?: Partial<{
+    readonly id: string;
+    readonly name: string;
+    readonly headModel: string;
+    readonly bodySize: string;
+    readonly imageUrl: string;
+    readonly memo: string;
+  }>;
+};
+
+export const insertDoll = async ({ db, overrides = {} }: InsertDollParams) => {
+  const id = overrides.id ?? createId();
+  const now = Date.now();
+
+  await db
+    .prepare(
+      `INSERT INTO dolls (id, user_id, name, head_model, body_size, image_url, memo, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`,
+    )
+    .bind(
+      id,
+      TEMP_USER_ID,
+      overrides.name ?? "テストドール",
+      overrides.headModel ?? null,
+      overrides.bodySize ?? "MSD",
+      overrides.imageUrl ?? null,
+      overrides.memo ?? null,
+      now,
+      now,
+    )
+    .run();
+
+  return { id };
+};
+
 type InsertDigestParams = {
   readonly db: D1Database;
   readonly overrides?: Partial<{
