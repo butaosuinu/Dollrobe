@@ -32,6 +32,7 @@ const CELL_BG = {
 
 const StorageCell = ({ location, garments, onClick, isSelected }: Props) => {
   const status = getWorstConfidence(garments);
+  const displayName = location.customName ?? location.label;
 
   return (
     <button
@@ -44,9 +45,10 @@ const StorageCell = ({ location, garments, onClick, isSelected }: Props) => {
         isSelected === true && "ring-2 ring-primary-500",
       )}
     >
-      <span className="text-xs font-bold text-text-primary">
-        {location.label}
-      </span>
+      <span className="text-xs font-bold text-text-primary">{displayName}</span>
+      {location.customName !== undefined && (
+        <span className="text-[10px] text-text-tertiary">{location.label}</span>
+      )}
       {garments.length > 0 && (
         <span className="mt-0.5 text-[10px] text-text-secondary">
           <Trans>{garments.length}着</Trans>

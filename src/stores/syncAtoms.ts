@@ -3,7 +3,7 @@ import { db } from "@/lib/db/dexie";
 import { trpcClient } from "@/lib/trpc";
 import { SYNC_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { SyncStatusValue } from "@/lib/constants";
-import type { Doll, Garment } from "@/types";
+import type { Doll, Garment, StorageCase, StorageLocation } from "@/types";
 import { refreshDollsAtom } from "@/stores/dollAtoms";
 import { refreshGarmentsAtom } from "@/stores/garmentAtoms";
 import {
@@ -166,6 +166,30 @@ const pullServerState = async (): Promise<SyncResult> => {
 
   const garments = serverState.garments.map(toClientGarment);
   const dolls = serverState.dolls.map(toClientDoll);
+  const storageCases: readonly StorageCase[] = serverState.storageCases.map(
+    (c) => ({
+      id: c.id,
+      userId: c.userId,
+      name: c.name,
+      type: c.type === "unit" ? ("unit" as const) : ("grid" as const),
+      description: c.description ?? undefined,
+      rows: c.rows,
+      cols: c.cols,
+      createdAt: c.createdAt,
+    }),
+  );
+  const storageLocations: readonly StorageLocation[] =
+    serverState.storageLocations.map((l) => ({
+      id: l.id,
+      userId: l.userId,
+      caseId: l.caseId,
+      label: l.label,
+      customName: l.customName ?? undefined,
+      description: l.description ?? undefined,
+      row: l.row,
+      col: l.col,
+      createdAt: l.createdAt,
+    }));
 
   await db.transaction(
     "rw",
@@ -178,11 +202,8 @@ const pullServerState = async (): Promise<SyncResult> => {
 
       await bulkAddIfNotEmpty(db.dolls, dolls);
       await bulkAddIfNotEmpty(db.garments, garments);
-      await bulkAddIfNotEmpty(db.storageCases, serverState.storageCases);
-      await bulkAddIfNotEmpty(
-        db.storageLocations,
-        serverState.storageLocations,
-      );
+      await bulkAddIfNotEmpty(db.storageCases, storageCases);
+      await bulkAddIfNotEmpty(db.storageLocations, storageLocations);
     },
   );
 

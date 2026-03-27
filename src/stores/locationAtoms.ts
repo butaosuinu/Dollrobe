@@ -53,31 +53,46 @@ export const addStorageLocationAtom = atom(
   },
 );
 
-type AddStorageCaseInput = {
-  readonly name: string;
-  readonly rows: number;
-  readonly cols: number;
-  readonly userId: string;
-};
-
-export const addStorageCaseWithLocationsAtom = atom(
-  undefined,
-  async (_get, _set, input: AddStorageCaseInput) => {
-    const now = Date.now();
-    const caseId = createId();
-
-    const storageCase: StorageCase = {
-      id: caseId,
-      userId: input.userId,
-      name: input.name,
-      rows: input.rows,
-      cols: input.cols,
-      createdAt: now,
+type AddStorageCaseInput =
+  | {
+      readonly type: "grid";
+      readonly name: string;
+      readonly description: string | undefined;
+      readonly rows: number;
+      readonly cols: number;
+      readonly userId: string;
+    }
+  | {
+      readonly type: "unit";
+      readonly name: string;
+      readonly description: string | undefined;
+      readonly userId: string;
     };
 
-    const locations: readonly StorageLocation[] = Array.from(
-      { length: input.rows * input.cols },
-      (_, i) => {
+const buildLocations = ({
+  input,
+  caseId,
+  now,
+}: {
+  readonly input: AddStorageCaseInput;
+  readonly caseId: string;
+  readonly now: number;
+}): readonly StorageLocation[] =>
+  input.type === "unit"
+    ? [
+        {
+          id: createId(),
+          userId: input.userId,
+          caseId,
+          label: input.name,
+          customName: undefined,
+          description: undefined,
+          row: 0,
+          col: 0,
+          createdAt: now,
+        },
+      ]
+    : Array.from({ length: input.rows * input.cols }, (_, i) => {
         const row = Math.floor(i / input.cols);
         const col = i % input.cols;
         return {
@@ -85,12 +100,34 @@ export const addStorageCaseWithLocationsAtom = atom(
           userId: input.userId,
           caseId,
           label: generateLabel({ row, col }),
+          customName: undefined,
+          description: undefined,
           row,
           col,
           createdAt: now,
         };
-      },
-    );
+      });
+
+export const addStorageCaseWithLocationsAtom = atom(
+  undefined,
+  async (_get, _set, input: AddStorageCaseInput) => {
+    const now = Date.now();
+    const caseId = createId();
+    const rows = input.type === "unit" ? 1 : input.rows;
+    const cols = input.type === "unit" ? 1 : input.cols;
+
+    const storageCase: StorageCase = {
+      id: caseId,
+      userId: input.userId,
+      name: input.name,
+      type: input.type,
+      description: input.description,
+      rows,
+      cols,
+      createdAt: now,
+    };
+
+    const locations = buildLocations({ input, caseId, now });
 
     await db.storageCases.add(storageCase);
     await db.storageLocations.bulkAdd([...locations]);
@@ -109,6 +146,31 @@ export const updateStorageCaseAtom = atom(
     await db.syncQueue.add({
       type: SYNC_ACTION_TYPE.STORAGE_CASE_UPDATE,
       payload: storageCase,
+      createdAt: Date.now(),
+    });
+  },
+);
+
+export const updateStorageLocationAtom = atom(
+  undefined,
+  async (
+    _get,
+    _set,
+    input: {
+      readonly location: StorageLocation;
+      readonly customName: string | undefined;
+      readonly description: string | undefined;
+    },
+  ) => {
+    const updated: StorageLocation = {
+      ...input.location,
+      customName: input.customName,
+      description: input.description,
+    };
+    await db.storageLocations.put(updated);
+    await db.syncQueue.add({
+      type: SYNC_ACTION_TYPE.STORAGE_LOCATION_UPDATE,
+      payload: updated,
       createdAt: Date.now(),
     });
   },

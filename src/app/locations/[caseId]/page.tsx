@@ -9,9 +9,14 @@ import { t } from "@lingui/core/macro";
 import { storageCasesAtom, storageLocationsAtom } from "@/stores/locationAtoms";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { getConfidence } from "@/lib/confidence";
-import { CONFIDENCE_THRESHOLD, GARMENT_STATUS } from "@/lib/constants";
+import {
+  CONFIDENCE_THRESHOLD,
+  GARMENT_STATUS,
+  STORAGE_CASE_TYPE,
+} from "@/lib/constants";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import StorageGrid from "@/components/location/StorageGrid";
+import GarmentList from "@/components/garment/GarmentList";
 import Badge from "@/components/ui/Badge";
 import Skeleton from "@/components/ui/Skeleton";
 
@@ -51,24 +56,43 @@ const CaseDetailContent = () => {
       getConfidence(g) < CONFIDENCE_THRESHOLD.CONFIRMED,
   ).length;
 
+  const isUnit = storageCase.type === STORAGE_CASE_TYPE.UNIT;
+
   return (
     <>
+      {storageCase.description !== undefined && (
+        <p className="text-sm text-text-tertiary">{storageCase.description}</p>
+      )}
       <div className="flex items-center gap-2">
         <span className="text-sm text-text-tertiary">
-          <Trans>
-            {storageCase.rows}行 x {storageCase.cols}列
-          </Trans>
+          {isUnit ? (
+            <Trans>ボックス</Trans>
+          ) : (
+            <Trans>
+              {storageCase.rows}行 x {storageCase.cols}列
+            </Trans>
+          )}
         </span>
         <Badge>{t`${caseGarments.length}着`}</Badge>
         {needsReviewCount > 0 && (
           <Badge variant="uncertain">{t`${needsReviewCount}着 要確認`}</Badge>
         )}
       </div>
-      <StorageGrid
-        storageCase={storageCase}
-        locations={caseLocations}
-        garments={garments}
-      />
+      {isUnit ? (
+        caseGarments.length > 0 ? (
+          <GarmentList garments={caseGarments} />
+        ) : (
+          <p className="py-8 text-center text-sm text-text-tertiary">
+            <Trans>このボックスには服がありません</Trans>
+          </p>
+        )
+      ) : (
+        <StorageGrid
+          storageCase={storageCase}
+          locations={caseLocations}
+          garments={garments}
+        />
+      )}
     </>
   );
 };

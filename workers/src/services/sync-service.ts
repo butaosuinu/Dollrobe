@@ -23,13 +23,14 @@ const SYNC_TYPE_PRIORITY: ReadonlyMap<string, number> = new Map([
   ["storageCase:create", 0],
   ["storageCase:update", 1],
   ["storageLocation:create", 2],
-  ["doll:create", 3],
-  ["doll:update", 4],
-  ["garment:create", 5],
-  ["garment:update", 6],
-  ["garment:delete", 7],
-  ["doll:delete", 8],
-  ["storageCase:delete", 9],
+  ["storageLocation:update", 3],
+  ["doll:create", 4],
+  ["doll:update", 5],
+  ["garment:create", 6],
+  ["garment:update", 7],
+  ["garment:delete", 8],
+  ["doll:delete", 9],
+  ["storageCase:delete", 10],
 ]);
 
 const DEFAULT_PRIORITY = 100;

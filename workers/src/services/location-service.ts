@@ -46,6 +46,20 @@ export const getCase = async ({
   return serviceOk({ storageCase, locations });
 };
 
+type CreateCaseInput =
+  | {
+      readonly type: "grid";
+      readonly name: string;
+      readonly description: string | undefined;
+      readonly rows: number;
+      readonly cols: number;
+    }
+  | {
+      readonly type: "unit";
+      readonly name: string;
+      readonly description: string | undefined;
+    };
+
 export const createCase = async ({
   drizzleDb,
   userId,
@@ -53,18 +67,19 @@ export const createCase = async ({
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly userId: string;
-  readonly input: {
-    readonly name: string;
-    readonly rows: number;
-    readonly cols: number;
-  };
+  readonly input: CreateCaseInput;
 }): Promise<ServiceResult<{ readonly id: string }>> => {
+  const rows = input.type === "unit" ? 1 : input.rows;
+  const cols = input.type === "unit" ? 1 : input.cols;
+
   const id = await locationRepo.insertCaseWithLocations({
     drizzleDb,
     userId,
     name: input.name,
-    rows: input.rows,
-    cols: input.cols,
+    type: input.type,
+    description: input.description,
+    rows,
+    cols,
   });
   return serviceOk({ id });
 };
@@ -79,6 +94,7 @@ export const updateCase = async ({
   readonly input: {
     readonly id: string;
     readonly name: string;
+    readonly description: string | undefined;
   };
 }): Promise<ServiceResult<{ readonly id: string }>> => {
   const existing = await locationRepo.findCaseById({
@@ -90,11 +106,12 @@ export const updateCase = async ({
     return serviceError("NOT_FOUND", "ケースが見つかりません");
   }
 
-  await locationRepo.updateCaseName({
+  await locationRepo.updateCase({
     drizzleDb,
     id: input.id,
     userId,
     name: input.name,
+    description: input.description,
   });
   return serviceOk({ id: input.id });
 };
@@ -164,6 +181,38 @@ export const createLocation = async ({
     col: input.col,
   });
   return serviceOk({ id });
+};
+
+export const updateLocation = async ({
+  drizzleDb,
+  userId,
+  input,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly input: {
+    readonly id: string;
+    readonly customName: string | undefined;
+    readonly description: string | undefined;
+  };
+}): Promise<ServiceResult<{ readonly id: string }>> => {
+  const existing = await locationRepo.findLocationById({
+    drizzleDb,
+    id: input.id,
+    userId,
+  });
+  if (existing === undefined) {
+    return serviceError("NOT_FOUND", "ロケーションが見つかりません");
+  }
+
+  await locationRepo.updateLocation({
+    drizzleDb,
+    id: input.id,
+    userId,
+    customName: input.customName,
+    description: input.description,
+  });
+  return serviceOk({ id: input.id });
 };
 
 export const deleteLocation = async ({

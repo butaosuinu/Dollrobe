@@ -48,10 +48,14 @@ export type Garment = {
   readonly updatedAt: number;
 };
 
+export type StorageCaseType = "grid" | "unit";
+
 export type StorageCase = {
   readonly id: string;
   readonly userId: string;
   readonly name: string;
+  readonly type: StorageCaseType;
+  readonly description: string | undefined;
   readonly rows: number;
   readonly cols: number;
   readonly createdAt: number;
@@ -62,6 +66,8 @@ export type StorageLocation = {
   readonly userId: string;
   readonly caseId: string;
   readonly label: string;
+  readonly customName: string | undefined;
+  readonly description: string | undefined;
   readonly row: number;
   readonly col: number;
   readonly createdAt: number;
