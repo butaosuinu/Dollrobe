@@ -3,10 +3,10 @@ import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import NfcCapabilityBadge from "./NfcCapabilityBadge";
 
-const mockIsNfcSupported = vi.hoisted(() => vi.fn<() => boolean>());
+const mockNfcSupported = vi.hoisted(() => ({ value: false }));
 
-vi.mock("@/lib/nfc/capability", () => ({
-  isNfcSupported: mockIsNfcSupported,
+vi.mock("@/hooks/useNfcSupported", () => ({
+  useNfcSupported: () => mockNfcSupported.value,
 }));
 
 describe("NfcCapabilityBadge", () => {
@@ -15,14 +15,14 @@ describe("NfcCapabilityBadge", () => {
   });
 
   it("NFC 対応時に「NFC 対応」と表示される", async () => {
-    mockIsNfcSupported.mockReturnValue(true);
+    mockNfcSupported.value = true;
     await renderWithProviders(<NfcCapabilityBadge />);
 
     expect(screen.getByText("NFC 対応")).toBeInTheDocument();
   });
 
   it("NFC 非対応時に「NFC 非対応」と表示される", async () => {
-    mockIsNfcSupported.mockReturnValue(false);
+    mockNfcSupported.value = false;
     await renderWithProviders(<NfcCapabilityBadge />);
 
     expect(screen.getByText("NFC 非対応")).toBeInTheDocument();

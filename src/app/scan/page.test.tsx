@@ -12,6 +12,14 @@ const scanTrigger = vi.hoisted(
   }),
 );
 
+const nfcScanTrigger = vi.hoisted(
+  (): { onScan: ((data: string) => void) | undefined } => ({
+    onScan: undefined,
+  }),
+);
+
+const mockNfcSupported = vi.hoisted(() => ({ value: false }));
+
 vi.mock("@/components/scan/QrScanner", () => ({
   default: ({
     onScan,
@@ -24,6 +32,34 @@ vi.mock("@/components/scan/QrScanner", () => ({
   },
 }));
 
+vi.mock("@/hooks/useNfcSupported", () => ({
+  useNfcSupported: () => mockNfcSupported.value,
+}));
+
+vi.mock("@/hooks/useNfcReader", () => ({
+  useNfcReader: ({
+    onScan,
+  }: {
+    readonly onScan: (data: string) => void;
+    readonly isActive: boolean;
+  }) => {
+    nfcScanTrigger.onScan = onScan;
+    return { nfcState: { status: "scanning" } };
+  },
+}));
+
+vi.mock("@/components/scan/NfcReader", () => ({
+  default: ({
+    nfcState,
+  }: {
+    readonly nfcState: { readonly status: string };
+  }) => <div data-testid="nfc-reader" data-status={nfcState.status} />,
+}));
+
+vi.mock("@/components/scan/NfcCapabilityBadge", () => ({
+  default: () => <span data-testid="nfc-badge" />,
+}));
+
 const simulateScan = (data: string) => {
   act(() => {
     scanTrigger.onScan?.(data);
@@ -34,6 +70,8 @@ describe("ScanPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     scanTrigger.onScan = undefined;
+    nfcScanTrigger.onScan = undefined;
+    mockNfcSupported.value = false;
   });
 
   afterEach(() => {
@@ -232,6 +270,69 @@ describe("ScanPage", () => {
           expect(g.lastScannedAt).toBeGreaterThanOrEqual(FIXED_NOW),
         );
       });
+    });
+  });
+
+  describe("NFC 統合", () => {
+    it("タイトルが「スキャン」と表示される", async () => {
+      await renderWithProviders(<ScanPage />);
+
+      expect(screen.getByText("スキャン")).toBeInTheDocument();
+    });
+
+    it("NfcCapabilityBadge が常に表示される", async () => {
+      await renderWithProviders(<ScanPage />);
+
+      expect(screen.getByTestId("nfc-badge")).toBeInTheDocument();
+    });
+
+    it("NFC 対応デバイスで NfcReader が表示される", async () => {
+      mockNfcSupported.value = true;
+      await renderWithProviders(<ScanPage />);
+
+      expect(screen.getByTestId("qr-scanner")).toBeInTheDocument();
+      expect(screen.getByTestId("nfc-reader")).toBeInTheDocument();
+    });
+
+    it("NFC 非対応デバイスで NfcReader が非表示になる", async () => {
+      mockNfcSupported.value = false;
+      await renderWithProviders(<ScanPage />);
+
+      expect(screen.getByTestId("qr-scanner")).toBeInTheDocument();
+      expect(screen.queryByTestId("nfc-reader")).toBeNull();
+    });
+
+    it("NFC 経由で服スキャンが動作する", async () => {
+      mockNfcSupported.value = true;
+      testDb.storageLocation.create({ id: "loc-1", label: "A-1" });
+      testDb.garment.create({ id: "g-1", name: "赤いワンピース" });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<ScanPage />);
+
+      act(() => {
+        nfcScanTrigger.onScan?.("dwg://l/loc-1");
+      });
+      act(() => {
+        nfcScanTrigger.onScan?.("dwg://g/g-1");
+      });
+
+      expect(screen.getByText("赤いワンピース")).toBeInTheDocument();
+      expect(screen.getByText("1着をスキャンしました")).toBeInTheDocument();
+    });
+
+    it("NFC 経由で場所スキャンが動作する", async () => {
+      mockNfcSupported.value = true;
+      testDb.storageLocation.create({ id: "loc-1", label: "B-2" });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<ScanPage />);
+
+      act(() => {
+        nfcScanTrigger.onScan?.("dwg://l/loc-1");
+      });
+
+      expect(screen.getByText("場所を設定しました")).toBeInTheDocument();
     });
   });
 });

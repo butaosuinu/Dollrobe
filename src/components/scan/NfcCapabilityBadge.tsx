@@ -3,10 +3,10 @@
 import { Trans } from "@lingui/react/macro";
 import { Nfc } from "lucide-react";
 import Badge from "@/components/ui/Badge";
-import { isNfcSupported } from "@/lib/nfc/capability";
+import { useNfcSupported } from "@/hooks/useNfcSupported";
 
 const NfcCapabilityBadge = () => {
-  const supported = isNfcSupported();
+  const supported = useNfcSupported();
 
   return (
     <Badge variant={supported ? "confirmed" : "default"}>
