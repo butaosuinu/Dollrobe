@@ -20,9 +20,13 @@ import {
 import { storageLocationsAtom } from "@/stores/locationAtoms";
 import { QR_SCHEME } from "@/lib/constants";
 import { getItemsNeedingReview } from "@/lib/confidence";
+import { useNfcReader } from "@/hooks/useNfcReader";
+import { useNfcSupported } from "@/hooks/useNfcSupported";
 import QrScanner from "@/components/scan/QrScanner";
 import ScanResult from "@/components/scan/ScanResult";
 import ScanSessionPanel from "@/components/scan/ScanSessionPanel";
+import NfcCapabilityBadge from "@/components/scan/NfcCapabilityBadge";
+import NfcReader from "@/components/scan/NfcReader";
 import OpportunisticReviewDialog from "@/components/scan/OpportunisticReviewDialog";
 
 const ScanPage = () => {
@@ -37,6 +41,8 @@ const ScanPage = () => {
   const resetSession = useSetAtom(resetScanSessionAtom);
   const reviewDialogOpen = useAtomValue(reviewDialogOpenAtom);
   const setReviewDialogOpen = useSetAtom(reviewDialogOpenAtom);
+
+  const nfcSupported = useNfcSupported();
 
   const [lastScan, setLastScan] = useState<
     | { type: "garment" | "location"; name: string; subtitle?: string }
@@ -87,6 +93,11 @@ const ScanPage = () => {
     ],
   );
 
+  const { nfcState } = useNfcReader({
+    onScan: handleScan,
+    isActive: !reviewDialogOpen && nfcSupported,
+  });
+
   const handleConfirmAll = async () => {
     if (activeLocationId === undefined) return;
     await confirmAll(activeLocationId);
@@ -119,14 +130,20 @@ const ScanPage = () => {
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="animate-[fade-in_0.4s_ease-out]">
-        <h2 className="font-display text-xl font-bold">
-          <Trans>QRスキャン</Trans>
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-display text-xl font-bold">
+            <Trans>スキャン</Trans>
+          </h2>
+          <NfcCapabilityBadge />
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-8">
         <div className="lg:max-w-md lg:justify-self-center">
-          <QrScanner onScan={handleScan} isActive={!reviewDialogOpen} />
+          <div className="flex flex-col gap-3">
+            <QrScanner onScan={handleScan} isActive={!reviewDialogOpen} />
+            {nfcSupported && <NfcReader nfcState={nfcState} />}
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">

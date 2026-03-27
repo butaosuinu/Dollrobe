@@ -21,10 +21,10 @@ import { garmentsAtom } from "@/stores/garmentAtoms";
 import { storageCasesAtom, storageLocationsAtom } from "@/stores/locationAtoms";
 import {
   buildNfcScheme,
-  isNfcSupported,
   writeNfcTag,
   type NfcWriteResult,
 } from "@/lib/nfc/writer";
+import { useNfcSupported } from "@/hooks/useNfcSupported";
 
 type NfcWriteStep =
   | "select_type"
@@ -356,9 +356,10 @@ const useNfcWriteState = (): NfcWriteState => {
 };
 
 const NfcWriteContent = () => {
+  const nfcSupported = useNfcSupported();
   const state = useNfcWriteState();
 
-  if (!isNfcSupported()) {
+  if (!nfcSupported) {
     return <NfcUnsupported />;
   }
 
