@@ -143,6 +143,7 @@ export const BULK_CAPTURE = Object.freeze({
   MAX_COUNT: 30,
   CAPTURE_RESOLUTION: 1200,
   OUTPUT_FORMAT: "image/png",
+  FLASH_DURATION_MS: 150,
 });
 
 export const MIME_TO_EXTENSION = Object.freeze({

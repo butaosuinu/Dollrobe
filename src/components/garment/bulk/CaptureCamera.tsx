@@ -43,7 +43,7 @@ const CaptureCamera = () => {
       });
       navigator.vibrate?.(VIBRATION_DURATION_MS);
       setIsFlashing(true);
-      setTimeout(() => setIsFlashing(false), 150);
+      setTimeout(() => setIsFlashing(false), BULK_CAPTURE.FLASH_DURATION_MS);
     }
   }, [captureFrame, addItem]);
 

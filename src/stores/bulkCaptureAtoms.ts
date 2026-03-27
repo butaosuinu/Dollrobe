@@ -109,12 +109,11 @@ const uploadImage = async ({
     `${WORKERS_URL}/api/images/upload/${garmentId}`,
     { method: "POST", body: formData, credentials: "include" },
   ).catch(() => undefined);
-  return response?.ok === true
-    ? await response
-        .json()
-        .then((data: { readonly imageUrl: string }) => data.imageUrl)
-        .catch(() => undefined)
-    : undefined;
+  const data: { readonly imageUrl: string } | undefined =
+    response?.ok === true
+      ? await response.json().catch(() => undefined)
+      : undefined;
+  return data?.imageUrl;
 };
 
 const registerSingleItem = async ({
@@ -147,9 +146,9 @@ const registerSingleItem = async ({
     confidenceDecayDays: metadata.confidenceDecayDays,
     imageUrl,
     locationId: undefined,
-    status: GARMENT_STATUS.STORED,
+    status: GARMENT_STATUS.CHECKED_OUT,
     lastScannedAt: now,
-    checkedOutAt: undefined,
+    checkedOutAt: now,
     createdAt: now,
     updatedAt: now,
   } as const;
@@ -179,9 +178,15 @@ export const executeBulkRegistrationAtom = atom(undefined, async (get, set) => {
 
   const promises = items.map(async (item) => {
     const metadata = getMetadataForItem(metadataMap, item.captureId);
-    return await registerSingleItem({ item, metadata, userId }).catch(
+    const result = await registerSingleItem({ item, metadata, userId }).catch(
       () => false,
     );
+    set(bulkRegistrationStatusAtom, (prev) =>
+      prev.status === "registering"
+        ? { ...prev, completed: prev.completed + 1 }
+        : prev,
+    );
+    return result;
   });
 
   const results = await Promise.allSettled(promises);

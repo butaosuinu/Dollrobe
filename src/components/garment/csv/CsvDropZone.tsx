@@ -26,7 +26,7 @@ const CsvDropZone = ({ onFileLoaded }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
-    (file: File) => {
+    async (file: File) => {
       setError(undefined);
 
       const isCsv =
@@ -34,10 +34,12 @@ const CsvDropZone = ({ onFileLoaded }: Props) => {
       setError(isCsv ? undefined : "CSVファイルを選択してください");
 
       if (isCsv) {
-        file.text().then(
-          (text) => onFileLoaded(text),
-          () => setError("ファイルの読み込みに失敗しました"),
-        );
+        const text = await file.text().catch(() => undefined);
+        if (text === undefined) {
+          setError("ファイルの読み込みに失敗しました");
+          return;
+        }
+        onFileLoaded(text);
       }
     },
     [onFileLoaded],
