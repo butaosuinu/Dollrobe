@@ -8,6 +8,7 @@ export {
   garmentStatusSchema,
   createGarmentInputSchema,
   updateGarmentInputSchema,
+  bulkCreateGarmentInputSchema,
   listGarmentsInputSchema,
   createCaseInputSchema,
   updateCaseInputSchema,

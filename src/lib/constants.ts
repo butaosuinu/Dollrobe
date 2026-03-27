@@ -129,6 +129,28 @@ export const IMAGE_COMPRESSION = Object.freeze({
   OUTPUT_FORMAT: "image/png",
 });
 
+export const CSV_IMPORT = Object.freeze({
+  CHUNK_SIZE: 50,
+  PIPE_SEPARATOR: "|",
+  REQUIRED_HEADERS: ["name", "category", "dollSize"] as const,
+  ALL_HEADERS: [
+    "name",
+    "category",
+    "dollSize",
+    "colors",
+    "tags",
+    "brand",
+    "confidenceDecayDays",
+  ] as const,
+});
+
+export const BULK_CAPTURE = Object.freeze({
+  MAX_COUNT: 30,
+  CAPTURE_RESOLUTION: 1200,
+  OUTPUT_FORMAT: "image/png",
+  FLASH_DURATION_MS: 150,
+});
+
 export const MIME_TO_EXTENSION = Object.freeze({
   "image/jpeg": "jpg",
   "image/png": "png",

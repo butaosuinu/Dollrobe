@@ -126,3 +126,55 @@ export type Digest = {
   readonly generatedAt: number;
   readonly createdAt: number;
 };
+
+export type CsvRowValidationError = {
+  readonly row: number;
+  readonly field: string;
+  readonly message: string;
+};
+
+export type CsvParsedRow = {
+  readonly name: string;
+  readonly category: GarmentCategory;
+  readonly dollSize: DollSize;
+  readonly colors: readonly string[];
+  readonly tags: readonly string[];
+  readonly brand: string;
+  readonly confidenceDecayDays: number;
+};
+
+export type CsvValidationResult =
+  | { readonly ok: true; readonly data: CsvParsedRow }
+  | { readonly ok: false; readonly errors: readonly CsvRowValidationError[] };
+
+export type BulkCaptureItem = {
+  readonly captureId: string;
+  readonly blob: Blob;
+  readonly thumbnailUrl: string;
+  readonly capturedAt: number;
+};
+
+export type BulkCaptureMetadata = {
+  readonly captureId: string;
+  readonly name: string;
+  readonly category: GarmentCategory;
+  readonly dollSize: DollSize;
+  readonly colors: readonly string[];
+  readonly tags: readonly string[];
+  readonly brand: string;
+  readonly confidenceDecayDays: number;
+};
+
+export type BulkRegistrationStatus =
+  | { readonly status: "idle" }
+  | {
+      readonly status: "registering";
+      readonly completed: number;
+      readonly total: number;
+    }
+  | {
+      readonly status: "done";
+      readonly succeeded: number;
+      readonly failed: number;
+    }
+  | { readonly status: "error"; readonly message: string };

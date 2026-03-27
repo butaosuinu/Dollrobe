@@ -150,6 +150,21 @@ export const insertGarment = async ({
     .catch(wrapDbError({ context: "create garment", logger }));
 };
 
+export const insertGarmentsBatch = async ({
+  drizzleDb,
+  garmentRows,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly garmentRows: ReadonlyArray<typeof garments.$inferInsert>;
+  readonly logger: Logger;
+}): Promise<void> => {
+  await drizzleDb
+    .insert(garments)
+    .values([...garmentRows])
+    .catch(wrapDbError({ context: "bulk create garments", logger }));
+};
+
 type GarmentUpdatableFields = {
   readonly name?: string;
   readonly category?: string;
