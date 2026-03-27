@@ -26,6 +26,8 @@ const toDoll = (row: DollSelectRow): Doll => {
     name: row.name,
     headModel: row.headModel ?? undefined,
     bodySize: row.bodySize,
+    maker: row.maker ?? undefined,
+    customizer: row.customizer ?? undefined,
     imageUrl: row.imageUrl ?? undefined,
     memo: row.memo ?? undefined,
     createdAt: row.createdAt,
@@ -109,6 +111,8 @@ type DollUpdatableFields = {
   readonly name?: string;
   readonly headModel?: string;
   readonly bodySize?: string;
+  readonly maker?: string;
+  readonly customizer?: string;
   readonly imageUrl?: string;
   readonly memo?: string;
 };
@@ -117,6 +121,8 @@ const UPDATABLE_FIELD_KEYS = [
   "name",
   "headModel",
   "bodySize",
+  "maker",
+  "customizer",
   "imageUrl",
   "memo",
 ] as const;

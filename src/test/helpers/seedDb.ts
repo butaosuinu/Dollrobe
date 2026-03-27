@@ -11,6 +11,8 @@ const toDoll = (raw: ReturnType<typeof testDb.doll.getAll>[number]): Doll => ({
   name: raw.name,
   headModel: nullToUndefined(raw.headModel),
   bodySize: raw.bodySize,
+  maker: nullToUndefined(raw.maker),
+  customizer: nullToUndefined(raw.customizer),
   imageUrl: nullToUndefined(raw.imageUrl),
   memo: nullToUndefined(raw.memo),
   createdAt: raw.createdAt,

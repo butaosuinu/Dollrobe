@@ -83,6 +83,8 @@ export const dolls = sqliteTable(
     name: text("name").notNull(),
     headModel: text("head_model"),
     bodySize: text("body_size").notNull(),
+    maker: text("maker"),
+    customizer: text("customizer"),
     imageUrl: text("image_url"),
     memo: text("memo"),
     createdAt: integer("created_at").notNull(),

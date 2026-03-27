@@ -96,6 +96,8 @@ export type Doll = {
   readonly name: string;
   readonly headModel: string | undefined;
   readonly bodySize: DollSize;
+  readonly maker: string | undefined;
+  readonly customizer: string | undefined;
   readonly imageUrl: string | undefined;
   readonly memo: string | undefined;
   readonly createdAt: number;

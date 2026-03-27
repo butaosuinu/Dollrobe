@@ -179,6 +179,8 @@ export const createDollInputSchema = dollInsertSchema
   })
   .extend({
     headModel: z.string().max(MAX_NAME_LENGTH).optional(),
+    maker: z.string().max(MAX_NAME_LENGTH).optional(),
+    customizer: z.string().max(MAX_NAME_LENGTH).optional(),
     imageUrl: z.url().optional(),
     memo: z.string().max(DOLL_MEMO_MAX_LENGTH).optional(),
   });
@@ -189,6 +191,8 @@ export const updateDollInputSchema = z.object({
   name: z.string().min(1).max(MAX_NAME_LENGTH).optional(),
   headModel: z.string().max(MAX_NAME_LENGTH).optional(),
   bodySize: dollSizeSchema.optional(),
+  maker: z.string().max(MAX_NAME_LENGTH).optional(),
+  customizer: z.string().max(MAX_NAME_LENGTH).optional(),
   imageUrl: z.url().optional(),
   memo: z.string().max(DOLL_MEMO_MAX_LENGTH).optional(),
 });

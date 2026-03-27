@@ -141,6 +141,8 @@ const toClientDoll = (d: {
   readonly name: string;
   readonly headModel?: string | null;
   readonly bodySize: Doll["bodySize"];
+  readonly maker?: string | null;
+  readonly customizer?: string | null;
   readonly imageUrl?: string | null;
   readonly memo?: string | null;
   readonly createdAt: number;
@@ -151,6 +153,8 @@ const toClientDoll = (d: {
   name: d.name,
   headModel: d.headModel ?? undefined,
   bodySize: d.bodySize,
+  maker: d.maker ?? undefined,
+  customizer: d.customizer ?? undefined,
   imageUrl: d.imageUrl ?? undefined,
   memo: d.memo ?? undefined,
   createdAt: d.createdAt,

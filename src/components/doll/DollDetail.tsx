@@ -59,6 +59,24 @@ const DollDetail = ({ doll }: Props) => {
           </Card>
         )}
 
+        {doll.maker !== undefined && (
+          <Card>
+            <p className="mb-1 text-sm font-medium text-text-secondary">
+              <Trans>メーカー</Trans>
+            </p>
+            <Badge variant="primary">{doll.maker}</Badge>
+          </Card>
+        )}
+
+        {doll.customizer !== undefined && (
+          <Card>
+            <p className="mb-1 text-sm font-medium text-text-secondary">
+              <Trans>カスタマイザー</Trans>
+            </p>
+            <Badge variant="primary">{doll.customizer}</Badge>
+          </Card>
+        )}
+
         {doll.memo !== undefined && (
           <Card>
             <p className="mb-1 text-sm font-medium text-text-secondary">

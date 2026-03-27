@@ -30,6 +30,8 @@ export const createTestDoll = (overrides: Partial<Doll> = {}): Doll => ({
   name: "テストドール",
   headModel: undefined,
   bodySize: "SD",
+  maker: undefined,
+  customizer: undefined,
   imageUrl: undefined,
   memo: undefined,
   createdAt: FIXED_NOW,

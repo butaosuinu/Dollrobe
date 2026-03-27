@@ -27,6 +27,8 @@ type FormValues = {
   readonly name: string;
   readonly headModel: string;
   readonly bodySize: DollSize;
+  readonly maker: string;
+  readonly customizer: string;
   readonly memo: string;
   readonly imagePreview: string | undefined;
 };
@@ -35,6 +37,8 @@ const DEFAULT_FORM_VALUES: FormValues = {
   name: "",
   headModel: "",
   bodySize: "SD",
+  maker: "",
+  customizer: "",
   memo: "",
   imagePreview: undefined,
 };
@@ -47,6 +51,8 @@ const getInitialValues = (doll: Doll | undefined): FormValues => {
     name: doll.name,
     headModel: doll.headModel ?? "",
     bodySize: doll.bodySize,
+    maker: doll.maker ?? "",
+    customizer: doll.customizer ?? "",
     memo: doll.memo ?? "",
     imagePreview: doll.imageUrl ?? undefined,
   };
@@ -69,6 +75,8 @@ const DollForm = ({ doll }: Props) => {
   const [name, setName] = useState(initial.name);
   const [headModel, setHeadModel] = useState(initial.headModel);
   const [bodySize, setBodySize] = useState<DollSize>(initial.bodySize);
+  const [maker, setMaker] = useState(initial.maker);
+  const [customizer, setCustomizer] = useState(initial.customizer);
   const [memo, setMemo] = useState(initial.memo);
   const [imagePreview, setImagePreview] = useState<string | undefined>(
     initial.imagePreview,
@@ -115,6 +123,8 @@ const DollForm = ({ doll }: Props) => {
       name: name.trim(),
       headModel: headModel.trim() === "" ? undefined : headModel.trim(),
       bodySize,
+      maker: maker.trim() === "" ? undefined : maker.trim(),
+      customizer: customizer.trim() === "" ? undefined : customizer.trim(),
       memo: memo.trim() === "" ? undefined : memo.trim(),
     };
 
@@ -164,6 +174,22 @@ const DollForm = ({ doll }: Props) => {
         placeholder={t`DDH-01 等`}
         value={headModel}
         onChange={(e) => setHeadModel(e.target.value)}
+      />
+
+      <Input
+        label={t`メーカー`}
+        placeholder={t`ボークス、アゾン 等`}
+        value={maker}
+        onChange={(e) => setMaker(e.target.value)}
+        maxLength={DOLL_NAME_MAX_LENGTH}
+      />
+
+      <Input
+        label={t`カスタマイザー`}
+        placeholder={t`カスタムメイクの作者名`}
+        value={customizer}
+        onChange={(e) => setCustomizer(e.target.value)}
+        maxLength={DOLL_NAME_MAX_LENGTH}
       />
 
       <Select

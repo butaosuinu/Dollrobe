@@ -144,6 +144,8 @@ export const upsertDoll = async ({
         name: sql`excluded.name`,
         headModel: sql`excluded.head_model`,
         bodySize: sql`excluded.body_size`,
+        maker: sql`excluded.maker`,
+        customizer: sql`excluded.customizer`,
         imageUrl: sql`excluded.image_url`,
         memo: sql`excluded.memo`,
         updatedAt: sql`excluded.updated_at`,
