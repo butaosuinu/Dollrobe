@@ -47,7 +47,9 @@ const GarmentList = ({ garments }: Props) => {
               </p>
               <p className="text-xs text-text-tertiary">
                 {i18n._(GARMENT_CATEGORY_LABEL[garment.category])} ・{" "}
-                {i18n._(DOLL_SIZE_LABEL[garment.dollSize])}
+                {garment.dollSizes
+                  .map((size) => i18n._(DOLL_SIZE_LABEL[size]))
+                  .join(" / ")}
               </p>
             </div>
             <ConfidenceIndicator garment={garment} compact />

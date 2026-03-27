@@ -16,6 +16,7 @@ afterEach(async () => {
   resetTestDb();
 
   const { db } = await import("@/lib/db/dexie");
+  await db.dolls.clear();
   await db.garments.clear();
   await db.storageCases.clear();
   await db.storageLocations.clear();

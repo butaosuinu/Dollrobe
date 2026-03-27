@@ -23,7 +23,7 @@ export const upsertGarment = async ({
       set: {
         name: sql`excluded.name`,
         category: sql`excluded.category`,
-        dollSize: sql`excluded.doll_size`,
+        dollSizes: sql`excluded.doll_sizes`,
         colors: sql`excluded.colors`,
         tags: sql`excluded.tags`,
         imageUrl: sql`excluded.image_url`,

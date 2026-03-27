@@ -33,7 +33,7 @@ describe("sync router", () => {
               userId: TEMP_USER_ID,
               name: "テスト",
               category: "dress",
-              dollSize: "MSD",
+              dollSizes: ["MSD"],
               colors: [],
               tags: [],
               status: "stored",

@@ -63,19 +63,25 @@ describe("garmentRouter", () => {
       expect(result[0].name).toBe("取り出し中");
     });
 
-    it("dollSize フィルターが動作する", async () => {
+    it("dollSize フィルターが動作する（dollSizes 配列内検索）", async () => {
       await insertGarment({
         db,
-        overrides: { name: "MSD服", dollSize: "MSD" },
+        overrides: { name: "MSD服", dollSizes: ["MSD"] },
       });
       await insertGarment({
         db,
-        overrides: { name: "SD服", dollSize: "SD" },
+        overrides: { name: "SD服", dollSizes: ["SD"] },
+      });
+      await insertGarment({
+        db,
+        overrides: { name: "MSD+SD服", dollSizes: ["MSD", "SD"] },
       });
 
       const result = await caller.garment.list({ dollSize: "MSD" });
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe("MSD服");
+      expect(result).toHaveLength(2);
+      const names = result.map((g) => g.name);
+      expect(names).toContain("MSD服");
+      expect(names).toContain("MSD+SD服");
     });
 
     it("locationId フィルターが動作する", async () => {
@@ -107,7 +113,7 @@ describe("garmentRouter", () => {
         overrides: {
           name: "テストドレス",
           category: "dress",
-          dollSize: "MSD",
+          dollSizes: ["MSD"],
           colors: ["red", "blue"],
           tags: ["gothic"],
         },
@@ -117,7 +123,7 @@ describe("garmentRouter", () => {
       expect(result.id).toBe(id);
       expect(result.name).toBe("テストドレス");
       expect(result.category).toBe("dress");
-      expect(result.dollSize).toBe("MSD");
+      expect(result.dollSizes).toEqual(["MSD"]);
       expect(result.colors).toEqual(["red", "blue"]);
       expect(result.tags).toEqual(["gothic"]);
     });
@@ -140,7 +146,7 @@ describe("garmentRouter", () => {
       const result = await caller.garment.create({
         name: "新しいドレス",
         category: "dress",
-        dollSize: "MSD",
+        dollSizes: ["MSD"],
         locationId: locId,
       });
 
@@ -153,7 +159,7 @@ describe("garmentRouter", () => {
       const result = await caller.garment.create({
         name: "取り出し中ドレス",
         category: "dress",
-        dollSize: "MSD",
+        dollSizes: ["MSD"],
       });
 
       expect(result.status).toBe("checked_out");
@@ -165,7 +171,7 @@ describe("garmentRouter", () => {
       const result = await caller.garment.create({
         name: "デフォルト減衰",
         category: "tops",
-        dollSize: "SD",
+        dollSizes: ["SD"],
       });
 
       expect(result.confidenceDecayDays).toBe(30);
@@ -175,7 +181,7 @@ describe("garmentRouter", () => {
       const result = await caller.garment.create({
         name: "カラフルドレス",
         category: "dress",
-        dollSize: "MSD",
+        dollSizes: ["MSD"],
         colors: ["hsl(0,100%,50%)", "hsl(120,50%,50%)"],
         tags: ["lolita", "gothic"],
       });
@@ -188,13 +194,13 @@ describe("garmentRouter", () => {
       const created = await caller.garment.create({
         name: "取得テスト",
         category: "bottoms",
-        dollSize: "YoSD",
+        dollSizes: ["YoSD"],
       });
 
       const fetched = await caller.garment.get({ id: created.id });
       expect(fetched.name).toBe("取得テスト");
       expect(fetched.category).toBe("bottoms");
-      expect(fetched.dollSize).toBe("YoSD");
+      expect(fetched.dollSizes).toEqual(["YoSD"]);
     });
   });
 
@@ -216,19 +222,19 @@ describe("garmentRouter", () => {
     it("複数フィールドを同時に更新する", async () => {
       const { id } = await insertGarment({
         db,
-        overrides: { name: "元", category: "dress", dollSize: "MSD" },
+        overrides: { name: "元", category: "dress", dollSizes: ["MSD"] },
       });
 
       const result = await caller.garment.update({
         id,
         name: "更新後",
         category: "tops",
-        dollSize: "SD",
+        dollSizes: ["SD"],
       });
 
       expect(result.name).toBe("更新後");
       expect(result.category).toBe("tops");
-      expect(result.dollSize).toBe("SD");
+      expect(result.dollSizes).toEqual(["SD"]);
     });
 
     it("存在しない id で NOT_FOUND エラー", async () => {
@@ -243,7 +249,7 @@ describe("garmentRouter", () => {
         overrides: {
           name: "元の名前",
           category: "dress",
-          dollSize: "MSD",
+          dollSizes: ["MSD"],
           colors: ["red"],
         },
       });
@@ -255,7 +261,7 @@ describe("garmentRouter", () => {
 
       expect(result.name).toBe("新しい名前");
       expect(result.category).toBe("dress");
-      expect(result.dollSize).toBe("MSD");
+      expect(result.dollSizes).toEqual(["MSD"]);
       expect(result.colors).toEqual(["red"]);
     });
 

@@ -7,6 +7,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import clsx from "clsx";
 import { addGarmentAtom, updateGarmentAtom } from "@/stores/garmentAtoms";
 import { authSessionAtom } from "@/stores/authAtoms";
 import type { DollSize, Garment, GarmentCategory } from "@/types";
@@ -32,7 +33,7 @@ type Props = {
 type FormValues = {
   readonly name: string;
   readonly category: GarmentCategory;
-  readonly dollSize: DollSize;
+  readonly dollSizes: readonly DollSize[];
   readonly colors: readonly string[];
   readonly tags: readonly string[];
   readonly brand: string;
@@ -43,7 +44,7 @@ type FormValues = {
 const DEFAULT_FORM_VALUES: FormValues = {
   name: "",
   category: "tops",
-  dollSize: "SD",
+  dollSizes: ["SD"],
   colors: [],
   tags: [],
   brand: "",
@@ -58,7 +59,7 @@ const getInitialValues = (garment: Garment | undefined): FormValues => {
   return {
     name: garment.name,
     category: garment.category,
-    dollSize: garment.dollSize,
+    dollSizes: garment.dollSizes,
     colors: garment.colors,
     tags: garment.tags,
     brand: garment.brand ?? "",
@@ -89,7 +90,9 @@ const GarmentForm = ({ garment }: Props) => {
   const initial = getInitialValues(garment);
   const [name, setName] = useState(initial.name);
   const [category, setCategory] = useState<GarmentCategory>(initial.category);
-  const [dollSize, setDollSize] = useState<DollSize>(initial.dollSize);
+  const [dollSizes, setDollSizes] = useState<readonly DollSize[]>(
+    initial.dollSizes,
+  );
   const [colors, setColors] = useState<readonly string[]>(initial.colors);
   const [tags, setTags] = useState<readonly string[]>(initial.tags);
   const [brand, setBrand] = useState(initial.brand);
@@ -123,10 +126,20 @@ const GarmentForm = ({ garment }: Props) => {
   const isProcessing =
     uploadState.status === "compressing" || uploadState.status === "uploading";
 
+  const toggleDollSize = (size: DollSize) => {
+    setDollSizes((prev) =>
+      prev.includes(size)
+        ? prev.length > 1
+          ? prev.filter((s) => s !== size)
+          : prev
+        : [...prev, size],
+    );
+  };
+
   const collectFields = () => ({
     name: name.trim(),
     category,
-    dollSize,
+    dollSizes: [...dollSizes],
     colors: [...colors],
     tags: [...tags],
     brand: brand.trim() === "" ? undefined : brand.trim(),
@@ -202,16 +215,35 @@ const GarmentForm = ({ garment }: Props) => {
         }}
       />
 
-      <Select
-        label={t`ドールサイズ`}
-        options={sizeOptions}
-        value={dollSize}
-        onChange={(e) => {
-          if (isDollSize(e.target.value)) {
-            setDollSize(e.target.value);
-          }
-        }}
-      />
+      <fieldset>
+        <legend className="mb-1 text-sm font-medium text-text-secondary">
+          {t`ドールサイズ`}
+        </legend>
+        <div className="flex flex-wrap gap-2">
+          {sizeOptions.map(({ value, label }) => {
+            const selected = isDollSize(value) && dollSizes.includes(value);
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => {
+                  if (isDollSize(value)) {
+                    toggleDollSize(value);
+                  }
+                }}
+                className={clsx(
+                  "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                  selected
+                    ? "border-primary-500 bg-primary-500 text-text-inverse"
+                    : "border-border-default bg-surface-overlay text-text-secondary hover:bg-primary-50",
+                )}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <Input
         label={t`ブランド/メーカー`}

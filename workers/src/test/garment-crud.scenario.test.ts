@@ -24,7 +24,7 @@ describe("服 CRUD シナリオ", () => {
       expect(fetched.id).toBe(created.id);
       expect(fetched.name).toBe("テストドレス");
       expect(fetched.category).toBe("dress");
-      expect(fetched.dollSize).toBe("MSD");
+      expect(fetched.dollSizes).toEqual(["MSD"]);
       expect(fetched.colors).toEqual(["hsl(0,100%,50%)"]);
       expect(fetched.tags).toEqual(["test"]);
       expect(fetched.confidenceDecayDays).toBe(30);
@@ -79,18 +79,23 @@ describe("服 CRUD シナリオ", () => {
       expect(tops[0]!.name).toBe("トップスA");
     });
 
-    it("dollSize でフィルタリングできる", async () => {
+    it("dollSize でフィルタリングできる（dollSizes 配列内検索）", async () => {
       const caller = getCaller();
       await caller.garment.create(
-        createTestGarmentInput({ name: "MSD服", dollSize: "MSD" }),
+        createTestGarmentInput({ name: "MSD服", dollSizes: ["MSD"] }),
       );
       await caller.garment.create(
-        createTestGarmentInput({ name: "SD服", dollSize: "SD" }),
+        createTestGarmentInput({ name: "SD服", dollSizes: ["SD"] }),
+      );
+      await caller.garment.create(
+        createTestGarmentInput({ name: "MSD+SD服", dollSizes: ["MSD", "SD"] }),
       );
 
       const msdGarments = await caller.garment.list({ dollSize: "MSD" });
-      expect(msdGarments).toHaveLength(1);
-      expect(msdGarments[0]!.name).toBe("MSD服");
+      expect(msdGarments).toHaveLength(2);
+      const names = msdGarments.map((g) => g.name);
+      expect(names).toContain("MSD服");
+      expect(names).toContain("MSD+SD服");
     });
 
     it("status でフィルタリングできる", async () => {
@@ -140,7 +145,7 @@ describe("服 CRUD シナリオ", () => {
 
       expect(updated.name).toBe("更新後の名前");
       expect(updated.category).toBe("tops");
-      expect(updated.dollSize).toBe("MSD");
+      expect(updated.dollSizes).toEqual(["MSD"]);
 
       const fetched = await caller.garment.get({ id: created.id });
       expect(fetched.name).toBe("更新後の名前");

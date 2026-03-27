@@ -55,7 +55,9 @@ describe("GarmentForm", () => {
 
     expect(screen.getByLabelText("名前")).toBeInTheDocument();
     expect(screen.getByLabelText("カテゴリ")).toBeInTheDocument();
-    expect(screen.getByLabelText("ドールサイズ")).toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "ドールサイズ" }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("信頼度の減衰期間")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "登録する" }),
@@ -92,7 +94,7 @@ describe("GarmentForm", () => {
       expect(garments[0]?.id).toBe("test-cuid");
       expect(garments[0]?.userId).toBe("user-1");
       expect(garments[0]?.category).toBe("tops");
-      expect(garments[0]?.dollSize).toBe("SD");
+      expect(garments[0]?.dollSizes).toEqual(["SD"]);
       expect(garments[0]?.status).toBe("stored");
     });
     expect(mockRouter.push).toHaveBeenCalledWith("/garments");

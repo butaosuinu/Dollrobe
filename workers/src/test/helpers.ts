@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { createCallerFactory } from "../trpc/index";
 import { appRouter } from "../trpc/router";
 import type { TRPCContext } from "../trpc/index";
+import type { CreateGarmentInput } from "../db/validation";
 import { createLogger } from "../lib/logger";
 
 const createCaller = createCallerFactory(appRouter);
@@ -30,14 +31,15 @@ export const resetDatabase = async (db: D1Database) => {
   await db.exec("DELETE FROM storage_locations");
   await db.exec("DELETE FROM storage_cases");
   await db.exec("DELETE FROM coordinates");
+  await db.exec("DELETE FROM dolls");
 };
 
 export const createTestGarmentInput = (
-  overrides: Record<string, unknown> = {},
-) => ({
+  overrides: Partial<CreateGarmentInput> = {},
+): CreateGarmentInput => ({
   name: "テストドレス",
-  category: "dress" as const,
-  dollSize: "MSD" as const,
+  category: "dress",
+  dollSizes: ["MSD"],
   colors: ["hsl(0,100%,50%)"],
   tags: ["test"],
   confidenceDecayDays: 30,

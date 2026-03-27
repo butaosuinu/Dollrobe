@@ -13,6 +13,11 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. placeholder {0}: i18n._(DOLL_SIZE_LABEL[dollBodySize])
+#: src/components/doll/CompatibleGarmentList.tsx
+msgid "{0} サイズ対応の服を登録すると、ここに表示されます"
+msgstr ""
+
 #. placeholder {0}: caseGarments.length
 #. placeholder {0}: garments.length
 #: src/app/locations/[caseId]/page.tsx
@@ -30,6 +35,11 @@ msgstr ""
 #: src/components/dashboard/AlertPanel.tsx
 msgid "{0}着の服が3日以上取り出し中です"
 msgstr "{0}件衣服已取出超过3天"
+
+#. placeholder {0}: compatible.length
+#: src/components/doll/CompatibleGarmentList.tsx
+msgid "{0}着の服が着用可能"
+msgstr ""
 
 #. placeholder {0}: checkedOut.length
 #: src/components/dashboard/AlertPanel.tsx
@@ -77,6 +87,10 @@ msgstr "DD (~58cm)"
 #: src/lib/i18n-labels.ts
 msgid "DDdy (~58cm)"
 msgstr "DDdy (~58cm)"
+
+#: src/components/doll/DollForm.tsx
+msgid "DDH-01 等"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "DDP (~43.5cm)"
@@ -178,6 +192,7 @@ msgstr "外套"
 msgid "アクセサリー"
 msgstr "配饰"
 
+#: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
 #: src/components/garment/ImageUpload.tsx
 msgid "アップロード中..."
@@ -225,8 +240,13 @@ msgstr ""
 #: src/app/locations/page.tsx
 #: src/app/locations/page.tsx
 #: src/app/locations/page.tsx
+#: src/app/locations/page.tsx
 msgid "ケースを追加"
 msgstr "添加收纳箱"
+
+#: src/components/garment/LocationPicker.tsx
+msgid "ケース一覧"
+msgstr ""
 
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
@@ -258,7 +278,7 @@ msgstr ""
 msgid "シューズ"
 msgstr "鞋子"
 
-#: src/components/layout/BottomNav.tsx
+#: src/lib/nav-items.ts
 msgid "スキャン"
 msgstr "扫描"
 
@@ -318,9 +338,36 @@ msgstr "仪表盘"
 msgid "タップして確認する"
 msgstr ""
 
+#: src/lib/nav-items.ts
+msgid "ドール"
+msgstr ""
+
+#: src/app/dolls/[id]/edit/page.tsx
+#: src/app/dolls/[id]/page.tsx
+msgid "ドールが見つかりません"
+msgstr ""
+
 #: src/components/garment/GarmentForm.tsx
 msgid "ドールサイズ"
 msgstr "娃娃尺寸"
+
+#: src/components/doll/DollForm.tsx
+msgid "ドールの名前"
+msgstr ""
+
+#: src/app/dolls/new/page.tsx
+#: src/app/dolls/page.tsx
+#: src/app/dolls/page.tsx
+msgid "ドールを登録"
+msgstr ""
+
+#: src/app/dolls/[id]/edit/page.tsx
+msgid "ドールを編集"
+msgstr ""
+
+#: src/app/dolls/page.tsx
+msgid "ドール一覧"
+msgstr ""
 
 #: src/components/garment/GarmentForm.tsx
 msgid "ドール服の名前"
@@ -355,17 +402,30 @@ msgstr "预览"
 msgid "ページの読み込みに失敗しました"
 msgstr "页面加载失败"
 
+#: src/components/doll/DollDetail.tsx
+#: src/components/doll/DollForm.tsx
+msgid "ヘッド型番"
+msgstr ""
+
 #: src/components/garment/GarmentForm.tsx
 msgid "ボークス、アゾン等"
 msgstr "Volks、Azone等"
 
-#: src/components/layout/BottomNav.tsx
+#: src/lib/nav-items.ts
 msgid "ホーム"
 msgstr "首页"
+
+#: src/components/doll/DollForm.tsx
+msgid "ボディサイズ"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "ボトムス"
 msgstr "下装"
+
+#: src/app/dolls/page.tsx
+msgid "まだドールがいません"
+msgstr ""
 
 #: src/app/digest/page.tsx
 msgid "まだレポートがありません"
@@ -382,6 +442,11 @@ msgstr "尚无收纳位置"
 #: src/app/garments/page.tsx
 msgid "まだ服がありません"
 msgstr "尚无衣服"
+
+#: src/components/doll/DollDetail.tsx
+#: src/components/doll/DollForm.tsx
+msgid "メモ"
+msgstr ""
 
 #: src/app/nfc-write/page.tsx
 msgid "もう1枚書き込む"
@@ -404,7 +469,7 @@ msgid "ログアウト"
 msgstr "退出登录"
 
 #: src/app/garments/page.tsx
-#: src/components/layout/BottomNav.tsx
+#: src/lib/nav-items.ts
 msgid "ワードローブ"
 msgstr "衣柜"
 
@@ -420,6 +485,8 @@ msgstr "连衣裙(一体式)"
 msgid "一致する服が見つかりません"
 msgstr "未找到匹配的衣服"
 
+#: src/app/dolls/[id]/edit/page.tsx
+#: src/app/dolls/[id]/page.tsx
 #: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
 #: src/app/locations/[caseId]/page.tsx
@@ -463,8 +530,20 @@ msgstr "可信度衰减周期"
 msgid "個別確認"
 msgstr ""
 
+#: src/components/garment/LocationPicker.tsx
+msgid "先に収納場所を作成してください"
+msgstr ""
+
+#: src/app/garments/page.tsx
+msgid "全ドール"
+msgstr ""
+
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "全部ある"
+msgstr ""
+
+#: src/app/dolls/page.tsx
+msgid "最初のドールを登録してみましょう"
 msgstr ""
 
 #: src/app/garments/page.tsx
@@ -484,6 +563,7 @@ msgid "列数"
 msgstr ""
 
 #: src/app/locations/page.tsx
+#: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/location/StorageCaseCard.tsx
 msgid "削除"
@@ -497,7 +577,7 @@ msgstr "打印"
 msgid "印刷する QR コードが選択されていません"
 msgstr "未选择要打印的QR码"
 
-#: src/components/layout/BottomNav.tsx
+#: src/lib/nav-items.ts
 msgid "収納"
 msgstr "收纳"
 
@@ -510,9 +590,17 @@ msgstr "收纳中"
 msgid "収納場所"
 msgstr "收纳位置"
 
+#: src/components/garment/LocationPicker.tsx
+msgid "収納場所がありません"
+msgstr ""
+
 #: src/components/dashboard/AlertPanel.tsx
 msgid "収納場所を確認して状態を更新しましょう"
 msgstr "请确认收纳位置并更新状态"
+
+#: src/components/garment/LocationPicker.tsx
+msgid "収納場所を選択"
+msgstr ""
 
 #: src/components/garment/GarmentCard.tsx
 #: src/lib/i18n-labels.ts
@@ -527,6 +615,7 @@ msgstr "最旧优先"
 msgid "合計"
 msgstr "合计"
 
+#: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "名前"
 msgstr "名称"
@@ -543,9 +632,17 @@ msgstr ""
 msgid "場所のQRをスキャンして、収納場所を設定してください"
 msgstr "请扫描位置QR码以设置收纳位置"
 
+#: src/components/garment/GarmentLocationRow.tsx
+msgid "場所を設定"
+msgstr ""
+
 #: src/app/scan/page.tsx
 msgid "場所を設定しました"
 msgstr "位置已设置"
+
+#: src/components/garment/GarmentLocationRow.tsx
+msgid "変更"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "季節物 (90日)"
@@ -577,6 +674,7 @@ msgstr ""
 msgid "既読済み"
 msgstr ""
 
+#: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "更新する"
 msgstr ""
@@ -620,6 +718,7 @@ msgstr "未找到衣服"
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
+#: src/app/garments/page.tsx
 msgid "服を登録"
 msgstr "登记衣服"
 
@@ -631,6 +730,14 @@ msgstr ""
 msgid "未読"
 msgstr ""
 
+#: src/components/garment/GarmentLocationRow.tsx
+msgid "未配置"
+msgstr ""
+
+#: src/components/garment/LocationPicker.tsx
+msgid "未配置にする"
+msgstr ""
+
 #: src/app/nfc-write/page.tsx
 msgid "次へ"
 msgstr ""
@@ -639,6 +746,7 @@ msgstr ""
 msgid "毎週月曜日に自動生成されます"
 msgstr ""
 
+#: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "登録する"
 msgstr "登记"
@@ -646,6 +754,14 @@ msgstr "登记"
 #: src/components/confidence/ConfidenceStats.tsx
 msgid "着"
 msgstr "件"
+
+#: src/app/dolls/[id]/page.tsx
+msgid "着用可能な服"
+msgstr ""
+
+#: src/components/doll/CompatibleGarmentList.tsx
+msgid "着用可能な服がありません"
+msgstr ""
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts
@@ -670,10 +786,15 @@ msgstr ""
 msgid "紛失"
 msgstr "丢失"
 
+#: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/location/StorageCaseCard.tsx
 msgid "編集"
 msgstr "编辑"
+
+#: src/components/doll/DollForm.tsx
+msgid "自由にメモを入力..."
+msgstr ""
 
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -703,11 +824,16 @@ msgstr ""
 msgid "言語"
 msgstr ""
 
+#: src/app/dolls/[id]/page.tsx
 #: src/app/garments/[id]/page.tsx
 msgid "詳細"
 msgstr "详情"
 
 #: src/app/digest/page.tsx
+#: src/app/dolls/[id]/edit/page.tsx
+#: src/app/dolls/[id]/page.tsx
+#: src/app/dolls/[id]/page.tsx
+#: src/app/dolls/page.tsx
 #: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
 #: src/app/garments/page.tsx

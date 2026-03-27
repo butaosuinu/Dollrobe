@@ -9,7 +9,9 @@ export const garments = sqliteTable(
     userId: text("user_id").notNull(),
     name: text("name").notNull(),
     category: text("category").notNull(),
-    dollSize: text("doll_size").notNull(),
+    dollSizes: jsonArrayColumn("doll_sizes")
+      .notNull()
+      .default(sql`'[]'`),
     colors: jsonArrayColumn("colors")
       .notNull()
       .default(sql`'[]'`),
@@ -72,6 +74,22 @@ export const coordinates = sqliteTable("coordinates", {
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
 });
+
+export const dolls = sqliteTable(
+  "dolls",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    name: text("name").notNull(),
+    headModel: text("head_model"),
+    bodySize: text("body_size").notNull(),
+    imageUrl: text("image_url"),
+    memo: text("memo"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [index("idx_dolls_user_id").on(table.userId)],
+);
 
 export const digests = sqliteTable(
   "digests",

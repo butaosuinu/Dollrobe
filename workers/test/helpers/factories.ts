@@ -8,7 +8,7 @@ type InsertGarmentParams = {
     readonly id: string;
     readonly name: string;
     readonly category: string;
-    readonly dollSize: string;
+    readonly dollSizes: readonly string[];
     readonly colors: readonly string[];
     readonly tags: readonly string[];
     readonly imageUrl: string;
@@ -30,7 +30,7 @@ export const insertGarment = async ({
 
   await db
     .prepare(
-      `INSERT INTO garments (id, user_id, name, category, doll_size, colors, tags, image_url, location_id, brand, status, last_scanned_at, confidence_decay_days, checked_out_at, created_at, updated_at)
+      `INSERT INTO garments (id, user_id, name, category, doll_sizes, colors, tags, image_url, location_id, brand, status, last_scanned_at, confidence_decay_days, checked_out_at, created_at, updated_at)
        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)`,
     )
     .bind(
@@ -38,7 +38,7 @@ export const insertGarment = async ({
       TEMP_USER_ID,
       overrides.name ?? "テストドレス",
       overrides.category ?? "dress",
-      overrides.dollSize ?? "MSD",
+      JSON.stringify(overrides.dollSizes ?? ["MSD"]),
       JSON.stringify(overrides.colors ?? []),
       JSON.stringify(overrides.tags ?? []),
       overrides.imageUrl ?? null,

@@ -39,9 +39,14 @@ export const SYNC_ACTION_TYPE = Object.freeze({
   STORAGE_CASE_UPDATE: "storageCase:update",
   STORAGE_CASE_DELETE: "storageCase:delete",
   STORAGE_LOCATION_CREATE: "storageLocation:create",
+  DOLL_CREATE: "doll:create",
+  DOLL_UPDATE: "doll:update",
+  DOLL_DELETE: "doll:delete",
 });
 
 export const CASE_NAME_MAX_LENGTH = 100;
+export const DOLL_NAME_MAX_LENGTH = 100;
+export const DOLL_MEMO_MAX_LENGTH = 500;
 export const GRID_SIZE_MIN = 1;
 export const GRID_SIZE_MAX = 20;
 

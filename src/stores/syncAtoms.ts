@@ -102,7 +102,7 @@ const toClientGarment = (g: {
   readonly userId: string;
   readonly name: string;
   readonly category: Garment["category"];
-  readonly dollSize: Garment["dollSize"];
+  readonly dollSizes: Garment["dollSizes"];
   readonly colors: readonly string[];
   readonly tags: readonly string[];
   readonly imageUrl?: string | null;
@@ -119,7 +119,7 @@ const toClientGarment = (g: {
   userId: g.userId,
   name: g.name,
   category: g.category,
-  dollSize: g.dollSize,
+  dollSizes: g.dollSizes,
   colors: g.colors,
   tags: g.tags,
   imageUrl: g.imageUrl ?? undefined,

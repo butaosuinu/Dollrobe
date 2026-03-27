@@ -47,7 +47,9 @@ const GarmentCard = ({ garment }: Props) => {
         </p>
         <p className="mt-0.5 text-xs text-text-tertiary">
           {i18n._(GARMENT_CATEGORY_LABEL[garment.category])} ・{" "}
-          {i18n._(DOLL_SIZE_LABEL[garment.dollSize])}
+          {garment.dollSizes
+            .map((size) => i18n._(DOLL_SIZE_LABEL[size]))
+            .join(" / ")}
         </p>
         <div className="mt-2">
           <ConfidenceIndicator garment={garment} compact />

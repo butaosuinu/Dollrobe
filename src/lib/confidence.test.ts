@@ -14,7 +14,7 @@ const createGarment = (overrides: Partial<Garment> = {}): Garment => ({
   userId: "u1",
   name: "テストドレス",
   category: "dress",
-  dollSize: "SD",
+  dollSizes: ["SD"],
   colors: [],
   tags: [],
   imageUrl: undefined,

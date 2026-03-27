@@ -3,13 +3,15 @@
 import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { Plus, Search, Shirt } from "lucide-react";
 import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { msg, t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { garmentsAtom } from "@/stores/garmentAtoms";
+import { dollsAtom, selectedDollIdAtom } from "@/stores/dollAtoms";
+import { canDollWear } from "@/lib/doll-compatibility";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_CATEGORIES } from "@/lib/constants";
 import {
@@ -52,6 +54,9 @@ const GarmentListContent = () => {
   const router = useRouter();
   const { i18n } = useLingui();
   const garments = useAtomValue(garmentsAtom);
+  const dolls = useAtomValue(dollsAtom);
+  const [selectedDollId, setSelectedDollId] = useAtom(selectedDollIdAtom);
+  const selectedDoll = dolls.find((d) => d.id === selectedDollId);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<GarmentCategory | "all">(
@@ -74,11 +79,26 @@ const GarmentListContent = () => {
       const matchesConfidence =
         confidenceFilter === "all" ||
         getConfidenceLabel(getConfidence(g)) === confidenceFilter;
-      return matchesCategory && matchesSearch && matchesConfidence;
+      const matchesDoll =
+        selectedDoll === undefined ||
+        canDollWear({
+          dollBodySize: selectedDoll.bodySize,
+          garmentSizes: g.dollSizes,
+        });
+      return (
+        matchesCategory && matchesSearch && matchesConfidence && matchesDoll
+      );
     });
 
     return [...filtered].sort(GARMENT_COMPARATORS[sortOption]);
-  }, [garments, searchQuery, activeCategory, confidenceFilter, sortOption]);
+  }, [
+    garments,
+    searchQuery,
+    activeCategory,
+    confidenceFilter,
+    sortOption,
+    selectedDoll,
+  ]);
 
   if (garments.length === 0) {
     return (
@@ -160,6 +180,36 @@ const GarmentListContent = () => {
           </button>
         ))}
       </div>
+
+      {dolls.length > 0 && (
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
+          <button
+            onClick={() => setSelectedDollId(undefined)}
+            className={clsx(
+              "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+              selectedDollId === undefined
+                ? "bg-primary-500 text-text-inverse"
+                : "bg-surface-overlay text-text-secondary border border-border-default hover:bg-primary-50",
+            )}
+          >
+            {t`全ドール`}
+          </button>
+          {dolls.map((doll) => (
+            <button
+              key={doll.id}
+              onClick={() => setSelectedDollId(doll.id)}
+              className={clsx(
+                "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                selectedDollId === doll.id
+                  ? "bg-primary-500 text-text-inverse"
+                  : "bg-surface-overlay text-text-secondary border border-border-default hover:bg-primary-50",
+              )}
+            >
+              {doll.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {filteredGarments.length === 0 ? (
         <p className="py-12 text-center text-sm text-text-tertiary">

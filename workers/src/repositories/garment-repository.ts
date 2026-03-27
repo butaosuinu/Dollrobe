@@ -5,7 +5,7 @@ import type {
   GarmentStatus,
 } from "@/types";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import {
   GARMENT_CATEGORIES,
   DOLL_SIZES,
@@ -35,12 +35,7 @@ const toGarment = (row: GarmentSelectRow): Garment => {
     });
   }
 
-  if (!isDollSize(row.dollSize)) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: `Invalid doll_size: ${row.dollSize}`,
-    });
-  }
+  const validDollSizes = row.dollSizes.filter(isDollSize);
 
   if (!isGarmentStatus(row.status)) {
     throw new TRPCError({
@@ -54,7 +49,7 @@ const toGarment = (row: GarmentSelectRow): Garment => {
     userId: row.userId,
     name: row.name,
     category: row.category,
-    dollSize: row.dollSize,
+    dollSizes: validDollSizes,
     colors: row.colors,
     tags: row.tags,
     imageUrl: row.imageUrl ?? undefined,
@@ -96,7 +91,9 @@ export const findGarments = async ({
       ? [eq(garments.status, filters.status)]
       : []),
     ...(filters.dollSize !== undefined
-      ? [eq(garments.dollSize, filters.dollSize)]
+      ? [
+          sql`EXISTS (SELECT 1 FROM json_each(${garments.dollSizes}) WHERE value = ${filters.dollSize})`,
+        ]
       : []),
     ...(filters.locationId !== undefined
       ? [eq(garments.locationId, filters.locationId)]
@@ -156,7 +153,7 @@ export const insertGarment = async ({
 type GarmentUpdatableFields = {
   readonly name?: string;
   readonly category?: string;
-  readonly dollSize?: string;
+  readonly dollSizes?: readonly string[];
   readonly colors?: readonly string[];
   readonly tags?: readonly string[];
   readonly imageUrl?: string;
@@ -168,7 +165,7 @@ type GarmentUpdatableFields = {
 const UPDATABLE_FIELD_KEYS = [
   "name",
   "category",
-  "dollSize",
+  "dollSizes",
   "colors",
   "tags",
   "imageUrl",

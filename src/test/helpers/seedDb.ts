@@ -1,9 +1,21 @@
 import { db } from "@/lib/db/dexie";
 import { testDb } from "@/test/mocks/db";
-import type { Garment, StorageCase, StorageLocation } from "@/types";
+import type { Doll, Garment, StorageCase, StorageLocation } from "@/types";
 
 const nullToUndefined = <T>(value: T | null): T | undefined =>
   value ?? undefined;
+
+const toDoll = (raw: ReturnType<typeof testDb.doll.getAll>[number]): Doll => ({
+  id: raw.id,
+  userId: raw.userId,
+  name: raw.name,
+  headModel: nullToUndefined(raw.headModel),
+  bodySize: raw.bodySize,
+  imageUrl: nullToUndefined(raw.imageUrl),
+  memo: nullToUndefined(raw.memo),
+  createdAt: raw.createdAt,
+  updatedAt: raw.updatedAt,
+});
 
 const toGarment = (
   raw: ReturnType<typeof testDb.garment.getAll>[number],
@@ -39,10 +51,12 @@ const toStorageLocation = (
 });
 
 export const seedDbFromTestDb = async (): Promise<void> => {
+  const dolls = testDb.doll.getAll().map(toDoll);
   const garments = testDb.garment.getAll().map(toGarment);
   const cases = testDb.storageCase.getAll().map(toStorageCase);
   const locations = testDb.storageLocation.getAll().map(toStorageLocation);
 
+  if (dolls.length > 0) await db.dolls.bulkAdd([...dolls]);
   if (garments.length > 0) await db.garments.bulkAdd([...garments]);
   if (cases.length > 0) await db.storageCases.bulkAdd([...cases]);
   if (locations.length > 0) await db.storageLocations.bulkAdd([...locations]);

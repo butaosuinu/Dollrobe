@@ -15,7 +15,7 @@ const createGarmentPayload = (overrides: Record<string, unknown> = {}) => {
     userId: TEMP_USER_ID,
     name: "テスト服",
     category: "dress",
-    dollSize: "MSD",
+    dollSizes: ["MSD"],
     colors: ["hsl(0,100%,50%)"],
     tags: ["test"],
     status: "stored",
