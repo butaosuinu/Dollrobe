@@ -21,7 +21,7 @@ import StorageCaseEditForm from "@/components/location/StorageCaseEditForm";
 import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
 import BottomSheet from "@/components/ui/BottomSheet";
-import Button from "@/components/ui/Button";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 
 const TEMP_USER_ID = "user-1";
 
@@ -134,34 +134,19 @@ const LocationsContent = () => {
         )}
       </BottomSheet>
 
-      <BottomSheet
+      <ConfirmSheet
         isOpen={deletingCase !== undefined}
         onClose={() => setDeletingCase(undefined)}
+        onConfirm={handleDelete}
         title={t`ケースを削除`}
-      >
-        {deletingCase !== undefined && (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-text-secondary">
-              <Trans>
-                「{deletingCase.name}」を削除しますか？
-                ケース内の服は「取り出し中」になります。
-              </Trans>
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => setDeletingCase(undefined)}
-              >
-                <Trans>キャンセル</Trans>
-              </Button>
-              <Button variant="danger" fullWidth onClick={handleDelete}>
-                <Trans>削除</Trans>
-              </Button>
-            </div>
-          </div>
-        )}
-      </BottomSheet>
+        message={
+          deletingCase !== undefined
+            ? t`「${deletingCase.name}」を削除しますか？ケース内の服は「取り出し中」になります。`
+            : ""
+        }
+        confirmLabel={t`削除`}
+        confirmVariant="danger"
+      />
     </>
   );
 };

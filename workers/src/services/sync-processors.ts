@@ -49,6 +49,7 @@ const garmentPayloadSchema = z.preprocess(
     checkedOutAt: z.number().optional(),
     createdAt: z.number(),
     updatedAt: z.number(),
+    archivedAt: z.number().optional(),
   }),
 );
 
@@ -92,6 +93,7 @@ const dollPayloadSchema = z.object({
   memo: z.string().optional(),
   createdAt: z.number(),
   updatedAt: z.number(),
+  archivedAt: z.number().optional(),
 });
 
 const toGarmentInsertValues = ({
@@ -115,6 +117,7 @@ const toGarmentInsertValues = ({
   confidenceDecayDays: parsed.confidenceDecayDays,
   brand: parsed.brand ?? null,
   checkedOutAt: parsed.checkedOutAt ?? null,
+  archivedAt: parsed.archivedAt ?? null,
   createdAt: parsed.createdAt,
   updatedAt: parsed.updatedAt,
 });
@@ -166,6 +169,7 @@ const toDollInsertValues = ({
   customizer: parsed.customizer ?? null,
   imageUrl: parsed.imageUrl ?? null,
   memo: parsed.memo ?? null,
+  archivedAt: parsed.archivedAt ?? null,
   createdAt: parsed.createdAt,
   updatedAt: parsed.updatedAt,
 });

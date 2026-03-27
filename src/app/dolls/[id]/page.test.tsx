@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
@@ -96,19 +96,20 @@ describe("DollDetailPage", () => {
     expect(screen.getByText("一覧に戻る")).toBeInTheDocument();
   });
 
-  it("削除ボタンでドールを削除しナビゲーションする", async () => {
+  it("アーカイブボタンで確認後にナビゲーションする", async () => {
     testDb.doll.create({ id: "doll-1", name: "リナ" });
     await seedDbFromTestDb();
 
     await renderWithProviders(<DollDetailPage />);
 
-    fireEvent.click(screen.getByText("削除"));
+    fireEvent.click(screen.getByText("アーカイブ"));
 
-    const { db } = await import("@/lib/db/dexie");
-    await waitFor(async () => {
-      const doll = await db.dolls.get("doll-1");
-      expect(doll).toBeUndefined();
+    const dialog = screen.getByRole("dialog");
+    const confirmButton = within(dialog).getByRole("button", {
+      name: "アーカイブ",
     });
+    fireEvent.click(confirmButton);
+
     await waitFor(() => {
       expect(mockRouter.push).toHaveBeenCalledWith("/dolls");
     });

@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
-import { Shirt, Trash2, Edit3, QrCode } from "lucide-react";
+import { Shirt, Archive, RotateCcw, Trash2, Edit3, QrCode } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import type { Garment } from "@/types";
 import { GARMENT_STATUS } from "@/lib/constants";
@@ -12,12 +14,14 @@ import {
   DOLL_SIZE_LABEL,
   GARMENT_STATUS_LABEL,
 } from "@/lib/i18n-labels";
-import { deleteGarmentAtom } from "@/stores/garmentAtoms";
+import { deleteGarmentAtom, restoreGarmentAtom } from "@/stores/garmentAtoms";
+import { requestArchiveAtom } from "@/stores/pendingArchiveAtoms";
 import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
 import GarmentLocationRow from "@/components/garment/GarmentLocationRow";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 
 type Props = {
   readonly garment: Garment;
@@ -27,10 +31,25 @@ const GarmentDetail = ({ garment }: Props) => {
   const { i18n } = useLingui();
   const router = useRouter();
   const deleteGarment = useSetAtom(deleteGarmentAtom);
+  const restoreGarment = useSetAtom(restoreGarmentAtom);
+  const requestArchive = useSetAtom(requestArchiveAtom);
+  const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const isArchived = garment.archivedAt !== undefined;
 
-  const handleDelete = async () => {
-    await deleteGarment(garment.id);
+  const handleArchive = () => {
+    requestArchive({ id: garment.id, entityType: "garment" });
     router.push("/garments");
+  };
+
+  const handleRestore = async () => {
+    await restoreGarment(garment.id);
+    router.push("/garments");
+  };
+
+  const handlePermanentDelete = async () => {
+    await deleteGarment(garment.id);
+    router.push("/archive");
   };
 
   return (
@@ -124,36 +143,82 @@ const GarmentDetail = ({ garment }: Props) => {
           </Card>
         )}
 
-        <div className="flex flex-col gap-2 pt-2 lg:flex-row">
-          <Button
-            variant="secondary"
-            size="lg"
-            fullWidth
-            onClick={() => router.push(`/garments/${garment.id}/edit`)}
-          >
-            <Edit3 className="size-4" />
-            <Trans>編集</Trans>
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
-            fullWidth
-            onClick={() => {
-              const params = new URLSearchParams();
-              params.set("type", "garment");
-              params.append("ids", garment.id);
-              params.append("names", garment.name);
-              router.push(`/print?${params.toString()}`);
-            }}
-          >
-            <QrCode className="size-4" />
-            <Trans>QRを印刷</Trans>
-          </Button>
-          <Button variant="danger" size="lg" fullWidth onClick={handleDelete}>
-            <Trash2 className="size-4" />
-            <Trans>削除</Trans>
-          </Button>
-        </div>
+        {isArchived ? (
+          <div className="flex flex-col gap-2 pt-2 lg:flex-row">
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={handleRestore}
+            >
+              <RotateCcw className="size-4" />
+              <Trans>復元</Trans>
+            </Button>
+            <Button
+              variant="danger"
+              size="lg"
+              fullWidth
+              onClick={() => setIsDeleteConfirmOpen(true)}
+            >
+              <Trash2 className="size-4" />
+              <Trans>完全に削除</Trans>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 pt-2 lg:flex-row">
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              onClick={() => router.push(`/garments/${garment.id}/edit`)}
+            >
+              <Edit3 className="size-4" />
+              <Trans>編集</Trans>
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              onClick={() => {
+                const params = new URLSearchParams();
+                params.set("type", "garment");
+                params.append("ids", garment.id);
+                params.append("names", garment.name);
+                router.push(`/print?${params.toString()}`);
+              }}
+            >
+              <QrCode className="size-4" />
+              <Trans>QRを印刷</Trans>
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              onClick={() => setIsArchiveConfirmOpen(true)}
+            >
+              <Archive className="size-4" />
+              <Trans>アーカイブ</Trans>
+            </Button>
+          </div>
+        )}
+
+        <ConfirmSheet
+          isOpen={isArchiveConfirmOpen}
+          onClose={() => setIsArchiveConfirmOpen(false)}
+          onConfirm={handleArchive}
+          title={t`アーカイブ`}
+          message={t`「${garment.name}」をアーカイブしますか？`}
+          confirmLabel={t`アーカイブ`}
+        />
+        <ConfirmSheet
+          isOpen={isDeleteConfirmOpen}
+          onClose={() => setIsDeleteConfirmOpen(false)}
+          onConfirm={handlePermanentDelete}
+          title={t`完全に削除`}
+          message={t`「${garment.name}」を完全に削除しますか？この操作は取り消せません。`}
+          confirmLabel={t`削除`}
+          confirmVariant="danger"
+        />
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ const toDoll = (raw: ReturnType<typeof testDb.doll.getAll>[number]): Doll => ({
   customizer: nullToUndefined(raw.customizer),
   imageUrl: nullToUndefined(raw.imageUrl),
   memo: nullToUndefined(raw.memo),
+  archivedAt: nullToUndefined(raw.archivedAt),
   createdAt: raw.createdAt,
   updatedAt: raw.updatedAt,
 });
@@ -27,6 +28,7 @@ const toGarment = (
   locationId: nullToUndefined(raw.locationId),
   brand: nullToUndefined(raw.brand),
   checkedOutAt: nullToUndefined(raw.checkedOutAt),
+  archivedAt: nullToUndefined(raw.archivedAt),
 });
 
 const toStorageCase = (

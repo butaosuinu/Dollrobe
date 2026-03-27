@@ -92,6 +92,22 @@ class DollWardrobeDB extends Dexie {
           });
         /* eslint-enable functional/immutable-data */
       });
+    this.version(5).stores({
+      garments: "id, userId, locationId, status, category, archivedAt",
+      storageCases: "id, userId",
+      storageLocations: "id, userId, caseId",
+      coordinates: "id, userId",
+      syncQueue: "++id, type, createdAt",
+      dolls: "id, userId, bodySize",
+    });
+    this.version(6).stores({
+      garments: "id, userId, locationId, status, category, archivedAt",
+      storageCases: "id, userId",
+      storageLocations: "id, userId, caseId",
+      coordinates: "id, userId",
+      syncQueue: "++id, type, createdAt",
+      dolls: "id, userId, bodySize, archivedAt",
+    });
   }
 }
 

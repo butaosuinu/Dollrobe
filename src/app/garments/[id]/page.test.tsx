@@ -98,19 +98,20 @@ describe("GarmentDetailPage", () => {
     expect(screen.getByText("一覧に戻る")).toBeInTheDocument();
   });
 
-  it("削除ボタンで服を削除しナビゲーションする", async () => {
+  it("アーカイブボタンで確認後にナビゲーションする", async () => {
     testDb.garment.create({ id: "garment-1", name: "白いドレス" });
     await seedDbFromTestDb();
 
     await renderWithProviders(<GarmentDetailPage />);
 
-    fireEvent.click(screen.getByText("削除"));
+    fireEvent.click(screen.getByText("アーカイブ"));
 
-    const { db } = await import("@/lib/db/dexie");
-    await waitFor(async () => {
-      const garment = await db.garments.get("garment-1");
-      expect(garment).toBeUndefined();
+    const dialog = screen.getByRole("dialog");
+    const confirmButton = within(dialog).getByRole("button", {
+      name: "アーカイブ",
     });
+    fireEvent.click(confirmButton);
+
     await waitFor(() => {
       expect(mockRouter.push).toHaveBeenCalledWith("/garments");
     });

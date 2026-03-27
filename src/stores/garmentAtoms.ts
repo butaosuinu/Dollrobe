@@ -54,6 +54,23 @@ export const deleteGarmentAtom = atom(
   },
 );
 
+export const restoreGarmentAtom = atom(
+  undefined,
+  async (_get, set, id: string) => {
+    const now = Date.now();
+    await db.garments.update(id, { archivedAt: undefined, updatedAt: now });
+    const updated = await db.garments.get(id);
+    await (updated === undefined
+      ? Promise.resolve()
+      : db.syncQueue.add({
+          type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
+          payload: updated,
+          createdAt: now,
+        }));
+    set(refreshGarmentsAtom);
+  },
+);
+
 export const confirmAllGarmentsAtom = atom(
   undefined,
   async (_get, set, locationId: string) => {

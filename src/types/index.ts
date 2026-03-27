@@ -44,6 +44,7 @@ export type Garment = {
   readonly confidenceDecayDays: number;
   readonly brand: string | undefined;
   readonly checkedOutAt: number | undefined;
+  readonly archivedAt: number | undefined;
   readonly createdAt: number;
   readonly updatedAt: number;
 };
@@ -100,6 +101,7 @@ export type Doll = {
   readonly customizer: string | undefined;
   readonly imageUrl: string | undefined;
   readonly memo: string | undefined;
+  readonly archivedAt: number | undefined;
   readonly createdAt: number;
   readonly updatedAt: number;
 };

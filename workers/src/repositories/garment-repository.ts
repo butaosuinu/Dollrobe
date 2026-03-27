@@ -65,6 +65,7 @@ const toGarment = (row: GarmentSelectRow): Garment => {
     confidenceDecayDays: row.confidenceDecayDays,
     brand: row.brand ?? undefined,
     checkedOutAt: row.checkedOutAt ?? undefined,
+    archivedAt: row.archivedAt ?? undefined,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

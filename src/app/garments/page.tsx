@@ -4,13 +4,14 @@ import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtom, useAtomValue } from "jotai";
-import { Plus, Search, Shirt, Upload, Camera } from "lucide-react";
+import { Plus, Search, Shirt, Upload, Camera, Archive } from "lucide-react";
 import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { msg, t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { dollsAtom, selectedDollIdAtom } from "@/stores/dollAtoms";
+import { pendingArchivesAtom } from "@/stores/pendingArchiveAtoms";
 import { canDollWear } from "@/lib/doll-compatibility";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_CATEGORIES } from "@/lib/constants";
@@ -53,9 +54,25 @@ const GARMENT_COMPARATORS = Object.freeze({
 const GarmentListContent = () => {
   const router = useRouter();
   const { i18n } = useLingui();
-  const garments = useAtomValue(garmentsAtom);
+  const allGarments = useAtomValue(garmentsAtom);
   const dolls = useAtomValue(dollsAtom);
+  const pendingArchives = useAtomValue(pendingArchivesAtom);
   const [selectedDollId, setSelectedDollId] = useAtom(selectedDollIdAtom);
+
+  const garments = useMemo(() => {
+    const pendingGarmentIds = new Set(
+      pendingArchives
+        .filter((p) => p.entityType === "garment")
+        .map((p) => p.id),
+    );
+    return allGarments.filter(
+      (g) => g.archivedAt === undefined && !pendingGarmentIds.has(g.id),
+    );
+  }, [allGarments, pendingArchives]);
+  const archivedCount = useMemo(
+    () => allGarments.filter((g) => g.archivedAt !== undefined).length,
+    [allGarments],
+  );
   const selectedDoll = dolls.find((d) => d.id === selectedDollId);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,7 +117,7 @@ const GarmentListContent = () => {
     selectedDoll,
   ]);
 
-  if (garments.length === 0) {
+  if (allGarments.length === 0) {
     return (
       <EmptyState
         icon={Shirt}
@@ -116,6 +133,15 @@ const GarmentListContent = () => {
 
   return (
     <div className="flex flex-col gap-4">
+      {archivedCount > 0 && (
+        <Link
+          href="/archive"
+          className="inline-flex items-center gap-1 text-xs text-text-tertiary transition-colors hover:text-text-secondary"
+        >
+          <Archive className="size-3.5" />
+          <Trans>アーカイブ ({archivedCount})</Trans>
+        </Link>
+      )}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-tertiary" />

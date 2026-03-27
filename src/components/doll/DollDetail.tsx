@@ -1,16 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
-import { User, Trash2, Edit3 } from "lucide-react";
+import { User, Archive, RotateCcw, Trash2, Edit3 } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import type { Doll } from "@/types";
 import { DOLL_SIZE_LABEL } from "@/lib/i18n-labels";
-import { deleteDollAtom } from "@/stores/dollAtoms";
+import { deleteDollAtom, restoreDollAtom } from "@/stores/dollAtoms";
+import { requestArchiveAtom } from "@/stores/pendingArchiveAtoms";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 
 type Props = {
   readonly doll: Doll;
@@ -20,10 +24,25 @@ const DollDetail = ({ doll }: Props) => {
   const { i18n } = useLingui();
   const router = useRouter();
   const deleteDoll = useSetAtom(deleteDollAtom);
+  const restoreDoll = useSetAtom(restoreDollAtom);
+  const requestArchive = useSetAtom(requestArchiveAtom);
+  const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const isArchived = doll.archivedAt !== undefined;
 
-  const handleDelete = async () => {
-    await deleteDoll(doll.id);
+  const handleArchive = () => {
+    requestArchive({ id: doll.id, entityType: "doll" });
     router.push("/dolls");
+  };
+
+  const handleRestore = async () => {
+    await restoreDoll(doll.id);
+    router.push("/dolls");
+  };
+
+  const handlePermanentDelete = async () => {
+    await deleteDoll(doll.id);
+    router.push("/archive");
   };
 
   return (
@@ -88,21 +107,67 @@ const DollDetail = ({ doll }: Props) => {
           </Card>
         )}
 
-        <div className="flex flex-col gap-2 pt-2 lg:flex-row">
-          <Button
-            variant="secondary"
-            size="lg"
-            fullWidth
-            onClick={() => router.push(`/dolls/${doll.id}/edit`)}
-          >
-            <Edit3 className="size-4" />
-            <Trans>編集</Trans>
-          </Button>
-          <Button variant="danger" size="lg" fullWidth onClick={handleDelete}>
-            <Trash2 className="size-4" />
-            <Trans>削除</Trans>
-          </Button>
-        </div>
+        {isArchived ? (
+          <div className="flex flex-col gap-2 pt-2 lg:flex-row">
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={handleRestore}
+            >
+              <RotateCcw className="size-4" />
+              <Trans>復元</Trans>
+            </Button>
+            <Button
+              variant="danger"
+              size="lg"
+              fullWidth
+              onClick={() => setIsDeleteConfirmOpen(true)}
+            >
+              <Trash2 className="size-4" />
+              <Trans>完全に削除</Trans>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 pt-2 lg:flex-row">
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              onClick={() => router.push(`/dolls/${doll.id}/edit`)}
+            >
+              <Edit3 className="size-4" />
+              <Trans>編集</Trans>
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              onClick={() => setIsArchiveConfirmOpen(true)}
+            >
+              <Archive className="size-4" />
+              <Trans>アーカイブ</Trans>
+            </Button>
+          </div>
+        )}
+
+        <ConfirmSheet
+          isOpen={isArchiveConfirmOpen}
+          onClose={() => setIsArchiveConfirmOpen(false)}
+          onConfirm={handleArchive}
+          title={t`アーカイブ`}
+          message={t`「${doll.name}」をアーカイブしますか？`}
+          confirmLabel={t`アーカイブ`}
+        />
+        <ConfirmSheet
+          isOpen={isDeleteConfirmOpen}
+          onClose={() => setIsDeleteConfirmOpen(false)}
+          onConfirm={handlePermanentDelete}
+          title={t`完全に削除`}
+          message={t`「${doll.name}」を完全に削除しますか？この操作は取り消せません。`}
+          confirmLabel={t`削除`}
+          confirmVariant="danger"
+        />
       </div>
     </div>
   );

@@ -30,6 +30,7 @@ const toDoll = (row: DollSelectRow): Doll => {
     customizer: row.customizer ?? undefined,
     imageUrl: row.imageUrl ?? undefined,
     memo: row.memo ?? undefined,
+    archivedAt: row.archivedAt ?? undefined,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
