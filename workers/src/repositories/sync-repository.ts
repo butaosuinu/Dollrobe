@@ -14,15 +14,17 @@ const resolveLocationId = async ({
   readonly drizzleDb: DrizzleDB;
   readonly locationId: string | null | undefined;
   readonly logger: Logger;
-}): Promise<string | null> => {
-  if (locationId === null || locationId === undefined) return null;
+}): Promise<string | undefined> => {
+  if (locationId === null || locationId === undefined) return undefined;
   const rows = await drizzleDb
     .select({ id: storageLocations.id })
     .from(storageLocations)
     .where(eq(storageLocations.id, locationId));
   if (rows[0] === undefined) {
-    logger.warn("location_id not found in D1, setting to null", { locationId });
-    return null;
+    logger.warn("location_id not found in D1, setting to undefined", {
+      locationId,
+    });
+    return undefined;
   }
   return locationId;
 };
@@ -43,7 +45,7 @@ export const upsertGarment = async ({
   });
   await drizzleDb
     .insert(garments)
-    .values({ ...garmentValues, locationId: resolvedLocationId })
+    .values({ ...garmentValues, locationId: resolvedLocationId ?? null })
     .onConflictDoUpdate({
       target: garments.id,
       set: {

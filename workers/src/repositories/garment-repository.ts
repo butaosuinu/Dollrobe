@@ -36,6 +36,12 @@ const toGarment = (row: GarmentSelectRow): Garment => {
   }
 
   const validDollSizes = row.dollSizes.filter(isDollSize);
+  if (validDollSizes.length === 0) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `Invalid or empty dollSizes: ${JSON.stringify(row.dollSizes)}`,
+    });
+  }
 
   if (!isGarmentStatus(row.status)) {
     throw new TRPCError({
