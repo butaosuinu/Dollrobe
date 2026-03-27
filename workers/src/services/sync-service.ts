@@ -5,7 +5,7 @@ import * as dollRepo from "../repositories/doll-repository";
 import * as garmentRepo from "../repositories/garment-repository";
 import * as locationRepo from "../repositories/location-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
-import { ACTION_HANDLERS } from "./sync-handlers";
+import { ACTION_PROCESSORS } from "./sync-processors";
 
 type SyncItem = {
   readonly type: string;
@@ -52,14 +52,14 @@ const processItem = async (
   ctx: ProcessContext,
   item: SyncItem,
 ): Promise<ProcessResult> => {
-  const handler = ACTION_HANDLERS[item.type];
-  if (handler === undefined) {
+  const processor = ACTION_PROCESSORS[item.type];
+  if (processor === undefined) {
     return serviceError(
       "BAD_REQUEST",
       `Unknown sync action type: ${item.type}`,
     );
   }
-  return await handler(
+  return await processor(
     { ...ctx, logger: ctx.logger.child({ syncActionType: item.type }) },
     item.payload,
   );

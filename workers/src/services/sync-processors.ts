@@ -12,7 +12,7 @@ type ProcessContext = {
 
 type ProcessResult = ServiceResult<{ readonly processed: true }>;
 
-export type ActionHandler = (
+export type ActionProcessor = (
   ctx: ProcessContext,
   payload: unknown,
 ) => Promise<ProcessResult>;
@@ -170,7 +170,7 @@ const toDollInsertValues = ({
   updatedAt: parsed.updatedAt,
 });
 
-const processGarmentUpsert: ActionHandler = async (ctx, payload) => {
+const processGarmentUpsert: ActionProcessor = async (ctx, payload) => {
   const parsed = garmentPayloadSchema.safeParse(payload);
   if (!parsed.success) {
     return serviceError(
@@ -189,7 +189,7 @@ const processGarmentUpsert: ActionHandler = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
-const processGarmentDelete: ActionHandler = async (ctx, payload) => {
+const processGarmentDelete: ActionProcessor = async (ctx, payload) => {
   const parsed = deletePayloadSchema.safeParse(payload);
   if (!parsed.success) {
     return serviceError(
@@ -206,7 +206,7 @@ const processGarmentDelete: ActionHandler = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
-const processStorageCaseCreate: ActionHandler = async (ctx, payload) => {
+const processStorageCaseCreate: ActionProcessor = async (ctx, payload) => {
   const withLocations = storageCaseCreateWithLocationsSchema.safeParse(payload);
   if (withLocations.success) {
     await syncRepo.upsertStorageCase({
@@ -250,7 +250,7 @@ const processStorageCaseCreate: ActionHandler = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
-const processStorageCaseUpdate: ActionHandler = async (ctx, payload) => {
+const processStorageCaseUpdate: ActionProcessor = async (ctx, payload) => {
   const parsed = storageCaseSchema.safeParse(payload);
   if (!parsed.success) {
     return serviceError(
@@ -269,7 +269,7 @@ const processStorageCaseUpdate: ActionHandler = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
-const processStorageCaseDelete: ActionHandler = async (ctx, payload) => {
+const processStorageCaseDelete: ActionProcessor = async (ctx, payload) => {
   const parsed = deletePayloadSchema.safeParse(payload);
   if (!parsed.success) {
     return serviceError(
@@ -286,7 +286,7 @@ const processStorageCaseDelete: ActionHandler = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
-const processStorageLocationCreate: ActionHandler = async (ctx, payload) => {
+const processStorageLocationCreate: ActionProcessor = async (ctx, payload) => {
   const parsed = storageLocationSchema.safeParse(payload);
   if (!parsed.success) {
     return serviceError(
@@ -305,7 +305,7 @@ const processStorageLocationCreate: ActionHandler = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
-const processDollUpsert: ActionHandler = async (ctx, payload) => {
+const processDollUpsert: ActionProcessor = async (ctx, payload) => {
   const parsed = dollPayloadSchema.safeParse(payload);
   if (!parsed.success) {
     return serviceError(
@@ -324,7 +324,7 @@ const processDollUpsert: ActionHandler = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
-const processDollDelete: ActionHandler = async (ctx, payload) => {
+const processDollDelete: ActionProcessor = async (ctx, payload) => {
   const parsed = deletePayloadSchema.safeParse(payload);
   if (!parsed.success) {
     return serviceError(
@@ -341,7 +341,7 @@ const processDollDelete: ActionHandler = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
-export const ACTION_HANDLERS: Readonly<Record<string, ActionHandler>> = {
+export const ACTION_PROCESSORS: Readonly<Record<string, ActionProcessor>> = {
   "garment:create": processGarmentUpsert,
   "garment:update": processGarmentUpsert,
   "garment:delete": processGarmentDelete,
