@@ -1,6 +1,6 @@
 BETTER_AUTH_SECRET=generate-with-openssl-rand-base64-32
 BETTER_AUTH_URL=http://localhost:8787
-R2_PUBLIC_URL=http://localhost:8787
+R2_PUBLIC_URL=http://localhost:8787/api/images/serve
 TWITTER_CLIENT_ID=your-twitter-client-id
 TWITTER_CLIENT_SECRET=your-twitter-client-secret
 GOOGLE_CLIENT_ID=your-google-client-id

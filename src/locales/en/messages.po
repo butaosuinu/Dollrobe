@@ -13,10 +13,29 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. placeholder {0}: STEP_TITLES[step]
+#: src/app/garments/import/page.tsx
+msgid "{0}"
+msgstr ""
+
 #. placeholder {0}: i18n._(DOLL_SIZE_LABEL[dollBodySize])
 #: src/components/doll/CompatibleGarmentList.tsx
 msgid "{0} サイズ対応の服を登録すると、ここに表示されます"
 msgstr "Register garments compatible with {0} size to see them here"
+
+#. placeholder {0}: result.failed
+#. placeholder {0}: status.failed
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+#: src/components/garment/csv/CsvImportProgress.tsx
+msgid "{0}件の登録に失敗しました"
+msgstr ""
+
+#. placeholder {0}: result.succeeded
+#. placeholder {0}: status.succeeded
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+#: src/components/garment/csv/CsvImportProgress.tsx
+msgid "{0}件の登録に成功しました"
+msgstr ""
 
 #. placeholder {0}: caseGarments.length
 #. placeholder {0}: garments.length
@@ -62,10 +81,22 @@ msgstr "{0} rows x {1} cols"
 msgid "{elapsedDays}日前から取り出し中"
 msgstr "Checked out {elapsedDays} days ago"
 
+#: src/components/garment/csv/CsvPreviewTable.tsx
+msgid "{errorCount}件 エラー"
+msgstr ""
+
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount} items need review"
+
+#: src/components/garment/csv/CsvPreviewTable.tsx
+msgid "{validCount}件 有効"
+msgstr ""
+
+#: src/components/garment/csv/CsvPreviewTable.tsx
+msgid "{validCount}件をインポート"
+msgstr ""
 
 #. placeholder {0}: deletingCase.name
 #: src/app/locations/page.tsx
@@ -79,6 +110,15 @@ msgstr "Delete \"{0}\"? Garments in this case will be marked as \"checked out\".
 #: src/lib/constants.ts
 #~ msgid "1/6 (ピュアニーモ等)"
 #~ msgstr "1/6 (PureNeemo etc.)"
+
+#: src/app/garments/new/page.tsx
+#: src/app/garments/page.tsx
+msgid "CSVインポート"
+msgstr ""
+
+#: src/components/garment/csv/CsvDropZone.tsx
+msgid "CSVファイルをドラッグ&ドロップ"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "DD (~58cm)"
@@ -129,12 +169,17 @@ msgid "NFC タグ書き込み"
 msgstr "NFC Tag Write"
 
 #: src/app/nfc-write/page.tsx
+#: src/components/scan/NfcReader.tsx
 msgid "NFC の権限が拒否されました"
 msgstr "NFC permission denied"
 
 #: src/components/scan/NfcCapabilityBadge.tsx
 msgid "NFC 対応"
 msgstr "NFC supported"
+
+#: src/components/scan/NfcReader.tsx
+msgid "NFC 待ち受け中..."
+msgstr ""
 
 #: src/components/scan/NfcCapabilityBadge.tsx
 msgid "NFC 非対応"
@@ -145,8 +190,8 @@ msgid "QR ラベル印刷"
 msgstr "QR Label Print"
 
 #: src/app/scan/page.tsx
-msgid "QRスキャン"
-msgstr "QR Scan"
+#~ msgid "QRスキャン"
+#~ msgstr "QR Scan"
 
 #: src/components/dashboard/AlertPanel.tsx
 msgid "QRスキャンで戻す場所を記録できます"
@@ -206,10 +251,29 @@ msgstr "Present"
 msgid "インナー"
 msgstr "Innerwear"
 
+#: src/components/garment/csv/CsvImportProgress.tsx
+msgid "インポート中..."
+msgstr ""
+
+#: src/components/garment/csv/CsvImportProgress.tsx
+msgid "インポート完了"
+msgstr ""
+
 #: src/app/page.tsx
 msgid "おかえりなさい"
 msgstr "Welcome back"
 
+#: src/components/doll/DollDetail.tsx
+#: src/components/doll/DollForm.tsx
+msgid "カスタマイザー"
+msgstr ""
+
+#: src/components/doll/DollForm.tsx
+msgid "カスタムメイクの作者名"
+msgstr ""
+
+#: src/components/garment/bulk/BulkMetadataFormFields.tsx
+#: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "カテゴリ"
 msgstr "Category"
@@ -265,6 +329,14 @@ msgstr "This device does not support NFC writing. Please use Android Chrome."
 msgid "この場所の全服を確認済みにする"
 msgstr "Mark all garments in this location as confirmed"
 
+#: src/components/garment/csv/CsvPreviewTable.tsx
+msgid "サイズ"
+msgstr ""
+
+#: src/components/garment/csv/CsvDropZone.tsx
+msgid "サンプルCSVをダウンロード"
+msgstr ""
+
 #. placeholder {0}: digest.unknownCount
 #: src/components/digest/DigestCard.tsx
 msgid "しばらく確認していない服が{0}着あります"
@@ -278,6 +350,7 @@ msgstr "Put away"
 msgid "シューズ"
 msgstr "Shoes"
 
+#: src/app/scan/page.tsx
 #: src/lib/nav-items.ts
 msgid "スキャン"
 msgstr "Scan"
@@ -325,6 +398,7 @@ msgstr "Socks/Tights"
 msgid "その他"
 msgstr "Other"
 
+#: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "タグ"
@@ -347,6 +421,7 @@ msgstr "Dolls"
 msgid "ドールが見つかりません"
 msgstr "Doll not found"
 
+#: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "ドールサイズ"
 msgstr "Doll size"
@@ -369,6 +444,7 @@ msgstr "Edit doll"
 msgid "ドール一覧"
 msgstr "Doll list"
 
+#: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "ドール服の名前"
 msgstr "Garment name"
@@ -389,6 +465,7 @@ msgstr "Missing"
 msgid "なくした"
 msgstr "Lost"
 
+#: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "ブランド/メーカー"
 msgstr "Brand/Maker"
@@ -407,6 +484,11 @@ msgstr "Failed to load page"
 msgid "ヘッド型番"
 msgstr "Head model"
 
+#: src/components/doll/DollForm.tsx
+msgid "ボークス、アゾン 等"
+msgstr ""
+
+#: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "ボークス、アゾン等"
 msgstr "Volks, Azone, etc."
@@ -427,6 +509,10 @@ msgstr "Bottoms"
 msgid "まだドールがいません"
 msgstr "No dolls yet"
 
+#: src/components/garment/csv/CsvDropZone.tsx
+msgid "またはクリックしてファイルを選択"
+msgstr ""
+
 #: src/app/digest/page.tsx
 msgid "まだレポートがありません"
 msgstr "No reports yet"
@@ -442,6 +528,11 @@ msgstr "No storage locations yet"
 #: src/app/garments/page.tsx
 msgid "まだ服がありません"
 msgstr "No garments yet"
+
+#: src/components/doll/DollDetail.tsx
+#: src/components/doll/DollForm.tsx
+msgid "メーカー"
+msgstr ""
 
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollForm.tsx
@@ -477,9 +568,18 @@ msgstr "Wardrobe"
 msgid "ワードローブの状況をお伝えします"
 msgstr "Here's your wardrobe status"
 
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+#: src/components/garment/csv/CsvImportProgress.tsx
+msgid "ワードローブを見る"
+msgstr ""
+
 #: src/lib/i18n-labels.ts
 msgid "ワンピース"
 msgstr "One-piece"
+
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "一括登録中..."
+msgstr ""
 
 #: src/app/garments/page.tsx
 msgid "一致する服が見つかりません"
@@ -522,6 +622,7 @@ msgstr "Confidence: Low first"
 msgid "信頼度: 高い順"
 msgstr "Confidence: High first"
 
+#: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "信頼度の減衰期間"
 msgstr "Confidence decay period"
@@ -568,6 +669,14 @@ msgstr "Columns"
 #: src/components/location/StorageCaseCard.tsx
 msgid "削除"
 msgstr "Delete"
+
+#: src/components/garment/bulk/BulkMetadataForm.tsx
+msgid "前の値を適用"
+msgstr ""
+
+#: src/components/garment/bulk/BulkMetadataForm.tsx
+msgid "前へ"
+msgstr ""
 
 #: src/app/print/page.tsx
 msgid "印刷"
@@ -616,6 +725,8 @@ msgid "合計"
 msgstr "Total"
 
 #: src/components/doll/DollForm.tsx
+#: src/components/garment/bulk/BulkMetadataFormFields.tsx
+#: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "名前"
 msgstr "Name"
@@ -654,6 +765,8 @@ msgstr "Hats/Headdress"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
+#: src/components/garment/bulk/BulkMetadataForm.tsx
+#: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "戻る"
 msgstr "Back"
@@ -739,6 +852,8 @@ msgid "未配置にする"
 msgstr "Unassign"
 
 #: src/app/nfc-write/page.tsx
+#: src/components/garment/bulk/BulkMetadataForm.tsx
+#: src/components/garment/bulk/CaptureCamera.tsx
 msgid "次へ"
 msgstr "Next"
 
@@ -746,10 +861,28 @@ msgstr "Next"
 msgid "毎週月曜日に自動生成されます"
 msgstr "Auto-generated every Monday"
 
+#: src/components/garment/csv/CsvPreviewTable.tsx
+msgid "状態"
+msgstr ""
+
+#. placeholder {0}: status.completed
+#. placeholder {1}: status.total
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "画像をアップロードしています ({0}/{1})"
+msgstr ""
+
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "登録する"
 msgstr "Register"
+
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "登録完了"
+msgstr ""
+
+#: src/components/garment/bulk/BulkMetadataForm.tsx
+msgid "登録開始"
+msgstr ""
 
 #: src/components/confidence/ConfidenceStats.tsx
 msgid "着"
@@ -786,6 +919,14 @@ msgstr "Managed garments: {0}"
 msgid "紛失"
 msgstr "Lost"
 
+#: src/components/garment/csv/CsvImportProgress.tsx
+msgid "続けてインポート"
+msgstr ""
+
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "続けて撮影する"
+msgstr ""
+
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/location/StorageCaseCard.tsx
@@ -796,10 +937,15 @@ msgstr "Edit"
 msgid "自由にメモを入力..."
 msgstr "Enter notes freely..."
 
+#: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "色"
 msgstr "Colors"
+
+#: src/components/garment/csv/CsvPreviewTable.tsx
+msgid "行"
+msgstr ""
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "行数"
@@ -826,6 +972,7 @@ msgstr "Language"
 
 #: src/app/dolls/[id]/page.tsx
 #: src/app/garments/[id]/page.tsx
+#: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "詳細"
 msgstr "Details"
 
@@ -846,6 +993,12 @@ msgstr "Failed to load"
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"
 msgstr "Normal (30 days)"
+
+#: src/app/garments/bulk/page.tsx
+#: src/app/garments/new/page.tsx
+#: src/app/garments/page.tsx
+msgid "連続撮影"
+msgstr ""
 
 #: src/app/digest/page.tsx
 msgid "週間レポート"
