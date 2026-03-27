@@ -55,7 +55,9 @@ const GarmentDetail = ({ garment }: Props) => {
             <h2 className="font-display text-2xl font-bold">{garment.name}</h2>
             <p className="mt-1 text-sm text-text-secondary">
               {i18n._(GARMENT_CATEGORY_LABEL[garment.category])} ・{" "}
-              {i18n._(DOLL_SIZE_LABEL[garment.dollSize])}
+              {garment.dollSizes
+                .map((size) => i18n._(DOLL_SIZE_LABEL[size]))
+                .join(" / ")}
             </p>
             {garment.brand !== undefined && (
               <p className="mt-0.5 text-sm text-text-tertiary">

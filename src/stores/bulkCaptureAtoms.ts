@@ -139,7 +139,7 @@ const registerSingleItem = async ({
     userId,
     name: metadata.name,
     category: metadata.category,
-    dollSize: metadata.dollSize,
+    dollSizes: [metadata.dollSize],
     colors: [...metadata.colors],
     tags: [...metadata.tags],
     brand: metadata.brand === "" ? undefined : metadata.brand,

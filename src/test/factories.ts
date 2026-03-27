@@ -1,4 +1,4 @@
-import type { Garment, StorageCase, StorageLocation } from "@/types";
+import type { Doll, Garment, StorageCase, StorageLocation } from "@/types";
 
 export const FIXED_NOW = new Date("2025-06-15T00:00:00Z").getTime();
 
@@ -9,7 +9,7 @@ export const createTestGarment = (
   userId: "user-1",
   name: "テストドレス",
   category: "dress",
-  dollSize: "SD",
+  dollSizes: ["SD"],
   colors: [],
   tags: [],
   imageUrl: undefined,
@@ -19,6 +19,21 @@ export const createTestGarment = (
   confidenceDecayDays: 30,
   brand: undefined,
   checkedOutAt: undefined,
+  createdAt: FIXED_NOW,
+  updatedAt: FIXED_NOW,
+  ...overrides,
+});
+
+export const createTestDoll = (overrides: Partial<Doll> = {}): Doll => ({
+  id: "doll-1",
+  userId: "user-1",
+  name: "テストドール",
+  headModel: undefined,
+  bodySize: "SD",
+  maker: undefined,
+  customizer: undefined,
+  imageUrl: undefined,
+  memo: undefined,
   createdAt: FIXED_NOW,
   updatedAt: FIXED_NOW,
   ...overrides,

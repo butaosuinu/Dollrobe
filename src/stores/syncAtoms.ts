@@ -3,7 +3,8 @@ import { db } from "@/lib/db/dexie";
 import { trpcClient } from "@/lib/trpc";
 import { SYNC_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { SyncStatusValue } from "@/lib/constants";
-import type { Garment } from "@/types";
+import type { Doll, Garment } from "@/types";
+import { refreshDollsAtom } from "@/stores/dollAtoms";
 import { refreshGarmentsAtom } from "@/stores/garmentAtoms";
 import {
   refreshStorageCasesAtom,
@@ -48,6 +49,7 @@ export const executeSyncAtom = atom(
     set(lastSyncErrorAtom, result.ok ? undefined : result.error);
     // eslint-disable-next-line functional/no-conditional-statements -- refresh atoms only on success
     if (result.ok) {
+      set(refreshDollsAtom);
       set(refreshGarmentsAtom);
       set(refreshStorageCasesAtom);
       set(refreshStorageLocationsAtom);
@@ -102,7 +104,7 @@ const toClientGarment = (g: {
   readonly userId: string;
   readonly name: string;
   readonly category: Garment["category"];
-  readonly dollSize: Garment["dollSize"];
+  readonly dollSizes: Garment["dollSizes"];
   readonly colors: readonly string[];
   readonly tags: readonly string[];
   readonly imageUrl?: string | null;
@@ -119,7 +121,7 @@ const toClientGarment = (g: {
   userId: g.userId,
   name: g.name,
   category: g.category,
-  dollSize: g.dollSize,
+  dollSizes: g.dollSizes,
   colors: g.colors,
   tags: g.tags,
   imageUrl: g.imageUrl ?? undefined,
@@ -133,19 +135,48 @@ const toClientGarment = (g: {
   updatedAt: g.updatedAt,
 });
 
+const toClientDoll = (d: {
+  readonly id: string;
+  readonly userId: string;
+  readonly name: string;
+  readonly headModel?: string | null;
+  readonly bodySize: Doll["bodySize"];
+  readonly maker?: string | null;
+  readonly customizer?: string | null;
+  readonly imageUrl?: string | null;
+  readonly memo?: string | null;
+  readonly createdAt: number;
+  readonly updatedAt: number;
+}): Doll => ({
+  id: d.id,
+  userId: d.userId,
+  name: d.name,
+  headModel: d.headModel ?? undefined,
+  bodySize: d.bodySize,
+  maker: d.maker ?? undefined,
+  customizer: d.customizer ?? undefined,
+  imageUrl: d.imageUrl ?? undefined,
+  memo: d.memo ?? undefined,
+  createdAt: d.createdAt,
+  updatedAt: d.updatedAt,
+});
+
 const pullServerState = async (): Promise<SyncResult> => {
   const serverState = await trpcClient.sync.pull.query();
 
   const garments = serverState.garments.map(toClientGarment);
+  const dolls = serverState.dolls.map(toClientDoll);
 
   await db.transaction(
     "rw",
-    [db.garments, db.storageCases, db.storageLocations],
+    [db.dolls, db.garments, db.storageCases, db.storageLocations],
     async () => {
+      await db.dolls.clear();
       await db.garments.clear();
       await db.storageCases.clear();
       await db.storageLocations.clear();
 
+      await bulkAddIfNotEmpty(db.dolls, dolls);
       await bulkAddIfNotEmpty(db.garments, garments);
       await bulkAddIfNotEmpty(db.storageCases, serverState.storageCases);
       await bulkAddIfNotEmpty(

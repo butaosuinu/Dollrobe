@@ -51,7 +51,7 @@ describe("GarmentDetailPage", () => {
       id: "garment-1",
       name: "白いドレス",
       category: "dress",
-      dollSize: "MSD",
+      dollSizes: ["MSD"],
     });
     await seedDbFromTestDb();
 

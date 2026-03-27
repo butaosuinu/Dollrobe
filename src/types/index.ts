@@ -34,7 +34,7 @@ export type Garment = {
   readonly userId: string;
   readonly name: string;
   readonly category: GarmentCategory;
-  readonly dollSize: DollSize;
+  readonly dollSizes: readonly DollSize[];
   readonly colors: readonly string[];
   readonly tags: readonly string[];
   readonly imageUrl: string | undefined;
@@ -88,6 +88,20 @@ export type SyncQueueItem = {
   readonly type: string;
   readonly payload: unknown;
   readonly createdAt: number;
+};
+
+export type Doll = {
+  readonly id: string;
+  readonly userId: string;
+  readonly name: string;
+  readonly headModel: string | undefined;
+  readonly bodySize: DollSize;
+  readonly maker: string | undefined;
+  readonly customizer: string | undefined;
+  readonly imageUrl: string | undefined;
+  readonly memo: string | undefined;
+  readonly createdAt: number;
+  readonly updatedAt: number;
 };
 
 export type DigestUnknownItem = {

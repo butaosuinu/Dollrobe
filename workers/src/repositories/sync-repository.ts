@@ -2,9 +2,32 @@ import { and, eq, lte, sql } from "drizzle-orm";
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
-import { garments, storageCases, storageLocations } from "../db/schema";
+import { dolls, garments, storageCases, storageLocations } from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
 import * as locationRepo from "./location-repository";
+
+const resolveLocationId = async ({
+  drizzleDb,
+  locationId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly locationId: string | null | undefined;
+  readonly logger: Logger;
+}): Promise<string | undefined> => {
+  if (locationId === null || locationId === undefined) return undefined;
+  const rows = await drizzleDb
+    .select({ id: storageLocations.id })
+    .from(storageLocations)
+    .where(eq(storageLocations.id, locationId));
+  if (rows[0] === undefined) {
+    logger.warn("location_id not found in D1, setting to undefined", {
+      locationId,
+    });
+    return undefined;
+  }
+  return locationId;
+};
 
 export const upsertGarment = async ({
   drizzleDb,
@@ -15,15 +38,20 @@ export const upsertGarment = async ({
   readonly garmentValues: typeof garments.$inferInsert;
   readonly logger: Logger;
 }): Promise<void> => {
+  const resolvedLocationId = await resolveLocationId({
+    drizzleDb,
+    locationId: garmentValues.locationId,
+    logger,
+  });
   await drizzleDb
     .insert(garments)
-    .values(garmentValues)
+    .values({ ...garmentValues, locationId: resolvedLocationId ?? null })
     .onConflictDoUpdate({
       target: garments.id,
       set: {
         name: sql`excluded.name`,
         category: sql`excluded.category`,
-        dollSize: sql`excluded.doll_size`,
+        dollSizes: sql`excluded.doll_sizes`,
         colors: sql`excluded.colors`,
         tags: sql`excluded.tags`,
         imageUrl: sql`excluded.image_url`,
@@ -98,6 +126,55 @@ export const upsertStorageLocation = async ({
     .values(locationValues)
     .onConflictDoNothing({ target: storageLocations.id })
     .catch(wrapDbError({ context: "upsert storage location", logger }));
+};
+
+export const upsertDoll = async ({
+  drizzleDb,
+  dollValues,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly dollValues: typeof dolls.$inferInsert;
+  readonly logger: Logger;
+}): Promise<void> => {
+  await drizzleDb
+    .insert(dolls)
+    .values(dollValues)
+    .onConflictDoUpdate({
+      target: dolls.id,
+      set: {
+        name: sql`excluded.name`,
+        headModel: sql`excluded.head_model`,
+        bodySize: sql`excluded.body_size`,
+        maker: sql`excluded.maker`,
+        customizer: sql`excluded.customizer`,
+        imageUrl: sql`excluded.image_url`,
+        memo: sql`excluded.memo`,
+        updatedAt: sql`excluded.updated_at`,
+      },
+      setWhere: and(
+        eq(dolls.userId, sql`excluded.user_id`),
+        lte(dolls.updatedAt, sql`excluded.updated_at`),
+      ),
+    })
+    .catch(wrapDbError({ context: "upsert doll", logger }));
+};
+
+export const deleteDoll = async ({
+  drizzleDb,
+  userId,
+  dollId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly dollId: string;
+  readonly logger: Logger;
+}): Promise<void> => {
+  await drizzleDb
+    .delete(dolls)
+    .where(and(eq(dolls.id, dollId), eq(dolls.userId, userId)))
+    .catch(wrapDbError({ context: "delete doll (sync)", logger }));
 };
 
 export const deleteStorageCaseWithCascade = async ({

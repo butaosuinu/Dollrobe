@@ -74,7 +74,7 @@ describe("GarmentEditPage", () => {
       id: "garment-1",
       name: "白いドレス",
       category: "dress",
-      dollSize: "MSD",
+      dollSizes: ["MSD"],
       brand: "ボークス",
     });
     await seedDbFromTestDb();
@@ -83,7 +83,6 @@ describe("GarmentEditPage", () => {
 
     expect(screen.getByLabelText("名前")).toHaveValue("白いドレス");
     expect(screen.getByLabelText("カテゴリ")).toHaveValue("dress");
-    expect(screen.getByLabelText("ドールサイズ")).toHaveValue("MSD");
     expect(screen.getByLabelText("ブランド/メーカー")).toHaveValue("ボークス");
   });
 

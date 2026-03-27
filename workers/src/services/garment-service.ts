@@ -67,7 +67,7 @@ export const createGarment = async ({
   readonly input: {
     readonly name: string;
     readonly category: string;
-    readonly dollSize: string;
+    readonly dollSizes: readonly string[];
     readonly colors: readonly string[];
     readonly tags: readonly string[];
     readonly imageUrl?: string;
@@ -93,7 +93,7 @@ export const createGarment = async ({
       userId,
       name: input.name,
       category: input.category,
-      dollSize: input.dollSize,
+      dollSizes: input.dollSizes,
       colors: input.colors,
       tags: input.tags,
       imageUrl: input.imageUrl,
@@ -131,7 +131,7 @@ export const bulkCreateGarments = async ({
   readonly items: ReadonlyArray<{
     readonly name: string;
     readonly category: string;
-    readonly dollSize: string;
+    readonly dollSizes: readonly string[];
     readonly colors: readonly string[];
     readonly tags: readonly string[];
     readonly brand?: string;
@@ -145,7 +145,7 @@ export const bulkCreateGarments = async ({
     userId,
     name: item.name,
     category: item.category,
-    dollSize: item.dollSize,
+    dollSizes: item.dollSizes,
     colors: item.colors,
     tags: item.tags,
     brand: item.brand,
@@ -175,7 +175,7 @@ export const updateGarment = async ({
     readonly id: string;
     readonly name?: string;
     readonly category?: string;
-    readonly dollSize?: string;
+    readonly dollSizes?: readonly string[];
     readonly colors?: readonly string[];
     readonly tags?: readonly string[];
     readonly imageUrl?: string;
@@ -202,7 +202,7 @@ export const updateGarment = async ({
     fields: {
       name: input.name,
       category: input.category,
-      dollSize: input.dollSize,
+      dollSizes: input.dollSizes,
       colors: input.colors,
       tags: input.tags,
       imageUrl: input.imageUrl,

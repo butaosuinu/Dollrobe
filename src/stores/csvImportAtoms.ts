@@ -74,7 +74,7 @@ export const executeCsvImportAtom = atom(undefined, async (get, set) => {
           items: chunk.map((row) => ({
             name: row.name,
             category: row.category,
-            dollSize: row.dollSize,
+            dollSizes: [row.dollSize],
             colors: [...row.colors],
             tags: [...row.tags],
             brand: row.brand === "" ? undefined : row.brand,

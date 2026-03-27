@@ -11,6 +11,7 @@ import {
   storageLocations,
   coordinates,
   digests,
+  dolls,
 } from "./schema";
 
 const GARMENT_NAME_MAX_LENGTH = 100;
@@ -19,6 +20,7 @@ const CONFIDENCE_DECAY_MAX = 365;
 const DEFAULT_CONFIDENCE_DECAY_DAYS = 30;
 const MAX_NAME_LENGTH = 100;
 const MAX_LABEL_LENGTH = 20;
+const DOLL_MEMO_MAX_LENGTH = 500;
 const MAX_GRID_SIZE = 20;
 const MIN_GRID_SIZE = 1;
 
@@ -39,7 +41,6 @@ export const garmentStatusSchema = z.enum(toNonEmptyTuple(GARMENT_STATUSES));
 
 export const garmentSelectSchema = createSelectSchema(garments, {
   category: garmentCategorySchema,
-  dollSize: dollSizeSchema,
   status: garmentStatusSchema,
 });
 
@@ -50,7 +51,6 @@ export const coordinateSelectSchema = createSelectSchema(coordinates);
 export const garmentInsertSchema = createInsertSchema(garments, {
   name: z.string().min(1).max(GARMENT_NAME_MAX_LENGTH),
   category: garmentCategorySchema,
-  dollSize: dollSizeSchema,
   status: garmentStatusSchema,
   confidenceDecayDays: z
     .number()
@@ -85,6 +85,7 @@ export const createGarmentInputSchema = garmentInsertSchema
     updatedAt: true,
   })
   .extend({
+    dollSizes: z.array(dollSizeSchema).min(1),
     colors: z.array(z.string()).default([]),
     tags: z.array(z.string()).default([]),
     imageUrl: z.url().optional(),
@@ -103,7 +104,7 @@ export const updateGarmentInputSchema = z.object({
   id: cuidSchema,
   name: z.string().min(1).max(GARMENT_NAME_MAX_LENGTH).optional(),
   category: garmentCategorySchema.optional(),
-  dollSize: dollSizeSchema.optional(),
+  dollSizes: z.array(dollSizeSchema).min(1).optional(),
   colors: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   imageUrl: z.url().optional(),
@@ -133,6 +134,7 @@ export const bulkCreateGarmentItemSchema = garmentInsertSchema
     locationId: true,
   })
   .extend({
+    dollSizes: z.array(dollSizeSchema).min(1),
     colors: z.array(z.string()).default([]),
     tags: z.array(z.string()).default([]),
     brand: z.string().max(GARMENT_NAME_MAX_LENGTH).optional(),
@@ -157,6 +159,47 @@ export const listGarmentsInputSchema = z.object({
   status: garmentStatusSchema.optional(),
   dollSize: dollSizeSchema.optional(),
   locationId: z.string().optional(),
+});
+
+export const dollSelectSchema = createSelectSchema(dolls, {
+  bodySize: dollSizeSchema,
+});
+
+export const dollInsertSchema = createInsertSchema(dolls, {
+  name: z.string().min(1).max(MAX_NAME_LENGTH),
+  bodySize: dollSizeSchema,
+});
+
+export const createDollInputSchema = dollInsertSchema
+  .omit({
+    id: true,
+    userId: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    headModel: z.string().max(MAX_NAME_LENGTH).optional(),
+    maker: z.string().max(MAX_NAME_LENGTH).optional(),
+    customizer: z.string().max(MAX_NAME_LENGTH).optional(),
+    imageUrl: z.url().optional(),
+    memo: z.string().max(DOLL_MEMO_MAX_LENGTH).optional(),
+  });
+export type CreateDollInput = z.infer<typeof createDollInputSchema>;
+
+export const updateDollInputSchema = z.object({
+  id: cuidSchema,
+  name: z.string().min(1).max(MAX_NAME_LENGTH).optional(),
+  headModel: z.string().max(MAX_NAME_LENGTH).optional(),
+  bodySize: dollSizeSchema.optional(),
+  maker: z.string().max(MAX_NAME_LENGTH).optional(),
+  customizer: z.string().max(MAX_NAME_LENGTH).optional(),
+  imageUrl: z.url().optional(),
+  memo: z.string().max(DOLL_MEMO_MAX_LENGTH).optional(),
+});
+export type UpdateDollInput = z.infer<typeof updateDollInputSchema>;
+
+export const listDollsInputSchema = z.object({
+  bodySize: dollSizeSchema.optional(),
 });
 
 export const createCaseInputSchema = storageCaseInsertSchema.pick({

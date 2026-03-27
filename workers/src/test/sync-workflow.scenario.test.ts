@@ -15,7 +15,7 @@ const createGarmentPayload = (overrides: Record<string, unknown> = {}) => {
     userId: TEMP_USER_ID,
     name: "テスト服",
     category: "dress",
-    dollSize: "MSD",
+    dollSizes: ["MSD"],
     colors: ["hsl(0,100%,50%)"],
     tags: ["test"],
     status: "stored",
@@ -36,6 +36,19 @@ const createCasePayload = (overrides: Record<string, unknown> = {}) => {
     rows: 3,
     cols: 2,
     createdAt: now,
+    ...overrides,
+  };
+};
+
+const createDollPayload = (overrides: Record<string, unknown> = {}) => {
+  const now = Date.now();
+  return {
+    id: createId(),
+    userId: TEMP_USER_ID,
+    name: "テストドール",
+    bodySize: "MSD",
+    createdAt: now,
+    updatedAt: now,
     ...overrides,
   };
 };
@@ -141,6 +154,89 @@ describe("同期ワークフロー シナリオ", () => {
       const pulled = await caller.sync.pull();
 
       expect(pulled.garments).toHaveLength(0);
+    });
+  });
+
+  describe("doll 同期", () => {
+    it("doll:create を push すると pull で取得できる", async () => {
+      const caller = getCaller();
+      const doll = createDollPayload();
+
+      await caller.sync.push({
+        items: [
+          {
+            type: "doll:create",
+            payload: doll,
+            createdAt: Date.now(),
+          },
+        ],
+      });
+
+      const pulled = await caller.sync.pull();
+
+      expect(pulled.dolls).toHaveLength(1);
+      expect(pulled.dolls[0]!.id).toBe(doll.id);
+      expect(pulled.dolls[0]!.name).toBe("テストドール");
+    });
+
+    it("doll:update を push すると pull で更新された値が返る", async () => {
+      const caller = getCaller();
+      const doll = createDollPayload();
+      const updatedAt = Date.now() + 1000;
+
+      await caller.sync.push({
+        items: [
+          {
+            type: "doll:create",
+            payload: doll,
+            createdAt: Date.now(),
+          },
+        ],
+      });
+
+      await caller.sync.push({
+        items: [
+          {
+            type: "doll:update",
+            payload: { ...doll, name: "更新済みドール", updatedAt },
+            createdAt: Date.now(),
+          },
+        ],
+      });
+
+      const pulled = await caller.sync.pull();
+
+      expect(pulled.dolls).toHaveLength(1);
+      expect(pulled.dolls[0]!.name).toBe("更新済みドール");
+    });
+
+    it("doll:delete を push すると pull で返らない", async () => {
+      const caller = getCaller();
+      const doll = createDollPayload();
+
+      await caller.sync.push({
+        items: [
+          {
+            type: "doll:create",
+            payload: doll,
+            createdAt: Date.now(),
+          },
+        ],
+      });
+
+      await caller.sync.push({
+        items: [
+          {
+            type: "doll:delete",
+            payload: { id: doll.id },
+            createdAt: Date.now(),
+          },
+        ],
+      });
+
+      const pulled = await caller.sync.pull();
+
+      expect(pulled.dolls).toHaveLength(0);
     });
   });
 
@@ -379,6 +475,7 @@ describe("同期ワークフロー シナリオ", () => {
       const caller = getCaller();
       const pulled = await caller.sync.pull();
 
+      expect(pulled.dolls).toHaveLength(0);
       expect(pulled.garments).toHaveLength(0);
       expect(pulled.storageCases).toHaveLength(0);
       expect(pulled.storageLocations).toHaveLength(0);

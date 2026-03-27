@@ -15,6 +15,9 @@ export {
   createLocationInputSchema,
   listDigestsInputSchema,
   markDigestReadInputSchema,
+  createDollInputSchema,
+  updateDollInputSchema,
+  listDollsInputSchema,
 } from "../../db/validation";
 
 const MIN_GARMENT_IDS_LENGTH = 1;
@@ -52,6 +55,9 @@ const SYNC_ACTION_TYPES = [
   "storageCase:update",
   "storageCase:delete",
   "storageLocation:create",
+  "doll:create",
+  "doll:update",
+  "doll:delete",
 ] as const;
 
 const syncQueueItemSchema = z.object({

@@ -5,6 +5,7 @@ import { scanRouter } from "./routers/scan";
 import { syncRouter } from "./routers/sync";
 import { digestRouter } from "./routers/digest";
 import { coordinateRouter } from "./routers/coordinate";
+import { dollRouter } from "./routers/doll";
 
 export const appRouter = router({
   garment: garmentRouter,
@@ -13,6 +14,7 @@ export const appRouter = router({
   sync: syncRouter,
   digest: digestRouter,
   coordinate: coordinateRouter,
+  doll: dollRouter,
 });
 
 export type AppRouter = typeof appRouter;

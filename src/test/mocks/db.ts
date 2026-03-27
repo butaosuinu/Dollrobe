@@ -4,12 +4,25 @@ import type { DollSize, GarmentCategory, GarmentStatus } from "@/types";
 export const FIXED_NOW = new Date("2025-06-15T00:00:00Z").getTime();
 
 export const testDb = factory({
+  doll: {
+    id: primaryKey(String),
+    userId: () => "user-1",
+    name: () => "テストドール",
+    headModel: nullable((): string | null => null),
+    bodySize: (): DollSize => "SD",
+    maker: nullable((): string | null => null),
+    customizer: nullable((): string | null => null),
+    imageUrl: nullable((): string | null => null),
+    memo: nullable((): string | null => null),
+    createdAt: () => FIXED_NOW,
+    updatedAt: () => FIXED_NOW,
+  },
   garment: {
     id: primaryKey(String),
     userId: () => "user-1",
     name: () => "テストドレス",
     category: (): GarmentCategory => "dress",
-    dollSize: (): DollSize => "SD",
+    dollSizes: (): DollSize[] => ["SD"],
     colors: (): string[] => [],
     tags: (): string[] => [],
     imageUrl: nullable((): string | null => null),
@@ -42,6 +55,7 @@ export const testDb = factory({
 });
 
 export const resetTestDb = (): void => {
+  testDb.doll.deleteMany({ where: {} });
   testDb.garment.deleteMany({ where: {} });
   testDb.storageCase.deleteMany({ where: {} });
   testDb.storageLocation.deleteMany({ where: {} });
