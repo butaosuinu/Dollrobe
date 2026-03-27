@@ -17,24 +17,40 @@ export type ActionHandler = (
   payload: unknown,
 ) => Promise<ProcessResult>;
 
-const garmentPayloadSchema = z.object({
-  id: z.string().min(1),
-  userId: z.string().min(1),
-  name: z.string().min(1),
-  category: z.string(),
-  dollSizes: z.array(z.string()),
-  colors: z.array(z.string()),
-  tags: z.array(z.string()),
-  imageUrl: z.string().optional(),
-  locationId: z.string().optional(),
-  status: z.string(),
-  lastScannedAt: z.number(),
-  confidenceDecayDays: z.number(),
-  brand: z.string().optional(),
-  checkedOutAt: z.number().optional(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
-});
+const legacyDollSizeShape = z.object({ dollSize: z.string().min(1) }).loose();
+
+const normalizeDollSizes = (val: unknown): unknown => {
+  if (typeof val !== "object" || val === null) return val;
+  if ("dollSizes" in val && Array.isArray(val.dollSizes)) return val;
+  const legacy = legacyDollSizeShape.safeParse(val);
+  if (legacy.success) {
+    const { dollSize, ...rest } = legacy.data;
+    return { ...rest, dollSizes: [dollSize] };
+  }
+  return val;
+};
+
+const garmentPayloadSchema = z.preprocess(
+  normalizeDollSizes,
+  z.object({
+    id: z.string().min(1),
+    userId: z.string().min(1),
+    name: z.string().min(1),
+    category: z.string(),
+    dollSizes: z.array(z.string()),
+    colors: z.array(z.string()),
+    tags: z.array(z.string()),
+    imageUrl: z.string().optional(),
+    locationId: z.string().optional(),
+    status: z.string(),
+    lastScannedAt: z.number(),
+    confidenceDecayDays: z.number(),
+    brand: z.string().optional(),
+    checkedOutAt: z.number().optional(),
+    createdAt: z.number(),
+    updatedAt: z.number(),
+  }),
+);
 
 const deletePayloadSchema = z.object({
   id: z.string().min(1),

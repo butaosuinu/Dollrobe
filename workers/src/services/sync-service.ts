@@ -19,6 +19,33 @@ type ProcessContext = {
   readonly logger: Logger;
 };
 
+const SYNC_TYPE_PRIORITY: ReadonlyMap<string, number> = new Map([
+  ["storageCase:create", 0],
+  ["storageCase:update", 1],
+  ["storageLocation:create", 2],
+  ["doll:create", 3],
+  ["doll:update", 4],
+  ["garment:create", 5],
+  ["garment:update", 6],
+  ["garment:delete", 7],
+  ["doll:delete", 8],
+  ["storageCase:delete", 9],
+]);
+
+const DEFAULT_PRIORITY = 100;
+
+const getSyncTypePriority = (type: string): number =>
+  SYNC_TYPE_PRIORITY.get(type) ?? DEFAULT_PRIORITY;
+
+const sortByDependencyOrder = (
+  items: readonly SyncItem[],
+): readonly SyncItem[] =>
+  [...items].sort((a, b) => {
+    const priorityDiff =
+      getSyncTypePriority(a.type) - getSyncTypePriority(b.type);
+    return priorityDiff !== 0 ? priorityDiff : a.createdAt - b.createdAt;
+  });
+
 type ProcessResult = ServiceResult<{ readonly processed: true }>;
 
 const processItem = async (
@@ -89,9 +116,10 @@ export const push = async ({
 > => {
   logger.info("Sync push started", { itemCount: items.length });
 
+  const orderedItems = sortByDependencyOrder(items);
   const result = await processItemsSequentially(
     { drizzleDb, userId, logger },
-    items,
+    orderedItems,
   );
   if (!result.ok) {
     return result;

@@ -64,6 +64,34 @@ class DollWardrobeDB extends Dexie {
         });
         /* eslint-enable functional/no-conditional-statements, no-param-reassign, functional/immutable-data */
       });
+    this.version(4)
+      .stores({
+        garments: "id, userId, locationId, status, category",
+        storageCases: "id, userId",
+        storageLocations: "id, userId, caseId",
+        coordinates: "id, userId",
+        syncQueue: "++id, type, createdAt",
+        dolls: "id, userId, bodySize",
+      })
+      .upgrade(async (tx) => {
+        const syncTable = tx.table("syncQueue");
+        /* eslint-disable functional/immutable-data -- Dexie modify callback requires in-place mutation */
+        await syncTable
+          .toCollection()
+          .filter(
+            (item: Record<string, unknown>) =>
+              (item.type === "garment:create" ||
+                item.type === "garment:update") &&
+              typeof (item.payload as Record<string, unknown> | undefined)
+                ?.dollSize === "string",
+          )
+          .modify((item: Record<string, unknown>) => {
+            const payload = item.payload as Record<string, unknown>;
+            payload.dollSizes = [payload.dollSize];
+            delete payload.dollSize;
+          });
+        /* eslint-enable functional/immutable-data */
+      });
   }
 }
 

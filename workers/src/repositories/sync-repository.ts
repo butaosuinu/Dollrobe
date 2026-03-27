@@ -6,6 +6,27 @@ import { dolls, garments, storageCases, storageLocations } from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
 import * as locationRepo from "./location-repository";
 
+const resolveLocationId = async ({
+  drizzleDb,
+  locationId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly locationId: string | null | undefined;
+  readonly logger: Logger;
+}): Promise<string | null> => {
+  if (locationId === null || locationId === undefined) return null;
+  const rows = await drizzleDb
+    .select({ id: storageLocations.id })
+    .from(storageLocations)
+    .where(eq(storageLocations.id, locationId));
+  if (rows[0] === undefined) {
+    logger.warn("location_id not found in D1, setting to null", { locationId });
+    return null;
+  }
+  return locationId;
+};
+
 export const upsertGarment = async ({
   drizzleDb,
   garmentValues,
@@ -15,9 +36,14 @@ export const upsertGarment = async ({
   readonly garmentValues: typeof garments.$inferInsert;
   readonly logger: Logger;
 }): Promise<void> => {
+  const resolvedLocationId = await resolveLocationId({
+    drizzleDb,
+    locationId: garmentValues.locationId,
+    logger,
+  });
   await drizzleDb
     .insert(garments)
-    .values(garmentValues)
+    .values({ ...garmentValues, locationId: resolvedLocationId })
     .onConflictDoUpdate({
       target: garments.id,
       set: {
