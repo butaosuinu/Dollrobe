@@ -118,6 +118,40 @@ export const updateGarmentInputSchema = z.object({
 });
 export type UpdateGarmentInput = z.infer<typeof updateGarmentInputSchema>;
 
+const BULK_CREATE_MAX_ITEMS = 50;
+
+export const bulkCreateGarmentItemSchema = garmentInsertSchema
+  .omit({
+    id: true,
+    userId: true,
+    status: true,
+    lastScannedAt: true,
+    checkedOutAt: true,
+    createdAt: true,
+    updatedAt: true,
+    imageUrl: true,
+    locationId: true,
+  })
+  .extend({
+    colors: z.array(z.string()).default([]),
+    tags: z.array(z.string()).default([]),
+    brand: z.string().max(GARMENT_NAME_MAX_LENGTH).optional(),
+    confidenceDecayDays: z
+      .number()
+      .int()
+      .min(CONFIDENCE_DECAY_MIN)
+      .max(CONFIDENCE_DECAY_MAX)
+      .default(DEFAULT_CONFIDENCE_DECAY_DAYS),
+  });
+export type BulkCreateGarmentItem = z.infer<typeof bulkCreateGarmentItemSchema>;
+
+export const bulkCreateGarmentInputSchema = z.object({
+  items: z.array(bulkCreateGarmentItemSchema).min(1).max(BULK_CREATE_MAX_ITEMS),
+});
+export type BulkCreateGarmentInput = z.infer<
+  typeof bulkCreateGarmentInputSchema
+>;
+
 export const listGarmentsInputSchema = z.object({
   category: garmentCategorySchema.optional(),
   status: garmentStatusSchema.optional(),

@@ -5,6 +5,7 @@ import {
   listGarmentsInputSchema,
   createGarmentInputSchema,
   updateGarmentInputSchema,
+  bulkCreateGarmentInputSchema,
   cuidSchema,
 } from "../lib/schemas";
 import * as garmentService from "../../services/garment-service";
@@ -46,6 +47,19 @@ export const garmentRouter = router({
           drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
           input,
+          logger: ctx.logger,
+        }),
+      ),
+    ),
+
+  bulkCreate: publicProcedure
+    .input(bulkCreateGarmentInputSchema)
+    .mutation(async ({ ctx, input }) =>
+      throwIfError(
+        await garmentService.bulkCreateGarments({
+          drizzleDb: createDrizzle(ctx.env.DB),
+          userId: TEMP_USER_ID,
+          items: input.items,
           logger: ctx.logger,
         }),
       ),

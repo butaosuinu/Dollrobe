@@ -4,7 +4,7 @@ import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
-import { Plus, Search, Shirt } from "lucide-react";
+import { Plus, Search, Shirt, Upload, Camera } from "lucide-react";
 import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { msg, t } from "@lingui/core/macro";
@@ -180,13 +180,29 @@ const GarmentsPage = () => (
       <h2 className="font-display text-xl font-bold">
         <Trans>ワードローブ</Trans>
       </h2>
-      <Link
-        href="/garments/new"
-        className="hidden items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-primary-600 lg:inline-flex"
-      >
-        <Plus className="size-4" />
-        <Trans>服を登録</Trans>
-      </Link>
+      <div className="hidden items-center gap-2 lg:flex">
+        <Link
+          href="/garments/import"
+          className="inline-flex items-center gap-2 rounded-lg border border-border-default px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-overlay"
+        >
+          <Upload className="size-4" />
+          <Trans>CSVインポート</Trans>
+        </Link>
+        <Link
+          href="/garments/bulk"
+          className="inline-flex items-center gap-2 rounded-lg border border-border-default px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-overlay"
+        >
+          <Camera className="size-4" />
+          <Trans>連続撮影</Trans>
+        </Link>
+        <Link
+          href="/garments/new"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-primary-600"
+        >
+          <Plus className="size-4" />
+          <Trans>服を登録</Trans>
+        </Link>
+      </div>
     </div>
 
     <ErrorBoundary
