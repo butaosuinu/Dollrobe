@@ -120,6 +120,49 @@ export const createGarment = async ({
   return serviceOk(garment);
 };
 
+export const bulkCreateGarments = async ({
+  drizzleDb,
+  userId,
+  items,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly items: ReadonlyArray<{
+    readonly name: string;
+    readonly category: string;
+    readonly dollSize: string;
+    readonly colors: readonly string[];
+    readonly tags: readonly string[];
+    readonly brand?: string;
+    readonly confidenceDecayDays: number;
+  }>;
+  readonly logger: Logger;
+}): Promise<ServiceResult<{ readonly count: number }>> => {
+  const now = Date.now();
+  const garmentRows = items.map((item) => ({
+    id: createId(),
+    userId,
+    name: item.name,
+    category: item.category,
+    dollSize: item.dollSize,
+    colors: item.colors,
+    tags: item.tags,
+    brand: item.brand,
+    status: GARMENT_STATUS.CHECKED_OUT,
+    lastScannedAt: now,
+    confidenceDecayDays: item.confidenceDecayDays,
+    checkedOutAt: now,
+    createdAt: now,
+    updatedAt: now,
+  }));
+
+  await garmentRepo.insertGarmentsBatch({ drizzleDb, garmentRows, logger });
+
+  logger.info("bulk created garments", { count: garmentRows.length });
+  return serviceOk({ count: garmentRows.length });
+};
+
 export const updateGarment = async ({
   drizzleDb,
   userId,
