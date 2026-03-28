@@ -5,7 +5,7 @@ import { useAtomValue } from "jotai";
 import { Shirt } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
-import { garmentsAtom } from "@/stores/garmentAtoms";
+import { activeGarmentsAtom } from "@/stores/garmentAtoms";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_CATEGORY_LABEL } from "@/lib/i18n-labels";
 import ConfidenceBadge from "@/components/confidence/ConfidenceBadge";
@@ -14,7 +14,7 @@ import Card from "@/components/ui/Card";
 const RECENT_COUNT = 8;
 
 const RecentItems = () => {
-  const garments = useAtomValue(garmentsAtom);
+  const garments = useAtomValue(activeGarmentsAtom);
   const { i18n } = useLingui();
 
   const recentGarments = [...garments]

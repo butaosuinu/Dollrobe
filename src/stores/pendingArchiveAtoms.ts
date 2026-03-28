@@ -1,4 +1,6 @@
 import { atom } from "jotai";
+import { msg } from "@lingui/core/macro";
+import { i18n } from "@/i18n/lingui";
 import { db } from "@/lib/db/dexie";
 import { SYNC_ACTION_TYPE } from "@/lib/constants";
 import { addToastAtom, dismissToastAtom } from "@/stores/toastAtoms";
@@ -114,10 +116,10 @@ export const requestArchiveAtom = atom(
     if (alreadyPending) return;
 
     const toastId = set(addToastAtom, {
-      message: "アーカイブしました",
+      message: i18n._(msg`アーカイブしました`),
       durationMs: ARCHIVE_DELAY_MS,
       action: {
-        label: "取り消す",
+        label: i18n._(msg`取り消す`),
         onClick: () => {
           set(cancelArchiveAtom, { id, entityType });
         },

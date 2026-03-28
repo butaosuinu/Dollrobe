@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useAtomValue } from "jotai";
 import { AlertTriangle, ArrowRight } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
-import { garmentsAtom } from "@/stores/garmentAtoms";
+import { activeGarmentsAtom } from "@/stores/garmentAtoms";
 import { getOrphanedCheckouts } from "@/lib/confidence";
 import Card from "@/components/ui/Card";
 
 const AlertPanel = () => {
-  const garments = useAtomValue(garmentsAtom);
+  const garments = useAtomValue(activeGarmentsAtom);
   const orphaned = getOrphanedCheckouts(garments);
   const checkedOut = garments.filter((g) => g.status === "checked_out");
 

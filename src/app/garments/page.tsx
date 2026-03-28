@@ -9,7 +9,7 @@ import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { msg, t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { garmentsAtom } from "@/stores/garmentAtoms";
+import { activeGarmentsAtom, garmentsAtom } from "@/stores/garmentAtoms";
 import { dollsAtom, selectedDollIdAtom } from "@/stores/dollAtoms";
 import { pendingArchivesAtom } from "@/stores/pendingArchiveAtoms";
 import { canDollWear } from "@/lib/doll-compatibility";
@@ -55,6 +55,7 @@ const GarmentListContent = () => {
   const router = useRouter();
   const { i18n } = useLingui();
   const allGarments = useAtomValue(garmentsAtom);
+  const activeGarments = useAtomValue(activeGarmentsAtom);
   const dolls = useAtomValue(dollsAtom);
   const pendingArchives = useAtomValue(pendingArchivesAtom);
   const [selectedDollId, setSelectedDollId] = useAtom(selectedDollIdAtom);
@@ -65,10 +66,8 @@ const GarmentListContent = () => {
         .filter((p) => p.entityType === "garment")
         .map((p) => p.id),
     );
-    return allGarments.filter(
-      (g) => g.archivedAt === undefined && !pendingGarmentIds.has(g.id),
-    );
-  }, [allGarments, pendingArchives]);
+    return activeGarments.filter((g) => !pendingGarmentIds.has(g.id));
+  }, [activeGarments, pendingArchives]);
   const archivedCount = useMemo(
     () => allGarments.filter((g) => g.archivedAt !== undefined).length,
     [allGarments],

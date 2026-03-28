@@ -13,9 +13,9 @@ import {
   reviewDialogOpenAtom,
 } from "@/stores/scanSessionAtoms";
 import {
+  activeGarmentsAtom,
   confirmAllGarmentsAtom,
   confirmPartialGarmentsAtom,
-  garmentsAtom,
 } from "@/stores/garmentAtoms";
 import { storageLocationsAtom } from "@/stores/locationAtoms";
 import { QR_SCHEME } from "@/lib/constants";
@@ -31,7 +31,7 @@ import OpportunisticReviewDialog from "@/components/scan/OpportunisticReviewDial
 
 const ScanPage = () => {
   const { i18n } = useLingui();
-  const garments = useAtomValue(garmentsAtom);
+  const garments = useAtomValue(activeGarmentsAtom);
   const locations = useAtomValue(storageLocationsAtom);
   const activeLocationId = useAtomValue(activeLocationIdAtom);
   const setActiveLocationId = useSetAtom(activeLocationIdAtom);

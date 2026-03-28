@@ -28,7 +28,14 @@ const ConfirmSheet = ({
       <Button variant="ghost" fullWidth onClick={onClose}>
         キャンセル
       </Button>
-      <Button variant={confirmVariant} fullWidth onClick={onConfirm}>
+      <Button
+        variant={confirmVariant}
+        fullWidth
+        onClick={() => {
+          onClose();
+          onConfirm();
+        }}
+      >
         {confirmLabel}
       </Button>
     </div>
