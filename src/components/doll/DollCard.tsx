@@ -32,6 +32,16 @@ const DollCard = ({ doll }: Props) => {
         <p className="mt-0.5 text-xs text-text-tertiary">
           {i18n._(DOLL_SIZE_LABEL[doll.bodySize])}
         </p>
+        {doll.headModel !== undefined && (
+          <p className="mt-0.5 truncate text-xs text-text-tertiary">
+            {doll.headModel}
+          </p>
+        )}
+        {doll.customizer !== undefined && (
+          <p className="mt-0.5 truncate text-xs text-text-tertiary">
+            {doll.customizer}
+          </p>
+        )}
       </Card>
     </Link>
   );

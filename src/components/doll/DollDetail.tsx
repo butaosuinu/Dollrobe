@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
 import { User, Archive, RotateCcw, Trash2, Edit3 } from "lucide-react";
@@ -11,10 +11,9 @@ import type { Doll } from "@/types";
 import { DOLL_SIZE_LABEL } from "@/lib/i18n-labels";
 import { deleteDollAtom, restoreDollAtom } from "@/stores/dollAtoms";
 import { requestArchiveAtom } from "@/stores/pendingArchiveAtoms";
-import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
+import DollDetailInfoCard from "@/components/doll/DollDetailInfoCard";
 
 type Props = {
   readonly doll: Doll;
@@ -28,7 +27,19 @@ const DollDetail = ({ doll }: Props) => {
   const requestArchive = useSetAtom(requestArchiveAtom);
   const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [imageAspect, setImageAspect] = useState<"landscape" | "portrait">(
+    "landscape",
+  );
   const isArchived = doll.archivedAt !== undefined;
+  const handleImageLoad = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const img = e.currentTarget;
+      if (img.naturalHeight > img.naturalWidth) {
+        setImageAspect("portrait");
+      }
+    },
+    [],
+  );
 
   const handleArchive = () => {
     requestArchive({ id: doll.id, entityType: "doll" });
@@ -47,12 +58,15 @@ const DollDetail = ({ doll }: Props) => {
 
   return (
     <div className="flex flex-col gap-4 animate-[fade-in_0.4s_ease-out] lg:grid lg:grid-cols-2 lg:gap-8">
-      <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-primary-50 lg:sticky lg:top-20">
+      <div
+        className={`${imageAspect === "portrait" ? "aspect-[3/4]" : "aspect-[4/3]"} overflow-hidden rounded-2xl bg-primary-50 lg:sticky lg:top-20`}
+      >
         {doll.imageUrl !== undefined ? (
           <img
             src={doll.imageUrl}
             alt={doll.name}
-            className="size-full object-cover"
+            className="size-full object-contain"
+            onLoad={handleImageLoad}
           />
         ) : (
           <div className="flex size-full items-center justify-center">
@@ -69,43 +83,7 @@ const DollDetail = ({ doll }: Props) => {
           </p>
         </div>
 
-        {doll.headModel !== undefined && (
-          <Card>
-            <p className="mb-1 text-sm font-medium text-text-secondary">
-              <Trans>ヘッド型番</Trans>
-            </p>
-            <Badge variant="primary">{doll.headModel}</Badge>
-          </Card>
-        )}
-
-        {doll.maker !== undefined && (
-          <Card>
-            <p className="mb-1 text-sm font-medium text-text-secondary">
-              <Trans>メーカー</Trans>
-            </p>
-            <Badge variant="primary">{doll.maker}</Badge>
-          </Card>
-        )}
-
-        {doll.customizer !== undefined && (
-          <Card>
-            <p className="mb-1 text-sm font-medium text-text-secondary">
-              <Trans>カスタマイザー</Trans>
-            </p>
-            <Badge variant="primary">{doll.customizer}</Badge>
-          </Card>
-        )}
-
-        {doll.memo !== undefined && (
-          <Card>
-            <p className="mb-1 text-sm font-medium text-text-secondary">
-              <Trans>メモ</Trans>
-            </p>
-            <p className="whitespace-pre-wrap text-sm text-text-primary">
-              {doll.memo}
-            </p>
-          </Card>
-        )}
+        <DollDetailInfoCard doll={doll} />
 
         {isArchived ? (
           <div className="flex flex-col gap-2 pt-2 lg:flex-row">
