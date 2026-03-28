@@ -16,6 +16,8 @@ import DollCard from "@/components/doll/DollCard";
 import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
 
+const SKELETON_COUNT = 4;
+
 type TabValue = "garment" | "doll";
 
 const isTabValue = (value: string): value is TabValue =>
@@ -122,7 +124,7 @@ const ArchivePage = () => (
       <Suspense
         fallback={
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
+            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
               <Skeleton key={i} className="h-64 rounded-xl" />
             ))}
           </div>
