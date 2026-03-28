@@ -13,7 +13,8 @@ import {
   deleteStorageCaseAtom,
 } from "@/stores/locationAtoms";
 import { garmentsAtom } from "@/stores/garmentAtoms";
-import type { StorageCase } from "@/types";
+import type { StorageCase, StorageCaseType } from "@/types";
+import { STORAGE_CASE_TYPE } from "@/lib/constants";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import StorageCaseCard from "@/components/location/StorageCaseCard";
 import StorageCaseForm from "@/components/location/StorageCaseForm";
@@ -41,18 +42,38 @@ const LocationsContent = () => {
     undefined,
   );
 
-  const handleCreate = async (input: {
-    readonly name: string;
-    readonly rows: number;
-    readonly cols: number;
-  }) => {
+  const getDefaultName = (caseType: StorageCaseType) => {
+    const prefix =
+      caseType === STORAGE_CASE_TYPE.GRID ? "引き出し収納" : "ボックス";
+    const sameTypeCount = cases.filter((c) => c.type === caseType).length;
+    return `${prefix} ${sameTypeCount + 1}`;
+  };
+
+  const handleCreate = async (
+    input:
+      | {
+          readonly type: "grid";
+          readonly name: string;
+          readonly description: string | undefined;
+          readonly rows: number;
+          readonly cols: number;
+        }
+      | {
+          readonly type: "unit";
+          readonly name: string;
+          readonly description: string | undefined;
+        },
+  ) => {
     await addCase({ ...input, userId: TEMP_USER_ID });
     setIsCreateOpen(false);
   };
 
-  const handleEdit = async (name: string) => {
+  const handleEdit = async (input: {
+    readonly name: string;
+    readonly description: string | undefined;
+  }) => {
     if (editingCase === undefined) return;
-    await updateCase({ ...editingCase, name });
+    await updateCase({ ...editingCase, ...input });
     setEditingCase(undefined);
   };
 
@@ -115,6 +136,8 @@ const LocationsContent = () => {
         title={t`ケースを追加`}
       >
         <StorageCaseForm
+          defaultGridName={getDefaultName(STORAGE_CASE_TYPE.GRID)}
+          defaultUnitName={getDefaultName(STORAGE_CASE_TYPE.UNIT)}
           onSubmit={handleCreate}
           onCancel={() => setIsCreateOpen(false)}
         />
@@ -128,6 +151,7 @@ const LocationsContent = () => {
         {editingCase !== undefined && (
           <StorageCaseEditForm
             currentName={editingCase.name}
+            currentDescription={editingCase.description}
             onSubmit={handleEdit}
             onCancel={() => setEditingCase(undefined)}
           />

@@ -1,4 +1,5 @@
 import Dexie from "dexie";
+import { STORAGE_CASE_TYPE } from "@/lib/constants";
 import type {
   Doll,
   Garment,
@@ -91,6 +92,25 @@ class DollWardrobeDB extends Dexie {
             delete payload.dollSize;
           });
         /* eslint-enable functional/immutable-data */
+      });
+    this.version(5)
+      .stores({
+        garments: "id, userId, locationId, status, category",
+        storageCases: "id, userId",
+        storageLocations: "id, userId, caseId",
+        coordinates: "id, userId",
+        syncQueue: "++id, type, createdAt",
+        dolls: "id, userId, bodySize",
+      })
+      .upgrade(async (tx) => {
+        const casesTable = tx.table("storageCases");
+        /* eslint-disable functional/no-conditional-statements, no-param-reassign, @typescript-eslint/prefer-destructuring -- Dexie modify callback requires in-place mutation */
+        await casesTable.toCollection().modify((c: Record<string, unknown>) => {
+          if (c.type === undefined) {
+            c.type = STORAGE_CASE_TYPE.GRID;
+          }
+        });
+        /* eslint-enable functional/no-conditional-statements, no-param-reassign, @typescript-eslint/prefer-destructuring */
       });
   }
 }

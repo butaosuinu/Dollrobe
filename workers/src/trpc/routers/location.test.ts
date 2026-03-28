@@ -89,6 +89,7 @@ describe("locationRouter", () => {
     it("ケースとロケーションが同時作成される", async () => {
       const result = await caller.location.createCase({
         name: "新規ケース",
+        type: "grid",
         rows: 2,
         cols: 3,
       });
@@ -103,6 +104,7 @@ describe("locationRouter", () => {
     it("ラベルが正しく生成される", async () => {
       const result = await caller.location.createCase({
         name: "ラベルテスト",
+        type: "grid",
         rows: 2,
         cols: 2,
       });
@@ -148,6 +150,7 @@ describe("locationRouter", () => {
     it("ケースとロケーションが削除される", async () => {
       const result = await caller.location.createCase({
         name: "削除対象",
+        type: "grid",
         rows: 2,
         cols: 2,
       });

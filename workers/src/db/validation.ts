@@ -4,6 +4,7 @@ import {
   GARMENT_CATEGORIES,
   DOLL_SIZES,
   GARMENT_STATUSES,
+  STORAGE_CASE_TYPES,
 } from "@shared/lib/constants";
 import {
   garments,
@@ -23,6 +24,9 @@ const MAX_LABEL_LENGTH = 20;
 const DOLL_MEMO_MAX_LENGTH = 500;
 const MAX_GRID_SIZE = 20;
 const MIN_GRID_SIZE = 1;
+const MAX_CASE_DESCRIPTION_LENGTH = 200;
+const MAX_LOCATION_CUSTOM_NAME_LENGTH = 50;
+const MAX_LOCATION_DESCRIPTION_LENGTH = 200;
 
 const toNonEmptyTuple = <T extends string>(arr: readonly T[]): [T, ...T[]] => {
   const [first, ...rest] = arr;
@@ -33,6 +37,9 @@ const toNonEmptyTuple = <T extends string>(arr: readonly T[]): [T, ...T[]] => {
 };
 
 export const cuidSchema = z.string().min(1);
+export const storageCaseTypeSchema = z.enum(
+  toNonEmptyTuple(STORAGE_CASE_TYPES),
+);
 export const dollSizeSchema = z.enum(toNonEmptyTuple(DOLL_SIZES));
 export const garmentCategorySchema = z.enum(
   toNonEmptyTuple(GARMENT_CATEGORIES),
@@ -202,17 +209,48 @@ export const listDollsInputSchema = z.object({
   bodySize: dollSizeSchema.optional(),
 });
 
-export const createCaseInputSchema = storageCaseInsertSchema.pick({
-  name: true,
-  rows: true,
-  cols: true,
-});
+const caseDescriptionSchema = z
+  .string()
+  .max(MAX_CASE_DESCRIPTION_LENGTH)
+  .optional()
+  .transform((v) => v ?? undefined);
+
+export const createCaseInputSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("grid"),
+    name: z.string().min(1).max(MAX_NAME_LENGTH),
+    description: caseDescriptionSchema,
+    rows: z.number().int().min(MIN_GRID_SIZE).max(MAX_GRID_SIZE),
+    cols: z.number().int().min(MIN_GRID_SIZE).max(MAX_GRID_SIZE),
+  }),
+  z.object({
+    type: z.literal("unit"),
+    name: z.string().min(1).max(MAX_NAME_LENGTH),
+    description: caseDescriptionSchema,
+  }),
+]);
 export type CreateCaseInput = z.infer<typeof createCaseInputSchema>;
 
 export const updateCaseInputSchema = z.object({
   id: cuidSchema,
   name: z.string().min(1).max(MAX_NAME_LENGTH),
+  description: caseDescriptionSchema,
 });
+
+export const updateLocationInputSchema = z.object({
+  id: cuidSchema,
+  customName: z
+    .string()
+    .max(MAX_LOCATION_CUSTOM_NAME_LENGTH)
+    .optional()
+    .transform((v) => v ?? undefined),
+  description: z
+    .string()
+    .max(MAX_LOCATION_DESCRIPTION_LENGTH)
+    .optional()
+    .transform((v) => v ?? undefined),
+});
+export type UpdateLocationInput = z.infer<typeof updateLocationInputSchema>;
 
 export const createLocationInputSchema = storageLocationInsertSchema.pick({
   caseId: true,

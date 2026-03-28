@@ -7,6 +7,7 @@ import {
   cuidSchema,
   createCaseInputSchema,
   updateCaseInputSchema,
+  updateLocationInputSchema,
   createLocationInputSchema,
 } from "../lib/schemas";
 
@@ -62,6 +63,18 @@ export const locationRouter = router({
           drizzleDb: createDrizzle(ctx.env.DB),
           id,
           userId: TEMP_USER_ID,
+        }),
+      ),
+    ),
+
+  updateLocation: publicProcedure
+    .input(updateLocationInputSchema)
+    .mutation(async ({ ctx, input }) =>
+      throwIfError(
+        await locationService.updateLocation({
+          drizzleDb: createDrizzle(ctx.env.DB),
+          userId: TEMP_USER_ID,
+          input,
         }),
       ),
     ),

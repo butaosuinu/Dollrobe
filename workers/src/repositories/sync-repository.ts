@@ -104,6 +104,8 @@ export const upsertStorageCase = async ({
       target: storageCases.id,
       set: {
         name: sql`excluded.name`,
+        type: sql`excluded.type`,
+        description: sql`excluded.description`,
         rows: sql`excluded.rows`,
         cols: sql`excluded.cols`,
       },
@@ -124,7 +126,15 @@ export const upsertStorageLocation = async ({
   await drizzleDb
     .insert(storageLocations)
     .values(locationValues)
-    .onConflictDoNothing({ target: storageLocations.id })
+    .onConflictDoUpdate({
+      target: storageLocations.id,
+      set: {
+        label: sql`excluded.label`,
+        customName: sql`excluded.custom_name`,
+        description: sql`excluded.description`,
+      },
+      setWhere: eq(storageLocations.userId, sql`excluded.user_id`),
+    })
     .catch(wrapDbError({ context: "upsert storage location", logger }));
 };
 

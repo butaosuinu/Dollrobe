@@ -103,14 +103,6 @@ msgstr "{validCount}件をインポート"
 msgid "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
 msgstr "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
 
-#: src/lib/constants.ts
-#~ msgid "1/3 (SD17/DD等)"
-#~ msgstr "1/3 (SD17/DD等)"
-
-#: src/lib/constants.ts
-#~ msgid "1/6 (ピュアニーモ等)"
-#~ msgstr "1/6 (ピュアニーモ等)"
-
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
 msgid "CSVインポート"
@@ -152,10 +144,6 @@ msgstr "MDD (~40cm)"
 msgid "MSD (~43cm)"
 msgstr "MSD (~43cm)"
 
-#: src/lib/constants.ts
-#~ msgid "MSD (1/4)"
-#~ msgstr "MSD (1/4)"
-
 #: src/app/nfc-write/page.tsx
 msgid "NFC タグにタッチしてください..."
 msgstr "NFC タグにタッチしてください..."
@@ -189,10 +177,6 @@ msgstr "NFC 非対応"
 msgid "QR ラベル印刷"
 msgstr "QR ラベル印刷"
 
-#: src/app/scan/page.tsx
-#~ msgid "QRスキャン"
-#~ msgstr "QRスキャン"
-
 #: src/components/dashboard/AlertPanel.tsx
 msgid "QRスキャンで戻す場所を記録できます"
 msgstr "QRスキャンで戻す場所を記録できます"
@@ -204,10 +188,6 @@ msgstr "QRを印刷"
 #: src/lib/i18n-labels.ts
 msgid "SD (~57cm)"
 msgstr "SD (~57cm)"
-
-#: src/lib/constants.ts
-#~ msgid "SD (1/3)"
-#~ msgstr "SD (1/3)"
 
 #: src/lib/i18n-labels.ts
 msgid "SD13 (~57cm)"
@@ -224,10 +204,6 @@ msgstr "X (Twitter) でログイン"
 #: src/lib/i18n-labels.ts
 msgid "YoSD (~26cm)"
 msgstr "YoSD (~26cm)"
-
-#: src/lib/constants.ts
-#~ msgid "YoSD (1/6)"
-#~ msgstr "YoSD (1/6)"
 
 #: src/lib/i18n-labels.ts
 msgid "アウター"
@@ -276,6 +252,10 @@ msgstr "カスタマイザー"
 msgid "カスタムメイクの作者名"
 msgstr "カスタムメイクの作者名"
 
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "カスタム名称"
+msgstr "カスタム名称"
+
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -286,6 +266,7 @@ msgstr "カテゴリ"
 #: src/app/nfc-write/page.tsx
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
+#: src/components/location/StorageLocationEditForm.tsx
 msgid "キャンセル"
 msgstr "キャンセル"
 
@@ -328,6 +309,14 @@ msgstr "ケース詳細"
 #: src/app/nfc-write/page.tsx
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
+
+#: src/app/locations/[caseId]/page.tsx
+msgid "このボックスには服がありません"
+msgstr "このボックスには服がありません"
+
+#: src/components/location/StorageGrid.tsx
+msgid "この場所には服がありません"
+msgstr "この場所には服がありません"
 
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "この場所の全服を確認済みにする"
@@ -401,6 +390,10 @@ msgstr "ソックス/タイツ"
 #: src/lib/i18n-labels.ts
 msgid "その他"
 msgstr "その他"
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "タイプ"
+msgstr "タイプ"
 
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentDetail.tsx
@@ -501,6 +494,13 @@ msgstr "ボークス、アゾン等"
 msgid "ホーム"
 msgstr "ホーム"
 
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/garment/LocationPicker.tsx
+#: src/components/location/StorageCaseCard.tsx
+#: src/components/location/StorageCaseForm.tsx
+msgid "ボックス"
+msgstr "ボックス"
+
 #: src/components/doll/DollForm.tsx
 msgid "ボディサイズ"
 msgstr "ボディサイズ"
@@ -550,6 +550,11 @@ msgstr "もう1枚書き込む"
 #: src/lib/i18n-labels.ts
 msgid "よく着る服 (14日)"
 msgstr "よく着る服 (14日)"
+
+#. placeholder {0}: location.label
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "ラベル: {0}"
+msgstr "ラベル: {0}"
 
 #: src/components/garment/ViewToggle.tsx
 msgid "リスト表示"
@@ -610,11 +615,25 @@ msgstr "並び替え"
 msgid "作成"
 msgstr "作成"
 
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "例: ワンピース用"
+msgstr "例: ワンピース用"
+
+#: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageCaseForm.tsx
+msgid "例: 主にMDD用衣装を仕舞う場所"
+msgstr "例: 主にMDD用衣装を仕舞う場所"
+
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "例: 春物のワンピースを収納"
+msgstr "例: 春物のワンピースを収納"
+
 #: src/components/location/StorageCaseForm.tsx
 msgid "例: 衣装ケース A"
 msgstr "例: 衣装ケース A"
 
 #: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageLocationEditForm.tsx
 msgid "保存"
 msgstr "保存"
 
@@ -766,6 +785,14 @@ msgstr "季節物 (90日)"
 #: src/lib/i18n-labels.ts
 msgid "帽子/ヘッドドレス"
 msgstr "帽子/ヘッドドレス"
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "引き出し"
+msgstr "引き出し"
+
+#: src/components/location/StorageGrid.tsx
+msgid "引き出しを編集"
+msgstr "引き出しを編集"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
@@ -934,6 +961,7 @@ msgstr "続けて撮影する"
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/location/StorageCaseCard.tsx
+#: src/components/location/StorageGrid.tsx
 msgid "編集"
 msgstr "編集"
 
@@ -979,6 +1007,12 @@ msgstr "言語"
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "詳細"
 msgstr "詳細"
+
+#: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageCaseForm.tsx
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "説明"
+msgstr "説明"
 
 #: src/app/digest/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
