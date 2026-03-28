@@ -2,11 +2,11 @@
 
 import { useAtomValue } from "jotai";
 import { Trans } from "@lingui/react/macro";
-import { garmentsAtom } from "@/stores/garmentAtoms";
+import { activeGarmentsAtom } from "@/stores/garmentAtoms";
 import ConfidenceStats from "@/components/confidence/ConfidenceStats";
 
 const StatsOverview = () => {
-  const garments = useAtomValue(garmentsAtom);
+  const garments = useAtomValue(activeGarmentsAtom);
 
   return (
     <section>

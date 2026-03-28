@@ -25,6 +25,7 @@ export const garments = sqliteTable(
     confidenceDecayDays: integer("confidence_decay_days").notNull().default(30),
     brand: text("brand"),
     checkedOutAt: integer("checked_out_at"),
+    archivedAt: integer("archived_at"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
@@ -32,6 +33,7 @@ export const garments = sqliteTable(
     index("idx_garments_user_id").on(table.userId),
     index("idx_garments_location_id").on(table.locationId),
     index("idx_garments_status").on(table.status),
+    index("idx_garments_archived_at").on(table.archivedAt),
   ],
 );
 
@@ -91,6 +93,7 @@ export const dolls = sqliteTable(
     customizer: text("customizer"),
     imageUrl: text("image_url"),
     memo: text("memo"),
+    archivedAt: integer("archived_at"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },

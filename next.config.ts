@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   },
   turbopack: {
     rules: {
-      "./src/{app,components,lib}/**/*.{js,jsx,ts,tsx}": {
+      "./src/**/*.{js,jsx,ts,tsx}": {
         loaders: [
           {
             loader: path.resolve(

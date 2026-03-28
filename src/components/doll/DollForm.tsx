@@ -145,6 +145,7 @@ const DollForm = ({ doll }: Props) => {
         id: dollId,
         userId: authState.user?.id ?? "local",
         imageUrl,
+        archivedAt: undefined,
         createdAt: now,
         updatedAt: now,
       });

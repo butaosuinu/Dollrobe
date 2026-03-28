@@ -181,6 +181,7 @@ const GarmentForm = ({ garment }: Props) => {
         status: GARMENT_STATUS.STORED,
         lastScannedAt: now,
         checkedOutAt: undefined,
+        archivedAt: undefined,
         createdAt: now,
         updatedAt: now,
       });

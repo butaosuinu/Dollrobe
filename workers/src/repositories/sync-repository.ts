@@ -61,6 +61,7 @@ export const upsertGarment = async ({
         confidenceDecayDays: sql`excluded.confidence_decay_days`,
         brand: sql`excluded.brand`,
         checkedOutAt: sql`excluded.checked_out_at`,
+        archivedAt: sql`excluded.archived_at`,
         updatedAt: sql`excluded.updated_at`,
       },
       setWhere: and(
@@ -160,6 +161,7 @@ export const upsertDoll = async ({
         customizer: sql`excluded.customizer`,
         imageUrl: sql`excluded.image_url`,
         memo: sql`excluded.memo`,
+        archivedAt: sql`excluded.archived_at`,
         updatedAt: sql`excluded.updated_at`,
       },
       setWhere: and(

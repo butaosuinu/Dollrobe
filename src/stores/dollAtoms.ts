@@ -45,4 +45,21 @@ export const deleteDollAtom = atom(undefined, async (_get, set, id: string) => {
   set(refreshDollsAtom);
 });
 
+export const restoreDollAtom = atom(
+  undefined,
+  async (_get, set, id: string) => {
+    const now = Date.now();
+    await db.dolls.update(id, { archivedAt: undefined, updatedAt: now });
+    const updated = await db.dolls.get(id);
+    await (updated === undefined
+      ? Promise.resolve()
+      : db.syncQueue.add({
+          type: SYNC_ACTION_TYPE.DOLL_UPDATE,
+          payload: updated,
+          createdAt: now,
+        }));
+    set(refreshDollsAtom);
+  },
+);
+
 export const selectedDollIdAtom = atom<string | undefined>(undefined);

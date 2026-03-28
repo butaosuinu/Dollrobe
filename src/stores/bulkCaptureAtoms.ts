@@ -149,6 +149,7 @@ const registerSingleItem = async ({
     status: GARMENT_STATUS.CHECKED_OUT,
     lastScannedAt: now,
     checkedOutAt: now,
+    archivedAt: undefined,
     createdAt: now,
     updatedAt: now,
   } as const;

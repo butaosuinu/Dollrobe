@@ -4,10 +4,11 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
-import { Plus, User } from "lucide-react";
+import { Plus, User, Archive } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { dollsAtom } from "@/stores/dollAtoms";
+import { pendingArchivesAtom } from "@/stores/pendingArchiveAtoms";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import DollCard from "@/components/doll/DollCard";
 import EmptyState from "@/components/ui/EmptyState";
@@ -15,9 +16,17 @@ import Skeleton from "@/components/ui/Skeleton";
 
 const DollListContent = () => {
   const router = useRouter();
-  const dolls = useAtomValue(dollsAtom);
+  const allDolls = useAtomValue(dollsAtom);
+  const pendingArchives = useAtomValue(pendingArchivesAtom);
 
-  if (dolls.length === 0) {
+  const pendingDollIds = new Set(
+    pendingArchives.filter((p) => p.entityType === "doll").map((p) => p.id),
+  );
+  const dolls = allDolls.filter(
+    (d) => d.archivedAt === undefined && !pendingDollIds.has(d.id),
+  );
+
+  if (allDolls.length === 0) {
     return (
       <EmptyState
         icon={User}
@@ -31,11 +40,32 @@ const DollListContent = () => {
     );
   }
 
+  const archivedCount = allDolls.filter(
+    (d) => d.archivedAt !== undefined,
+  ).length;
+
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
-      {dolls.map((doll) => (
-        <DollCard key={doll.id} doll={doll} />
-      ))}
+    <div className="flex flex-col gap-4">
+      {archivedCount > 0 && (
+        <Link
+          href="/archive?tab=doll"
+          className="inline-flex items-center gap-1 text-xs text-text-tertiary transition-colors hover:text-text-secondary"
+        >
+          <Archive className="size-3.5" />
+          <Trans>アーカイブ ({archivedCount})</Trans>
+        </Link>
+      )}
+      {dolls.length === 0 ? (
+        <p className="py-12 text-center text-sm text-text-tertiary">
+          <Trans>表示するドールがありません</Trans>
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
+          {dolls.map((doll) => (
+            <DollCard key={doll.id} doll={doll} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

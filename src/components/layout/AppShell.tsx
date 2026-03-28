@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import TopBar from "@/components/layout/TopBar";
 import BottomNav from "@/components/layout/BottomNav";
+import ToastContainer from "@/components/ui/Toast";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import Skeleton from "@/components/ui/Skeleton";
 
@@ -23,6 +24,7 @@ const AppShell = ({ children }: Props) => (
       {children}
     </main>
     <BottomNav />
+    <ToastContainer />
   </div>
 );
 

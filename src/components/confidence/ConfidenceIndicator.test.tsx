@@ -24,6 +24,7 @@ const createTestGarment = (overrides: Partial<Garment> = {}): Garment => ({
   confidenceDecayDays: 30,
   brand: undefined,
   checkedOutAt: undefined,
+  archivedAt: undefined,
   createdAt: FIXED_NOW,
   updatedAt: FIXED_NOW,
   ...overrides,

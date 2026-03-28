@@ -15,6 +15,11 @@ export const refreshGarmentsAtom = atom(undefined, (_get, set) => {
   set(garmentsRefreshTriggerAtom, (prev) => prev + 1);
 });
 
+export const activeGarmentsAtom = atom(async (get) => {
+  const garments = await get(garmentsAtom);
+  return garments.filter((g) => g.archivedAt === undefined);
+});
+
 export const addGarmentAtom = atom(
   undefined,
   async (_get, set, garment: Garment) => {
@@ -54,6 +59,23 @@ export const deleteGarmentAtom = atom(
   },
 );
 
+export const restoreGarmentAtom = atom(
+  undefined,
+  async (_get, set, id: string) => {
+    const now = Date.now();
+    await db.garments.update(id, { archivedAt: undefined, updatedAt: now });
+    const updated = await db.garments.get(id);
+    await (updated === undefined
+      ? Promise.resolve()
+      : db.syncQueue.add({
+          type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
+          payload: updated,
+          createdAt: now,
+        }));
+    set(refreshGarmentsAtom);
+  },
+);
+
 export const confirmAllGarmentsAtom = atom(
   undefined,
   async (_get, set, locationId: string) => {
@@ -64,7 +86,7 @@ export const confirmAllGarmentsAtom = atom(
       .toArray();
 
     const storedGarments = garments.filter(
-      (g) => g.status === GARMENT_STATUS.STORED,
+      (g) => g.status === GARMENT_STATUS.STORED && g.archivedAt === undefined,
     );
 
     await db.garments.bulkPut(

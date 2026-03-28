@@ -98,10 +98,28 @@ msgstr "{validCount}件 有効"
 msgid "{validCount}件をインポート"
 msgstr "{validCount}件をインポート"
 
+#. placeholder {0}: doll.name
+#. placeholder {0}: garment.name
+#: src/components/doll/DollDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+msgid "「{0}」をアーカイブしますか？"
+msgstr "「{0}」をアーカイブしますか？"
+
+#: src/app/locations/page.tsx
+#~ msgid "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
+#~ msgstr "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
+
 #. placeholder {0}: deletingCase.name
 #: src/app/locations/page.tsx
-msgid "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
-msgstr "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
+msgid "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
+msgstr "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
+
+#. placeholder {0}: doll.name
+#. placeholder {0}: garment.name
+#: src/components/doll/DollDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+msgid "「{0}」を完全に削除しますか？この操作は取り消せません。"
+msgstr "「{0}」を完全に削除しますか？この操作は取り消せません。"
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -205,6 +223,42 @@ msgstr "X (Twitter) でログイン"
 msgid "YoSD (~26cm)"
 msgstr "YoSD (~26cm)"
 
+#: src/lib/constants.ts
+#~ msgid "YoSD (1/6)"
+#~ msgstr "YoSD (1/6)"
+
+#: src/app/archive/page.tsx
+#: src/components/doll/DollDetail.tsx
+#: src/components/doll/DollDetail.tsx
+#: src/components/doll/DollDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+msgid "アーカイブ"
+msgstr "アーカイブ"
+
+#: src/app/dolls/page.tsx
+#: src/app/garments/page.tsx
+msgid "アーカイブ ({archivedCount})"
+msgstr "アーカイブ ({archivedCount})"
+
+#: src/app/archive/page.tsx
+msgid "アーカイブしたドールはここに表示されます"
+msgstr "アーカイブしたドールはここに表示されます"
+
+#: src/app/archive/page.tsx
+msgid "アーカイブした服はここに表示されます"
+msgstr "アーカイブした服はここに表示されます"
+
+#: src/stores/pendingArchiveAtoms.ts
+msgid "アーカイブしました"
+msgstr "アーカイブしました"
+
+#: src/app/archive/page.tsx
+#: src/app/archive/page.tsx
+msgid "アーカイブは空です"
+msgstr "アーカイブは空です"
+
 #: src/lib/i18n-labels.ts
 msgid "アウター"
 msgstr "アウター"
@@ -262,11 +316,11 @@ msgstr "カスタム名称"
 msgid "カテゴリ"
 msgstr "カテゴリ"
 
-#: src/app/locations/page.tsx
 #: src/app/nfc-write/page.tsx
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
+#: src/components/ui/ConfirmSheet.tsx
 msgid "キャンセル"
 msgstr "キャンセル"
 
@@ -412,6 +466,11 @@ msgstr "タップして確認する"
 #: src/lib/nav-items.ts
 msgid "ドール"
 msgstr "ドール"
+
+#. placeholder {0}: archivedDolls.length
+#: src/app/archive/page.tsx
+msgid "ドール ({0})"
+msgstr "ドール ({0})"
 
 #: src/app/dolls/[id]/edit/page.tsx
 #: src/app/dolls/[id]/page.tsx
@@ -739,6 +798,10 @@ msgstr "収納場所を選択"
 msgid "取り出し中"
 msgstr "取り出し中"
 
+#: src/stores/pendingArchiveAtoms.ts
+msgid "取り消す"
+msgstr "取り消す"
+
 #: src/lib/i18n-labels.ts
 msgid "古い順"
 msgstr "古い順"
@@ -782,6 +845,13 @@ msgstr "変更"
 msgid "季節物 (90日)"
 msgstr "季節物 (90日)"
 
+#: src/components/doll/DollDetail.tsx
+#: src/components/doll/DollDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+msgid "完全に削除"
+msgstr "完全に削除"
+
 #: src/lib/i18n-labels.ts
 msgid "帽子/ヘッドドレス"
 msgstr "帽子/ヘッドドレス"
@@ -793,6 +863,11 @@ msgstr "引き出し"
 #: src/components/location/StorageGrid.tsx
 msgid "引き出しを編集"
 msgstr "引き出しを編集"
+
+#: src/components/doll/DollDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+msgid "復元"
+msgstr "復元"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
@@ -854,6 +929,11 @@ msgstr "書き込む服を選択"
 #: src/app/nfc-write/page.tsx
 msgid "服"
 msgstr "服"
+
+#. placeholder {0}: archivedGarments.length
+#: src/app/archive/page.tsx
+msgid "服 ({0})"
+msgstr "服 ({0})"
 
 #: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
@@ -987,6 +1067,10 @@ msgstr "行数"
 msgid "衣装ケースを追加して、服の収納場所を管理しましょう"
 msgstr "衣装ケースを追加して、服の収納場所を管理しましょう"
 
+#: src/app/dolls/page.tsx
+msgid "表示するドールがありません"
+msgstr "表示するドールがありません"
+
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
@@ -1014,6 +1098,7 @@ msgstr "詳細"
 msgid "説明"
 msgstr "説明"
 
+#: src/app/archive/page.tsx
 #: src/app/digest/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
 #: src/app/dolls/[id]/page.tsx

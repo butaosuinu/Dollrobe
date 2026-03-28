@@ -114,6 +114,7 @@ const toClientGarment = (g: {
   readonly confidenceDecayDays: number;
   readonly brand?: string | null;
   readonly checkedOutAt?: number | null;
+  readonly archivedAt?: number | null;
   readonly createdAt: number;
   readonly updatedAt: number;
 }): Garment => ({
@@ -131,6 +132,7 @@ const toClientGarment = (g: {
   confidenceDecayDays: g.confidenceDecayDays,
   brand: g.brand ?? undefined,
   checkedOutAt: g.checkedOutAt ?? undefined,
+  archivedAt: g.archivedAt ?? undefined,
   createdAt: g.createdAt,
   updatedAt: g.updatedAt,
 });
@@ -145,6 +147,7 @@ const toClientDoll = (d: {
   readonly customizer?: string | null;
   readonly imageUrl?: string | null;
   readonly memo?: string | null;
+  readonly archivedAt?: number | null;
   readonly createdAt: number;
   readonly updatedAt: number;
 }): Doll => ({
@@ -157,6 +160,7 @@ const toClientDoll = (d: {
   customizer: d.customizer ?? undefined,
   imageUrl: d.imageUrl ?? undefined,
   memo: d.memo ?? undefined,
+  archivedAt: d.archivedAt ?? undefined,
   createdAt: d.createdAt,
   updatedAt: d.updatedAt,
 });
