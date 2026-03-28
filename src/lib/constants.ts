@@ -61,6 +61,7 @@ export const GARMENT_CATEGORIES: readonly GarmentCategory[] = [
   "socks",
   "shoes",
   "hat",
+  "wig",
   "accessory",
   "other",
 ];
