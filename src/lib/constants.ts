@@ -39,12 +39,26 @@ export const SYNC_ACTION_TYPE = Object.freeze({
   STORAGE_CASE_UPDATE: "storageCase:update",
   STORAGE_CASE_DELETE: "storageCase:delete",
   STORAGE_LOCATION_CREATE: "storageLocation:create",
+  STORAGE_LOCATION_UPDATE: "storageLocation:update",
   DOLL_CREATE: "doll:create",
   DOLL_UPDATE: "doll:update",
   DOLL_DELETE: "doll:delete",
 });
 
+export const STORAGE_CASE_TYPE = Object.freeze({
+  GRID: "grid",
+  UNIT: "unit",
+} as const);
+
+export type StorageCaseType =
+  (typeof STORAGE_CASE_TYPE)[keyof typeof STORAGE_CASE_TYPE];
+
+export const STORAGE_CASE_TYPES: readonly StorageCaseType[] = ["grid", "unit"];
+
 export const CASE_NAME_MAX_LENGTH = 100;
+export const CASE_DESCRIPTION_MAX_LENGTH = 200;
+export const LOCATION_CUSTOM_NAME_MAX_LENGTH = 50;
+export const LOCATION_DESCRIPTION_MAX_LENGTH = 200;
 export const DOLL_NAME_MAX_LENGTH = 100;
 export const DOLL_MEMO_MAX_LENGTH = 500;
 export const GRID_SIZE_MIN = 1;
@@ -61,6 +75,7 @@ export const GARMENT_CATEGORIES: readonly GarmentCategory[] = [
   "socks",
   "shoes",
   "hat",
+  "wig",
   "accessory",
   "other",
 ];

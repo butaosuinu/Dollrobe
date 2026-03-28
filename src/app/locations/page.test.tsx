@@ -236,7 +236,9 @@ describe("LocationsPage CRUD操作", () => {
     await renderWithProviders(<LocationsPage />);
 
     fireEvent.click(screen.getByLabelText("ケースを追加"));
-    await user.type(screen.getByLabelText("ケース名"), "新しいケース");
+    const nameInput = screen.getByLabelText("ケース名");
+    await user.clear(nameInput);
+    await user.type(nameInput, "新しいケース");
     fireEvent.click(screen.getByRole("button", { name: "作成" }));
 
     const { db } = await import("@/lib/db/dexie");

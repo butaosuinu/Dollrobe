@@ -50,6 +50,7 @@ export const createTestCaseInput = (
   overrides: Record<string, unknown> = {},
 ) => ({
   name: "テスト衣装ケース",
+  type: "grid" as const,
   rows: 3,
   cols: 2,
   ...overrides,

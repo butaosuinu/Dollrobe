@@ -1,14 +1,24 @@
-import type { StorageCase, StorageLocation } from "@/types";
+import type { StorageCase, StorageCaseType, StorageLocation } from "@/types";
 import { createId } from "@paralleldrive/cuid2";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { DrizzleDB } from "../db/client";
 import { garments, storageCases, storageLocations } from "../db/schema";
 import { generateLabel } from "../trpc/lib/d1-helpers";
 
+const CASE_TYPE_MAP: Record<string, StorageCaseType> = {
+  grid: "grid",
+  unit: "unit",
+};
+
+const toCaseType = (raw: string): StorageCaseType =>
+  CASE_TYPE_MAP[raw] ?? "grid";
+
 const toStorageCase = (row: typeof storageCases.$inferSelect): StorageCase => ({
   id: row.id,
   userId: row.userId,
   name: row.name,
+  type: toCaseType(row.type),
+  description: row.description ?? undefined,
   rows: row.rows,
   cols: row.cols,
   createdAt: row.createdAt,
@@ -21,6 +31,8 @@ const toStorageLocation = (
   userId: row.userId,
   caseId: row.caseId,
   label: row.label,
+  customName: row.customName ?? undefined,
+  description: row.description ?? undefined,
   row: row.row,
   col: row.col,
   createdAt: row.createdAt,
@@ -161,36 +173,55 @@ export const insertCaseWithLocations = async ({
   drizzleDb,
   userId,
   name,
+  type,
+  description,
   rows,
   cols,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly name: string;
+  readonly type: StorageCaseType;
+  readonly description: string | undefined;
   readonly rows: number;
   readonly cols: number;
 }): Promise<string> => {
   const caseId = createId();
   const now = Date.now();
 
-  const locationValues = Array.from({ length: rows * cols }, (_, i) => {
-    const rowIdx = Math.floor(i / cols);
-    const colIdx = i % cols;
-    return {
-      id: createId(),
-      userId,
-      caseId,
-      label: generateLabel({ row: rowIdx, col: colIdx }),
-      row: rowIdx,
-      col: colIdx,
-      createdAt: now,
-    };
-  });
+  const locationValues =
+    type === "unit"
+      ? [
+          {
+            id: createId(),
+            userId,
+            caseId,
+            label: name,
+            row: 0,
+            col: 0,
+            createdAt: now,
+          },
+        ]
+      : Array.from({ length: rows * cols }, (_, i) => {
+          const rowIdx = Math.floor(i / cols);
+          const colIdx = i % cols;
+          return {
+            id: createId(),
+            userId,
+            caseId,
+            label: generateLabel({ row: rowIdx, col: colIdx }),
+            row: rowIdx,
+            col: colIdx,
+            createdAt: now,
+          };
+        });
 
   const insertCase = drizzleDb.insert(storageCases).values({
     id: caseId,
     userId,
     name,
+    type,
+    description: description ?? null,
     rows,
     cols,
     createdAt: now,
@@ -205,20 +236,22 @@ export const insertCaseWithLocations = async ({
   return caseId;
 };
 
-export const updateCaseName = async ({
+export const updateCase = async ({
   drizzleDb,
   id,
   userId,
   name,
+  description,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly id: string;
   readonly userId: string;
   readonly name: string;
+  readonly description: string | undefined;
 }): Promise<void> => {
   await drizzleDb
     .update(storageCases)
-    .set({ name })
+    .set({ name, description: description ?? null })
     .where(and(eq(storageCases.id, id), eq(storageCases.userId, userId)));
 };
 
@@ -294,6 +327,30 @@ export const insertLocation = async ({
   });
 
   return locationId;
+};
+
+export const updateLocation = async ({
+  drizzleDb,
+  id,
+  userId,
+  customName,
+  description,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly id: string;
+  readonly userId: string;
+  readonly customName: string | undefined;
+  readonly description: string | undefined;
+}): Promise<void> => {
+  await drizzleDb
+    .update(storageLocations)
+    .set({
+      customName: customName ?? null,
+      description: description ?? null,
+    })
+    .where(
+      and(eq(storageLocations.id, id), eq(storageLocations.userId, userId)),
+    );
 };
 
 export const deleteLocationWithCascade = async ({

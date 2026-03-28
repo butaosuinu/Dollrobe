@@ -41,6 +41,8 @@ export const storageCases = sqliteTable("storage_cases", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull(),
   name: text("name").notNull(),
+  type: text("type").notNull().default("grid"),
+  description: text("description"),
   rows: integer("rows").notNull().default(5),
   cols: integer("cols").notNull().default(3),
   createdAt: integer("created_at").notNull(),
@@ -55,6 +57,8 @@ export const storageLocations = sqliteTable(
       .notNull()
       .references(() => storageCases.id),
     label: text("label").notNull(),
+    customName: text("custom_name"),
+    description: text("description"),
     row: integer("row_num").notNull(),
     col: integer("col_num").notNull(),
     createdAt: integer("created_at").notNull(),

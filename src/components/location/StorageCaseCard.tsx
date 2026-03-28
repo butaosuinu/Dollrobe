@@ -3,7 +3,11 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import type { Garment, StorageCase, StorageLocation } from "@/types";
 import { getConfidence } from "@/lib/confidence";
-import { CONFIDENCE_THRESHOLD, GARMENT_STATUS } from "@/lib/constants";
+import {
+  CONFIDENCE_THRESHOLD,
+  GARMENT_STATUS,
+  STORAGE_CASE_TYPE,
+} from "@/lib/constants";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import IconButton from "@/components/ui/IconButton";
@@ -34,11 +38,22 @@ const StorageCaseCard = ({
       getConfidence(g) < CONFIDENCE_THRESHOLD.CONFIRMED,
   ).length;
 
+  const isUnit = storageCase.type === STORAGE_CASE_TYPE.UNIT;
+
   return (
     <Card>
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="font-display text-base font-bold">{storageCase.name}</h3>
-        <div className="flex items-center gap-1">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-display text-base font-bold">
+            {storageCase.name}
+          </h3>
+          {storageCase.description !== undefined && (
+            <p className="truncate text-xs text-text-tertiary">
+              {storageCase.description}
+            </p>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
           <IconButton
             icon={Pencil}
             label={t`編集`}
@@ -56,20 +71,26 @@ const StorageCaseCard = ({
       </div>
       <div className="mb-3 flex items-center gap-2">
         <span className="text-xs text-text-tertiary">
-          <Trans>
-            {storageCase.rows}行 x {storageCase.cols}列
-          </Trans>
+          {isUnit ? (
+            <Trans>ボックス</Trans>
+          ) : (
+            <Trans>
+              {storageCase.rows}行 x {storageCase.cols}列
+            </Trans>
+          )}
         </span>
         <Badge>{t`${caseGarments.length}着`}</Badge>
         {needsReviewCount > 0 && (
           <Badge variant="uncertain">{t`${needsReviewCount}着 要確認`}</Badge>
         )}
       </div>
-      <StorageGrid
-        storageCase={storageCase}
-        locations={locations}
-        garments={garments}
-      />
+      {!isUnit && (
+        <StorageGrid
+          storageCase={storageCase}
+          locations={locations}
+          garments={garments}
+        />
+      )}
     </Card>
   );
 };

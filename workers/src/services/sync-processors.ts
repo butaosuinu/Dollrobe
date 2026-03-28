@@ -61,6 +61,8 @@ const storageCaseSchema = z.object({
   id: z.string().min(1),
   userId: z.string().min(1),
   name: z.string().min(1),
+  type: z.string().optional(),
+  description: z.string().optional(),
   rows: z.number().int(),
   cols: z.number().int(),
   createdAt: z.number(),
@@ -71,6 +73,8 @@ const storageLocationSchema = z.object({
   userId: z.string().min(1),
   caseId: z.string().min(1),
   label: z.string().min(1),
+  customName: z.string().optional(),
+  description: z.string().optional(),
   row: z.number().int(),
   col: z.number().int(),
   createdAt: z.number(),
@@ -132,6 +136,8 @@ const toCaseInsertValues = ({
   id: parsed.id,
   userId: authenticatedUserId,
   name: parsed.name,
+  type: parsed.type ?? "grid",
+  description: parsed.description ?? null,
   rows: parsed.rows,
   cols: parsed.cols,
   createdAt: parsed.createdAt,
@@ -148,6 +154,8 @@ const toLocationInsertValues = ({
   userId: authenticatedUserId,
   caseId: parsed.caseId,
   label: parsed.label,
+  customName: parsed.customName ?? null,
+  description: parsed.description ?? null,
   row: parsed.row,
   col: parsed.col,
   createdAt: parsed.createdAt,
@@ -309,6 +317,25 @@ const processStorageLocationCreate: ActionProcessor = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
+const processStorageLocationUpdate: ActionProcessor = async (ctx, payload) => {
+  const parsed = storageLocationSchema.safeParse(payload);
+  if (!parsed.success) {
+    return serviceError(
+      "BAD_REQUEST",
+      `Invalid storageLocation payload: ${parsed.error.message}`,
+    );
+  }
+  await syncRepo.upsertStorageLocation({
+    drizzleDb: ctx.drizzleDb,
+    locationValues: toLocationInsertValues({
+      parsed: parsed.data,
+      authenticatedUserId: ctx.userId,
+    }),
+    logger: ctx.logger,
+  });
+  return serviceOk({ processed: true });
+};
+
 const processDollUpsert: ActionProcessor = async (ctx, payload) => {
   const parsed = dollPayloadSchema.safeParse(payload);
   if (!parsed.success) {
@@ -353,6 +380,7 @@ export const ACTION_PROCESSORS: Readonly<Record<string, ActionProcessor>> = {
   "storageCase:update": processStorageCaseUpdate,
   "storageCase:delete": processStorageCaseDelete,
   "storageLocation:create": processStorageLocationCreate,
+  "storageLocation:update": processStorageLocationUpdate,
   "doll:create": processDollUpsert,
   "doll:update": processDollUpsert,
   "doll:delete": processDollDelete,

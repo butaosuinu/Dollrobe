@@ -121,14 +121,6 @@ msgstr ""
 msgid "「{0}」を完全に削除しますか？この操作は取り消せません。"
 msgstr ""
 
-#: src/lib/constants.ts
-#~ msgid "1/3 (SD17/DD等)"
-#~ msgstr "1/3 (SD17/DD等)"
-
-#: src/lib/constants.ts
-#~ msgid "1/6 (ピュアニーモ等)"
-#~ msgstr "1/6 (PureNeemo等)"
-
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
 msgid "CSVインポート"
@@ -170,10 +162,6 @@ msgstr "MDD (~40cm)"
 msgid "MSD (~43cm)"
 msgstr "MSD (~43cm)"
 
-#: src/lib/constants.ts
-#~ msgid "MSD (1/4)"
-#~ msgstr "MSD (1/4)"
-
 #: src/app/nfc-write/page.tsx
 msgid "NFC タグにタッチしてください..."
 msgstr "请触碰NFC标签..."
@@ -207,10 +195,6 @@ msgstr "不支持NFC"
 msgid "QR ラベル印刷"
 msgstr "QR标签打印"
 
-#: src/app/scan/page.tsx
-#~ msgid "QRスキャン"
-#~ msgstr "QR扫描"
-
 #: src/components/dashboard/AlertPanel.tsx
 msgid "QRスキャンで戻す場所を記録できます"
 msgstr "可以通过QR扫描记录归还位置"
@@ -222,10 +206,6 @@ msgstr "打印QR"
 #: src/lib/i18n-labels.ts
 msgid "SD (~57cm)"
 msgstr "SD (~57cm)"
-
-#: src/lib/constants.ts
-#~ msgid "SD (1/3)"
-#~ msgstr "SD (1/3)"
 
 #: src/lib/i18n-labels.ts
 msgid "SD13 (~57cm)"
@@ -305,6 +285,10 @@ msgstr ""
 msgid "インポート完了"
 msgstr ""
 
+#: src/lib/i18n-labels.ts
+msgid "ウィッグ"
+msgstr ""
+
 #: src/app/page.tsx
 msgid "おかえりなさい"
 msgstr "欢迎回来"
@@ -318,6 +302,10 @@ msgstr ""
 msgid "カスタムメイクの作者名"
 msgstr ""
 
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "カスタム名称"
+msgstr "自定义名称"
+
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -327,6 +315,7 @@ msgstr "类别"
 #: src/app/nfc-write/page.tsx
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
+#: src/components/location/StorageLocationEditForm.tsx
 msgid "キャンセル"
 msgstr "取消"
 
@@ -369,6 +358,14 @@ msgstr "收纳箱详情"
 #: src/app/nfc-write/page.tsx
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "此设备不支持NFC写入。请使用Android Chrome。"
+
+#: src/app/locations/[caseId]/page.tsx
+msgid "このボックスには服がありません"
+msgstr "这个盒子里没有衣服"
+
+#: src/components/location/StorageGrid.tsx
+msgid "この場所には服がありません"
+msgstr "这个位置没有衣服"
 
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "この場所の全服を確認済みにする"
@@ -442,6 +439,10 @@ msgstr "袜子/连裤袜"
 #: src/lib/i18n-labels.ts
 msgid "その他"
 msgstr "其他"
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "タイプ"
+msgstr "类型"
 
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentDetail.tsx
@@ -547,6 +548,13 @@ msgstr "Volks、Azone等"
 msgid "ホーム"
 msgstr "首页"
 
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/garment/LocationPicker.tsx
+#: src/components/location/StorageCaseCard.tsx
+#: src/components/location/StorageCaseForm.tsx
+msgid "ボックス"
+msgstr "盒子"
+
 #: src/components/doll/DollForm.tsx
 msgid "ボディサイズ"
 msgstr "身体尺寸"
@@ -596,6 +604,11 @@ msgstr "再写入一张"
 #: src/lib/i18n-labels.ts
 msgid "よく着る服 (14日)"
 msgstr "常穿衣服 (14天)"
+
+#. placeholder {0}: location.label
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "ラベル: {0}"
+msgstr "标签: {0}"
 
 #: src/components/garment/ViewToggle.tsx
 msgid "リスト表示"
@@ -656,11 +669,25 @@ msgstr "排序"
 msgid "作成"
 msgstr "创建"
 
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "例: ワンピース用"
+msgstr "例如: 连衣裙用"
+
+#: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageCaseForm.tsx
+msgid "例: 主にMDD用衣装を仕舞う場所"
+msgstr "例如: 主要存放MDD用服装的地方"
+
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "例: 春物のワンピースを収納"
+msgstr "例如: 收纳春季连衣裙"
+
 #: src/components/location/StorageCaseForm.tsx
 msgid "例: 衣装ケース A"
 msgstr "例：收纳箱 A"
 
 #: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageLocationEditForm.tsx
 msgid "保存"
 msgstr "保存"
 
@@ -824,6 +851,14 @@ msgstr "帽子/头饰"
 #: src/components/garment/GarmentDetail.tsx
 msgid "復元"
 msgstr ""
+
+#: src/components/location/StorageCaseForm.tsx
+msgid "引き出し"
+msgstr "抽屉"
+
+#: src/components/location/StorageGrid.tsx
+msgid "引き出しを編集"
+msgstr "编辑抽屉"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
@@ -997,6 +1032,7 @@ msgstr ""
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/location/StorageCaseCard.tsx
+#: src/components/location/StorageGrid.tsx
 msgid "編集"
 msgstr "编辑"
 
@@ -1048,6 +1084,12 @@ msgid "詳細"
 msgstr "详情"
 
 #: src/app/archive/page.tsx
+#: src/components/location/StorageCaseEditForm.tsx
+#: src/components/location/StorageCaseForm.tsx
+#: src/components/location/StorageLocationEditForm.tsx
+msgid "説明"
+msgstr "说明"
+
 #: src/app/digest/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
 #: src/app/dolls/[id]/page.tsx
