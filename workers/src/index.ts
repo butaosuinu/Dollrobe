@@ -12,6 +12,7 @@ import type { Auth } from "./auth";
 import { createLogger, DEFAULT_LOG_LEVEL } from "./lib/logger";
 import type { Logger, LogLevel } from "./lib/logger";
 import { imageRoutes } from "./routes/image";
+import * as imageService from "./services/image-service";
 import { handleDigestCron } from "./scheduled/digest-cron";
 import { handleDigestQueue } from "./queues/digest-consumer";
 
@@ -71,6 +72,37 @@ app.use("*", async (c, next) => {
 app.all("/api/auth/*", async (c) => {
   const auth = c.get("auth");
   return await auth.handler(c.req.raw);
+});
+
+const IMAGE_SERVE_PREFIX = "/api/images/serve/";
+
+app.get("/api/images/serve/*", async (c) => {
+  const logger = c.get("logger").child({ route: "image/serve" });
+  const key = c.req.path.startsWith(IMAGE_SERVE_PREFIX)
+    ? decodeURIComponent(c.req.path.slice(IMAGE_SERVE_PREFIX.length))
+    : undefined;
+
+  if (key === undefined || key === "") {
+    return c.json({ error: "Key is required" }, 400);
+  }
+
+  const result = await imageService.getImage({
+    bucket: c.env.BUCKET,
+    key,
+    logger,
+  });
+
+  if (!result.ok) {
+    if (result.error.code === "NOT_FOUND") {
+      return await c.notFound();
+    }
+    return c.json({ error: result.error.message }, 500);
+  }
+
+  c.header("Content-Type", result.data.contentType);
+  c.header("Cache-Control", "public, max-age=31536000, immutable");
+  c.header("ETag", result.data.httpEtag);
+  return c.body(result.data.body);
 });
 
 app.route("/api/images", imageRoutes);

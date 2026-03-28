@@ -103,6 +103,41 @@ export const uploadImage = async ({
   return serviceOk({ key });
 };
 
+export const getImage = async ({
+  bucket,
+  key,
+  logger,
+}: {
+  readonly bucket: R2Bucket;
+  readonly key: string;
+  readonly logger: Logger;
+}) => {
+  const object = await bucket.get(key).catch((err: unknown) => {
+    const message = err instanceof Error ? err.message : "R2 get failed";
+    logger.error("R2 get error", { key, errorMessage: message });
+    return message;
+  });
+
+  if (typeof object === "string") {
+    return serviceError("INTERNAL_ERROR", object);
+  }
+
+  if (object === null) {
+    return serviceError("NOT_FOUND", "Image not found");
+  }
+
+  const contentType =
+    object.httpMetadata?.contentType ?? "application/octet-stream";
+
+  const body = await object.arrayBuffer();
+
+  return serviceOk({
+    body,
+    contentType,
+    httpEtag: object.httpEtag,
+  });
+};
+
 export const deleteImage = async ({
   bucket,
   key,

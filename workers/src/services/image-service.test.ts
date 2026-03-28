@@ -46,6 +46,17 @@ describe("buildPublicUrl", () => {
       "https://cdn.example.com/garments/user-1/garment-1/123.png",
     );
   });
+
+  it("パス付き R2_PUBLIC_URL でも正しく結合する", () => {
+    const url = buildPublicUrl({
+      r2PublicUrl: "http://localhost:8787/api/images/serve",
+      key: "garments/user-1/garment-1/123.png",
+    });
+
+    expect(url).toBe(
+      "http://localhost:8787/api/images/serve/garments/user-1/garment-1/123.png",
+    );
+  });
 });
 
 describe("extractR2KeyFromUrl", () => {
@@ -62,6 +73,16 @@ describe("extractR2KeyFromUrl", () => {
     const key = extractR2KeyFromUrl({
       r2PublicUrl: "https://cdn.example.com/",
       imageUrl: "https://cdn.example.com/garments/user-1/garment-1/123.png",
+    });
+
+    expect(key).toBe("garments/user-1/garment-1/123.png");
+  });
+
+  it("パス付き R2_PUBLIC_URL からキーを抽出する", () => {
+    const key = extractR2KeyFromUrl({
+      r2PublicUrl: "http://localhost:8787/api/images/serve",
+      imageUrl:
+        "http://localhost:8787/api/images/serve/garments/user-1/garment-1/123.png",
     });
 
     expect(key).toBe("garments/user-1/garment-1/123.png");
