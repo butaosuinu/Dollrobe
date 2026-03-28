@@ -1,5 +1,6 @@
 "use client";
 
+import { Trans } from "@lingui/react/macro";
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
 
@@ -26,7 +27,7 @@ const ConfirmSheet = ({
     <p className="mb-6 text-sm text-text-secondary">{message}</p>
     <div className="flex gap-3">
       <Button variant="ghost" fullWidth onClick={onClose}>
-        キャンセル
+        <Trans>キャンセル</Trans>
       </Button>
       <Button
         variant={confirmVariant}

@@ -16,7 +16,7 @@ msgstr ""
 #. placeholder {0}: STEP_TITLES[step]
 #: src/app/garments/import/page.tsx
 msgid "{0}"
-msgstr ""
+msgstr "{0}"
 
 #. placeholder {0}: i18n._(DOLL_SIZE_LABEL[dollBodySize])
 #: src/components/doll/CompatibleGarmentList.tsx
@@ -28,14 +28,14 @@ msgstr "Register garments compatible with {0} size to see them here"
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 #: src/components/garment/csv/CsvImportProgress.tsx
 msgid "{0}件の登録に失敗しました"
-msgstr ""
+msgstr "{0} registrations failed"
 
 #. placeholder {0}: result.succeeded
 #. placeholder {0}: status.succeeded
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 #: src/components/garment/csv/CsvImportProgress.tsx
 msgid "{0}件の登録に成功しました"
-msgstr ""
+msgstr "{0} registrations succeeded"
 
 #. placeholder {0}: caseGarments.length
 #. placeholder {0}: garments.length
@@ -83,7 +83,7 @@ msgstr "Checked out {elapsedDays} days ago"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{errorCount}件 エラー"
-msgstr ""
+msgstr "{errorCount} errors"
 
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
@@ -92,18 +92,18 @@ msgstr "{needsReviewCount} items need review"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件 有効"
-msgstr ""
+msgstr "{validCount} valid"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件をインポート"
-msgstr ""
+msgstr "Import {validCount} items"
 
 #. placeholder {0}: doll.name
 #. placeholder {0}: garment.name
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」をアーカイブしますか？"
-msgstr ""
+msgstr "Archive "{0}"?"
 
 #: src/app/locations/page.tsx
 #~ msgid "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
@@ -112,23 +112,23 @@ msgstr ""
 #. placeholder {0}: deletingCase.name
 #: src/app/locations/page.tsx
 msgid "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
-msgstr ""
+msgstr "Delete "{0}"? Garments in this case will be marked as "checked out"."
 
 #. placeholder {0}: doll.name
 #. placeholder {0}: garment.name
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」を完全に削除しますか？この操作は取り消せません。"
-msgstr ""
+msgstr "Permanently delete "{0}"? This action cannot be undone."
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
 msgid "CSVインポート"
-msgstr ""
+msgstr "CSV Import"
 
 #: src/components/garment/csv/CsvDropZone.tsx
 msgid "CSVファイルをドラッグ&ドロップ"
-msgstr ""
+msgstr "Drag & drop a CSV file"
 
 #: src/lib/i18n-labels.ts
 msgid "DD (~58cm)"
@@ -185,7 +185,7 @@ msgstr "NFC supported"
 
 #: src/components/scan/NfcReader.tsx
 msgid "NFC 待ち受け中..."
-msgstr ""
+msgstr "Waiting for NFC..."
 
 #: src/components/scan/NfcCapabilityBadge.tsx
 msgid "NFC 非対応"
@@ -235,25 +235,29 @@ msgstr "YoSD (~26cm)"
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "アーカイブ"
-msgstr ""
+msgstr "Archive"
 
 #: src/app/dolls/page.tsx
 #: src/app/garments/page.tsx
 msgid "アーカイブ ({archivedCount})"
-msgstr ""
+msgstr "Archive ({archivedCount})"
 
 #: src/app/archive/page.tsx
 msgid "アーカイブしたドールはここに表示されます"
-msgstr ""
+msgstr "Archived dolls will appear here"
 
 #: src/app/archive/page.tsx
 msgid "アーカイブした服はここに表示されます"
-msgstr ""
+msgstr "Archived garments will appear here"
+
+#: src/stores/pendingArchiveAtoms.ts
+msgid "アーカイブしました"
+msgstr "Archived"
 
 #: src/app/archive/page.tsx
 #: src/app/archive/page.tsx
 msgid "アーカイブは空です"
-msgstr ""
+msgstr "Archive is empty"
 
 #: src/lib/i18n-labels.ts
 msgid "アウター"
@@ -279,15 +283,15 @@ msgstr "Innerwear"
 
 #: src/components/garment/csv/CsvImportProgress.tsx
 msgid "インポート中..."
-msgstr ""
+msgstr "Importing..."
 
 #: src/components/garment/csv/CsvImportProgress.tsx
 msgid "インポート完了"
-msgstr ""
+msgstr "Import complete"
 
 #: src/lib/i18n-labels.ts
 msgid "ウィッグ"
-msgstr ""
+msgstr "Wigs"
 
 #: src/app/page.tsx
 msgid "おかえりなさい"
@@ -296,11 +300,11 @@ msgstr "Welcome back"
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollForm.tsx
 msgid "カスタマイザー"
-msgstr ""
+msgstr "Customizer"
 
 #: src/components/doll/DollForm.tsx
 msgid "カスタムメイクの作者名"
-msgstr ""
+msgstr "Custom faceup artist name"
 
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "カスタム名称"
@@ -316,6 +320,7 @@ msgstr "Category"
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
+#: src/components/ui/ConfirmSheet.tsx
 msgid "キャンセル"
 msgstr "Cancel"
 
@@ -373,11 +378,11 @@ msgstr "Mark all garments in this location as confirmed"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "サイズ"
-msgstr ""
+msgstr "Size"
 
 #: src/components/garment/csv/CsvDropZone.tsx
 msgid "サンプルCSVをダウンロード"
-msgstr ""
+msgstr "Download sample CSV"
 
 #. placeholder {0}: digest.unknownCount
 #: src/components/digest/DigestCard.tsx
@@ -465,7 +470,7 @@ msgstr "Dolls"
 #. placeholder {0}: archivedDolls.length
 #: src/app/archive/page.tsx
 msgid "ドール ({0})"
-msgstr ""
+msgstr "Dolls ({0})"
 
 #: src/app/dolls/[id]/edit/page.tsx
 #: src/app/dolls/[id]/page.tsx
@@ -537,7 +542,7 @@ msgstr "Head model"
 
 #: src/components/doll/DollForm.tsx
 msgid "ボークス、アゾン 等"
-msgstr ""
+msgstr "Volks, Azone, etc."
 
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -569,7 +574,7 @@ msgstr "No dolls yet"
 
 #: src/components/garment/csv/CsvDropZone.tsx
 msgid "またはクリックしてファイルを選択"
-msgstr ""
+msgstr "or click to select a file"
 
 #: src/app/digest/page.tsx
 msgid "まだレポートがありません"
@@ -590,7 +595,7 @@ msgstr "No garments yet"
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollForm.tsx
 msgid "メーカー"
-msgstr ""
+msgstr "Maker"
 
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollForm.tsx
@@ -634,7 +639,7 @@ msgstr "Here's your wardrobe status"
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 #: src/components/garment/csv/CsvImportProgress.tsx
 msgid "ワードローブを見る"
-msgstr ""
+msgstr "View wardrobe"
 
 #: src/lib/i18n-labels.ts
 msgid "ワンピース"
@@ -642,7 +647,7 @@ msgstr "One-piece"
 
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "一括登録中..."
-msgstr ""
+msgstr "Bulk registering..."
 
 #: src/app/garments/page.tsx
 msgid "一致する服が見つかりません"
@@ -749,11 +754,11 @@ msgstr "Delete"
 
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "前の値を適用"
-msgstr ""
+msgstr "Apply previous values"
 
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "前へ"
-msgstr ""
+msgstr "Back"
 
 #: src/app/print/page.tsx
 msgid "印刷"
@@ -792,6 +797,10 @@ msgstr "Select storage location"
 #: src/lib/i18n-labels.ts
 msgid "取り出し中"
 msgstr "Checked out"
+
+#: src/stores/pendingArchiveAtoms.ts
+msgid "取り消す"
+msgstr "Undo"
 
 #: src/lib/i18n-labels.ts
 msgid "古い順"
@@ -841,16 +850,11 @@ msgstr "Seasonal (90 days)"
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "完全に削除"
-msgstr ""
+msgstr "Delete permanently"
 
 #: src/lib/i18n-labels.ts
 msgid "帽子/ヘッドドレス"
 msgstr "Hats/Headdress"
-
-#: src/components/doll/DollDetail.tsx
-#: src/components/garment/GarmentDetail.tsx
-msgid "復元"
-msgstr ""
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "引き出し"
@@ -859,6 +863,11 @@ msgstr "Drawer"
 #: src/components/location/StorageGrid.tsx
 msgid "引き出しを編集"
 msgstr "Edit drawer"
+
+#: src/components/doll/DollDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+msgid "復元"
+msgstr "Restore"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
@@ -924,7 +933,7 @@ msgstr "Garment"
 #. placeholder {0}: archivedGarments.length
 #: src/app/archive/page.tsx
 msgid "服 ({0})"
-msgstr ""
+msgstr "Garments ({0})"
 
 #: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
@@ -965,13 +974,13 @@ msgstr "Auto-generated every Monday"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "状態"
-msgstr ""
+msgstr "Status"
 
 #. placeholder {0}: status.completed
 #. placeholder {1}: status.total
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "画像をアップロードしています ({0}/{1})"
-msgstr ""
+msgstr "Uploading images ({0}/{1})"
 
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -980,11 +989,11 @@ msgstr "Register"
 
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "登録完了"
-msgstr ""
+msgstr "Registration complete"
 
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "登録開始"
-msgstr ""
+msgstr "Start registration"
 
 #: src/components/confidence/ConfidenceStats.tsx
 msgid "着"
@@ -1023,11 +1032,11 @@ msgstr "Lost"
 
 #: src/components/garment/csv/CsvImportProgress.tsx
 msgid "続けてインポート"
-msgstr ""
+msgstr "Continue importing"
 
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "続けて撮影する"
-msgstr ""
+msgstr "Continue capturing"
 
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
@@ -1048,7 +1057,7 @@ msgstr "Colors"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "行"
-msgstr ""
+msgstr "Row"
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "行数"
@@ -1060,7 +1069,7 @@ msgstr "Add costume cases to manage garment storage"
 
 #: src/app/dolls/page.tsx
 msgid "表示するドールがありません"
-msgstr ""
+msgstr "No dolls to display"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts
@@ -1083,13 +1092,13 @@ msgstr "Language"
 msgid "詳細"
 msgstr "Details"
 
-#: src/app/archive/page.tsx
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "説明"
 msgstr "Description"
 
+#: src/app/archive/page.tsx
 #: src/app/digest/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
 #: src/app/dolls/[id]/page.tsx
@@ -1112,7 +1121,7 @@ msgstr "Normal (30 days)"
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
 msgid "連続撮影"
-msgstr ""
+msgstr "Burst capture"
 
 #: src/app/digest/page.tsx
 msgid "週間レポート"

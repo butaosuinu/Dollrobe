@@ -250,6 +250,10 @@ msgstr "アーカイブしたドールはここに表示されます"
 msgid "アーカイブした服はここに表示されます"
 msgstr "アーカイブした服はここに表示されます"
 
+#: src/stores/pendingArchiveAtoms.ts
+msgid "アーカイブしました"
+msgstr "アーカイブしました"
+
 #: src/app/archive/page.tsx
 #: src/app/archive/page.tsx
 msgid "アーカイブは空です"
@@ -316,6 +320,7 @@ msgstr "カテゴリ"
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
+#: src/components/ui/ConfirmSheet.tsx
 msgid "キャンセル"
 msgstr "キャンセル"
 
@@ -793,6 +798,10 @@ msgstr "収納場所を選択"
 msgid "取り出し中"
 msgstr "取り出し中"
 
+#: src/stores/pendingArchiveAtoms.ts
+msgid "取り消す"
+msgstr "取り消す"
+
 #: src/lib/i18n-labels.ts
 msgid "古い順"
 msgstr "古い順"
@@ -847,11 +856,6 @@ msgstr "完全に削除"
 msgid "帽子/ヘッドドレス"
 msgstr "帽子/ヘッドドレス"
 
-#: src/components/doll/DollDetail.tsx
-#: src/components/garment/GarmentDetail.tsx
-msgid "復元"
-msgstr "復元"
-
 #: src/components/location/StorageCaseForm.tsx
 msgid "引き出し"
 msgstr "引き出し"
@@ -859,6 +863,11 @@ msgstr "引き出し"
 #: src/components/location/StorageGrid.tsx
 msgid "引き出しを編集"
 msgstr "引き出しを編集"
+
+#: src/components/doll/DollDetail.tsx
+#: src/components/garment/GarmentDetail.tsx
+msgid "復元"
+msgstr "復元"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
@@ -1083,13 +1092,13 @@ msgstr "言語"
 msgid "詳細"
 msgstr "詳細"
 
-#: src/app/archive/page.tsx
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "説明"
 msgstr "説明"
 
+#: src/app/archive/page.tsx
 #: src/app/digest/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
 #: src/app/dolls/[id]/page.tsx
