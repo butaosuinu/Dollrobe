@@ -17,6 +17,7 @@ export const GARMENT_CATEGORY_LABEL = Object.freeze({
   socks: msg`ソックス/タイツ`,
   shoes: msg`シューズ`,
   hat: msg`帽子/ヘッドドレス`,
+  wig: msg`ウィッグ`,
   accessory: msg`アクセサリー`,
   other: msg`その他`,
 }) satisfies Record<GarmentCategory, ReturnType<typeof msg>>;

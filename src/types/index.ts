@@ -22,6 +22,7 @@ export type GarmentCategory =
   | "socks"
   | "shoes"
   | "hat"
+  | "wig"
   | "accessory"
   | "other";
 

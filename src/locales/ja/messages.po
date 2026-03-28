@@ -259,6 +259,10 @@ msgstr "インポート中..."
 msgid "インポート完了"
 msgstr "インポート完了"
 
+#: src/lib/i18n-labels.ts
+msgid "ウィッグ"
+msgstr "ウィッグ"
+
 #: src/app/page.tsx
 msgid "おかえりなさい"
 msgstr "おかえりなさい"
