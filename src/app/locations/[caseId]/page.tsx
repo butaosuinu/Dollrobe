@@ -3,7 +3,6 @@
 import { Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
-import { ArrowLeft } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { storageCasesAtom, storageLocationsAtom } from "@/stores/locationAtoms";
@@ -18,6 +17,7 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import StorageGrid from "@/components/location/StorageGrid";
 import GarmentList from "@/components/garment/GarmentList";
 import Badge from "@/components/ui/Badge";
+import PageHeader from "@/components/ui/PageHeader";
 import Skeleton from "@/components/ui/Skeleton";
 
 const CaseDetailContent = () => {
@@ -102,17 +102,11 @@ const CaseDetailPage = () => {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => router.back()}
-          className="flex size-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-primary-50"
-        >
-          <ArrowLeft className="size-5" />
-        </button>
-        <h2 className="font-display text-lg font-bold">
-          <Trans>ケース詳細</Trans>
-        </h2>
-      </div>
+      <PageHeader
+        title={<Trans>ケース詳細</Trans>}
+        onBack={() => router.back()}
+        size="md"
+      />
 
       <ErrorBoundary
         fallback={

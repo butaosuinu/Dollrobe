@@ -4,7 +4,7 @@ import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAtomValue } from "jotai";
-import { ArrowLeft, Shirt, User } from "lucide-react";
+import { Shirt, User } from "lucide-react";
 import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -14,6 +14,7 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import GarmentGrid from "@/components/garment/GarmentGrid";
 import DollCard from "@/components/doll/DollCard";
 import EmptyState from "@/components/ui/EmptyState";
+import PageHeader from "@/components/ui/PageHeader";
 import Skeleton from "@/components/ui/Skeleton";
 
 const SKELETON_COUNT = 4;
@@ -102,17 +103,7 @@ const ArchiveContent = () => {
 
 const ArchivePage = () => (
   <div className="flex flex-col gap-4 p-4">
-    <div className="flex items-center gap-3 animate-[fade-in_0.4s_ease-out]">
-      <Link
-        href="/garments"
-        className="flex size-8 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-primary-50"
-      >
-        <ArrowLeft className="size-5" />
-      </Link>
-      <h2 className="font-display text-xl font-bold">
-        <Trans>アーカイブ</Trans>
-      </h2>
-    </div>
+    <PageHeader title={<Trans>アーカイブ</Trans>} backHref="/garments" />
 
     <ErrorBoundary
       fallback={

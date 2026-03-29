@@ -17,6 +17,7 @@ import { useImageUpload } from "@/hooks/useImageUpload";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import Textarea from "@/components/ui/Textarea";
 import ImageUpload from "@/components/garment/ImageUpload";
 
 type Props = {
@@ -204,23 +205,15 @@ const DollForm = ({ doll }: Props) => {
         }}
       />
 
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="doll-memo"
-          className="text-sm font-medium text-text-secondary"
-        >
-          {t`メモ`}
-        </label>
-        <textarea
-          id="doll-memo"
-          placeholder={t`自由にメモを入力...`}
-          value={memo}
-          onChange={(e) => setMemo(e.target.value)}
-          maxLength={DOLL_MEMO_MAX_LENGTH}
-          rows={3}
-          className="rounded-lg border border-border-default bg-surface-overlay px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary transition-colors hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-        />
-      </div>
+      <Textarea
+        label={t`メモ`}
+        id="doll-memo"
+        placeholder={t`自由にメモを入力...`}
+        value={memo}
+        onChange={(e) => setMemo(e.target.value)}
+        maxLength={DOLL_MEMO_MAX_LENGTH}
+        rows={3}
+      />
 
       <Button
         type="submit"

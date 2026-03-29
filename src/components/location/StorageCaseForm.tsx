@@ -13,6 +13,7 @@ import {
 } from "@/lib/constants";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Textarea from "@/components/ui/Textarea";
 
 type CreateCaseInput =
   | {
@@ -133,23 +134,15 @@ const StorageCaseForm = ({
         required
       />
 
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="case-description"
-          className="text-sm font-medium text-text-secondary"
-        >
-          <Trans>説明</Trans>
-        </label>
-        <textarea
-          id="case-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder={t`例: 主にMDD用衣装を仕舞う場所`}
-          maxLength={CASE_DESCRIPTION_MAX_LENGTH}
-          rows={2}
-          className="rounded-lg border border-border-default bg-surface-overlay px-3 py-2 text-sm text-text-primary transition-colors placeholder:text-text-tertiary hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-        />
-      </div>
+      <Textarea
+        label={t`説明`}
+        id="case-description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder={t`例: 主にMDD用衣装を仕舞う場所`}
+        maxLength={CASE_DESCRIPTION_MAX_LENGTH}
+        rows={2}
+      />
 
       {type === STORAGE_CASE_TYPE.GRID && (
         <div className="grid grid-cols-2 gap-3">

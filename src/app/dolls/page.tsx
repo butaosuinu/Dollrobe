@@ -4,8 +4,7 @@ import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
-import { Plus, User, Archive, Search, SlidersHorizontal } from "lucide-react";
-import clsx from "clsx";
+import { Plus, User, Archive } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { msg, t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -18,9 +17,13 @@ import type { Doll, DollSize } from "@/types";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import DollGrid from "@/components/doll/DollGrid";
 import DollList from "@/components/doll/DollList";
-import ViewToggle from "@/components/ui/ViewToggle";
+import ChipGroup from "@/components/ui/ChipGroup";
 import EmptyState from "@/components/ui/EmptyState";
+import FAB from "@/components/ui/FAB";
+import FilterToggleButton from "@/components/ui/FilterToggleButton";
+import SearchInput from "@/components/ui/SearchInput";
 import Skeleton from "@/components/ui/Skeleton";
+import ViewToggle from "@/components/ui/ViewToggle";
 
 type ViewMode = "grid" | "list";
 
@@ -205,35 +208,17 @@ const DollListContent = () => {
       )}
 
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-tertiary" />
-          <input
-            type="search"
-            placeholder={t`名前やカスタマイザーで検索...`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 w-full rounded-lg border border-border-default bg-surface-overlay pl-9 pr-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-          />
-        </div>
+        <SearchInput
+          value={searchQuery}
+          onChangeValue={setSearchQuery}
+          placeholder={t`名前やカスタマイザーで検索...`}
+        />
         {customizers.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setIsFilterOpen((prev) => !prev)}
-            className={clsx(
-              "relative flex h-10 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
-              isFilterOpen || activeFilterCount > 0
-                ? "border-primary-400 bg-primary-50 text-primary-700"
-                : "border-border-default bg-surface-overlay text-text-secondary hover:bg-surface-hover",
-            )}
-          >
-            <SlidersHorizontal className="size-4" />
-            <Trans>フィルター</Trans>
-            {activeFilterCount > 0 && (
-              <span className="flex size-4 items-center justify-center rounded-full bg-primary-500 text-[10px] font-bold text-text-inverse">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
+          <FilterToggleButton
+            isOpen={isFilterOpen}
+            onToggle={() => setIsFilterOpen((prev) => !prev)}
+            activeCount={activeFilterCount}
+          />
         )}
         <select
           value={sortOption}
@@ -255,22 +240,14 @@ const DollListContent = () => {
         <ViewToggle mode={viewMode} onChangeMode={setViewMode} />
       </div>
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
-        {SIZE_FILTERS.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => setActiveSize(value)}
-            className={clsx(
-              "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-              activeSize === value
-                ? "bg-primary-500 text-text-inverse"
-                : "bg-surface-overlay text-text-secondary border border-border-default hover:bg-primary-50",
-            )}
-          >
-            {i18n._(label)}
-          </button>
-        ))}
-      </div>
+      <ChipGroup
+        options={SIZE_FILTERS.map(({ value, label }) => ({
+          value,
+          label: i18n._(label),
+        }))}
+        value={activeSize}
+        onSelect={setActiveSize}
+      />
 
       <FilterPanel
         isOpen={isFilterOpen}
@@ -327,13 +304,7 @@ const DollsPage = () => (
       </Suspense>
     </ErrorBoundary>
 
-    <Link
-      href="/dolls/new"
-      className="fixed bottom-20 right-4 z-30 flex size-14 items-center justify-center rounded-full bg-primary-500 text-text-inverse shadow-lg transition-all hover:bg-primary-600 hover:shadow-xl active:scale-95 lg:hidden"
-      style={{ marginBottom: "env(safe-area-inset-bottom, 0px)" }}
-    >
-      <Plus className="size-6" />
-    </Link>
+    <FAB href="/dolls/new" />
   </div>
 );
 

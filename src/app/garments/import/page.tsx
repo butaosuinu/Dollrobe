@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import Link from "next/link";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ArrowLeft } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import type { CsvParsedRow, CsvValidationResult } from "@/types";
 import {
@@ -24,6 +22,7 @@ import {
 import CsvDropZone from "@/components/garment/csv/CsvDropZone";
 import CsvPreviewTable from "@/components/garment/csv/CsvPreviewTable";
 import CsvImportProgress from "@/components/garment/csv/CsvImportProgress";
+import PageHeader from "@/components/ui/PageHeader";
 
 const STEP_TITLES = Object.freeze({
   upload: "CSVインポート",
@@ -89,17 +88,10 @@ const CsvImportPage = () => {
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:mx-auto lg:max-w-2xl">
-      <div className="flex items-center gap-3 animate-[fade-in_0.4s_ease-out]">
-        <Link
-          href="/garments"
-          className="flex size-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-primary-50"
-        >
-          <ArrowLeft className="size-5" />
-        </Link>
-        <h2 className="font-display text-xl font-bold">
-          <Trans>{STEP_TITLES[step]}</Trans>
-        </h2>
-      </div>
+      <PageHeader
+        title={<Trans>{STEP_TITLES[step]}</Trans>}
+        backHref="/garments"
+      />
 
       {step === "upload" && <CsvDropZone onFileLoaded={handleFileLoaded} />}
 

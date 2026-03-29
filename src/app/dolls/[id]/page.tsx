@@ -3,12 +3,12 @@
 import { Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
-import { ArrowLeft } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { dollsAtom } from "@/stores/dollAtoms";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import DollDetail from "@/components/doll/DollDetail";
 import CompatibleGarmentList from "@/components/doll/CompatibleGarmentList";
+import PageHeader from "@/components/ui/PageHeader";
 import Skeleton from "@/components/ui/Skeleton";
 
 const DollDetailContent = () => {
@@ -70,17 +70,11 @@ const DollDetailPage = () => {
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:mx-auto lg:max-w-5xl">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => router.back()}
-          className="flex size-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-primary-50"
-        >
-          <ArrowLeft className="size-5" />
-        </button>
-        <h2 className="font-display text-lg font-bold">
-          <Trans>詳細</Trans>
-        </h2>
-      </div>
+      <PageHeader
+        title={<Trans>詳細</Trans>}
+        onBack={() => router.back()}
+        size="md"
+      />
 
       <ErrorBoundary
         fallback={

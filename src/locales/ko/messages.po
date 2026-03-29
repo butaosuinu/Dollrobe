@@ -305,6 +305,8 @@ msgstr "가발"
 msgid "おかえりなさい"
 msgstr "다녀오셨습니까"
 
+#: src/app/dolls/page.tsx
+#: src/app/dolls/page.tsx
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
 msgid "カスタマイザー"
@@ -332,7 +334,7 @@ msgstr "카테고리"
 msgid "キャンセル"
 msgstr "취소"
 
-#: src/components/garment/ViewToggle.tsx
+#: src/components/ui/ViewToggle.tsx
 msgid "グリッド表示"
 msgstr "그리드 보기"
 
@@ -424,6 +426,8 @@ msgstr "스캔 중인 장소"
 msgid "ステータス"
 msgstr "상태"
 
+#: src/app/dolls/page.tsx
+#: src/app/dolls/page.tsx
 #: src/app/garments/page.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
@@ -550,7 +554,7 @@ msgstr "없음"
 msgid "なくした"
 msgstr "분실함"
 
-#: src/app/garments/page.tsx
+#: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "필터"
 
@@ -654,7 +658,7 @@ msgstr "자주 입는 옷 (14일)"
 msgid "ラベル: {0}"
 msgstr "라벨: {0}"
 
-#: src/components/garment/ViewToggle.tsx
+#: src/components/ui/ViewToggle.tsx
 msgid "リスト表示"
 msgstr "리스트 보기"
 
@@ -688,6 +692,10 @@ msgstr "원피스"
 msgid "一括登録中..."
 msgstr "일괄 등록 중..."
 
+#: src/app/dolls/page.tsx
+msgid "一致するドールが見つかりません"
+msgstr "일치하는 인형을 찾을 수 없습니다"
+
 #: src/app/garments/page.tsx
 msgid "一致する服が見つかりません"
 msgstr "일치하는 옷을 찾을 수 없습니다"
@@ -705,6 +713,7 @@ msgstr "목록으로 돌아가기"
 msgid "不明"
 msgstr "불명"
 
+#: src/app/dolls/page.tsx
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "정렬"
@@ -846,6 +855,7 @@ msgid "取り消す"
 msgstr "실행 취소"
 
 #: src/lib/i18n-labels.ts
+#: src/lib/i18n-labels.ts
 msgid "古い順"
 msgstr "오래된 순"
 
@@ -859,6 +869,18 @@ msgstr "합계"
 #: src/components/garment/GarmentForm.tsx
 msgid "名前"
 msgstr "이름"
+
+#: src/lib/i18n-labels.ts
+msgid "名前: A→Z"
+msgstr "이름: A→Z"
+
+#: src/lib/i18n-labels.ts
+msgid "名前: Z→A"
+msgstr "이름: Z→A"
+
+#: src/app/dolls/page.tsx
+msgid "名前やカスタマイザーで検索..."
+msgstr "이름이나 커스터마이저로 검색..."
 
 #: src/app/garments/page.tsx
 msgid "名前やタグで検索..."
@@ -924,6 +946,7 @@ msgstr "뒤로"
 msgid "新しい週間レポートが届いています"
 msgstr "새로운 주간 리포트가 도착했습니다"
 
+#: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "新しい順"
 msgstr "최신 순"
@@ -1111,8 +1134,8 @@ msgid "衣装ケースを追加して、服の収納場所を管理しましょ�
 msgstr "의상 케이스를 추가하여 옷의 수납 장소를 관리하세요"
 
 #: src/app/dolls/page.tsx
-msgid "表示するドールがありません"
-msgstr "표시할 인형이 없습니다"
+#~ msgid "表示するドールがありません"
+#~ msgstr "표시할 인형이 없습니다"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts

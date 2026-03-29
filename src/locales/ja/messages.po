@@ -305,6 +305,8 @@ msgstr "ウィッグ"
 msgid "おかえりなさい"
 msgstr "おかえりなさい"
 
+#: src/app/dolls/page.tsx
+#: src/app/dolls/page.tsx
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
 msgid "カスタマイザー"
@@ -332,7 +334,7 @@ msgstr "カテゴリ"
 msgid "キャンセル"
 msgstr "キャンセル"
 
-#: src/components/garment/ViewToggle.tsx
+#: src/components/ui/ViewToggle.tsx
 msgid "グリッド表示"
 msgstr "グリッド表示"
 
@@ -424,6 +426,8 @@ msgstr "スキャン中の場所"
 msgid "ステータス"
 msgstr "ステータス"
 
+#: src/app/dolls/page.tsx
+#: src/app/dolls/page.tsx
 #: src/app/garments/page.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
@@ -550,7 +554,7 @@ msgstr "ない"
 msgid "なくした"
 msgstr "なくした"
 
-#: src/app/garments/page.tsx
+#: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "フィルター"
 
@@ -654,7 +658,7 @@ msgstr "よく着る服 (14日)"
 msgid "ラベル: {0}"
 msgstr "ラベル: {0}"
 
-#: src/components/garment/ViewToggle.tsx
+#: src/components/ui/ViewToggle.tsx
 msgid "リスト表示"
 msgstr "リスト表示"
 
@@ -688,6 +692,10 @@ msgstr "ワンピース"
 msgid "一括登録中..."
 msgstr "一括登録中..."
 
+#: src/app/dolls/page.tsx
+msgid "一致するドールが見つかりません"
+msgstr "一致するドールが見つかりません"
+
 #: src/app/garments/page.tsx
 msgid "一致する服が見つかりません"
 msgstr "一致する服が見つかりません"
@@ -705,6 +713,7 @@ msgstr "一覧に戻る"
 msgid "不明"
 msgstr "不明"
 
+#: src/app/dolls/page.tsx
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "並び替え"
@@ -846,6 +855,7 @@ msgid "取り消す"
 msgstr "取り消す"
 
 #: src/lib/i18n-labels.ts
+#: src/lib/i18n-labels.ts
 msgid "古い順"
 msgstr "古い順"
 
@@ -859,6 +869,18 @@ msgstr "合計"
 #: src/components/garment/GarmentForm.tsx
 msgid "名前"
 msgstr "名前"
+
+#: src/lib/i18n-labels.ts
+msgid "名前: A→Z"
+msgstr "名前: A→Z"
+
+#: src/lib/i18n-labels.ts
+msgid "名前: Z→A"
+msgstr "名前: Z→A"
+
+#: src/app/dolls/page.tsx
+msgid "名前やカスタマイザーで検索..."
+msgstr "名前やカスタマイザーで検索..."
 
 #: src/app/garments/page.tsx
 msgid "名前やタグで検索..."
@@ -924,6 +946,7 @@ msgstr "戻る"
 msgid "新しい週間レポートが届いています"
 msgstr "新しい週間レポートが届いています"
 
+#: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "新しい順"
 msgstr "新しい順"
@@ -1111,8 +1134,8 @@ msgid "衣装ケースを追加して、服の収納場所を管理しましょ�
 msgstr "衣装ケースを追加して、服の収納場所を管理しましょう"
 
 #: src/app/dolls/page.tsx
-msgid "表示するドールがありません"
-msgstr "表示するドールがありません"
+#~ msgid "表示するドールがありません"
+#~ msgstr "表示するドールがありません"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts
