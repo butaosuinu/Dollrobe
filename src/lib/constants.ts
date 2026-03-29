@@ -94,6 +94,12 @@ export type SortOptionValue =
   | "confidence_asc"
   | "confidence_desc";
 
+export type DollSortOptionValue =
+  | "newest"
+  | "oldest"
+  | "name_asc"
+  | "name_desc";
+
 export const DOLL_SIZES: readonly DollSize[] = [
   "SD",
   "SD13",
