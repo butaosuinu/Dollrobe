@@ -9,6 +9,9 @@ import type {
   SyncQueueItem,
 } from "@/types";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
 class DollWardrobeDB extends Dexie {
   readonly garments!: Dexie.Table<Garment, string>;
   readonly storageCases!: Dexie.Table<StorageCase, string>;
@@ -76,7 +79,7 @@ class DollWardrobeDB extends Dexie {
       })
       .upgrade(async (tx) => {
         const syncTable = tx.table("syncQueue");
-        /* eslint-disable functional/no-conditional-statements, functional/immutable-data -- Dexie modify callback requires in-place mutation */
+        /* eslint-disable functional/no-conditional-statements, functional/immutable-data, @typescript-eslint/prefer-destructuring -- Dexie modify callback requires in-place mutation; destructuring loses type guard narrowing */
         await syncTable
           .toCollection()
           .filter((item: Record<string, unknown>) => {
@@ -86,21 +89,21 @@ class DollWardrobeDB extends Dexie {
             ) {
               return false;
             }
-            if (typeof item.payload !== "object" || item.payload === null) {
+            if (!isRecord(item.payload)) {
               return false;
             }
-            const payload: Record<string, unknown> = item.payload;
+            const payload = item.payload;
             return typeof payload.dollSize === "string";
           })
           .modify((item: Record<string, unknown>) => {
-            if (typeof item.payload !== "object" || item.payload === null) {
+            if (!isRecord(item.payload)) {
               return;
             }
-            const payload: Record<string, unknown> = item.payload;
+            const payload = item.payload;
             payload.dollSizes = [payload.dollSize];
             delete payload.dollSize;
           });
-        /* eslint-enable functional/no-conditional-statements, functional/immutable-data */
+        /* eslint-enable functional/no-conditional-statements, functional/immutable-data, @typescript-eslint/prefer-destructuring */
       });
     this.version(5)
       .stores({
@@ -155,7 +158,7 @@ class DollWardrobeDB extends Dexie {
           DOLL_SIZE_MIGRATION[size] ?? size;
 
         const garmentsTable = tx.table("garments");
-        /* eslint-disable functional/no-conditional-statements, no-param-reassign -- Dexie modify callback requires in-place mutation */
+        /* eslint-disable functional/no-conditional-statements, no-param-reassign, @typescript-eslint/prefer-destructuring -- Dexie modify callback requires in-place mutation; destructuring loses type guard narrowing */
         await garmentsTable
           .toCollection()
           .modify((g: Record<string, unknown>) => {
@@ -184,10 +187,10 @@ class DollWardrobeDB extends Dexie {
               item.type === SYNC_ACTION_TYPE.DOLL_UPDATE,
           )
           .modify((item: Record<string, unknown>) => {
-            if (typeof item.payload !== "object" || item.payload === null) {
+            if (!isRecord(item.payload)) {
               return;
             }
-            const payload: Record<string, unknown> = item.payload;
+            const payload = item.payload;
             if (Array.isArray(payload.dollSizes)) {
               payload.dollSizes = payload.dollSizes
                 .filter((s: unknown): s is string => typeof s === "string")
@@ -197,7 +200,7 @@ class DollWardrobeDB extends Dexie {
               payload.bodySize = replaceDollSize(payload.bodySize);
             }
           });
-        /* eslint-enable functional/no-conditional-statements, no-param-reassign */
+        /* eslint-enable functional/no-conditional-statements, no-param-reassign, @typescript-eslint/prefer-destructuring */
       });
   }
 }

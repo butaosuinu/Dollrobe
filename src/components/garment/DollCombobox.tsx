@@ -154,7 +154,9 @@ const DollCombobox = ({ dolls, selectedDollId, onChangeDoll }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   const selectedDoll = dolls.find((d) => d.id === selectedDollId);
 
