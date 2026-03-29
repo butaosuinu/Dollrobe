@@ -31,6 +31,7 @@ import Button from "@/components/ui/Button";
 import TagInput from "@/components/ui/TagInput";
 import ColorPicker from "@/components/ui/ColorPicker";
 import AutocompleteInput from "@/components/ui/AutocompleteInput";
+import Textarea from "@/components/ui/Textarea";
 import ImageUpload from "@/components/garment/ImageUpload";
 
 type Props = {
@@ -234,23 +235,15 @@ const GarmentForm = ({ garment }: Props) => {
         }}
       />
 
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="garment-set-contents"
-          className="text-sm font-medium text-text-secondary"
-        >
-          {t`セット内容`}
-        </label>
-        <textarea
-          id="garment-set-contents"
-          placeholder={t`ブラウス、スカート、リボン等`}
-          value={setContents}
-          onChange={(e) => setSetContents(e.target.value)}
-          maxLength={GARMENT_SET_CONTENTS_MAX_LENGTH}
-          rows={2}
-          className="rounded-lg border border-border-default bg-surface-overlay px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary transition-colors hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-        />
-      </div>
+      <Textarea
+        label={t`セット内容`}
+        id="garment-set-contents"
+        placeholder={t`ブラウス、スカート、リボン等`}
+        value={setContents}
+        onChange={(e) => setSetContents(e.target.value)}
+        maxLength={GARMENT_SET_CONTENTS_MAX_LENGTH}
+        rows={2}
+      />
 
       <fieldset>
         <legend className="mb-1 text-sm font-medium text-text-secondary">
@@ -290,23 +283,15 @@ const GarmentForm = ({ garment }: Props) => {
         suggestions={brandSuggestions}
       />
 
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="garment-description"
-          className="text-sm font-medium text-text-secondary"
-        >
-          {t`メモ`}
-        </label>
-        <textarea
-          id="garment-description"
-          placeholder={t`タイトめ、伸縮性あり等`}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          maxLength={GARMENT_DESCRIPTION_MAX_LENGTH}
-          rows={3}
-          className="rounded-lg border border-border-default bg-surface-overlay px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary transition-colors hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-        />
-      </div>
+      <Textarea
+        label={t`メモ`}
+        id="garment-description"
+        placeholder={t`タイトめ、伸縮性あり等`}
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        maxLength={GARMENT_DESCRIPTION_MAX_LENGTH}
+        rows={3}
+      />
 
       <ColorPicker label={t`色`} colors={colors} onChangeColors={setColors} />
 

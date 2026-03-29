@@ -19,10 +19,11 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import StorageCaseCard from "@/components/location/StorageCaseCard";
 import StorageCaseForm from "@/components/location/StorageCaseForm";
 import StorageCaseEditForm from "@/components/location/StorageCaseEditForm";
-import EmptyState from "@/components/ui/EmptyState";
-import Skeleton from "@/components/ui/Skeleton";
 import BottomSheet from "@/components/ui/BottomSheet";
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
+import EmptyState from "@/components/ui/EmptyState";
+import FAB from "@/components/ui/FAB";
+import Skeleton from "@/components/ui/Skeleton";
 
 const TEMP_USER_ID = "user-1";
 
@@ -122,13 +123,7 @@ const LocationsContent = () => {
         </div>
       )}
 
-      <button
-        onClick={() => setIsCreateOpen(true)}
-        className="fixed bottom-20 right-4 z-30 flex size-14 items-center justify-center rounded-full bg-primary-500 text-text-inverse shadow-lg transition-all hover:bg-primary-600 hover:shadow-xl active:scale-95 lg:hidden"
-        aria-label={t`ケースを追加`}
-      >
-        <Plus className="size-6" />
-      </button>
+      <FAB onClick={() => setIsCreateOpen(true)} label={t`ケースを追加`} />
 
       <BottomSheet
         isOpen={isCreateOpen}

@@ -305,6 +305,8 @@ msgstr "假发"
 msgid "おかえりなさい"
 msgstr "欢迎回来"
 
+#: src/app/dolls/page.tsx
+#: src/app/dolls/page.tsx
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
 msgid "カスタマイザー"
@@ -332,7 +334,7 @@ msgstr "类别"
 msgid "キャンセル"
 msgstr "取消"
 
-#: src/components/garment/ViewToggle.tsx
+#: src/components/ui/ViewToggle.tsx
 msgid "グリッド表示"
 msgstr "网格视图"
 
@@ -424,6 +426,8 @@ msgstr "正在扫描的位置"
 msgid "ステータス"
 msgstr "状态"
 
+#: src/app/dolls/page.tsx
+#: src/app/dolls/page.tsx
 #: src/app/garments/page.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
@@ -550,7 +554,7 @@ msgstr "不在"
 msgid "なくした"
 msgstr "丢失了"
 
-#: src/app/garments/page.tsx
+#: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "筛选"
 
@@ -654,7 +658,7 @@ msgstr "常穿衣服 (14天)"
 msgid "ラベル: {0}"
 msgstr "标签: {0}"
 
-#: src/components/garment/ViewToggle.tsx
+#: src/components/ui/ViewToggle.tsx
 msgid "リスト表示"
 msgstr "列表视图"
 
@@ -688,6 +692,10 @@ msgstr "连衣裙(一体式)"
 msgid "一括登録中..."
 msgstr "批量登记中..."
 
+#: src/app/dolls/page.tsx
+msgid "一致するドールが見つかりません"
+msgstr "没有找到匹配的娃娃"
+
 #: src/app/garments/page.tsx
 msgid "一致する服が見つかりません"
 msgstr "未找到匹配的衣服"
@@ -705,6 +713,7 @@ msgstr "返回列表"
 msgid "不明"
 msgstr "未知"
 
+#: src/app/dolls/page.tsx
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "排序"
@@ -846,6 +855,7 @@ msgid "取り消す"
 msgstr "撤销"
 
 #: src/lib/i18n-labels.ts
+#: src/lib/i18n-labels.ts
 msgid "古い順"
 msgstr "最旧优先"
 
@@ -859,6 +869,18 @@ msgstr "合计"
 #: src/components/garment/GarmentForm.tsx
 msgid "名前"
 msgstr "名称"
+
+#: src/lib/i18n-labels.ts
+msgid "名前: A→Z"
+msgstr "名称: A→Z"
+
+#: src/lib/i18n-labels.ts
+msgid "名前: Z→A"
+msgstr "名称: Z→A"
+
+#: src/app/dolls/page.tsx
+msgid "名前やカスタマイザーで検索..."
+msgstr "按名称或定制师搜索..."
 
 #: src/app/garments/page.tsx
 msgid "名前やタグで検索..."
@@ -924,6 +946,7 @@ msgstr "返回"
 msgid "新しい週間レポートが届いています"
 msgstr "有新的周报"
 
+#: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "新しい順"
 msgstr "最新优先"
@@ -1111,8 +1134,8 @@ msgid "衣装ケースを追加して、服の収納場所を管理しましょ�
 msgstr "添加收纳箱来管理衣服的存放位置"
 
 #: src/app/dolls/page.tsx
-msgid "表示するドールがありません"
-msgstr "没有可显示的娃娃"
+#~ msgid "表示するドールがありません"
+#~ msgstr "没有可显示的娃娃"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts
