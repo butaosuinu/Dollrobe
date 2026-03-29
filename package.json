@@ -24,8 +24,9 @@
     "db:migrate:local": "wrangler d1 migrations apply doll-wardrobe-db --local",
     "i18n:extract": "lingui extract",
     "i18n:compile": "lingui compile --namespace es",
-    "precheck": "pnpm typecheck && pnpm lint && pnpm format:check",
-    "precheck:full": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test"
+    "i18n:check": "bash scripts/i18n-check.sh",
+    "precheck": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm i18n:check",
+    "precheck:full": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm i18n:check && pnpm test"
   },
   "dependencies": {
     "@hono/trpc-server": "^0.4.2",
