@@ -39,7 +39,7 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import DollCombobox from "@/components/garment/DollCombobox";
 import GarmentGrid from "@/components/garment/GarmentGrid";
 import GarmentList from "@/components/garment/GarmentList";
-import ViewToggle from "@/components/garment/ViewToggle";
+import ViewToggle from "@/components/ui/ViewToggle";
 import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
 

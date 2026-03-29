@@ -80,3 +80,10 @@ export const SORT_OPTIONS = Object.freeze([
   { value: "confidence_asc" as const, label: msg`信頼度: 低い順` },
   { value: "confidence_desc" as const, label: msg`信頼度: 高い順` },
 ]);
+
+export const DOLL_SORT_OPTIONS = Object.freeze([
+  { value: "newest" as const, label: msg`新しい順` },
+  { value: "oldest" as const, label: msg`古い順` },
+  { value: "name_asc" as const, label: msg`名前: A→Z` },
+  { value: "name_desc" as const, label: msg`名前: Z→A` },
+]);

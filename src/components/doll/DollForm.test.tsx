@@ -93,7 +93,9 @@ describe("DollForm", () => {
       expect(dolls[0]?.id).toBe("test-cuid");
       expect(dolls[0]?.bodySize).toBe("SD");
     });
-    expect(mockRouter.push).toHaveBeenCalledWith("/dolls");
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith("/dolls");
+    });
   });
 
   it("アップロード中はボタンが disabled + テキスト変更", async () => {

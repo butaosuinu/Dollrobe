@@ -1,30 +1,182 @@
 "use client";
 
-import { Suspense } from "react";
+import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
-import { Plus, User, Archive } from "lucide-react";
+import { Plus, User, Archive, Search, SlidersHorizontal } from "lucide-react";
+import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
-import { t } from "@lingui/core/macro";
+import { msg, t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { dollsAtom } from "@/stores/dollAtoms";
 import { pendingArchivesAtom } from "@/stores/pendingArchiveAtoms";
+import { DOLL_SIZES } from "@/lib/constants";
+import { DOLL_SIZE_LABEL, DOLL_SORT_OPTIONS } from "@/lib/i18n-labels";
+import type { DollSortOptionValue } from "@/lib/constants";
+import type { Doll, DollSize } from "@/types";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
-import DollCard from "@/components/doll/DollCard";
+import DollGrid from "@/components/doll/DollGrid";
+import DollList from "@/components/doll/DollList";
+import ViewToggle from "@/components/ui/ViewToggle";
 import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
 
+type ViewMode = "grid" | "list";
+
+const isDollSortOptionValue = (value: string): value is DollSortOptionValue =>
+  DOLL_SORT_OPTIONS.some((option) => option.value === value);
+
+const SIZE_FILTERS = [
+  { value: "all" as const, label: msg`すべて` },
+  ...DOLL_SIZES.map((size) => ({
+    value: size,
+    label: DOLL_SIZE_LABEL[size],
+  })),
+];
+
+const DOLL_COMPARATORS = Object.freeze({
+  newest: (a: Doll, b: Doll) => b.createdAt - a.createdAt,
+  oldest: (a: Doll, b: Doll) => a.createdAt - b.createdAt,
+  name_asc: (a: Doll, b: Doll) => a.name.localeCompare(b.name, "ja"),
+  name_desc: (a: Doll, b: Doll) => b.name.localeCompare(a.name, "ja"),
+} satisfies Record<DollSortOptionValue, (a: Doll, b: Doll) => number>);
+
+const matchesDollFilter = ({
+  doll,
+  query,
+  activeSize,
+  customizerFilter,
+}: {
+  readonly doll: Doll;
+  readonly query: string;
+  readonly activeSize: DollSize | "all";
+  readonly customizerFilter: string | undefined;
+}): boolean => {
+  const matchesSize = activeSize === "all" || doll.bodySize === activeSize;
+
+  const nameMatches = doll.name.toLowerCase().includes(query);
+  const headModelMatches =
+    doll.headModel?.toLowerCase().includes(query) === true;
+  const makerMatches = doll.maker?.toLowerCase().includes(query) === true;
+  const customizerMatches =
+    doll.customizer?.toLowerCase().includes(query) === true;
+  const memoMatches = doll.memo?.toLowerCase().includes(query) === true;
+  const matchesSearch = [
+    query === "",
+    nameMatches,
+    headModelMatches,
+    makerMatches,
+    customizerMatches,
+    memoMatches,
+  ].some(Boolean);
+
+  const matchesCustomizer =
+    customizerFilter === undefined || doll.customizer === customizerFilter;
+
+  return matchesSize && matchesSearch && matchesCustomizer;
+};
+
+type FilterPanelProps = {
+  readonly isOpen: boolean;
+  readonly customizers: readonly string[];
+  readonly customizerFilter: string | undefined;
+  readonly onChangeCustomizer: (value: string | undefined) => void;
+};
+
+const FilterPanel = ({
+  isOpen,
+  customizers,
+  customizerFilter,
+  onChangeCustomizer,
+}: FilterPanelProps) => {
+  if (!isOpen || customizers.length === 0) return undefined;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <p className="mb-1.5 text-xs font-medium text-text-tertiary">
+          <Trans>カスタマイザー</Trans>
+        </p>
+        <select
+          value={customizerFilter ?? ""}
+          onChange={(e) => {
+            const { value } = e.target;
+            onChangeCustomizer(value === "" ? undefined : value);
+          }}
+          aria-label={t`カスタマイザー`}
+          className="h-10 w-full rounded-lg border border-border-default bg-surface-overlay px-3 text-sm text-text-primary focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+        >
+          <option value="">{t`すべて`}</option>
+          {customizers.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+};
+
 const DollListContent = () => {
   const router = useRouter();
+  const { i18n } = useLingui();
   const allDolls = useAtomValue(dollsAtom);
   const pendingArchives = useAtomValue(pendingArchivesAtom);
 
-  const pendingDollIds = new Set(
-    pendingArchives.filter((p) => p.entityType === "doll").map((p) => p.id),
+  const dolls = useMemo(() => {
+    const pendingDollIds = new Set(
+      pendingArchives.filter((p) => p.entityType === "doll").map((p) => p.id),
+    );
+    return allDolls.filter(
+      (d) => d.archivedAt === undefined && !pendingDollIds.has(d.id),
+    );
+  }, [allDolls, pendingArchives]);
+
+  const archivedCount = useMemo(
+    () => allDolls.filter((d) => d.archivedAt !== undefined).length,
+    [allDolls],
   );
-  const dolls = allDolls.filter(
-    (d) => d.archivedAt === undefined && !pendingDollIds.has(d.id),
+
+  const customizers = useMemo(
+    () =>
+      [
+        ...new Set(
+          dolls
+            .map((d) => d.customizer)
+            .filter((c): c is string => c !== undefined),
+        ),
+      ].sort((a, b) => a.localeCompare(b, "ja")),
+    [dolls],
   );
+
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSize, setActiveSize] = useState<DollSize | "all">("all");
+  const [customizerFilter, setCustomizerFilter] = useState<string | undefined>(
+    undefined,
+  );
+  const [sortOption, setSortOption] = useState<DollSortOptionValue>("newest");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const activeFilterCount = useMemo(
+    () => (customizerFilter !== undefined ? 1 : 0),
+    [customizerFilter],
+  );
+
+  const filteredDolls = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    const filtered = dolls.filter((doll) =>
+      matchesDollFilter({
+        doll,
+        query,
+        activeSize,
+        customizerFilter,
+      }),
+    );
+    return [...filtered].sort(DOLL_COMPARATORS[sortOption]);
+  }, [dolls, searchQuery, activeSize, customizerFilter, sortOption]);
 
   if (allDolls.length === 0) {
     return (
@@ -40,10 +192,6 @@ const DollListContent = () => {
     );
   }
 
-  const archivedCount = allDolls.filter(
-    (d) => d.archivedAt !== undefined,
-  ).length;
-
   return (
     <div className="flex flex-col gap-4">
       {archivedCount > 0 && (
@@ -55,16 +203,90 @@ const DollListContent = () => {
           <Trans>アーカイブ ({archivedCount})</Trans>
         </Link>
       )}
-      {dolls.length === 0 ? (
-        <p className="py-12 text-center text-sm text-text-tertiary">
-          <Trans>表示するドールがありません</Trans>
-        </p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
-          {dolls.map((doll) => (
-            <DollCard key={doll.id} doll={doll} />
-          ))}
+
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-tertiary" />
+          <input
+            type="search"
+            placeholder={t`名前やカスタマイザーで検索...`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-10 w-full rounded-lg border border-border-default bg-surface-overlay pl-9 pr-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+          />
         </div>
+        {customizers.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setIsFilterOpen((prev) => !prev)}
+            className={clsx(
+              "relative flex h-10 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
+              isFilterOpen || activeFilterCount > 0
+                ? "border-primary-400 bg-primary-50 text-primary-700"
+                : "border-border-default bg-surface-overlay text-text-secondary hover:bg-surface-hover",
+            )}
+          >
+            <SlidersHorizontal className="size-4" />
+            <Trans>フィルター</Trans>
+            {activeFilterCount > 0 && (
+              <span className="flex size-4 items-center justify-center rounded-full bg-primary-500 text-[10px] font-bold text-text-inverse">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        )}
+        <select
+          value={sortOption}
+          onChange={(e) => {
+            const { value } = e.target;
+            if (isDollSortOptionValue(value)) {
+              setSortOption(value);
+            }
+          }}
+          aria-label={t`並び替え`}
+          className="h-10 rounded-lg border border-border-default bg-surface-overlay px-2 text-xs text-text-secondary focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+        >
+          {DOLL_SORT_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {i18n._(label)}
+            </option>
+          ))}
+        </select>
+        <ViewToggle mode={viewMode} onChangeMode={setViewMode} />
+      </div>
+
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
+        {SIZE_FILTERS.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setActiveSize(value)}
+            className={clsx(
+              "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+              activeSize === value
+                ? "bg-primary-500 text-text-inverse"
+                : "bg-surface-overlay text-text-secondary border border-border-default hover:bg-primary-50",
+            )}
+          >
+            {i18n._(label)}
+          </button>
+        ))}
+      </div>
+
+      <FilterPanel
+        isOpen={isFilterOpen}
+        customizers={customizers}
+        customizerFilter={customizerFilter}
+        onChangeCustomizer={setCustomizerFilter}
+      />
+
+      {filteredDolls.length === 0 ? (
+        <p className="py-12 text-center text-sm text-text-tertiary">
+          <Trans>一致するドールが見つかりません</Trans>
+        </p>
+      ) : viewMode === "grid" ? (
+        <DollGrid dolls={filteredDolls} />
+      ) : (
+        <DollList dolls={filteredDolls} />
       )}
     </div>
   );
