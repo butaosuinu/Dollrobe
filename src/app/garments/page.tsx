@@ -26,9 +26,14 @@ import { GARMENT_CATEGORIES } from "@/lib/constants";
 import {
   GARMENT_CATEGORY_LABEL,
   CONFIDENCE_FILTER_OPTIONS,
+  DOLL_SIZE_FILTER_OPTIONS,
   SORT_OPTIONS,
 } from "@/lib/i18n-labels";
-import type { ConfidenceFilterValue, SortOptionValue } from "@/lib/constants";
+import type {
+  ConfidenceFilterValue,
+  DollSizeFilterValue,
+  SortOptionValue,
+} from "@/lib/constants";
 import type { GarmentCategory, Garment, Doll } from "@/types";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import DollCombobox from "@/components/garment/DollCombobox";
@@ -64,6 +69,8 @@ type FilterPanelProps = {
   readonly isOpen: boolean;
   readonly confidenceFilter: ConfidenceFilterValue;
   readonly onChangeConfidence: (value: ConfidenceFilterValue) => void;
+  readonly dollSizeFilter: DollSizeFilterValue;
+  readonly onChangeDollSize: (value: DollSizeFilterValue) => void;
   readonly dolls: readonly Doll[];
   readonly selectedDollId: string | undefined;
   readonly onChangeDoll: (id: string | undefined) => void;
@@ -73,6 +80,8 @@ const FilterPanel = ({
   isOpen,
   confidenceFilter,
   onChangeConfidence,
+  dollSizeFilter,
+  onChangeDollSize,
   dolls,
   selectedDollId,
   onChangeDoll,
@@ -105,6 +114,28 @@ const FilterPanel = ({
         </div>
       </div>
 
+      <div>
+        <p className="mb-1.5 text-xs font-medium text-text-tertiary">
+          <Trans>サイズ</Trans>
+        </p>
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
+          {DOLL_SIZE_FILTER_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => onChangeDollSize(value)}
+              className={clsx(
+                "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                dollSizeFilter === value
+                  ? "bg-primary-500 text-text-inverse"
+                  : "bg-surface-overlay text-text-secondary border border-border-default hover:bg-primary-50",
+              )}
+            >
+              {i18n._(label)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {dolls.length > 0 && (
         <div>
           <p className="mb-1.5 text-xs font-medium text-text-tertiary">
@@ -126,12 +157,14 @@ const matchesGarmentFilter = ({
   query,
   activeCategory,
   confidenceFilter,
+  dollSizeFilter,
   selectedDoll,
 }: {
   readonly garment: Garment;
   readonly query: string;
   readonly activeCategory: GarmentCategory | "all";
   readonly confidenceFilter: ConfidenceFilterValue;
+  readonly dollSizeFilter: DollSizeFilterValue;
   readonly selectedDoll:
     | { readonly bodySize: Garment["dollSizes"][number] }
     | undefined;
@@ -144,13 +177,21 @@ const matchesGarmentFilter = ({
   const matchesConfidence =
     confidenceFilter === "all" ||
     getConfidenceLabel(getConfidence(garment)) === confidenceFilter;
+  const matchesDollSize =
+    dollSizeFilter === "all" || garment.dollSizes.includes(dollSizeFilter);
   const matchesDoll =
     selectedDoll === undefined ||
     canDollWear({
       dollBodySize: selectedDoll.bodySize,
       garmentSizes: garment.dollSizes,
     });
-  return matchesCategory && matchesSearch && matchesConfidence && matchesDoll;
+  return (
+    matchesCategory &&
+    matchesSearch &&
+    matchesConfidence &&
+    matchesDollSize &&
+    matchesDoll
+  );
 };
 
 const GarmentListContent = () => {
@@ -182,14 +223,17 @@ const GarmentListContent = () => {
   );
   const [confidenceFilter, setConfidenceFilter] =
     useState<ConfidenceFilterValue>("all");
+  const [dollSizeFilter, setDollSizeFilter] =
+    useState<DollSizeFilterValue>("all");
   const [sortOption, setSortOption] = useState<SortOptionValue>("newest");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const activeFilterCount = useMemo(() => {
     const confidenceActive = confidenceFilter !== "all" ? 1 : 0;
+    const dollSizeActive = dollSizeFilter !== "all" ? 1 : 0;
     const dollActive = selectedDollId !== undefined ? 1 : 0;
-    return confidenceActive + dollActive;
-  }, [confidenceFilter, selectedDollId]);
+    return confidenceActive + dollSizeActive + dollActive;
+  }, [confidenceFilter, dollSizeFilter, selectedDollId]);
 
   const filteredGarments = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -199,6 +243,7 @@ const GarmentListContent = () => {
         query,
         activeCategory,
         confidenceFilter,
+        dollSizeFilter,
         selectedDoll,
       }),
     );
@@ -209,6 +254,7 @@ const GarmentListContent = () => {
     searchQuery,
     activeCategory,
     confidenceFilter,
+    dollSizeFilter,
     sortOption,
     selectedDoll,
   ]);
@@ -308,6 +354,8 @@ const GarmentListContent = () => {
         isOpen={isFilterOpen}
         confidenceFilter={confidenceFilter}
         onChangeConfidence={setConfidenceFilter}
+        dollSizeFilter={dollSizeFilter}
+        onChangeDollSize={setDollSizeFilter}
         dolls={dolls}
         selectedDollId={selectedDollId}
         onChangeDoll={setSelectedDollId}

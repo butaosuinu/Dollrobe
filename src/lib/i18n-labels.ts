@@ -1,4 +1,5 @@
 import { msg } from "@lingui/core/macro";
+import { DOLL_SIZES } from "@/lib/constants";
 import type {
   DollSize,
   GarmentCategory,
@@ -63,6 +64,14 @@ export const CONFIDENCE_FILTER_OPTIONS = Object.freeze([
   { value: "confirmed" as const, label: msg`確定` },
   { value: "uncertain" as const, label: msg`要確認` },
   { value: "unknown" as const, label: msg`不明` },
+]);
+
+export const DOLL_SIZE_FILTER_OPTIONS = Object.freeze([
+  { value: "all" as const, label: msg`すべて` },
+  ...DOLL_SIZES.map((size) => ({
+    value: size,
+    label: DOLL_SIZE_LABEL[size],
+  })),
 ]);
 
 export const SORT_OPTIONS = Object.freeze([
