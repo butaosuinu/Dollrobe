@@ -103,7 +103,7 @@ msgstr "Import {validCount} items"
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」をアーカイブしますか？"
-msgstr "Archive "{0}"?"
+msgstr "Archive \"{0}\"?"
 
 #: src/app/locations/page.tsx
 #~ msgid "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
@@ -112,14 +112,14 @@ msgstr "Archive "{0}"?"
 #. placeholder {0}: deletingCase.name
 #: src/app/locations/page.tsx
 msgid "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
-msgstr "Delete "{0}"? Garments in this case will be marked as "checked out"."
+msgstr "Delete \"{0}\"? Garments in this case will be marked as \"checked out\"."
 
 #. placeholder {0}: doll.name
 #. placeholder {0}: garment.name
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」を完全に削除しますか？この操作は取り消せません。"
-msgstr "Permanently delete "{0}"? This action cannot be undone."
+msgstr "Permanently delete \"{0}\"? This action cannot be undone."
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -131,8 +131,20 @@ msgid "CSVファイルをドラッグ&ドロップ"
 msgstr "Drag & drop a CSV file"
 
 #: src/lib/i18n-labels.ts
-msgid "DD (~58cm)"
-msgstr "DD (~58cm)"
+#~ msgid "DD (~58cm)"
+#~ msgstr "DD (~58cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "DD L胸 (~58cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "DD M胸 (~58cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "DD S胸 (~58cm)"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "DDdy (~58cm)"
@@ -155,8 +167,20 @@ msgid "Google でログイン"
 msgstr "Sign in with Google"
 
 #: src/lib/i18n-labels.ts
-msgid "MDD (~40cm)"
-msgstr "MDD (~40cm)"
+#~ msgid "MDD (~40cm)"
+#~ msgstr "MDD (~40cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "MDD L胸 (~40cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "MDD M胸 (~40cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "MDD S胸 (~40cm)"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "MSD (~43cm)"
@@ -436,6 +460,11 @@ msgstr "Fix discrepancy"
 msgid "セット"
 msgstr "Set"
 
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
+msgid "セット内容"
+msgstr ""
+
 #: src/lib/i18n-labels.ts
 msgid "ソックス/タイツ"
 msgstr "Socks/Tights"
@@ -444,6 +473,10 @@ msgstr "Socks/Tights"
 #: src/lib/i18n-labels.ts
 msgid "その他"
 msgstr "Other"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "タイトめ、伸縮性あり等"
+msgstr ""
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "タイプ"
@@ -520,6 +553,14 @@ msgstr "Missing"
 #: src/components/scan/OrphanCheckoutDialog.tsx
 msgid "なくした"
 msgstr "Lost"
+
+#: src/app/garments/page.tsx
+msgid "フィルター"
+msgstr ""
+
+#: src/components/garment/GarmentForm.tsx
+msgid "ブラウス、スカート、リボン等"
+msgstr ""
 
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -599,6 +640,8 @@ msgstr "Maker"
 
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollForm.tsx
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
 msgid "メモ"
 msgstr "Memo"
 

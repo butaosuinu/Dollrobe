@@ -103,7 +103,7 @@ msgstr "{validCount}건 가져오기"
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」をアーカイブしますか？"
-msgstr ""{0}"을(를) 아카이브하시겠습니까?"
+msgstr "\"{0}\"을(를) 아카이브하시겠습니까?"
 
 #: src/app/locations/page.tsx
 #~ msgid "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
@@ -112,14 +112,14 @@ msgstr ""{0}"을(를) 아카이브하시겠습니까?"
 #. placeholder {0}: deletingCase.name
 #: src/app/locations/page.tsx
 msgid "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
-msgstr ""{0}"을(를) 삭제하시겠습니까? 케이스 안의 옷은 "꺼낸 중" 상태가 됩니다."
+msgstr "\"{0}\"을(를) 삭제하시겠습니까? 케이스 안의 옷은 \"꺼낸 중\" 상태가 됩니다."
 
 #. placeholder {0}: doll.name
 #. placeholder {0}: garment.name
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」を完全に削除しますか？この操作は取り消せません。"
-msgstr ""{0}"을(를) 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+msgstr "\"{0}\"을(를) 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -131,8 +131,20 @@ msgid "CSVファイルをドラッグ&ドロップ"
 msgstr "CSV 파일을 드래그 앤 드롭"
 
 #: src/lib/i18n-labels.ts
-msgid "DD (~58cm)"
-msgstr "DD (~58cm)"
+#~ msgid "DD (~58cm)"
+#~ msgstr "DD (~58cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "DD L胸 (~58cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "DD M胸 (~58cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "DD S胸 (~58cm)"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "DDdy (~58cm)"
@@ -155,8 +167,20 @@ msgid "Google でログイン"
 msgstr "Google로 로그인"
 
 #: src/lib/i18n-labels.ts
-msgid "MDD (~40cm)"
-msgstr "MDD (~40cm)"
+#~ msgid "MDD (~40cm)"
+#~ msgstr "MDD (~40cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "MDD L胸 (~40cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "MDD M胸 (~40cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "MDD S胸 (~40cm)"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "MSD (~43cm)"
@@ -436,6 +460,11 @@ msgstr "차이 수정"
 msgid "セット"
 msgstr "세트"
 
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
+msgid "セット内容"
+msgstr ""
+
 #: src/lib/i18n-labels.ts
 msgid "ソックス/タイツ"
 msgstr "양말/타이츠"
@@ -444,6 +473,10 @@ msgstr "양말/타이츠"
 #: src/lib/i18n-labels.ts
 msgid "その他"
 msgstr "기타"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "タイトめ、伸縮性あり等"
+msgstr ""
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "タイプ"
@@ -520,6 +553,14 @@ msgstr "없음"
 #: src/components/scan/OrphanCheckoutDialog.tsx
 msgid "なくした"
 msgstr "분실함"
+
+#: src/app/garments/page.tsx
+msgid "フィルター"
+msgstr ""
+
+#: src/components/garment/GarmentForm.tsx
+msgid "ブラウス、スカート、リボン等"
+msgstr ""
 
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -599,6 +640,8 @@ msgstr "메이커"
 
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollForm.tsx
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
 msgid "メモ"
 msgstr "메모"
 

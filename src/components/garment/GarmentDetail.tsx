@@ -143,6 +143,28 @@ const GarmentDetail = ({ garment }: Props) => {
           </Card>
         )}
 
+        {garment.setContents !== undefined && (
+          <Card>
+            <p className="mb-2 text-sm font-medium text-text-secondary">
+              <Trans>セット内容</Trans>
+            </p>
+            <p className="whitespace-pre-wrap text-sm text-text-primary">
+              {garment.setContents}
+            </p>
+          </Card>
+        )}
+
+        {garment.description !== undefined && (
+          <Card>
+            <p className="mb-2 text-sm font-medium text-text-secondary">
+              <Trans>メモ</Trans>
+            </p>
+            <p className="whitespace-pre-wrap text-sm text-text-primary">
+              {garment.description}
+            </p>
+          </Card>
+        )}
+
         {isArchived ? (
           <div className="flex flex-col gap-2 pt-2 lg:flex-row">
             <Button

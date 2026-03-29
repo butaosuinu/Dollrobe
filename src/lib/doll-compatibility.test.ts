@@ -29,9 +29,9 @@ describe("canDollWear", () => {
 describe("filterGarmentsForDoll", () => {
   it("ドールのボディサイズに合う服のみ返す", () => {
     const garments = [
-      createTestGarment({ id: "g1", dollSizes: ["SD", "DD"] }),
+      createTestGarment({ id: "g1", dollSizes: ["SD", "DD_M"] }),
       createTestGarment({ id: "g2", dollSizes: ["MSD"] }),
-      createTestGarment({ id: "g3", dollSizes: ["SD", "SD13", "DD"] }),
+      createTestGarment({ id: "g3", dollSizes: ["SD", "SD13", "DD_M"] }),
     ];
 
     const result = filterGarmentsForDoll({
@@ -46,7 +46,7 @@ describe("filterGarmentsForDoll", () => {
   it("合う服がなければ空配列", () => {
     const garments = [
       createTestGarment({ id: "g1", dollSizes: ["SD"] }),
-      createTestGarment({ id: "g2", dollSizes: ["DD"] }),
+      createTestGarment({ id: "g2", dollSizes: ["DD_M"] }),
     ];
 
     const result = filterGarmentsForDoll({

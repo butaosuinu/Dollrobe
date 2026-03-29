@@ -4,11 +4,15 @@ export type DollSize =
   | "SD17"
   | "MSD"
   | "YoSD"
-  | "DD"
+  | "DD_S"
+  | "DD_M"
+  | "DD_L"
   | "DDdy"
   | "DDS"
   | "DDP"
-  | "MDD"
+  | "MDD_S"
+  | "MDD_M"
+  | "MDD_L"
   | "other";
 
 export type GarmentCategory =
@@ -44,6 +48,8 @@ export type Garment = {
   readonly lastScannedAt: number;
   readonly confidenceDecayDays: number;
   readonly brand: string | undefined;
+  readonly description: string | undefined;
+  readonly setContents: string | undefined;
   readonly checkedOutAt: number | undefined;
   readonly archivedAt: number | undefined;
   readonly createdAt: number;

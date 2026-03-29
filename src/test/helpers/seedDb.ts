@@ -27,6 +27,8 @@ const toGarment = (
   imageUrl: nullToUndefined(raw.imageUrl),
   locationId: nullToUndefined(raw.locationId),
   brand: nullToUndefined(raw.brand),
+  description: undefined,
+  setContents: undefined,
   checkedOutAt: nullToUndefined(raw.checkedOutAt),
   archivedAt: nullToUndefined(raw.archivedAt),
 });

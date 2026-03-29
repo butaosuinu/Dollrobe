@@ -28,11 +28,15 @@ export const DOLL_SIZE_LABEL = Object.freeze({
   SD17: msg`SD17 (~65cm)`,
   MSD: msg`MSD (~43cm)`,
   YoSD: msg`YoSD (~26cm)`,
-  DD: msg`DD (~58cm)`,
+  DD_S: msg`DD S胸 (~58cm)`,
+  DD_M: msg`DD M胸 (~58cm)`,
+  DD_L: msg`DD L胸 (~58cm)`,
   DDdy: msg`DDdy (~58cm)`,
   DDS: msg`DDS (~55cm)`,
   DDP: msg`DDP (~43.5cm)`,
-  MDD: msg`MDD (~40cm)`,
+  MDD_S: msg`MDD S胸 (~40cm)`,
+  MDD_M: msg`MDD M胸 (~40cm)`,
+  MDD_L: msg`MDD L胸 (~40cm)`,
   other: msg`その他`,
 }) satisfies Record<DollSize, ReturnType<typeof msg>>;
 

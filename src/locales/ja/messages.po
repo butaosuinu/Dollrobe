@@ -131,8 +131,20 @@ msgid "CSVファイルをドラッグ&ドロップ"
 msgstr "CSVファイルをドラッグ&ドロップ"
 
 #: src/lib/i18n-labels.ts
-msgid "DD (~58cm)"
-msgstr "DD (~58cm)"
+#~ msgid "DD (~58cm)"
+#~ msgstr "DD (~58cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "DD L胸 (~58cm)"
+msgstr "DD L胸 (~58cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "DD M胸 (~58cm)"
+msgstr "DD M胸 (~58cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "DD S胸 (~58cm)"
+msgstr "DD S胸 (~58cm)"
 
 #: src/lib/i18n-labels.ts
 msgid "DDdy (~58cm)"
@@ -155,8 +167,20 @@ msgid "Google でログイン"
 msgstr "Google でログイン"
 
 #: src/lib/i18n-labels.ts
-msgid "MDD (~40cm)"
-msgstr "MDD (~40cm)"
+#~ msgid "MDD (~40cm)"
+#~ msgstr "MDD (~40cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "MDD L胸 (~40cm)"
+msgstr "MDD L胸 (~40cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "MDD M胸 (~40cm)"
+msgstr "MDD M胸 (~40cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "MDD S胸 (~40cm)"
+msgstr "MDD S胸 (~40cm)"
 
 #: src/lib/i18n-labels.ts
 msgid "MSD (~43cm)"
@@ -436,6 +460,11 @@ msgstr "ズレを直す"
 msgid "セット"
 msgstr "セット"
 
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
+msgid "セット内容"
+msgstr "セット内容"
+
 #: src/lib/i18n-labels.ts
 msgid "ソックス/タイツ"
 msgstr "ソックス/タイツ"
@@ -444,6 +473,10 @@ msgstr "ソックス/タイツ"
 #: src/lib/i18n-labels.ts
 msgid "その他"
 msgstr "その他"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "タイトめ、伸縮性あり等"
+msgstr "タイトめ、伸縮性あり等"
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "タイプ"
@@ -520,6 +553,14 @@ msgstr "ない"
 #: src/components/scan/OrphanCheckoutDialog.tsx
 msgid "なくした"
 msgstr "なくした"
+
+#: src/app/garments/page.tsx
+msgid "フィルター"
+msgstr "フィルター"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "ブラウス、スカート、リボン等"
+msgstr "ブラウス、スカート、リボン等"
 
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -599,6 +640,8 @@ msgstr "メーカー"
 
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollForm.tsx
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
 msgid "メモ"
 msgstr "メモ"
 

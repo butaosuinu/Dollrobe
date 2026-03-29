@@ -37,6 +37,10 @@ vi.mock("@paralleldrive/cuid2", () => ({
   createId: () => "test-cuid",
 }));
 
+vi.mock("@/hooks/useBrandSuggestions", () => ({
+  useBrandSuggestions: () => [],
+}));
+
 describe("GarmentForm", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);

@@ -60,6 +60,8 @@ export const upsertGarment = async ({
         lastScannedAt: sql`excluded.last_scanned_at`,
         confidenceDecayDays: sql`excluded.confidence_decay_days`,
         brand: sql`excluded.brand`,
+        description: sql`excluded.description`,
+        setContents: sql`excluded.set_contents`,
         checkedOutAt: sql`excluded.checked_out_at`,
         archivedAt: sql`excluded.archived_at`,
         updatedAt: sql`excluded.updated_at`,

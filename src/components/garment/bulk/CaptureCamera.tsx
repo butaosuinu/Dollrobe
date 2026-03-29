@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { createId } from "@paralleldrive/cuid2";
 import { Camera, ArrowRight } from "lucide-react";
@@ -24,11 +24,23 @@ const CaptureCamera = () => {
   const removeItem = useSetAtom(removeCapturedItemAtom);
   const setStep = useSetAtom(bulkCaptureStepAtom);
   const [isFlashing, setIsFlashing] = useState(false);
+  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     start();
     return stop;
   }, [start, stop]);
+
+  useEffect(
+    () => () => {
+      if (flashTimeoutRef.current !== undefined) {
+        clearTimeout(flashTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const handleCapture = useCallback(() => {
     const blob = captureFrame();
@@ -43,7 +55,10 @@ const CaptureCamera = () => {
       });
       navigator.vibrate?.(VIBRATION_DURATION_MS);
       setIsFlashing(true);
-      setTimeout(() => setIsFlashing(false), BULK_CAPTURE.FLASH_DURATION_MS);
+      flashTimeoutRef.current = setTimeout(
+        () => setIsFlashing(false),
+        BULK_CAPTURE.FLASH_DURATION_MS,
+      );
     }
   }, [captureFrame, addItem]);
 
