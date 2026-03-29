@@ -50,6 +50,7 @@ const GarmentList = ({ garments }: Props) => {
                 {garment.dollSizes
                   .map((size) => i18n._(DOLL_SIZE_LABEL[size]))
                   .join(" / ")}
+                {garment.brand !== undefined && ` ・ ${garment.brand}`}
               </p>
             </div>
             <ConfidenceIndicator garment={garment} compact />

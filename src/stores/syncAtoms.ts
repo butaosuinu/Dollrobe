@@ -113,6 +113,8 @@ const toClientGarment = (g: {
   readonly lastScannedAt: number;
   readonly confidenceDecayDays: number;
   readonly brand?: string | null;
+  readonly description?: string | null;
+  readonly setContents?: string | null;
   readonly checkedOutAt?: number | null;
   readonly archivedAt?: number | null;
   readonly createdAt: number;
@@ -131,6 +133,8 @@ const toClientGarment = (g: {
   lastScannedAt: g.lastScannedAt,
   confidenceDecayDays: g.confidenceDecayDays,
   brand: g.brand ?? undefined,
+  description: g.description ?? undefined,
+  setContents: g.setContents ?? undefined,
   checkedOutAt: g.checkedOutAt ?? undefined,
   archivedAt: g.archivedAt ?? undefined,
   createdAt: g.createdAt,

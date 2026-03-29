@@ -59,6 +59,8 @@ export const CASE_NAME_MAX_LENGTH = 100;
 export const CASE_DESCRIPTION_MAX_LENGTH = 200;
 export const LOCATION_CUSTOM_NAME_MAX_LENGTH = 50;
 export const LOCATION_DESCRIPTION_MAX_LENGTH = 200;
+export const GARMENT_DESCRIPTION_MAX_LENGTH = 500;
+export const GARMENT_SET_CONTENTS_MAX_LENGTH = 500;
 export const DOLL_NAME_MAX_LENGTH = 100;
 export const DOLL_MEMO_MAX_LENGTH = 500;
 export const GRID_SIZE_MIN = 1;
@@ -98,11 +100,15 @@ export const DOLL_SIZES: readonly DollSize[] = [
   "SD17",
   "MSD",
   "YoSD",
-  "DD",
+  "DD_S",
+  "DD_M",
+  "DD_L",
   "DDdy",
   "DDS",
   "DDP",
-  "MDD",
+  "MDD_S",
+  "MDD_M",
+  "MDD_L",
   "other",
 ];
 

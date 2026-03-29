@@ -51,6 +51,11 @@ const GarmentCard = ({ garment }: Props) => {
             .map((size) => i18n._(DOLL_SIZE_LABEL[size]))
             .join(" / ")}
         </p>
+        {garment.brand !== undefined && (
+          <p className="mt-0.5 truncate text-xs text-text-tertiary">
+            {garment.brand}
+          </p>
+        )}
         <div className="mt-2">
           <ConfidenceIndicator garment={garment} compact />
         </div>

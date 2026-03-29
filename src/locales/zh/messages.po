@@ -103,7 +103,7 @@ msgstr "导入{validCount}项"
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」をアーカイブしますか？"
-msgstr "确定归档"{0}"吗？"
+msgstr "确定归档\"{0}\"吗？"
 
 #: src/app/locations/page.tsx
 #~ msgid "「{0}」を削除しますか？ ケース内の服は「取り出し中」になります。"
@@ -112,14 +112,14 @@ msgstr "确定归档"{0}"吗？"
 #. placeholder {0}: deletingCase.name
 #: src/app/locations/page.tsx
 msgid "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
-msgstr "确定删除"{0}"吗？箱内的衣服将变为"取出中"状态。"
+msgstr "确定删除\"{0}\"吗？箱内的衣服将变为\"取出中\"状态。"
 
 #. placeholder {0}: doll.name
 #. placeholder {0}: garment.name
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」を完全に削除しますか？この操作は取り消せません。"
-msgstr "确定永久删除"{0}"吗？此操作无法撤销。"
+msgstr "确定永久删除\"{0}\"吗？此操作无法撤销。"
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -131,8 +131,20 @@ msgid "CSVファイルをドラッグ&ドロップ"
 msgstr "拖拽CSV文件到此处"
 
 #: src/lib/i18n-labels.ts
-msgid "DD (~58cm)"
-msgstr "DD (~58cm)"
+#~ msgid "DD (~58cm)"
+#~ msgstr "DD (~58cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "DD L胸 (~58cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "DD M胸 (~58cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "DD S胸 (~58cm)"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "DDdy (~58cm)"
@@ -155,8 +167,20 @@ msgid "Google でログイン"
 msgstr "使用Google登录"
 
 #: src/lib/i18n-labels.ts
-msgid "MDD (~40cm)"
-msgstr "MDD (~40cm)"
+#~ msgid "MDD (~40cm)"
+#~ msgstr "MDD (~40cm)"
+
+#: src/lib/i18n-labels.ts
+msgid "MDD L胸 (~40cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "MDD M胸 (~40cm)"
+msgstr ""
+
+#: src/lib/i18n-labels.ts
+msgid "MDD S胸 (~40cm)"
+msgstr ""
 
 #: src/lib/i18n-labels.ts
 msgid "MSD (~43cm)"
@@ -436,6 +460,11 @@ msgstr "修正偏差"
 msgid "セット"
 msgstr "套装"
 
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
+msgid "セット内容"
+msgstr ""
+
 #: src/lib/i18n-labels.ts
 msgid "ソックス/タイツ"
 msgstr "袜子/连裤袜"
@@ -444,6 +473,10 @@ msgstr "袜子/连裤袜"
 #: src/lib/i18n-labels.ts
 msgid "その他"
 msgstr "其他"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "タイトめ、伸縮性あり等"
+msgstr ""
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "タイプ"
@@ -520,6 +553,14 @@ msgstr "不在"
 #: src/components/scan/OrphanCheckoutDialog.tsx
 msgid "なくした"
 msgstr "丢失了"
+
+#: src/app/garments/page.tsx
+msgid "フィルター"
+msgstr ""
+
+#: src/components/garment/GarmentForm.tsx
+msgid "ブラウス、スカート、リボン等"
+msgstr ""
 
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -599,6 +640,8 @@ msgstr "厂商"
 
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollForm.tsx
+#: src/components/garment/GarmentDetail.tsx
+#: src/components/garment/GarmentForm.tsx
 msgid "メモ"
 msgstr "备注"
 

@@ -18,6 +18,8 @@ export const createTestGarment = (
   lastScannedAt: FIXED_NOW,
   confidenceDecayDays: 30,
   brand: undefined,
+  description: undefined,
+  setContents: undefined,
   checkedOutAt: undefined,
   archivedAt: undefined,
   createdAt: FIXED_NOW,

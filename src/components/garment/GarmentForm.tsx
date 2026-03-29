@@ -11,7 +11,12 @@ import clsx from "clsx";
 import { addGarmentAtom, updateGarmentAtom } from "@/stores/garmentAtoms";
 import { authSessionAtom } from "@/stores/authAtoms";
 import type { DollSize, Garment, GarmentCategory } from "@/types";
-import { GARMENT_STATUS, DEFAULT_CONFIDENCE_DECAY_DAYS } from "@/lib/constants";
+import {
+  GARMENT_STATUS,
+  DEFAULT_CONFIDENCE_DECAY_DAYS,
+  GARMENT_DESCRIPTION_MAX_LENGTH,
+  GARMENT_SET_CONTENTS_MAX_LENGTH,
+} from "@/lib/constants";
 import {
   GARMENT_CATEGORY_LABEL,
   DOLL_SIZE_LABEL,
@@ -19,11 +24,13 @@ import {
 } from "@/lib/i18n-labels";
 import { isGarmentCategory, isDollSize } from "@/lib/typeGuards";
 import { useImageUpload } from "@/hooks/useImageUpload";
+import { useBrandSuggestions } from "@/hooks/useBrandSuggestions";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import TagInput from "@/components/ui/TagInput";
 import ColorPicker from "@/components/ui/ColorPicker";
+import AutocompleteInput from "@/components/ui/AutocompleteInput";
 import ImageUpload from "@/components/garment/ImageUpload";
 
 type Props = {
@@ -37,6 +44,8 @@ type FormValues = {
   readonly colors: readonly string[];
   readonly tags: readonly string[];
   readonly brand: string;
+  readonly description: string;
+  readonly setContents: string;
   readonly decayDays: number;
   readonly imagePreview: string | undefined;
 };
@@ -48,6 +57,8 @@ const DEFAULT_FORM_VALUES: FormValues = {
   colors: [],
   tags: [],
   brand: "",
+  description: "",
+  setContents: "",
   decayDays: DEFAULT_CONFIDENCE_DECAY_DAYS,
   imagePreview: undefined,
 };
@@ -63,6 +74,8 @@ const getInitialValues = (garment: Garment | undefined): FormValues => {
     colors: garment.colors,
     tags: garment.tags,
     brand: garment.brand ?? "",
+    description: garment.description ?? "",
+    setContents: garment.setContents ?? "",
     decayDays: garment.confidenceDecayDays,
     imagePreview: garment.imageUrl ?? undefined,
   };
@@ -83,6 +96,7 @@ const GarmentForm = ({ garment }: Props) => {
     value: String(value),
     label: i18n._(label),
   }));
+  const brandSuggestions = useBrandSuggestions();
   const addGarment = useSetAtom(addGarmentAtom);
   const updateGarment = useSetAtom(updateGarmentAtom);
   const authState = useAtomValue(authSessionAtom);
@@ -96,6 +110,8 @@ const GarmentForm = ({ garment }: Props) => {
   const [colors, setColors] = useState<readonly string[]>(initial.colors);
   const [tags, setTags] = useState<readonly string[]>(initial.tags);
   const [brand, setBrand] = useState(initial.brand);
+  const [description, setDescription] = useState(initial.description);
+  const [setContents, setSetContents] = useState(initial.setContents);
   const [decayDays, setDecayDays] = useState(initial.decayDays);
   const [imagePreview, setImagePreview] = useState<string | undefined>(
     initial.imagePreview,
@@ -143,6 +159,8 @@ const GarmentForm = ({ garment }: Props) => {
     colors: [...colors],
     tags: [...tags],
     brand: brand.trim() === "" ? undefined : brand.trim(),
+    description: description.trim() === "" ? undefined : description.trim(),
+    setContents: setContents.trim() === "" ? undefined : setContents.trim(),
     confidenceDecayDays: decayDays,
   });
 
@@ -216,6 +234,24 @@ const GarmentForm = ({ garment }: Props) => {
         }}
       />
 
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="garment-set-contents"
+          className="text-sm font-medium text-text-secondary"
+        >
+          {t`セット内容`}
+        </label>
+        <textarea
+          id="garment-set-contents"
+          placeholder={t`ブラウス、スカート、リボン等`}
+          value={setContents}
+          onChange={(e) => setSetContents(e.target.value)}
+          maxLength={GARMENT_SET_CONTENTS_MAX_LENGTH}
+          rows={2}
+          className="rounded-lg border border-border-default bg-surface-overlay px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary transition-colors hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+        />
+      </div>
+
       <fieldset>
         <legend className="mb-1 text-sm font-medium text-text-secondary">
           {t`ドールサイズ`}
@@ -246,12 +282,31 @@ const GarmentForm = ({ garment }: Props) => {
         </div>
       </fieldset>
 
-      <Input
+      <AutocompleteInput
         label={t`ブランド/メーカー`}
         placeholder={t`ボークス、アゾン等`}
         value={brand}
-        onChange={(e) => setBrand(e.target.value)}
+        onChangeValue={setBrand}
+        suggestions={brandSuggestions}
       />
+
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="garment-description"
+          className="text-sm font-medium text-text-secondary"
+        >
+          {t`メモ`}
+        </label>
+        <textarea
+          id="garment-description"
+          placeholder={t`タイトめ、伸縮性あり等`}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          maxLength={GARMENT_DESCRIPTION_MAX_LENGTH}
+          rows={3}
+          className="rounded-lg border border-border-default bg-surface-overlay px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary transition-colors hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+        />
+      </div>
 
       <ColorPicker label={t`色`} colors={colors} onChangeColors={setColors} />
 

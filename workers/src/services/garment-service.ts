@@ -73,6 +73,8 @@ export const createGarment = async ({
     readonly imageUrl?: string;
     readonly locationId?: string;
     readonly brand?: string;
+    readonly description?: string;
+    readonly setContents?: string;
     readonly confidenceDecayDays: number;
   };
   readonly logger: Logger;
@@ -99,6 +101,8 @@ export const createGarment = async ({
       imageUrl: input.imageUrl,
       locationId: input.locationId,
       brand: input.brand,
+      description: input.description,
+      setContents: input.setContents,
       status,
       lastScannedAt: now,
       confidenceDecayDays: input.confidenceDecayDays,
@@ -181,6 +185,8 @@ export const updateGarment = async ({
     readonly imageUrl?: string;
     readonly locationId?: string;
     readonly brand?: string;
+    readonly description?: string;
+    readonly setContents?: string;
     readonly confidenceDecayDays?: number;
   };
   readonly logger: Logger;
@@ -208,6 +214,8 @@ export const updateGarment = async ({
       imageUrl: input.imageUrl,
       locationId: input.locationId,
       brand: input.brand,
+      description: input.description,
+      setContents: input.setContents,
       confidenceDecayDays: input.confidenceDecayDays,
     },
     logger,

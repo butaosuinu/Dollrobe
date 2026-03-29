@@ -143,6 +143,8 @@ const registerSingleItem = async ({
     colors: [...metadata.colors],
     tags: [...metadata.tags],
     brand: metadata.brand === "" ? undefined : metadata.brand,
+    description: undefined,
+    setContents: undefined,
     confidenceDecayDays: metadata.confidenceDecayDays,
     imageUrl,
     locationId: undefined,

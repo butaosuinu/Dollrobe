@@ -27,7 +27,13 @@ const isDollSize = (value: string): value is DollSize =>
 const isGarmentStatus = (value: string): value is GarmentStatus =>
   GARMENT_STATUSES.some((s) => s === value);
 
-const toGarment = (row: GarmentSelectRow): Garment => {
+const validateGarmentRow = (
+  row: GarmentSelectRow,
+): {
+  readonly category: GarmentCategory;
+  readonly dollSizes: readonly DollSize[];
+  readonly status: GarmentStatus;
+} => {
   if (!isGarmentCategory(row.category)) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
@@ -51,19 +57,31 @@ const toGarment = (row: GarmentSelectRow): Garment => {
   }
 
   return {
+    category: row.category,
+    dollSizes: validDollSizes,
+    status: row.status,
+  };
+};
+
+const toGarment = (row: GarmentSelectRow): Garment => {
+  const { category, dollSizes, status } = validateGarmentRow(row);
+
+  return {
     id: row.id,
     userId: row.userId,
     name: row.name,
-    category: row.category,
-    dollSizes: validDollSizes,
+    category,
+    dollSizes,
     colors: row.colors,
     tags: row.tags,
     imageUrl: row.imageUrl ?? undefined,
     locationId: row.locationId ?? undefined,
-    status: row.status,
+    status,
     lastScannedAt: row.lastScannedAt,
     confidenceDecayDays: row.confidenceDecayDays,
     brand: row.brand ?? undefined,
+    description: row.description ?? undefined,
+    setContents: row.setContents ?? undefined,
     checkedOutAt: row.checkedOutAt ?? undefined,
     archivedAt: row.archivedAt ?? undefined,
     createdAt: row.createdAt,
@@ -181,6 +199,8 @@ type GarmentUpdatableFields = {
   readonly imageUrl?: string;
   readonly locationId?: string;
   readonly brand?: string;
+  readonly description?: string;
+  readonly setContents?: string;
   readonly confidenceDecayDays?: number;
 };
 
@@ -193,6 +213,8 @@ const UPDATABLE_FIELD_KEYS = [
   "imageUrl",
   "locationId",
   "brand",
+  "description",
+  "setContents",
   "confidenceDecayDays",
 ] as const;
 

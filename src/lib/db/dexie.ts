@@ -1,5 +1,5 @@
 import Dexie from "dexie";
-import { STORAGE_CASE_TYPE } from "@/lib/constants";
+import { STORAGE_CASE_TYPE, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type {
   Doll,
   Garment,
@@ -76,22 +76,31 @@ class DollWardrobeDB extends Dexie {
       })
       .upgrade(async (tx) => {
         const syncTable = tx.table("syncQueue");
-        /* eslint-disable functional/immutable-data -- Dexie modify callback requires in-place mutation */
+        /* eslint-disable functional/no-conditional-statements, functional/immutable-data -- Dexie modify callback requires in-place mutation */
         await syncTable
           .toCollection()
-          .filter(
-            (item: Record<string, unknown>) =>
-              (item.type === "garment:create" ||
-                item.type === "garment:update") &&
-              typeof (item.payload as Record<string, unknown> | undefined)
-                ?.dollSize === "string",
-          )
+          .filter((item: Record<string, unknown>) => {
+            if (
+              item.type !== SYNC_ACTION_TYPE.GARMENT_CREATE &&
+              item.type !== SYNC_ACTION_TYPE.GARMENT_UPDATE
+            ) {
+              return false;
+            }
+            if (typeof item.payload !== "object" || item.payload === null) {
+              return false;
+            }
+            const payload: Record<string, unknown> = item.payload;
+            return typeof payload.dollSize === "string";
+          })
           .modify((item: Record<string, unknown>) => {
-            const payload = item.payload as Record<string, unknown>;
+            if (typeof item.payload !== "object" || item.payload === null) {
+              return;
+            }
+            const payload: Record<string, unknown> = item.payload;
             payload.dollSizes = [payload.dollSize];
             delete payload.dollSize;
           });
-        /* eslint-enable functional/immutable-data */
+        /* eslint-enable functional/no-conditional-statements, functional/immutable-data */
       });
     this.version(5)
       .stores({
@@ -128,6 +137,68 @@ class DollWardrobeDB extends Dexie {
       syncQueue: "++id, type, createdAt",
       dolls: "id, userId, bodySize, archivedAt",
     });
+    this.version(8)
+      .stores({
+        garments: "id, userId, locationId, status, category, archivedAt",
+        storageCases: "id, userId",
+        storageLocations: "id, userId, caseId",
+        coordinates: "id, userId",
+        syncQueue: "++id, type, createdAt",
+        dolls: "id, userId, bodySize, archivedAt",
+      })
+      .upgrade(async (tx) => {
+        const DOLL_SIZE_MIGRATION: Record<string, string> = {
+          DD: "DD_M",
+          MDD: "MDD_M",
+        };
+        const replaceDollSize = (size: string): string =>
+          DOLL_SIZE_MIGRATION[size] ?? size;
+
+        const garmentsTable = tx.table("garments");
+        /* eslint-disable functional/no-conditional-statements, no-param-reassign -- Dexie modify callback requires in-place mutation */
+        await garmentsTable
+          .toCollection()
+          .modify((g: Record<string, unknown>) => {
+            if (Array.isArray(g.dollSizes)) {
+              g.dollSizes = g.dollSizes
+                .filter((s: unknown): s is string => typeof s === "string")
+                .map(replaceDollSize);
+            }
+          });
+
+        const dollsTable = tx.table("dolls");
+        await dollsTable.toCollection().modify((d: Record<string, unknown>) => {
+          if (typeof d.bodySize === "string") {
+            d.bodySize = replaceDollSize(d.bodySize);
+          }
+        });
+
+        const syncTable = tx.table("syncQueue");
+        await syncTable
+          .toCollection()
+          .filter(
+            (item: Record<string, unknown>) =>
+              item.type === SYNC_ACTION_TYPE.GARMENT_CREATE ||
+              item.type === SYNC_ACTION_TYPE.GARMENT_UPDATE ||
+              item.type === SYNC_ACTION_TYPE.DOLL_CREATE ||
+              item.type === SYNC_ACTION_TYPE.DOLL_UPDATE,
+          )
+          .modify((item: Record<string, unknown>) => {
+            if (typeof item.payload !== "object" || item.payload === null) {
+              return;
+            }
+            const payload: Record<string, unknown> = item.payload;
+            if (Array.isArray(payload.dollSizes)) {
+              payload.dollSizes = payload.dollSizes
+                .filter((s: unknown): s is string => typeof s === "string")
+                .map(replaceDollSize);
+            }
+            if (typeof payload.bodySize === "string") {
+              payload.bodySize = replaceDollSize(payload.bodySize);
+            }
+          });
+        /* eslint-enable functional/no-conditional-statements, no-param-reassign */
+      });
   }
 }
 
