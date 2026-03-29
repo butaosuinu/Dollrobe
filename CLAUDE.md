@@ -49,6 +49,27 @@
 - 手動実行が必要な場合: `npx oxfmt path/to/file --write`
 - プロジェクト全体のフォーマット: `pnpm format`（必要な場合のみ使用）
 
+### i18n（Lingui.js）
+
+#### 必須ルール
+
+- `src/` 配下の `.tsx` ファイルでユーザーに表示される文字列は、必ず Lingui マクロで囲むこと
+  - JSX コンテンツ: `<Trans>テキスト</Trans>`（import 元: `@lingui/react/macro`）
+  - 属性値（placeholder, aria-label, title 等）: `t` マクロ（import 元: `@lingui/react/macro` の `useLingui`）
+  - 定数・ラベル定義: `msg` マクロ（import 元: `@lingui/core/macro`）
+- ハードコードされた日本語文字列の直書きは禁止
+
+#### UI テキスト変更後の手順（必須）
+
+1. `pnpm i18n:extract` — PO ファイルを更新
+2. `src/locales/{en,ko,zh}/messages.po` の新規エントリ（`msgstr ""`）に翻訳を記入
+3. `pnpm i18n:compile` — コンパイル済みファイルを再生成
+
+#### 自動検証
+
+- `pnpm i18n:check` が precheck に組み込まれている — en/ko/zh に未翻訳エントリがあると失敗する
+- 詳細なマクロの使い分け・パターンは `/i18n` スキルを参照
+
 ## Github Guidelines
 
 - `gh` コマンドを使用して issue や PR にアクセスすること
