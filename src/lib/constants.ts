@@ -88,6 +88,8 @@ export type ConfidenceFilterValue =
   | "uncertain"
   | "unknown";
 
+export type DollSizeFilterValue = "all" | DollSize;
+
 export type SortOptionValue =
   | "newest"
   | "oldest"

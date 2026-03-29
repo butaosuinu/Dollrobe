@@ -462,6 +462,7 @@ describe("GarmentsPage", () => {
     await openFilterPanel(user);
 
     expect(screen.getByText("信頼度")).toBeInTheDocument();
+    expect(screen.getByText("サイズ")).toBeInTheDocument();
     expect(screen.getByText("ドール")).toBeInTheDocument();
   });
 
