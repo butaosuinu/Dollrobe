@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { MS_PER_DAY } from "@/lib/constants";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
@@ -62,9 +62,11 @@ describe("DashboardPage", () => {
 
     await renderWithProviders(<DashboardPage />);
 
-    expect(await screen.findByText("3")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
-    expect(screen.getByText("1")).toBeInTheDocument();
+    const statsHeading = await screen.findByText("ステータス");
+    const statsSection = within(statsHeading.closest("section")!);
+    expect(statsSection.getByText("3")).toBeInTheDocument();
+    expect(statsSection.getByText("2")).toBeInTheDocument();
+    expect(statsSection.getByText("1")).toBeInTheDocument();
   });
 
   it("3日以上チェックアウト中の服がある場合に警告を表示する", async () => {
