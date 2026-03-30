@@ -2,25 +2,13 @@
 
 import { Plus, X } from "lucide-react";
 import clsx from "clsx";
+import { PRESET_COLORS } from "@/lib/constants";
 
 type Props = {
   readonly label?: string;
   readonly colors: readonly string[];
   readonly onChangeColors: (colors: readonly string[]) => void;
 };
-
-const PRESET_COLORS = [
-  "hsl(0, 0%, 10%)",
-  "hsl(0, 0%, 95%)",
-  "hsl(0, 70%, 55%)",
-  "hsl(210, 70%, 55%)",
-  "hsl(120, 40%, 45%)",
-  "hsl(45, 90%, 55%)",
-  "hsl(280, 60%, 55%)",
-  "hsl(330, 70%, 60%)",
-  "hsl(25, 70%, 50%)",
-  "hsl(180, 50%, 45%)",
-] as const;
 
 const ColorPicker = ({ label, colors, onChangeColors }: Props) => {
   const addColor = (color: string) => {

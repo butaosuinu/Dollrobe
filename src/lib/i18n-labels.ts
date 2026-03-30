@@ -1,5 +1,6 @@
 import { msg } from "@lingui/core/macro";
 import { DOLL_SIZES } from "@/lib/constants";
+import type { ColorName } from "@/lib/constants";
 import type {
   DollSize,
   GarmentCategory,
@@ -87,3 +88,16 @@ export const DOLL_SORT_OPTIONS = Object.freeze([
   { value: "name_asc" as const, label: msg`名前: A→Z` },
   { value: "name_desc" as const, label: msg`名前: Z→A` },
 ]);
+
+export const COLOR_NAME_LABEL = Object.freeze({
+  black: msg`黒`,
+  white: msg`白`,
+  red: msg`赤`,
+  blue: msg`青`,
+  green: msg`緑`,
+  yellow: msg`黄`,
+  purple: msg`紫`,
+  pink: msg`ピンク`,
+  orange: msg`オレンジ`,
+  cyan: msg`シアン`,
+}) satisfies Record<ColorName, ReturnType<typeof msg>>;
