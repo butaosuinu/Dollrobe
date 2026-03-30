@@ -52,6 +52,21 @@ export default tseslint.config(
         "error",
         { enforceParameterCount: false },
       ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "TryStatement",
+          message:
+            "try/catch is forbidden. Use the await/catch pattern: `const result = await expr.catch(handler)`",
+        },
+        {
+          selector:
+            "CallExpression > MemberExpression.callee[property.name='then']",
+          message:
+            ".then() is forbidden. Use the await/catch pattern: `const result = await expr.catch(handler)`",
+        },
+      ],
+      "@typescript-eslint/max-params": ["error", { max: 3 }],
     },
     languageOptions: {
       parserOptions: {
@@ -206,6 +221,7 @@ export default tseslint.config(
       "no-promise-executor-return": "off",
       "no-await-in-loop": "off",
       "no-console": "off",
+      "@typescript-eslint/max-params": "off",
     },
   },
   {
