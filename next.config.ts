@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
     tsconfigPath: "./tsconfig.app.json",
   },
   turbopack: {
+    resolveAlias: {
+      fs: "./src/lib/stubs/fs-stub.cjs",
+    },
     rules: {
       "./src/**/*.{js,jsx,ts,tsx}": {
         loaders: [
