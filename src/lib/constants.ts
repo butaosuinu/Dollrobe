@@ -180,6 +180,16 @@ export const BULK_CAPTURE = Object.freeze({
   FLASH_DURATION_MS: 150,
 });
 
+export const COLOR_EXTRACTION = Object.freeze({
+  ANALYSIS_MAX_DIMENSION: 200,
+  KMEANS_K: 3,
+  KMEANS_ATTEMPTS: 3,
+  KMEANS_MAX_ITERATIONS: 10,
+  KMEANS_EPSILON: 1.0,
+  MIN_CLUSTER_RATIO: 0.05,
+  KMEANS_PP_CENTERS: 2,
+});
+
 export const MIME_TO_EXTENSION = Object.freeze({
   "image/jpeg": "jpg",
   "image/png": "png",

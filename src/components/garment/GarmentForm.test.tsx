@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
@@ -41,6 +41,23 @@ vi.mock("@/hooks/useBrandSuggestions", () => ({
   useBrandSuggestions: () => [],
 }));
 
+const mockExtractColors = vi.hoisted(() => vi.fn());
+const mockExtractionState = vi.hoisted(() => ({
+  value: { status: "idle" } as
+    | { status: "idle" }
+    | { status: "loading" }
+    | { status: "done"; colors: readonly string[] }
+    | { status: "error" },
+}));
+
+vi.mock("@/hooks/useColorExtraction", () => ({
+  useColorExtraction: () => ({
+    extractionState: mockExtractionState.value,
+    extractColors: mockExtractColors,
+    reset: vi.fn(),
+  }),
+}));
+
 describe("GarmentForm", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
@@ -48,6 +65,9 @@ describe("GarmentForm", () => {
     mockUpload.mockClear();
     mockResetUpload.mockClear();
     mockUploadState.value = { status: "idle" };
+    mockExtractColors.mockClear();
+    mockExtractionState.value = { status: "idle" };
+    mockExtractColors.mockResolvedValue({ presetColors: [] });
   });
 
   afterEach(() => {
@@ -150,5 +170,50 @@ describe("GarmentForm", () => {
     expect(
       screen.getByRole("button", { name: "アップロード中..." }),
     ).toBeDisabled();
+  });
+
+  it("色分析中はローディング表示される", async () => {
+    mockExtractionState.value = { status: "loading" };
+    await renderWithProviders(<GarmentForm />);
+
+    expect(screen.getByText("色を分析中...")).toBeInTheDocument();
+  });
+
+  it("色分析が完了するとローディングが消える", async () => {
+    mockExtractionState.value = {
+      status: "done",
+      colors: ["hsl(0, 70%, 55%)"],
+    };
+    await renderWithProviders(<GarmentForm />);
+
+    expect(screen.queryByText("色を分析中...")).not.toBeInTheDocument();
+  });
+
+  it("画像選択時に色が空なら色抽出が呼ばれる", async () => {
+    mockExtractColors.mockResolvedValue({
+      presetColors: ["hsl(0, 70%, 55%)"],
+    });
+    await renderWithProviders(<GarmentForm />);
+
+    const file = new File(["dummy"], "test.png", { type: "image/png" });
+    const input = document.querySelector('input[type="file"]');
+    if (input === null) return;
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(mockExtractColors).toHaveBeenCalledWith({ file });
+  });
+
+  it("色抽出失敗時もフォームは正常に動作する", async () => {
+    const user = userEvent.setup();
+    mockExtractColors.mockResolvedValue({ presetColors: [] });
+    await renderWithProviders(<GarmentForm />);
+
+    const file = new File(["dummy"], "test.png", { type: "image/png" });
+    const input = document.querySelector('input[type="file"]');
+    if (input === null) return;
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await user.type(screen.getByLabelText("名前"), "テスト服");
+    expect(screen.getByRole("button", { name: "登録する" })).toBeEnabled();
   });
 });
