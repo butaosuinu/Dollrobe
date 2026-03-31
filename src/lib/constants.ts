@@ -196,3 +196,15 @@ export const MIME_TO_EXTENSION = Object.freeze({
   "image/webp": "webp",
   "image/heic": "heic",
 } as const);
+
+export type ColorName =
+  | "black"
+  | "white"
+  | "red"
+  | "blue"
+  | "green"
+  | "yellow"
+  | "purple"
+  | "pink"
+  | "orange"
+  | "cyan";

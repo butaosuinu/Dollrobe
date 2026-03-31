@@ -8,6 +8,7 @@ import AlertPanel from "@/components/dashboard/AlertPanel";
 import RecentItems from "@/components/dashboard/RecentItems";
 import OrphanCheckoutDialog from "@/components/scan/OrphanCheckoutDialog";
 import DigestBanner from "@/components/digest/DigestBanner";
+import WardrobeAnalytics from "@/components/dashboard/WardrobeAnalytics";
 import Skeleton from "@/components/ui/Skeleton";
 
 const StatsLoading = () => (
@@ -61,6 +62,12 @@ const DashboardPage = () => (
     <ErrorBoundary fallback={<></>}>
       <Suspense fallback={<Skeleton className="h-48 rounded-xl" />}>
         <RecentItems />
+      </Suspense>
+    </ErrorBoundary>
+
+    <ErrorBoundary fallback={<></>}>
+      <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
+        <WardrobeAnalytics />
       </Suspense>
     </ErrorBoundary>
 
