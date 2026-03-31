@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { z } from "zod";
 import { IMAGE_UPLOAD } from "@/lib/constants";
 import { compressImage } from "@/lib/image/compressImage";
+import { WORKERS_URL_FOR_FETCH } from "@/lib/workersUrl";
 
 export type UploadState =
   | { readonly status: "idle" }
@@ -9,9 +10,6 @@ export type UploadState =
   | { readonly status: "uploading" }
   | { readonly status: "success"; readonly imageUrl: string }
   | { readonly status: "error"; readonly message: string };
-
-const WORKERS_URL =
-  process.env.NEXT_PUBLIC_WORKERS_URL ?? "http://localhost:8787";
 
 const uploadResponseSchema = z.object({ imageUrl: z.string() });
 const errorResponseSchema = z.object({ error: z.string() });
@@ -66,7 +64,7 @@ export const useImageUpload = () => {
       formData.append("file", compressed.file);
 
       const response = await fetch(
-        `${WORKERS_URL}/api/images/upload/${garmentId}`,
+        `${WORKERS_URL_FOR_FETCH}/api/images/upload/${garmentId}`,
         {
           method: "POST",
           body: formData,

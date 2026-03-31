@@ -1,17 +1,18 @@
 import { atom } from "jotai";
 import { createId } from "@paralleldrive/cuid2";
-import { db } from "@/lib/db/dexie";
+import { getDb } from "@/lib/db/dexie";
 import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import { generateLabel } from "@/lib/generateLabel";
 import type { StorageCase, StorageLocation } from "@/types";
 
 const storageCasesRefreshTriggerAtom = atom(0);
 
-export const storageCasesAtom = atom(async (get) => {
-  get(storageCasesRefreshTriggerAtom);
-  const cases = await db.storageCases.toArray();
-  return cases;
-});
+export const storageCasesAtom = atom(async (get) =>
+  typeof indexedDB === "undefined"
+    ? ([] satisfies StorageCase[])
+    : (get(storageCasesRefreshTriggerAtom),
+      await getDb().storageCases.toArray()),
+);
 
 export const refreshStorageCasesAtom = atom(undefined, (_get, set) => {
   set(storageCasesRefreshTriggerAtom, (prev) => prev + 1);
@@ -19,11 +20,12 @@ export const refreshStorageCasesAtom = atom(undefined, (_get, set) => {
 
 const storageLocationsRefreshTriggerAtom = atom(0);
 
-export const storageLocationsAtom = atom(async (get) => {
-  get(storageLocationsRefreshTriggerAtom);
-  const locations = await db.storageLocations.toArray();
-  return locations;
-});
+export const storageLocationsAtom = atom(async (get) =>
+  typeof indexedDB === "undefined"
+    ? ([] satisfies StorageLocation[])
+    : (get(storageLocationsRefreshTriggerAtom),
+      await getDb().storageLocations.toArray()),
+);
 
 export const refreshStorageLocationsAtom = atom(undefined, (_get, set) => {
   set(storageLocationsRefreshTriggerAtom, (prev) => prev + 1);
@@ -32,8 +34,8 @@ export const refreshStorageLocationsAtom = atom(undefined, (_get, set) => {
 export const addStorageCaseAtom = atom(
   undefined,
   async (_get, _set, storageCase: StorageCase) => {
-    await db.storageCases.add(storageCase);
-    await db.syncQueue.add({
+    await getDb().storageCases.add(storageCase);
+    await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.STORAGE_CASE_CREATE,
       payload: storageCase,
       createdAt: Date.now(),
@@ -44,8 +46,8 @@ export const addStorageCaseAtom = atom(
 export const addStorageLocationAtom = atom(
   undefined,
   async (_get, _set, location: StorageLocation) => {
-    await db.storageLocations.add(location);
-    await db.syncQueue.add({
+    await getDb().storageLocations.add(location);
+    await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.STORAGE_LOCATION_CREATE,
       payload: location,
       createdAt: Date.now(),
@@ -129,9 +131,9 @@ export const addStorageCaseWithLocationsAtom = atom(
 
     const locations = buildLocations({ input, caseId, now });
 
-    await db.storageCases.add(storageCase);
-    await db.storageLocations.bulkAdd([...locations]);
-    await db.syncQueue.add({
+    await getDb().storageCases.add(storageCase);
+    await getDb().storageLocations.bulkAdd([...locations]);
+    await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.STORAGE_CASE_CREATE,
       payload: { storageCase, locations },
       createdAt: now,
@@ -142,8 +144,8 @@ export const addStorageCaseWithLocationsAtom = atom(
 export const updateStorageCaseAtom = atom(
   undefined,
   async (_get, _set, storageCase: StorageCase) => {
-    await db.storageCases.put(storageCase);
-    await db.syncQueue.add({
+    await getDb().storageCases.put(storageCase);
+    await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.STORAGE_CASE_UPDATE,
       payload: storageCase,
       createdAt: Date.now(),
@@ -167,8 +169,8 @@ export const updateStorageLocationAtom = atom(
       customName: input.customName,
       description: input.description,
     };
-    await db.storageLocations.put(updated);
-    await db.syncQueue.add({
+    await getDb().storageLocations.put(updated);
+    await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.STORAGE_LOCATION_UPDATE,
       payload: updated,
       createdAt: Date.now(),
@@ -181,8 +183,8 @@ export const deleteStorageCaseAtom = atom(
   async (_get, _set, caseId: string) => {
     const now = Date.now();
 
-    const locations = await db.storageLocations
-      .where("caseId")
+    const locations = await getDb()
+      .storageLocations.where("caseId")
       .equals(caseId)
       .toArray();
 
@@ -190,11 +192,14 @@ export const deleteStorageCaseAtom = atom(
 
     const affectedGarments =
       locationIds.length > 0
-        ? await db.garments.where("locationId").anyOf(locationIds).toArray()
+        ? await getDb()
+            .garments.where("locationId")
+            .anyOf(locationIds)
+            .toArray()
         : [];
 
     await (affectedGarments.length > 0
-      ? db.garments.bulkPut(
+      ? getDb().garments.bulkPut(
           affectedGarments.map((g) => ({
             ...g,
             locationId: undefined,
@@ -205,9 +210,9 @@ export const deleteStorageCaseAtom = atom(
         )
       : Promise.resolve());
 
-    await db.storageLocations.where("caseId").equals(caseId).delete();
-    await db.storageCases.delete(caseId);
-    await db.syncQueue.add({
+    await getDb().storageLocations.where("caseId").equals(caseId).delete();
+    await getDb().storageCases.delete(caseId);
+    await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.STORAGE_CASE_DELETE,
       payload: { id: caseId },
       createdAt: now,

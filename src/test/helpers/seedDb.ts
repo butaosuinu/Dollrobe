@@ -1,4 +1,4 @@
-import { db } from "@/lib/db/dexie";
+import { getDb } from "@/lib/db/dexie";
 import { testDb } from "@/test/mocks/db";
 import type { Doll, Garment, StorageCase, StorageLocation } from "@/types";
 
@@ -66,8 +66,15 @@ export const seedDbFromTestDb = async (): Promise<void> => {
   const cases = testDb.storageCase.getAll().map(toStorageCase);
   const locations = testDb.storageLocation.getAll().map(toStorageLocation);
 
-  if (dolls.length > 0) await db.dolls.bulkAdd([...dolls]);
-  if (garments.length > 0) await db.garments.bulkAdd([...garments]);
-  if (cases.length > 0) await db.storageCases.bulkAdd([...cases]);
-  if (locations.length > 0) await db.storageLocations.bulkAdd([...locations]);
+  const d = getDb();
+  await (dolls.length > 0 ? d.dolls.bulkAdd([...dolls]) : Promise.resolve());
+  await (garments.length > 0
+    ? d.garments.bulkAdd([...garments])
+    : Promise.resolve());
+  await (cases.length > 0
+    ? d.storageCases.bulkAdd([...cases])
+    : Promise.resolve());
+  await (locations.length > 0
+    ? d.storageLocations.bulkAdd([...locations])
+    : Promise.resolve());
 };

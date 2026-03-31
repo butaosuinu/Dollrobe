@@ -241,7 +241,8 @@ describe("LocationsPage CRUD操作", () => {
     await user.type(nameInput, "新しいケース");
     fireEvent.click(screen.getByRole("button", { name: "作成" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const cases = await db.storageCases.toArray();
       expect(cases.length).toBe(1);
@@ -276,7 +277,8 @@ describe("LocationsPage CRUD操作", () => {
     await user.type(input, "衣装ケース B");
     fireEvent.click(screen.getByRole("button", { name: "保存" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const storageCase = await db.storageCases.get("case-1");
       expect(storageCase?.name).toBe("衣装ケース B");
@@ -312,7 +314,8 @@ describe("LocationsPage CRUD操作", () => {
     if (lastDeleteButton === undefined) return;
     fireEvent.click(lastDeleteButton);
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const cases = await db.storageCases.toArray();
       expect(cases.length).toBe(0);

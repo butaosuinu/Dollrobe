@@ -1,13 +1,11 @@
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCJotai } from "jotai-trpc";
 import type { AppRouter } from "../../workers/src/trpc/router";
-
-const WORKERS_URL =
-  process.env.NEXT_PUBLIC_WORKERS_URL ?? "http://localhost:8787";
+import { WORKERS_URL_FOR_FETCH } from "@/lib/workersUrl";
 
 const createLink = () =>
   httpBatchLink({
-    url: `${WORKERS_URL}/trpc`,
+    url: `${WORKERS_URL_FOR_FETCH}/trpc`,
     fetch: async (url, options) =>
       await fetch(url, { ...options, credentials: "include" }),
   });
