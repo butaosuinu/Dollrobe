@@ -101,10 +101,39 @@ const runKmeans = async ({
     cv.cvtColor(rgb, hsv, colorRgb2Hsv);
 
     const totalPixels = hsv.rows * hsv.cols;
-    const samples = new cv.Mat(totalPixels, 3, cv.CV_8UC1);
-    register(samples);
     const { data: hsvBytes } = hsv;
-    samples.data.set(hsvBytes.subarray(0, totalPixels * 3));
+
+    const pixelIndices = Array.from({ length: totalPixels }, (_, i) => i);
+    const chromaticIndices = pixelIndices.filter((i) => {
+      const sVal = hsvBytes[i * 3 + 1] ?? 0;
+      const vVal = hsvBytes[i * 3 + 2] ?? 0;
+      return !(
+        sVal < COLOR_EXTRACTION.ACHROMATIC_SAT_THRESHOLD &&
+        vVal > COLOR_EXTRACTION.ACHROMATIC_VALUE_THRESHOLD
+      );
+    });
+
+    const useChromaticFilter =
+      chromaticIndices.length / totalPixels >=
+      COLOR_EXTRACTION.MIN_FILTERED_RATIO;
+    const sampleCount = useChromaticFilter
+      ? chromaticIndices.length
+      : totalPixels;
+
+    const samples = new cv.Mat(sampleCount, 3, cv.CV_8UC1);
+    register(samples);
+
+    if (useChromaticFilter) {
+      chromaticIndices.forEach((pixelIdx, sampleIdx) => {
+        const srcOffset = pixelIdx * 3;
+        const dstOffset = sampleIdx * 3;
+        samples.data[dstOffset] = hsvBytes[srcOffset] ?? 0;
+        samples.data[dstOffset + 1] = hsvBytes[srcOffset + 1] ?? 0;
+        samples.data[dstOffset + 2] = hsvBytes[srcOffset + 2] ?? 0;
+      });
+    } else {
+      samples.data.set(hsvBytes.subarray(0, totalPixels * 3));
+    }
 
     const float32Samples = new cv.Mat();
     register(float32Samples);
@@ -134,7 +163,7 @@ const runKmeans = async ({
 
     const { data32S } = labels;
     const labelsArray = Array.from(
-      { length: totalPixels },
+      { length: sampleCount },
       (_, i) => data32S[i],
     );
     const clusterCounts = Array.from(
@@ -150,7 +179,7 @@ const runKmeans = async ({
           s: Math.round(centers.floatAt(i, 1)),
           v: Math.round(centers.floatAt(i, 2)),
         }),
-        ratio: (clusterCounts[i] ?? 0) / totalPixels,
+        ratio: (clusterCounts[i] ?? 0) / sampleCount,
       }),
     );
 

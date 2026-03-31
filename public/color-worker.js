@@ -9,12 +9,15 @@ var KMEANS_MAX_ITERATIONS = 10;
 var KMEANS_EPSILON = 1.0;
 var MIN_CLUSTER_RATIO = 0.05;
 var KMEANS_PP_CENTERS = 2;
+var ACHROMATIC_SAT_THRESHOLD = 25;
+var ACHROMATIC_VALUE_THRESHOLD = 200;
+var MIN_FILTERED_RATIO = 0.1;
 
 var PRESET_COLORS = [
   "hsl(0, 0%, 10%)",
   "hsl(0, 0%, 95%)",
   "hsl(0, 70%, 55%)",
-  "hsl(210, 70%, 55%)",
+  "hsl(210, 55%, 55%)",
   "hsl(120, 40%, 45%)",
   "hsl(45, 90%, 55%)",
   "hsl(280, 60%, 55%)",
@@ -151,11 +154,37 @@ function runKmeans(cv, imageData) {
     cv.cvtColor(rgb, hsv, cv.COLOR_RGB2HSV);
 
     var totalPixels = hsv.rows * hsv.cols;
-    var samples = reg(new cv.Mat(totalPixels, 3, cv.CV_8UC1));
     var hsvBytes = hsv.data;
+
+    var chromaticIndices = [];
+    for (var pi = 0; pi < totalPixels; pi++) {
+      var sv = hsvBytes[pi * 3 + 1];
+      var vv = hsvBytes[pi * 3 + 2];
+      if (sv < ACHROMATIC_SAT_THRESHOLD && vv > ACHROMATIC_VALUE_THRESHOLD) {
+        continue;
+      }
+      chromaticIndices.push(pi);
+    }
+
+    var useChromaticFilter =
+      chromaticIndices.length / totalPixels >= MIN_FILTERED_RATIO;
+    var sampleCount = useChromaticFilter ? chromaticIndices.length : totalPixels;
+
+    var samples = reg(new cv.Mat(sampleCount, 3, cv.CV_8UC1));
     var sampleBytes = samples.data;
-    for (var p = 0; p < totalPixels * 3; p++) {
-      sampleBytes[p] = hsvBytes[p];
+
+    if (useChromaticFilter) {
+      for (var ci = 0; ci < chromaticIndices.length; ci++) {
+        var srcOff = chromaticIndices[ci] * 3;
+        var dstOff = ci * 3;
+        sampleBytes[dstOff] = hsvBytes[srcOff];
+        sampleBytes[dstOff + 1] = hsvBytes[srcOff + 1];
+        sampleBytes[dstOff + 2] = hsvBytes[srcOff + 2];
+      }
+    } else {
+      for (var p = 0; p < totalPixels * 3; p++) {
+        sampleBytes[p] = hsvBytes[p];
+      }
     }
     var float32 = reg(new cv.Mat());
     samples.convertTo(float32, cv.CV_32F);
@@ -180,13 +209,13 @@ function runKmeans(cv, imageData) {
 
     var data32S = labels.data32S;
     var counts = new Array(KMEANS_K).fill(0);
-    for (var i = 0; i < totalPixels; i++) {
+    for (var i = 0; i < sampleCount; i++) {
       counts[data32S[i]]++;
     }
 
     var clusters = [];
     for (var k = 0; k < KMEANS_K; k++) {
-      var ratio = counts[k] / totalPixels;
+      var ratio = counts[k] / sampleCount;
       if (ratio >= MIN_CLUSTER_RATIO) {
         clusters.push({
           hsl: opencvHsvToHsl(

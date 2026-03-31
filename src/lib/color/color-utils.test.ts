@@ -128,7 +128,22 @@ describe("findNearestPresetColor", () => {
 
   it("青に近い色はプリセットの青にマッピングされる", () => {
     const result = findNearestPresetColor({ hsl: { h: 215, s: 75, l: 50 } });
-    expect(result).toBe("hsl(210, 70%, 55%)");
+    expect(result).toBe("hsl(210, 55%, 55%)");
+  });
+
+  it("薄い青はプリセットの青にマッピングされる", () => {
+    const result = findNearestPresetColor({ hsl: { h: 195, s: 40, l: 72 } });
+    expect(result).toBe("hsl(210, 55%, 55%)");
+  });
+
+  it("水色（低彩度・高明度の青）はプリセットの青にマッピングされる", () => {
+    const result = findNearestPresetColor({ hsl: { h: 200, s: 35, l: 75 } });
+    expect(result).toBe("hsl(210, 55%, 55%)");
+  });
+
+  it("シアン域の色はプリセットのシアンにマッピングされる", () => {
+    const result = findNearestPresetColor({ hsl: { h: 180, s: 55, l: 40 } });
+    expect(result).toBe("hsl(180, 50%, 45%)");
   });
 
   it("黒に近い色はプリセットの黒にマッピングされる", () => {
@@ -151,7 +166,7 @@ describe("mapToPresetColors", () => {
       ],
     });
     expect(result).toContain("hsl(0, 70%, 55%)");
-    expect(result).toContain("hsl(210, 70%, 55%)");
+    expect(result).toContain("hsl(210, 55%, 55%)");
   });
 
   it("同じプリセットにマッピングされる色は重複除去される", () => {
