@@ -18,6 +18,12 @@ msgstr ""
 msgid "{0}"
 msgstr "{0}"
 
+#. placeholder {0}: item.label
+#. placeholder {1}: item.value
+#: src/components/chart/HorizontalBarChart.tsx
+msgid "{0} {1}"
+msgstr "{0} {1}"
+
 #. placeholder {0}: i18n._(DOLL_SIZE_LABEL[dollBodySize])
 #: src/components/doll/CompatibleGarmentList.tsx
 msgid "{0} サイズ対応の服を登録すると、ここに表示されます"
@@ -305,6 +311,10 @@ msgstr "Wigs"
 msgid "おかえりなさい"
 msgstr "Welcome back"
 
+#: src/lib/i18n-labels.ts
+msgid "オレンジ"
+msgstr "Orange"
+
 #: src/app/dolls/page.tsx
 #: src/app/dolls/page.tsx
 #: src/components/doll/DollDetailInfoCard.tsx
@@ -320,11 +330,16 @@ msgstr "Custom faceup artist name"
 msgid "カスタム名称"
 msgstr "Custom name"
 
+#: src/components/dashboard/WardrobeAnalytics.tsx
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "カテゴリ"
 msgstr "Category"
+
+#: src/components/dashboard/WardrobeAnalytics.tsx
+msgid "カラー"
+msgstr "Color"
 
 #: src/app/nfc-write/page.tsx
 #: src/components/location/StorageCaseEditForm.tsx
@@ -387,6 +402,7 @@ msgid "この場所の全服を確認済みにする"
 msgstr "Mark all garments in this location as confirmed"
 
 #: src/app/garments/page.tsx
+#: src/components/dashboard/WardrobeAnalytics.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "サイズ"
 msgstr "Size"
@@ -394,6 +410,10 @@ msgstr "Size"
 #: src/components/garment/csv/CsvDropZone.tsx
 msgid "サンプルCSVをダウンロード"
 msgstr "Download sample CSV"
+
+#: src/lib/i18n-labels.ts
+msgid "シアン"
+msgstr "Cyan"
 
 #. placeholder {0}: digest.unknownCount
 #: src/components/digest/DigestCard.tsx
@@ -486,6 +506,10 @@ msgstr "Dashboard"
 msgid "タップして確認する"
 msgstr "Tap to check"
 
+#: src/components/dashboard/WardrobeAnalytics.tsx
+msgid "データがありません"
+msgstr "No data available"
+
 #: src/app/garments/page.tsx
 #: src/lib/nav-items.ts
 msgid "ドール"
@@ -554,6 +578,10 @@ msgstr "Missing"
 msgid "なくした"
 msgstr "Lost"
 
+#: src/lib/i18n-labels.ts
+msgid "ピンク"
+msgstr "Pink"
+
 #: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "Filter"
@@ -561,6 +589,10 @@ msgstr "Filter"
 #: src/components/garment/GarmentForm.tsx
 msgid "ブラウス、スカート、リボン等"
 msgstr "Blouse, skirt, ribbon, etc."
+
+#: src/components/dashboard/WardrobeAnalytics.tsx
+msgid "ブランド"
+msgstr "Brand"
 
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -683,6 +715,10 @@ msgstr "Here's your wardrobe status"
 #: src/components/garment/csv/CsvImportProgress.tsx
 msgid "ワードローブを見る"
 msgstr "View wardrobe"
+
+#: src/components/dashboard/WardrobeAnalytics.tsx
+msgid "ワードローブ分析"
+msgstr "Wardrobe Analysis"
 
 #: src/lib/i18n-labels.ts
 msgid "ワンピース"
@@ -1061,6 +1097,10 @@ msgstr "Registration complete"
 msgid "登録開始"
 msgstr "Start registration"
 
+#: src/lib/i18n-labels.ts
+msgid "白"
+msgstr "White"
+
 #: src/components/confidence/ConfidenceStats.tsx
 msgid "着"
 msgstr "items"
@@ -1096,6 +1136,10 @@ msgstr "Managed garments: {0}"
 msgid "紛失"
 msgstr "Lost"
 
+#: src/lib/i18n-labels.ts
+msgid "紫"
+msgstr "Purple"
+
 #: src/components/garment/csv/CsvImportProgress.tsx
 msgid "続けてインポート"
 msgstr "Continue importing"
@@ -1103,6 +1147,10 @@ msgstr "Continue importing"
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "続けて撮影する"
 msgstr "Continue capturing"
+
+#: src/lib/i18n-labels.ts
+msgid "緑"
+msgstr "Green"
 
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
@@ -1184,6 +1232,10 @@ msgid "読み込みに失敗しました"
 msgstr "Failed to load"
 
 #: src/lib/i18n-labels.ts
+msgid "赤"
+msgstr "Red"
+
+#: src/lib/i18n-labels.ts
 msgid "通常 (30日)"
 msgstr "Normal (30 days)"
 
@@ -1200,3 +1252,15 @@ msgstr "Weekly Report"
 #: src/app/nfc-write/page.tsx
 msgid "選択してください"
 msgstr "Please select"
+
+#: src/lib/i18n-labels.ts
+msgid "青"
+msgstr "Blue"
+
+#: src/lib/i18n-labels.ts
+msgid "黄"
+msgstr "Yellow"
+
+#: src/lib/i18n-labels.ts
+msgid "黒"
+msgstr "Black"
