@@ -144,7 +144,8 @@ describe("GarmentEditPage", () => {
     await user.type(nameInput, "赤いドレス");
     await user.click(screen.getByRole("button", { name: "更新する" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const garment = await db.garments.get("garment-1");
       expect(garment?.name).toBe("赤いドレス");
@@ -175,7 +176,8 @@ describe("GarmentEditPage", () => {
     await user.selectOptions(screen.getByLabelText("カテゴリ"), "tops");
     await user.click(screen.getByRole("button", { name: "更新する" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const garment = await db.garments.get("garment-1");
       expect(garment?.category).toBe("tops");
@@ -196,7 +198,8 @@ describe("GarmentEditPage", () => {
 
     await user.click(screen.getByRole("button", { name: "更新する" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const garment = await db.garments.get("garment-1");
       expect(garment?.id).toBe("garment-1");
@@ -215,7 +218,8 @@ describe("GarmentEditPage", () => {
 
     await user.click(screen.getByRole("button", { name: "更新する" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const garments = await db.garments.toArray();
       expect(garments.length).toBe(1);

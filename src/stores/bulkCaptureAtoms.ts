@@ -13,7 +13,7 @@ import {
   SYNC_ACTION_TYPE,
 } from "@/lib/constants";
 import { compressImage } from "@/lib/image/compressImage";
-import { db } from "@/lib/db/dexie";
+import { getDb } from "@/lib/db/dexie";
 import { refreshGarmentsAtom } from "@/stores/garmentAtoms";
 import { authSessionAtom } from "@/stores/authAtoms";
 import { WORKERS_URL_FOR_FETCH } from "@/lib/workersUrl";
@@ -154,8 +154,8 @@ const registerSingleItem = async ({
     updatedAt: now,
   } as const;
 
-  await db.garments.add(garment);
-  await db.syncQueue.add({
+  await getDb().garments.add(garment);
+  await getDb().syncQueue.add({
     type: SYNC_ACTION_TYPE.GARMENT_CREATE,
     payload: garment,
     createdAt: now,

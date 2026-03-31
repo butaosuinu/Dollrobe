@@ -385,7 +385,8 @@ describe("GarmentDetailPage", () => {
       const dialog = screen.getByRole("dialog");
       await user.click(within(dialog).getByText("A-2"));
 
-      const { db } = await import("@/lib/db/dexie");
+      const { getDb } = await import("@/lib/db/dexie");
+      const db = getDb();
       await waitFor(async () => {
         const garment = await db.garments.get("garment-1");
         expect(garment?.locationId).toBe("loc-2");
@@ -422,7 +423,8 @@ describe("GarmentDetailPage", () => {
         within(dialog).getByRole("button", { name: /未配置にする/ }),
       );
 
-      const { db } = await import("@/lib/db/dexie");
+      const { getDb } = await import("@/lib/db/dexie");
+      const db = getDb();
       await waitFor(async () => {
         const garment = await db.garments.get("garment-1");
         expect(garment?.status).toBe("checked_out");

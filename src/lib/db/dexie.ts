@@ -205,7 +205,18 @@ class DollWardrobeDB extends Dexie {
   }
 }
 
-const db = new DollWardrobeDB();
+const holder = new Map<string, DollWardrobeDB>();
 
-export { db };
+/* eslint-disable functional/no-conditional-statements, functional/immutable-data -- lazy singleton requires one-time mutation to defer IndexedDB access from SSR */
+export const getDb = (): DollWardrobeDB => {
+  const existing = holder.get("db");
+  if (existing !== undefined) {
+    return existing;
+  }
+  const instance = new DollWardrobeDB();
+  holder.set("db", instance);
+  return instance;
+};
+/* eslint-enable functional/no-conditional-statements, functional/immutable-data */
+
 export type { DollWardrobeDB };

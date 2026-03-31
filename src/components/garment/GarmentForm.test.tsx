@@ -90,7 +90,8 @@ describe("GarmentForm", () => {
     await user.type(screen.getByLabelText("名前"), "新しいドレス");
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const garments = await db.garments.toArray();
       expect(garments.length).toBe(1);
@@ -112,7 +113,8 @@ describe("GarmentForm", () => {
     await user.selectOptions(screen.getByLabelText("カテゴリ"), "dress");
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const garments = await db.garments.toArray();
       expect(garments[0]?.category).toBe("dress");

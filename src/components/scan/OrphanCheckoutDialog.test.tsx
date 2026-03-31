@@ -73,7 +73,8 @@ describe("OrphanCheckoutDialog", () => {
     fireEvent.click(stillUsingButton);
 
     await waitFor(async () => {
-      const { db } = await import("@/lib/db/dexie");
+      const { getDb } = await import("@/lib/db/dexie");
+      const db = getDb();
       const g = await db.garments.get("g-1");
       expect(g?.checkedOutAt).toBeGreaterThan(FIXED_NOW - 5 * MS_PER_DAY);
     });
@@ -97,7 +98,8 @@ describe("OrphanCheckoutDialog", () => {
     fireEvent.click(lostButton);
 
     await waitFor(async () => {
-      const { db } = await import("@/lib/db/dexie");
+      const { getDb } = await import("@/lib/db/dexie");
+      const db = getDb();
       const g = await db.garments.get("g-1");
       expect(g?.status).toBe("lost");
     });

@@ -166,7 +166,8 @@ describe("ScanPage", () => {
       ).toBeInTheDocument();
     });
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const garments = await db.garments
         .where("locationId")
@@ -260,7 +261,8 @@ describe("ScanPage", () => {
         screen.getByText("この場所の全服を確認済みにする"),
       ).toBeInTheDocument();
 
-      const { db } = await import("@/lib/db/dexie");
+      const { getDb } = await import("@/lib/db/dexie");
+      const db = getDb();
       await waitFor(async () => {
         const garments = await db.garments
           .where("locationId")
