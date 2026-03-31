@@ -11,7 +11,7 @@
     "build": "next build",
     "build:workers": "wrangler deploy --dry-run",
     "start": "next start",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.workers.json && tsc --noEmit -p tsconfig.workers-test.json && tsc --noEmit -p tsconfig.sw.json",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.workers.json && tsc --noEmit -p tsconfig.workers-test.json && tsc --noEmit -p tsconfig.sw.json && tsc --noEmit -p tsconfig.worker.json",
     "lint": "oxlint src/ workers/ && eslint .",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",

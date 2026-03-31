@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "WebWorker"],
+    "noEmit": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "src/lib/image/extract-colors.worker.ts",
+    "src/lib/image/extract-colors-core.ts",
+    "src/lib/image/extract-colors-types.ts",
+    "src/lib/image/opencv-loader.ts",
+    "src/lib/color/*.ts",
+    "src/lib/constants.ts"
+  ],
+  "exclude": ["node_modules"]
+}
