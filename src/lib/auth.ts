@@ -1,9 +1,10 @@
 import { createAuthClient } from "better-auth/react";
 
 const WORKERS_URL =
-  (process.env.NEXT_PUBLIC_WORKERS_URL === ""
-    ? undefined
-    : process.env.NEXT_PUBLIC_WORKERS_URL) ?? "http://localhost:8787";
+  process.env.NEXT_PUBLIC_WORKERS_URL === undefined ||
+  process.env.NEXT_PUBLIC_WORKERS_URL === ""
+    ? "http://localhost:8787"
+    : process.env.NEXT_PUBLIC_WORKERS_URL;
 
 const client = createAuthClient({
   baseURL: `${WORKERS_URL}/api/auth`,
