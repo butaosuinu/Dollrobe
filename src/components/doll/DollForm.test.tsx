@@ -85,7 +85,8 @@ describe("DollForm", () => {
     await user.type(screen.getByLabelText("名前"), "リナ");
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const dolls = await db.dolls.toArray();
       expect(dolls.length).toBe(1);

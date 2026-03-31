@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { db } from "@/lib/db/dexie";
+import { getDb } from "@/lib/db/dexie";
 import { trpcClient } from "@/lib/trpc";
 import { SYNC_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { SyncStatusValue } from "@/lib/constants";
@@ -15,11 +15,12 @@ export const syncStatusAtom = atom<SyncStatusValue>(SYNC_STATUS.IDLE);
 
 const pendingSyncCountRefreshTriggerAtom = atom(0);
 
-export const pendingSyncCountAtom = atom(async (get) => {
-  get(pendingSyncCountRefreshTriggerAtom);
-  const count = await db.syncQueue.count();
-  return count;
-});
+export const pendingSyncCountAtom = atom(async (get) =>
+  typeof indexedDB === "undefined"
+    ? 0
+    : (get(pendingSyncCountRefreshTriggerAtom),
+      await getDb().syncQueue.count()),
+);
 
 export const refreshPendingSyncCountAtom = atom(undefined, (_get, set) => {
   set(pendingSyncCountRefreshTriggerAtom, (prev) => prev + 1);
@@ -72,7 +73,7 @@ const isValidSyncType = (type: string): type is SyncActionType =>
   VALID_SYNC_TYPES.has(type);
 
 const pushQueuedItems = async (): Promise<SyncResult> => {
-  const items = await db.syncQueue.orderBy("createdAt").toArray();
+  const items = await getDb().syncQueue.orderBy("createdAt").toArray();
 
   const validItems = items.flatMap(({ id: _id, type, ...rest }) =>
     isValidSyncType(type) ? [{ ...rest, type }] : [],
@@ -86,7 +87,7 @@ const pushQueuedItems = async (): Promise<SyncResult> => {
     item.id === undefined ? [] : [item.id],
   );
   await (itemIds.length > 0
-    ? db.syncQueue.bulkDelete(itemIds)
+    ? getDb().syncQueue.bulkDelete(itemIds)
     : Promise.resolve());
 
   return { ok: true };
@@ -199,19 +200,20 @@ const pullServerState = async (): Promise<SyncResult> => {
       createdAt: l.createdAt,
     }));
 
-  await db.transaction(
+  const d = getDb();
+  await d.transaction(
     "rw",
-    [db.dolls, db.garments, db.storageCases, db.storageLocations],
+    [d.dolls, d.garments, d.storageCases, d.storageLocations],
     async () => {
-      await db.dolls.clear();
-      await db.garments.clear();
-      await db.storageCases.clear();
-      await db.storageLocations.clear();
+      await d.dolls.clear();
+      await d.garments.clear();
+      await d.storageCases.clear();
+      await d.storageLocations.clear();
 
-      await bulkAddIfNotEmpty(db.dolls, dolls);
-      await bulkAddIfNotEmpty(db.garments, garments);
-      await bulkAddIfNotEmpty(db.storageCases, storageCases);
-      await bulkAddIfNotEmpty(db.storageLocations, storageLocations);
+      await bulkAddIfNotEmpty(d.dolls, dolls);
+      await bulkAddIfNotEmpty(d.garments, garments);
+      await bulkAddIfNotEmpty(d.storageCases, storageCases);
+      await bulkAddIfNotEmpty(d.storageLocations, storageLocations);
     },
   );
 

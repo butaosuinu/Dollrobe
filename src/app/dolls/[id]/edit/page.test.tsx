@@ -84,7 +84,8 @@ describe("DollEditPage", () => {
     await user.type(nameInput, "ミユ");
     await user.click(screen.getByRole("button", { name: "更新する" }));
 
-    const { db } = await import("@/lib/db/dexie");
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
       const doll = await db.dolls.get("doll-1");
       expect(doll?.name).toBe("ミユ");

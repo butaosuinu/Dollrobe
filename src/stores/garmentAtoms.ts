@@ -1,15 +1,15 @@
 import { atom } from "jotai";
-import { db } from "@/lib/db/dexie";
+import { getDb } from "@/lib/db/dexie";
 import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { Garment, ScanConfirmation } from "@/types";
 
 const garmentsRefreshTriggerAtom = atom(0);
 
-export const garmentsAtom = atom(async (get) => {
-  get(garmentsRefreshTriggerAtom);
-  const garments = await db.garments.toArray();
-  return garments;
-});
+export const garmentsAtom = atom(async (get) =>
+  typeof indexedDB === "undefined"
+    ? ([] satisfies Garment[])
+    : (get(garmentsRefreshTriggerAtom), await getDb().garments.toArray()),
+);
 
 export const refreshGarmentsAtom = atom(undefined, (_get, set) => {
   set(garmentsRefreshTriggerAtom, (prev) => prev + 1);
@@ -23,8 +23,8 @@ export const activeGarmentsAtom = atom(async (get) => {
 export const addGarmentAtom = atom(
   undefined,
   async (_get, set, garment: Garment) => {
-    await db.garments.add(garment);
-    await db.syncQueue.add({
+    await getDb().garments.add(garment);
+    await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.GARMENT_CREATE,
       payload: garment,
       createdAt: Date.now(),
@@ -36,8 +36,8 @@ export const addGarmentAtom = atom(
 export const updateGarmentAtom = atom(
   undefined,
   async (_get, set, garment: Garment) => {
-    await db.garments.put(garment);
-    await db.syncQueue.add({
+    await getDb().garments.put(garment);
+    await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
       payload: garment,
       createdAt: Date.now(),
@@ -49,8 +49,8 @@ export const updateGarmentAtom = atom(
 export const deleteGarmentAtom = atom(
   undefined,
   async (_get, set, id: string) => {
-    await db.garments.delete(id);
-    await db.syncQueue.add({
+    await getDb().garments.delete(id);
+    await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.GARMENT_DELETE,
       payload: { id },
       createdAt: Date.now(),
@@ -63,11 +63,14 @@ export const restoreGarmentAtom = atom(
   undefined,
   async (_get, set, id: string) => {
     const now = Date.now();
-    await db.garments.update(id, { archivedAt: undefined, updatedAt: now });
-    const updated = await db.garments.get(id);
+    await getDb().garments.update(id, {
+      archivedAt: undefined,
+      updatedAt: now,
+    });
+    const updated = await getDb().garments.get(id);
     await (updated === undefined
       ? Promise.resolve()
-      : db.syncQueue.add({
+      : getDb().syncQueue.add({
           type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
           payload: updated,
           createdAt: now,
@@ -80,8 +83,8 @@ export const confirmAllGarmentsAtom = atom(
   undefined,
   async (_get, set, locationId: string) => {
     const now = Date.now();
-    const garments = await db.garments
-      .where("locationId")
+    const garments = await getDb()
+      .garments.where("locationId")
       .equals(locationId)
       .toArray();
 
@@ -89,10 +92,10 @@ export const confirmAllGarmentsAtom = atom(
       (g) => g.status === GARMENT_STATUS.STORED && g.archivedAt === undefined,
     );
 
-    await db.garments.bulkPut(
+    await getDb().garments.bulkPut(
       storedGarments.map((g) => ({ ...g, lastScannedAt: now, updatedAt: now })),
     );
-    await db.syncQueue.bulkAdd(
+    await getDb().syncQueue.bulkAdd(
       storedGarments.map((g) => ({
         type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
         payload: { ...g, lastScannedAt: now, updatedAt: now },
@@ -114,19 +117,19 @@ export const confirmPartialGarmentsAtom = atom(
       .filter((c) => !c.confirmed)
       .map((c) => c.garmentId);
 
-    const confirmedGarments = await db.garments
-      .where("id")
+    const confirmedGarments = await getDb()
+      .garments.where("id")
       .anyOf(confirmedIds)
       .toArray();
 
-    await db.garments.bulkPut(
+    await getDb().garments.bulkPut(
       confirmedGarments.map((g) => ({
         ...g,
         lastScannedAt: now,
         updatedAt: now,
       })),
     );
-    await db.syncQueue.bulkAdd(
+    await getDb().syncQueue.bulkAdd(
       confirmedGarments.map((g) => ({
         type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
         payload: { ...g, lastScannedAt: now, updatedAt: now },
@@ -134,12 +137,12 @@ export const confirmPartialGarmentsAtom = atom(
       })),
     );
 
-    const deniedGarments = await db.garments
-      .where("id")
+    const deniedGarments = await getDb()
+      .garments.where("id")
       .anyOf(deniedIds)
       .toArray();
 
-    await db.garments.bulkPut(
+    await getDb().garments.bulkPut(
       deniedGarments.map((g) => ({
         ...g,
         status: GARMENT_STATUS.CHECKED_OUT,
@@ -148,7 +151,7 @@ export const confirmPartialGarmentsAtom = atom(
         updatedAt: now,
       })),
     );
-    await db.syncQueue.bulkAdd(
+    await getDb().syncQueue.bulkAdd(
       deniedGarments.map((g) => ({
         type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
         payload: {

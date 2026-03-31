@@ -1,23 +1,23 @@
 import { atom } from "jotai";
-import { db } from "@/lib/db/dexie";
+import { getDb } from "@/lib/db/dexie";
 import { SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { Doll } from "@/types";
 
 const dollsRefreshTriggerAtom = atom(0);
 
-export const dollsAtom = atom(async (get) => {
-  get(dollsRefreshTriggerAtom);
-  const dolls = await db.dolls.toArray();
-  return dolls;
-});
+export const dollsAtom = atom(async (get) =>
+  typeof indexedDB === "undefined"
+    ? ([] satisfies Doll[])
+    : (get(dollsRefreshTriggerAtom), await getDb().dolls.toArray()),
+);
 
 export const refreshDollsAtom = atom(undefined, (_get, set) => {
   set(dollsRefreshTriggerAtom, (prev) => prev + 1);
 });
 
 export const addDollAtom = atom(undefined, async (_get, set, doll: Doll) => {
-  await db.dolls.add(doll);
-  await db.syncQueue.add({
+  await getDb().dolls.add(doll);
+  await getDb().syncQueue.add({
     type: SYNC_ACTION_TYPE.DOLL_CREATE,
     payload: doll,
     createdAt: Date.now(),
@@ -26,8 +26,8 @@ export const addDollAtom = atom(undefined, async (_get, set, doll: Doll) => {
 });
 
 export const updateDollAtom = atom(undefined, async (_get, set, doll: Doll) => {
-  await db.dolls.put(doll);
-  await db.syncQueue.add({
+  await getDb().dolls.put(doll);
+  await getDb().syncQueue.add({
     type: SYNC_ACTION_TYPE.DOLL_UPDATE,
     payload: doll,
     createdAt: Date.now(),
@@ -36,8 +36,8 @@ export const updateDollAtom = atom(undefined, async (_get, set, doll: Doll) => {
 });
 
 export const deleteDollAtom = atom(undefined, async (_get, set, id: string) => {
-  await db.dolls.delete(id);
-  await db.syncQueue.add({
+  await getDb().dolls.delete(id);
+  await getDb().syncQueue.add({
     type: SYNC_ACTION_TYPE.DOLL_DELETE,
     payload: { id },
     createdAt: Date.now(),
@@ -49,11 +49,11 @@ export const restoreDollAtom = atom(
   undefined,
   async (_get, set, id: string) => {
     const now = Date.now();
-    await db.dolls.update(id, { archivedAt: undefined, updatedAt: now });
-    const updated = await db.dolls.get(id);
+    await getDb().dolls.update(id, { archivedAt: undefined, updatedAt: now });
+    const updated = await getDb().dolls.get(id);
     await (updated === undefined
       ? Promise.resolve()
-      : db.syncQueue.add({
+      : getDb().syncQueue.add({
           type: SYNC_ACTION_TYPE.DOLL_UPDATE,
           payload: updated,
           createdAt: now,

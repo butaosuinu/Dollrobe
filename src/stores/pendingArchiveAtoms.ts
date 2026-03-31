@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { msg } from "@lingui/core/macro";
 import { i18n } from "@/i18n/lingui";
-import { db } from "@/lib/db/dexie";
+import { getDb } from "@/lib/db/dexie";
 import { SYNC_ACTION_TYPE } from "@/lib/constants";
 import { addToastAtom, dismissToastAtom } from "@/stores/toastAtoms";
 import { refreshGarmentsAtom } from "@/stores/garmentAtoms";
@@ -31,7 +31,7 @@ const archiveEntity = async (
   id: string,
   now: number,
 ) => {
-  const table = entityType === "garment" ? db.garments : db.dolls;
+  const table = entityType === "garment" ? getDb().garments : getDb().dolls;
   const syncType =
     entityType === "garment"
       ? SYNC_ACTION_TYPE.GARMENT_UPDATE
@@ -41,7 +41,7 @@ const archiveEntity = async (
   const updated = await table.get(id);
   await (updated === undefined
     ? Promise.resolve()
-    : db.syncQueue.add({
+    : getDb().syncQueue.add({
         type: syncType,
         payload: updated,
         createdAt: now,
