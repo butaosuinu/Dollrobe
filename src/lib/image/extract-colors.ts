@@ -9,12 +9,17 @@ export type { ColorExtractionResult } from "./extract-colors-types";
 const getWorker = (() => {
   const state: { worker: Worker | undefined } = { worker: undefined };
   return (): Worker => {
-    state.worker ??= new Worker(
-      new URL("./extract-colors.worker.ts", import.meta.url),
-    );
+    state.worker ??= new Worker("/color-worker.js");
     return state.worker;
   };
 })();
+
+export const preloadColorExtraction = (): void => {
+  if (typeof Worker === "undefined") {
+    return;
+  }
+  getWorker();
+};
 
 export const extractColorsFromFile = async ({
   file,

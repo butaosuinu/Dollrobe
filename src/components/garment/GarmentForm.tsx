@@ -26,6 +26,7 @@ import {
 import { isGarmentCategory, isDollSize } from "@/lib/typeGuards";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { useColorExtraction } from "@/hooks/useColorExtraction";
+import { preloadColorExtraction } from "@/lib/image/extract-colors";
 import { useBrandSuggestions } from "@/hooks/useBrandSuggestions";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -122,6 +123,10 @@ const GarmentForm = ({ garment }: Props) => {
   );
   const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined);
   const previousImageUrlRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    preloadColorExtraction();
+  }, []);
 
   useEffect(
     () => () => {

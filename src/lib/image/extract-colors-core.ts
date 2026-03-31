@@ -1,7 +1,6 @@
 import { COLOR_EXTRACTION } from "@/lib/constants";
 import { opencvHsvToHsl, mapToPresetColors } from "@/lib/color/color-utils";
 import type { Hsl } from "@/lib/color/color-utils";
-import { loadOpencv } from "./opencv-loader";
 import type { OpenCV } from "./opencv-loader";
 import type { ColorExtractionResult } from "./extract-colors-types";
 
@@ -102,8 +101,10 @@ const runKmeans = async ({
     cv.cvtColor(rgb, hsv, colorRgb2Hsv);
 
     const totalPixels = hsv.rows * hsv.cols;
-    const samples = hsv.reshape(1, totalPixels);
+    const samples = new cv.Mat(totalPixels, 3, cv.CV_8UC1);
     register(samples);
+    const { data: hsvBytes } = hsv;
+    samples.data.set(hsvBytes.subarray(0, totalPixels * 3));
 
     const float32Samples = new cv.Mat();
     register(float32Samples);
@@ -161,14 +162,11 @@ const runKmeans = async ({
 
 export const extractColorsCore = async ({
   file,
+  cv,
 }: {
   readonly file: File;
+  readonly cv: OpenCV;
 }): Promise<ColorExtractionResult> => {
-  const cv = await loadOpencv();
-  if (cv === undefined) {
-    throw new Error("OpenCV.js failed to load");
-  }
-
   const imageData = await getImageData({ file });
   const hslColors = await runKmeans({ cv, imageData });
   const presetColors = mapToPresetColors({ colors: hslColors });
