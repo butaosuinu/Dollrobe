@@ -11,7 +11,10 @@ var MIN_CLUSTER_RATIO = 0.05;
 var KMEANS_PP_CENTERS = 2;
 var ACHROMATIC_SAT_THRESHOLD = 25;
 var ACHROMATIC_VALUE_THRESHOLD = 200;
+var ACHROMATIC_DARK_THRESHOLD = 30;
 var MIN_FILTERED_RATIO = 0.1;
+var ACHROMATIC_SAT_THRESHOLD_HSL = 15;
+var ACHROMATIC_LIGHTNESS_MID = 50;
 
 var PRESET_COLORS = [
   "hsl(0, 0%, 10%)",
@@ -45,6 +48,11 @@ function hslDistance(a, b) {
 }
 
 function findNearestPreset(hsl) {
+  if (hsl.s < ACHROMATIC_SAT_THRESHOLD_HSL) {
+    return hsl.l < ACHROMATIC_LIGHTNESS_MID
+      ? PRESET_COLORS[0]
+      : PRESET_COLORS[1];
+  }
   var minDist = Infinity;
   var minIdx = 0;
   for (var i = 0; i < PRESET_HSL.length; i++) {
@@ -160,6 +168,9 @@ function runKmeans(cv, imageData) {
     for (var pi = 0; pi < totalPixels; pi++) {
       var sv = hsvBytes[pi * 3 + 1];
       var vv = hsvBytes[pi * 3 + 2];
+      if (vv < ACHROMATIC_DARK_THRESHOLD) {
+        continue;
+      }
       if (sv < ACHROMATIC_SAT_THRESHOLD && vv > ACHROMATIC_VALUE_THRESHOLD) {
         continue;
       }

@@ -107,6 +107,7 @@ const runKmeans = async ({
     const chromaticIndices = pixelIndices.filter((i) => {
       const sVal = hsvBytes[i * 3 + 1] ?? 0;
       const vVal = hsvBytes[i * 3 + 2] ?? 0;
+      if (vVal < COLOR_EXTRACTION.ACHROMATIC_DARK_THRESHOLD) return false;
       return !(
         sVal < COLOR_EXTRACTION.ACHROMATIC_SAT_THRESHOLD &&
         vVal > COLOR_EXTRACTION.ACHROMATIC_VALUE_THRESHOLD

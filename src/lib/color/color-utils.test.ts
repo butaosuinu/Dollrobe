@@ -155,6 +155,16 @@ describe("findNearestPresetColor", () => {
     const result = findNearestPresetColor({ hsl: { h: 0, s: 0, l: 98 } });
     expect(result).toBe("hsl(0, 0%, 95%)");
   });
+
+  it("低彩度で緑色相のグレーは緑ではなく黒にマッピングされる", () => {
+    const result = findNearestPresetColor({ hsl: { h: 120, s: 10, l: 40 } });
+    expect(result).toBe("hsl(0, 0%, 10%)");
+  });
+
+  it("低彩度で青色相の明るいグレーは青ではなく白にマッピングされる", () => {
+    const result = findNearestPresetColor({ hsl: { h: 200, s: 8, l: 70 } });
+    expect(result).toBe("hsl(0, 0%, 95%)");
+  });
 });
 
 describe("mapToPresetColors", () => {

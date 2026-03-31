@@ -81,11 +81,25 @@ const parsePresetColor = (c: string): Hsl => {
 
 const PRESET_COLORS_HSL: readonly Hsl[] = PRESET_COLORS.map(parsePresetColor);
 
+const ACHROMATIC_SAT_THRESHOLD_HSL = 15;
+const ACHROMATIC_LIGHTNESS_MID = 50;
+const BLACK_PRESET_INDEX = 0;
+const WHITE_PRESET_INDEX = 1;
+
+const mapAchromatic = (hsl: Hsl): string | undefined =>
+  hsl.s < ACHROMATIC_SAT_THRESHOLD_HSL
+    ? hsl.l < ACHROMATIC_LIGHTNESS_MID
+      ? PRESET_COLORS[BLACK_PRESET_INDEX]
+      : PRESET_COLORS[WHITE_PRESET_INDEX]
+    : undefined;
+
 export const findNearestPresetColor = ({
   hsl,
 }: {
   readonly hsl: Hsl;
-}): string => {
+}): string => mapAchromatic(hsl) ?? findNearestByDistance(hsl);
+
+const findNearestByDistance = (hsl: Hsl): string => {
   const distances = PRESET_COLORS_HSL.map((preset, index) => ({
     index,
     distance: hslDistance({ a: hsl, b: preset }),
