@@ -27,6 +27,14 @@ export const refreshPendingSyncCountAtom = atom(undefined, (_get, set) => {
 
 export const lastSyncErrorAtom = atom<string | undefined>(undefined);
 
+export const syncProgressAtom = atom<
+  | {
+      readonly loaded: number;
+      readonly total: number;
+    }
+  | undefined
+>(undefined);
+
 type SyncResult =
   | { readonly ok: true }
   | { readonly ok: false; readonly error: string };
@@ -36,14 +44,28 @@ const toSyncError = (error: unknown): SyncResult => ({
   error: error instanceof Error ? error.message : "同期に失敗しました",
 });
 
+const LAST_SYNCED_AT_KEY = "lastSyncedAt";
+
+const getLastSyncedAt = (): number | undefined => {
+  const value = localStorage.getItem(LAST_SYNCED_AT_KEY);
+  return value === null ? undefined : Number(value);
+};
+
+const setLastSyncedAt = (timestamp: number): void => {
+  localStorage.setItem(LAST_SYNCED_AT_KEY, String(timestamp));
+};
+
 export const executeSyncAtom = atom(
   undefined,
   async (_get, set): Promise<void> => {
     set(syncStatusAtom, SYNC_STATUS.SYNCING);
     set(lastSyncErrorAtom, undefined);
 
-    const result = await executeSyncFlow();
+    const result = await executeSyncFlow((loaded, total) => {
+      set(syncProgressAtom, { loaded, total });
+    });
 
+    set(syncProgressAtom, undefined);
     set(refreshPendingSyncCountAtom);
     set(syncStatusAtom, result.ok ? SYNC_STATUS.IDLE : SYNC_STATUS.ERROR);
     set(lastSyncErrorAtom, result.ok ? undefined : result.error);
@@ -57,10 +79,12 @@ export const executeSyncAtom = atom(
   },
 );
 
-const executeSyncFlow = async (): Promise<SyncResult> => {
+const executeSyncFlow = async (
+  onProgress: (loaded: number, total: number) => void,
+): Promise<SyncResult> => {
   const pushResult = await pushQueuedItems().catch(toSyncError);
   return pushResult.ok
-    ? await pullServerState().catch(toSyncError)
+    ? await pullServerState(onProgress).catch(toSyncError)
     : pushResult;
 };
 
@@ -92,11 +116,11 @@ const pushQueuedItems = async (): Promise<SyncResult> => {
   return { ok: true };
 };
 
-const bulkAddIfNotEmpty = async <T>(
-  table: { bulkAdd: (items: T[]) => Promise<unknown> },
+const bulkPutIfNotEmpty = async <T>(
+  table: { bulkPut: (items: T[]) => Promise<unknown> },
   items: readonly T[],
 ) => {
-  await (items.length > 0 ? table.bulkAdd([...items]) : Promise.resolve());
+  await (items.length > 0 ? table.bulkPut([...items]) : Promise.resolve());
 };
 
 const toClientGarment = (g: {
@@ -169,35 +193,40 @@ const toClientDoll = (d: {
   updatedAt: d.updatedAt,
 });
 
-const pullServerState = async (): Promise<SyncResult> => {
-  const serverState = await trpcClient.sync.pull.query();
+type DeletedId = {
+  readonly entityType: string;
+  readonly entityId: string;
+};
 
-  const garments = serverState.garments.map(toClientGarment);
-  const dolls = serverState.dolls.map(toClientDoll);
-  const storageCases: readonly StorageCase[] = serverState.storageCases.map(
-    (c) => ({
-      id: c.id,
-      userId: c.userId,
-      name: c.name,
-      type: c.type === "unit" ? ("unit" as const) : ("grid" as const),
-      description: c.description ?? undefined,
-      rows: c.rows,
-      cols: c.cols,
-      createdAt: c.createdAt,
-    }),
+const INITIAL_PAGE_LIMIT = 50;
+const BATCH_PAGE_LIMIT = 500;
+
+const pullServerState = async (
+  onProgress: (loaded: number, total: number) => void,
+): Promise<SyncResult> => {
+  const syncStartedAt = Date.now();
+  const lastSyncedAt = getLastSyncedAt();
+  const hasLocalData = (await db.garments.count()) > 0;
+
+  return hasLocalData && lastSyncedAt !== undefined
+    ? await pullDelta(lastSyncedAt, syncStartedAt, onProgress)
+    : await pullFull(syncStartedAt, onProgress);
+};
+
+const pullFull = async (
+  syncStartedAt: number,
+  onProgress: (loaded: number, total: number) => void,
+): Promise<SyncResult> => {
+  const firstPage = await trpcClient.sync.pull.query({
+    limit: INITIAL_PAGE_LIMIT,
+  });
+
+  const garments = firstPage.garments.map(toClientGarment);
+  const storageCases = firstPage.storageCases.map(toClientStorageCase);
+  const storageLocations = firstPage.storageLocations.map(
+    toClientStorageLocation,
   );
-  const storageLocations: readonly StorageLocation[] =
-    serverState.storageLocations.map((l) => ({
-      id: l.id,
-      userId: l.userId,
-      caseId: l.caseId,
-      label: l.label,
-      customName: l.customName ?? undefined,
-      description: l.description ?? undefined,
-      row: l.row,
-      col: l.col,
-      createdAt: l.createdAt,
-    }));
+  const dolls = firstPage.dolls.map(toClientDoll);
 
   await db.transaction(
     "rw",
@@ -208,12 +237,126 @@ const pullServerState = async (): Promise<SyncResult> => {
       await db.storageCases.clear();
       await db.storageLocations.clear();
 
-      await bulkAddIfNotEmpty(db.dolls, dolls);
-      await bulkAddIfNotEmpty(db.garments, garments);
-      await bulkAddIfNotEmpty(db.storageCases, storageCases);
-      await bulkAddIfNotEmpty(db.storageLocations, storageLocations);
+      await bulkPutIfNotEmpty(db.dolls, dolls);
+      await bulkPutIfNotEmpty(db.garments, garments);
+      await bulkPutIfNotEmpty(db.storageCases, storageCases);
+      await bulkPutIfNotEmpty(db.storageLocations, storageLocations);
     },
   );
 
+  onProgress(garments.length, firstPage.totalCount);
+
+  /* eslint-disable functional/no-let, functional/no-loop-statements, no-await-in-loop, @typescript-eslint/prefer-destructuring -- cursor pagination loop with sequential fetches */
+  let { nextCursor } = firstPage;
+  let loadedCount = garments.length;
+
+  while (nextCursor !== undefined) {
+    const page = await trpcClient.sync.pull.query({
+      cursor: nextCursor,
+      limit: BATCH_PAGE_LIMIT,
+    });
+
+    const pageGarments = page.garments.map(toClientGarment);
+    await bulkPutIfNotEmpty(db.garments, pageGarments);
+
+    loadedCount += pageGarments.length;
+    onProgress(loadedCount, firstPage.totalCount);
+    ({ nextCursor } = page);
+  }
+  /* eslint-enable functional/no-let, functional/no-loop-statements, no-await-in-loop, @typescript-eslint/prefer-destructuring */
+
+  setLastSyncedAt(syncStartedAt);
   return { ok: true };
 };
+
+const bulkDeleteByEntityType = async (
+  table: { bulkDelete: (ids: string[]) => Promise<unknown> },
+  deletedIds: readonly DeletedId[],
+  entityType: string,
+) => {
+  const ids = deletedIds
+    .filter((d) => d.entityType === entityType)
+    .map((d) => d.entityId);
+  await (ids.length > 0 ? table.bulkDelete(ids) : Promise.resolve());
+};
+
+const pullDelta = async (
+  lastSyncedAt: number,
+  syncStartedAt: number,
+  onProgress: (loaded: number, total: number) => void,
+): Promise<SyncResult> => {
+  const result = await trpcClient.sync.pull.query({
+    since: lastSyncedAt,
+  });
+
+  const garments = result.garments.map(toClientGarment);
+  const dolls = result.dolls.map(toClientDoll);
+  const storageCases = result.storageCases.map(toClientStorageCase);
+  const storageLocations = result.storageLocations.map(toClientStorageLocation);
+  const deletedIds: readonly DeletedId[] = result.deletedIds;
+
+  await bulkPutIfNotEmpty(db.garments, garments);
+  await bulkPutIfNotEmpty(db.dolls, dolls);
+  await bulkPutIfNotEmpty(db.storageCases, storageCases);
+  await bulkPutIfNotEmpty(db.storageLocations, storageLocations);
+
+  await bulkDeleteByEntityType(db.garments, deletedIds, "garment");
+  await bulkDeleteByEntityType(db.dolls, deletedIds, "doll");
+  await bulkDeleteByEntityType(db.storageCases, deletedIds, "storageCase");
+  await bulkDeleteByEntityType(
+    db.storageLocations,
+    deletedIds,
+    "storageLocation",
+  );
+
+  const totalItems =
+    garments.length +
+    dolls.length +
+    storageCases.length +
+    storageLocations.length;
+  onProgress(totalItems, totalItems);
+  setLastSyncedAt(syncStartedAt);
+  return { ok: true };
+};
+
+const toClientStorageCase = (c: {
+  readonly id: string;
+  readonly userId: string;
+  readonly name: string;
+  readonly type: string;
+  readonly description?: string | null;
+  readonly rows: number;
+  readonly cols: number;
+  readonly createdAt: number;
+}): StorageCase => ({
+  id: c.id,
+  userId: c.userId,
+  name: c.name,
+  type: c.type === "unit" ? ("unit" as const) : ("grid" as const),
+  description: c.description ?? undefined,
+  rows: c.rows,
+  cols: c.cols,
+  createdAt: c.createdAt,
+});
+
+const toClientStorageLocation = (l: {
+  readonly id: string;
+  readonly userId: string;
+  readonly caseId: string;
+  readonly label: string;
+  readonly customName?: string | null;
+  readonly description?: string | null;
+  readonly row: number;
+  readonly col: number;
+  readonly createdAt: number;
+}): StorageLocation => ({
+  id: l.id,
+  userId: l.userId,
+  caseId: l.caseId,
+  label: l.label,
+  customName: l.customName ?? undefined,
+  description: l.description ?? undefined,
+  row: l.row,
+  col: l.col,
+  createdAt: l.createdAt,
+});

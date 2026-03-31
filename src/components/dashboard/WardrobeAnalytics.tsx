@@ -1,16 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useAtomValue } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
-import { activeGarmentsAtom } from "@/stores/garmentAtoms";
-import {
-  aggregateByCategory,
-  aggregateByDollSize,
-  aggregateByColor,
-  aggregateByBrand,
-} from "@/lib/wardrobe-analytics";
+import { wardrobeStatsAtom } from "@/stores/wardrobeStatsAtom";
 import {
   GARMENT_CATEGORY_LABEL,
   DOLL_SIZE_LABEL,
@@ -34,48 +28,32 @@ const TAB_OPTIONS: ReadonlyArray<{
 ];
 
 const WardrobeAnalytics = () => {
-  const garments = useAtomValue(activeGarmentsAtom);
+  const stats = useAtomValue(wardrobeStatsAtom);
   const { i18n } = useLingui();
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("category");
 
-  const categoryItems: readonly BarItem[] = useMemo(
-    () =>
-      aggregateByCategory(garments).map((c) => ({
-        label: i18n._(GARMENT_CATEGORY_LABEL[c.category]),
-        value: c.count,
-      })),
-    [garments, i18n],
-  );
+  const categoryItems: readonly BarItem[] = stats.byCategory.map((c) => ({
+    label: i18n._(GARMENT_CATEGORY_LABEL[c.category]),
+    value: c.count,
+  }));
 
-  const sizeItems: readonly BarItem[] = useMemo(
-    () =>
-      aggregateByDollSize(garments).map((s) => ({
-        label: i18n._(DOLL_SIZE_LABEL[s.dollSize]),
-        value: s.count,
-      })),
-    [garments, i18n],
-  );
+  const sizeItems: readonly BarItem[] = stats.byDollSize.map((s) => ({
+    label: i18n._(DOLL_SIZE_LABEL[s.dollSize]),
+    value: s.count,
+  }));
 
-  const colorItems: readonly BarItem[] = useMemo(
-    () =>
-      aggregateByColor(garments).map((c) => ({
-        label: i18n._(COLOR_NAME_LABEL[c.colorName]),
-        value: c.count,
-        swatch: c.hsl,
-      })),
-    [garments, i18n],
-  );
+  const colorItems: readonly BarItem[] = stats.byColor.map((c) => ({
+    label: i18n._(COLOR_NAME_LABEL[c.colorName]),
+    value: c.count,
+    swatch: c.hsl,
+  }));
 
-  const brandItems: readonly BarItem[] = useMemo(
-    () =>
-      aggregateByBrand({ garments }).map((b) => ({
-        label: b.brand,
-        value: b.count,
-      })),
-    [garments],
-  );
+  const brandItems: readonly BarItem[] = stats.byBrand.map((b) => ({
+    label: b.brand,
+    value: b.count,
+  }));
 
-  if (garments.length === 0) return undefined;
+  if (stats.totalCount === 0) return undefined;
 
   const chartMap: Record<AnalyticsTab, readonly BarItem[]> = {
     category: categoryItems,

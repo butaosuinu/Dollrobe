@@ -182,28 +182,32 @@ const COLOR_NAME_TO_HSL: Readonly<Record<ColorName, string>> = {
   cyan: PRESET_COLORS[9],
 };
 
+/* eslint-disable functional/no-loop-statements, functional/no-expression-statements, functional/immutable-data -- O(n) accumulation; pure from the outside */
 const countBy = <T, K extends string>(
   items: readonly T[],
   keyFn: (item: T) => K,
-): ReadonlyMap<K, number> =>
-  items.reduce((acc, item) => {
+): ReadonlyMap<K, number> => {
+  const map = new Map<K, number>();
+  for (const item of items) {
     const key = keyFn(item);
-    return new Map([...acc, [key, (acc.get(key) ?? 0) + 1]]);
-  }, new Map<K, number>());
+    map.set(key, (map.get(key) ?? 0) + 1);
+  }
+  return map;
+};
 
 const countByFlat = <T, K extends string>(
   items: readonly T[],
   keysFn: (item: T) => readonly K[],
-): ReadonlyMap<K, number> =>
-  items.reduce(
-    (acc, item) =>
-      keysFn(item).reduce(
-        (innerAcc, key) =>
-          new Map([...innerAcc, [key, (innerAcc.get(key) ?? 0) + 1]]),
-        acc,
-      ),
-    new Map<K, number>(),
-  );
+): ReadonlyMap<K, number> => {
+  const map = new Map<K, number>();
+  for (const item of items) {
+    for (const key of keysFn(item)) {
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+  }
+  return map;
+};
+/* eslint-enable functional/no-loop-statements, functional/no-expression-statements, functional/immutable-data */
 
 export const aggregateByCategory = (
   garments: readonly Garment[],

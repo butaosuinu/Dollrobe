@@ -4,16 +4,13 @@ import Link from "next/link";
 import { useAtomValue } from "jotai";
 import { AlertTriangle, ArrowRight } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
-import { activeGarmentsAtom } from "@/stores/garmentAtoms";
-import { getOrphanedCheckouts } from "@/lib/confidence";
+import { wardrobeStatsAtom } from "@/stores/wardrobeStatsAtom";
 import Card from "@/components/ui/Card";
 
 const AlertPanel = () => {
-  const garments = useAtomValue(activeGarmentsAtom);
-  const orphaned = getOrphanedCheckouts(garments);
-  const checkedOut = garments.filter((g) => g.status === "checked_out");
+  const stats = useAtomValue(wardrobeStatsAtom);
 
-  if (checkedOut.length === 0) {
+  if (stats.checkedOutCount === 0) {
     return undefined;
   }
 
@@ -21,7 +18,7 @@ const AlertPanel = () => {
     <section>
       <Card
         className={
-          orphaned.length > 0
+          stats.orphanedCount > 0
             ? "border-amber-200 bg-amber-50/50"
             : "border-primary-100 bg-primary-50/50"
         }
@@ -29,23 +26,25 @@ const AlertPanel = () => {
         <div className="flex items-start gap-3">
           <div
             className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
-              orphaned.length > 0 ? "bg-amber-100" : "bg-primary-100"
+              stats.orphanedCount > 0 ? "bg-amber-100" : "bg-primary-100"
             }`}
           >
             <AlertTriangle
-              className={`size-4 ${orphaned.length > 0 ? "text-amber-600" : "text-primary-500"}`}
+              className={`size-4 ${stats.orphanedCount > 0 ? "text-amber-600" : "text-primary-500"}`}
             />
           </div>
           <div className="flex-1">
             <p className="text-sm font-bold text-text-primary">
-              {orphaned.length > 0 ? (
-                <Trans>{orphaned.length}着の服が3日以上取り出し中です</Trans>
+              {stats.orphanedCount > 0 ? (
+                <Trans>
+                  {stats.orphanedCount}着の服が3日以上取り出し中です
+                </Trans>
               ) : (
-                <Trans>{checkedOut.length}着の服を取り出し中</Trans>
+                <Trans>{stats.checkedOutCount}着の服を取り出し中</Trans>
               )}
             </p>
             <p className="mt-0.5 text-xs text-text-secondary">
-              {orphaned.length > 0 ? (
+              {stats.orphanedCount > 0 ? (
                 <Trans>収納場所を確認して状態を更新しましょう</Trans>
               ) : (
                 <Trans>QRスキャンで戻す場所を記録できます</Trans>

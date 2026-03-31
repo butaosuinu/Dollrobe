@@ -4,6 +4,7 @@ import type { DrizzleDB } from "../db/client";
 import * as dollRepo from "../repositories/doll-repository";
 import * as garmentRepo from "../repositories/garment-repository";
 import * as locationRepo from "../repositories/location-repository";
+import * as tombstoneRepo from "../repositories/tombstone-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 import { ACTION_PROCESSORS } from "./sync-processors";
 
@@ -135,48 +136,81 @@ export const push = async ({
   });
 };
 
+type DeletedId = {
+  readonly entityType: string;
+  readonly entityId: string;
+};
+
+type PullResult = {
+  readonly garments: readonly Garment[];
+  readonly storageCases: readonly StorageCase[];
+  readonly storageLocations: readonly StorageLocation[];
+  readonly dolls: readonly Doll[];
+  readonly totalCount: number;
+  readonly nextCursor: string | undefined;
+  readonly deletedIds: readonly DeletedId[];
+};
+
 export const pull = async ({
   drizzleDb,
   userId,
+  since,
+  cursor,
+  limit,
   logger,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly userId: string;
+  readonly since?: number;
+  readonly cursor?: string;
+  readonly limit: number;
   readonly logger: Logger;
-}): Promise<
-  ServiceResult<{
-    readonly garments: readonly Garment[];
-    readonly storageCases: readonly StorageCase[];
-    readonly storageLocations: readonly StorageLocation[];
-    readonly dolls: readonly Doll[];
-  }>
-> => {
-  logger.info("Sync pull started");
+}): Promise<ServiceResult<PullResult>> => {
+  logger.info("Sync pull started", { since, cursor, limit });
 
-  const [pulledGarments, pulledCases, pulledLocations, pulledDolls] =
-    await Promise.all([
-      garmentRepo.findGarments({
-        drizzleDb,
-        userId,
-        filters: {},
-        logger,
-      }),
-      locationRepo.findCasesByUserId({ drizzleDb, userId }),
-      locationRepo.findLocationsByUserId({ drizzleDb, userId }),
-      dollRepo.findDolls({ drizzleDb, userId, filters: {}, logger }),
-    ]);
+  const [
+    paginatedResult,
+    pulledCases,
+    pulledLocations,
+    pulledDolls,
+    deletedIds,
+  ] = await Promise.all([
+    garmentRepo.findGarmentsPaginated({
+      drizzleDb,
+      userId,
+      since,
+      cursor,
+      limit,
+      logger,
+    }),
+    cursor === undefined
+      ? locationRepo.findCasesByUserId({ drizzleDb, userId })
+      : Promise.resolve([]),
+    cursor === undefined
+      ? locationRepo.findLocationsByUserId({ drizzleDb, userId })
+      : Promise.resolve([]),
+    cursor === undefined
+      ? dollRepo.findDolls({ drizzleDb, userId, filters: {}, logger })
+      : Promise.resolve([]),
+    tombstoneRepo.findTombstones({ drizzleDb, userId, since, logger }),
+  ]);
 
   logger.info("Sync pull completed", {
-    garmentCount: pulledGarments.length,
+    garmentCount: paginatedResult.garments.length,
     caseCount: pulledCases.length,
     locationCount: pulledLocations.length,
     dollCount: pulledDolls.length,
+    deletedCount: deletedIds.length,
+    hasMore: paginatedResult.nextCursor !== undefined,
   });
 
   return serviceOk({
-    garments: pulledGarments,
+    garments: paginatedResult.garments,
     storageCases: pulledCases,
     storageLocations: pulledLocations,
     dolls: pulledDolls,
+    totalCount: paginatedResult.totalCount,
+    nextCursor: paginatedResult.nextCursor,
+    deletedIds,
   });
 };

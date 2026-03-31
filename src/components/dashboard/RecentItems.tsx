@@ -5,21 +5,17 @@ import { useAtomValue } from "jotai";
 import { Shirt } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
-import { activeGarmentsAtom } from "@/stores/garmentAtoms";
+import { wardrobeStatsAtom } from "@/stores/wardrobeStatsAtom";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_CATEGORY_LABEL } from "@/lib/i18n-labels";
 import ConfidenceBadge from "@/components/confidence/ConfidenceBadge";
 import Card from "@/components/ui/Card";
 
-const RECENT_COUNT = 8;
-
 const RecentItems = () => {
-  const garments = useAtomValue(activeGarmentsAtom);
+  const stats = useAtomValue(wardrobeStatsAtom);
   const { i18n } = useLingui();
 
-  const recentGarments = [...garments]
-    .sort((a, b) => b.lastScannedAt - a.lastScannedAt)
-    .slice(0, RECENT_COUNT);
+  const recentGarments = stats.recentItems;
 
   if (recentGarments.length === 0) {
     return undefined;

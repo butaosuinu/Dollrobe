@@ -251,7 +251,7 @@ export const deleteGarment = async ({
     return serviceError("NOT_FOUND", `Garment not found: ${id}`);
   }
 
-  const changes = await garmentRepo.deleteGarmentById({
+  const changes = await garmentRepo.deleteGarmentWithTombstone({
     drizzleDb,
     id,
     userId,

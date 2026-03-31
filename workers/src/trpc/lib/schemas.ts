@@ -74,6 +74,20 @@ export const syncPushInputSchema = z.object({
   items: z.array(syncQueueItemSchema).min(MIN_SYNC_ITEMS_LENGTH),
 });
 
+const SYNC_PULL_DEFAULT_LIMIT = 500;
+const SYNC_PULL_MAX_LIMIT = 1000;
+
+export const syncPullInputSchema = z.object({
+  since: z.number().optional(),
+  cursor: z.string().optional(),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(SYNC_PULL_MAX_LIMIT)
+    .default(SYNC_PULL_DEFAULT_LIMIT),
+});
+
 const ORPHAN_RESOLUTIONS = ["stored_back", "still_using", "lost"] as const;
 
 export const orphanResolveInputSchema = z

@@ -209,7 +209,7 @@ const processGarmentDelete: ActionProcessor = async (ctx, payload) => {
       `Invalid delete payload: ${parsed.error.message}`,
     );
   }
-  await syncRepo.deleteGarment({
+  await syncRepo.deleteGarmentWithTombstone({
     drizzleDb: ctx.drizzleDb,
     userId: ctx.userId,
     garmentId: parsed.data.id,

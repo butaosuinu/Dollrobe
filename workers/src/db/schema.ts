@@ -36,6 +36,8 @@ export const garments = sqliteTable(
     index("idx_garments_location_id").on(table.locationId),
     index("idx_garments_status").on(table.status),
     index("idx_garments_archived_at").on(table.archivedAt),
+    index("idx_garments_user_updated").on(table.userId, table.updatedAt),
+    index("idx_garments_user_archived").on(table.userId, table.archivedAt),
   ],
 );
 
@@ -99,7 +101,24 @@ export const dolls = sqliteTable(
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
-  (table) => [index("idx_dolls_user_id").on(table.userId)],
+  (table) => [
+    index("idx_dolls_user_id").on(table.userId),
+    index("idx_dolls_user_updated").on(table.userId, table.updatedAt),
+  ],
+);
+
+export const tombstones = sqliteTable(
+  "tombstones",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    deletedAt: integer("deleted_at").notNull(),
+  },
+  (table) => [
+    index("idx_tombstones_user_deleted").on(table.userId, table.deletedAt),
+  ],
 );
 
 export const digests = sqliteTable(

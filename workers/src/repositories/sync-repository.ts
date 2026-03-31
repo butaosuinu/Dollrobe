@@ -1,8 +1,15 @@
 import { and, eq, lte, sql } from "drizzle-orm";
+import { createId } from "@paralleldrive/cuid2";
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
-import { dolls, garments, storageCases, storageLocations } from "../db/schema";
+import {
+  dolls,
+  garments,
+  storageCases,
+  storageLocations,
+  tombstones,
+} from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
 import * as locationRepo from "./location-repository";
 
@@ -89,6 +96,37 @@ export const deleteGarment = async ({
     .delete(garments)
     .where(and(eq(garments.id, garmentId), eq(garments.userId, userId)))
     .catch(wrapDbError({ context: "delete garment (sync)", logger }));
+};
+
+export const deleteGarmentWithTombstone = async ({
+  drizzleDb,
+  userId,
+  garmentId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly garmentId: string;
+  readonly logger: Logger;
+}): Promise<void> => {
+  const deleteStatement = drizzleDb
+    .delete(garments)
+    .where(and(eq(garments.id, garmentId), eq(garments.userId, userId)));
+
+  const tombstoneStatement = drizzleDb.insert(tombstones).values({
+    id: createId(),
+    userId,
+    entityType: "garment",
+    entityId: garmentId,
+    deletedAt: Date.now(),
+  });
+
+  await drizzleDb.batch([deleteStatement, tombstoneStatement]).catch(
+    wrapDbError({
+      context: "delete garment with tombstone (sync)",
+      logger,
+    }),
+  );
 };
 
 export const upsertStorageCase = async ({

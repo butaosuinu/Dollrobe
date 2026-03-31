@@ -89,7 +89,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.garments).toHaveLength(1);
       expect(pulled.garments[0]!.id).toBe(garment.id);
@@ -121,7 +121,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.garments).toHaveLength(1);
       expect(pulled.garments[0]!.name).toBe("更新済み服");
@@ -151,7 +151,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.garments).toHaveLength(0);
     });
@@ -172,7 +172,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.dolls).toHaveLength(1);
       expect(pulled.dolls[0]!.id).toBe(doll.id);
@@ -204,7 +204,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.dolls).toHaveLength(1);
       expect(pulled.dolls[0]!.name).toBe("更新済みドール");
@@ -234,7 +234,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.dolls).toHaveLength(0);
     });
@@ -259,7 +259,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.storageCases).toHaveLength(1);
       expect(pulled.storageCases[0]!.name).toBe("テストケース");
@@ -280,7 +280,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.storageCases).toHaveLength(1);
       expect(pulled.storageCases[0]!.id).toBe(casePayload.id);
@@ -305,7 +305,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.storageCases).toHaveLength(1);
       expect(pulled.storageCases[0]!.name).toBe("更新ケース");
@@ -336,7 +336,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.storageCases).toHaveLength(0);
       expect(pulled.storageLocations).toHaveLength(0);
@@ -364,7 +364,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.storageLocations).toHaveLength(1);
       expect(pulled.storageLocations[0]!.id).toBe(location.id);
@@ -400,7 +400,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.garments).toHaveLength(1);
       expect(pulled.garments[0]!.name).toBe("サーバー版");
@@ -430,7 +430,7 @@ describe("同期ワークフロー シナリオ", () => {
         ],
       });
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.garments).toHaveLength(1);
       expect(pulled.garments[0]!.name).toBe("新しいクライアント版");
@@ -462,7 +462,7 @@ describe("同期ワークフロー シナリオ", () => {
       expect(result.success).toBe(true);
       expect(result.processedCount).toBe(2);
 
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.garments).toHaveLength(1);
       expect(pulled.storageCases).toHaveLength(1);
@@ -473,7 +473,7 @@ describe("同期ワークフロー シナリオ", () => {
   describe("pull 空状態", () => {
     it("データなしの場合は空配列が返る", async () => {
       const caller = getCaller();
-      const pulled = await caller.sync.pull();
+      const pulled = await caller.sync.pull({});
 
       expect(pulled.dolls).toHaveLength(0);
       expect(pulled.garments).toHaveLength(0);
