@@ -88,9 +88,13 @@ var cvReady = new Promise(function (resolve) {
   try {
     importScripts(self.location.origin + "/opencv.js");
     if (self.cv && typeof self.cv.then === "function") {
-      self.cv.then(function (readyCv) {
-        resolve({ cv: readyCv });
-      });
+      self.cv
+        .then(function (readyCv) {
+          resolve({ cv: readyCv });
+        })
+        .catch(function () {
+          resolve(null);
+        });
     } else {
       resolve({ cv: self.cv });
     }

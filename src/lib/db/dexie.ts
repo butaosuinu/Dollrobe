@@ -202,6 +202,56 @@ class DollWardrobeDB extends Dexie {
           });
         /* eslint-enable functional/no-conditional-statements, no-param-reassign, @typescript-eslint/prefer-destructuring */
       });
+    this.version(9)
+      .stores({
+        garments: "id, userId, locationId, status, category, archivedAt",
+        storageCases: "id, userId",
+        storageLocations: "id, userId, caseId",
+        coordinates: "id, userId",
+        syncQueue: "++id, type, createdAt",
+        dolls: "id, userId, bodySize, archivedAt",
+      })
+      .upgrade(async (tx) => {
+        const OLD_BLUE = "hsl(210, 70%, 55%)";
+        const NEW_BLUE = "hsl(210, 55%, 55%)";
+
+        const garmentsTable = tx.table("garments");
+        /* eslint-disable functional/no-conditional-statements, no-param-reassign, @typescript-eslint/prefer-destructuring -- Dexie modify callback requires in-place mutation; destructuring loses type guard narrowing */
+        await garmentsTable
+          .toCollection()
+          .filter(
+            (g: Record<string, unknown>) =>
+              Array.isArray(g.colors) && g.colors.includes(OLD_BLUE),
+          )
+          .modify((g: Record<string, unknown>) => {
+            if (Array.isArray(g.colors)) {
+              g.colors = g.colors.map((c: unknown) =>
+                c === OLD_BLUE ? NEW_BLUE : c,
+              );
+            }
+          });
+
+        const syncTable = tx.table("syncQueue");
+        await syncTable
+          .toCollection()
+          .filter(
+            (item: Record<string, unknown>) =>
+              item.type === SYNC_ACTION_TYPE.GARMENT_CREATE ||
+              item.type === SYNC_ACTION_TYPE.GARMENT_UPDATE,
+          )
+          .modify((item: Record<string, unknown>) => {
+            if (!isRecord(item.payload)) {
+              return;
+            }
+            const payload = item.payload;
+            if (Array.isArray(payload.colors)) {
+              payload.colors = payload.colors.map((c: unknown) =>
+                c === OLD_BLUE ? NEW_BLUE : c,
+              );
+            }
+          });
+        /* eslint-enable functional/no-conditional-statements, no-param-reassign, @typescript-eslint/prefer-destructuring */
+      });
   }
 }
 
