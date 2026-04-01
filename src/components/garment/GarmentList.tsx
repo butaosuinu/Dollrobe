@@ -25,6 +25,7 @@ const GarmentList = ({ garments }: Props) => {
     count: garments.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => ESTIMATED_ROW_HEIGHT,
+    measureElement: (element) => element.getBoundingClientRect().height,
     overscan: OVERSCAN,
   });
 
@@ -41,9 +42,10 @@ const GarmentList = ({ garments }: Props) => {
           return (
             <div
               key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
               className="absolute left-0 top-0 w-full pb-2"
               style={{
-                height: `${virtualRow.size}px`,
                 transform: `translateY(${virtualRow.start}px)`,
               }}
             >
