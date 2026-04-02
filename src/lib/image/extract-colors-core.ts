@@ -1,6 +1,6 @@
 import { COLOR_EXTRACTION } from "@/lib/constants";
-import { opencvHsvToHsl, mapToPresetColors } from "@/lib/color/color-utils";
-import type { Hsl } from "@/lib/color/color-utils";
+import { opencvHsvToHsl, filterToMainColors } from "@/lib/color/color-utils";
+import type { ColorCluster } from "@/lib/color/color-utils";
 import type { OpenCV } from "./opencv-loader";
 import type { ColorExtractionResult } from "./extract-colors-types";
 
@@ -80,7 +80,7 @@ const runKmeans = async ({
 }: {
   readonly cv: OpenCV;
   readonly imageData: ImageData;
-}): Promise<readonly Hsl[]> =>
+}): Promise<readonly ColorCluster[]> =>
   await withMats((register) => {
     const colorRgba2Rgb: number = cv.COLOR_RGBA2RGB;
     const colorRgb2Hsv: number = cv.COLOR_RGB2HSV;
@@ -186,8 +186,7 @@ const runKmeans = async ({
 
     return clusters
       .filter((c) => c.ratio >= COLOR_EXTRACTION.MIN_CLUSTER_RATIO)
-      .sort((a, b) => b.ratio - a.ratio)
-      .map((c) => c.hsl);
+      .sort((a, b) => b.ratio - a.ratio);
   });
 
 export const extractColorsCore = async ({
@@ -198,8 +197,11 @@ export const extractColorsCore = async ({
   readonly cv: OpenCV;
 }): Promise<ColorExtractionResult> => {
   const imageData = await getImageData({ file });
-  const hslColors = await runKmeans({ cv, imageData });
-  const presetColors = mapToPresetColors({ colors: hslColors });
+  const clusters = await runKmeans({ cv, imageData });
+  const presetColors = filterToMainColors({
+    clusters,
+    secondaryMinRatio: COLOR_EXTRACTION.SECONDARY_COLOR_MIN_RATIO,
+  });
 
   return { presetColors };
 };

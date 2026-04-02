@@ -118,3 +118,42 @@ export const mapToPresetColors = ({
   const mapped = colors.map((hsl) => findNearestPresetColor({ hsl }));
   return [...new Set(mapped)];
 };
+
+export type ColorCluster = {
+  readonly hsl: Hsl;
+  readonly ratio: number;
+};
+
+export const filterToMainColors = ({
+  clusters,
+  secondaryMinRatio,
+}: {
+  readonly clusters: readonly ColorCluster[];
+  readonly secondaryMinRatio: number;
+}): readonly string[] =>
+  clusters.length === 0
+    ? []
+    : collectMainColors({
+        primaryPreset: findNearestPresetColor({ hsl: clusters[0].hsl }),
+        secondaryClusters: clusters.slice(1),
+        secondaryMinRatio,
+      });
+
+const collectMainColors = ({
+  primaryPreset,
+  secondaryClusters,
+  secondaryMinRatio,
+}: {
+  readonly primaryPreset: string;
+  readonly secondaryClusters: readonly ColorCluster[];
+  readonly secondaryMinRatio: number;
+}): readonly string[] => {
+  const secondaryPresets = secondaryClusters
+    .filter((c) => c.ratio >= secondaryMinRatio)
+    .map((c) => findNearestPresetColor({ hsl: c.hsl }))
+    .filter(
+      (preset, index, arr) =>
+        preset !== primaryPreset && arr.indexOf(preset) === index,
+    );
+  return [primaryPreset, ...secondaryPresets];
+};

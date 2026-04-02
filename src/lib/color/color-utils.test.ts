@@ -6,6 +6,7 @@ import {
   hslDistance,
   findNearestPresetColor,
   mapToPresetColors,
+  filterToMainColors,
 } from "./color-utils";
 import type { Hsl } from "./color-utils";
 
@@ -192,5 +193,61 @@ describe("mapToPresetColors", () => {
 
   it("空配列は空配列を返す", () => {
     expect(mapToPresetColors({ colors: [] })).toEqual([]);
+  });
+});
+
+describe("filterToMainColors", () => {
+  const SECONDARY_MIN = 0.3;
+
+  it("単色支配の場合はメインカラー1色のみ返す", () => {
+    const result = filterToMainColors({
+      clusters: [
+        { hsl: { h: 0, s: 70, l: 55 }, ratio: 0.7 },
+        { hsl: { h: 210, s: 55, l: 55 }, ratio: 0.2 },
+        { hsl: { h: 120, s: 40, l: 45 }, ratio: 0.1 },
+      ],
+      secondaryMinRatio: SECONDARY_MIN,
+    });
+    expect(result).toEqual(["hsl(0, 70%, 55%)"]);
+  });
+
+  it("2色が同程度の占有率の場合は2色返す", () => {
+    const result = filterToMainColors({
+      clusters: [
+        { hsl: { h: 0, s: 0, l: 95 }, ratio: 0.45 },
+        { hsl: { h: 0, s: 70, l: 55 }, ratio: 0.4 },
+        { hsl: { h: 120, s: 40, l: 45 }, ratio: 0.15 },
+      ],
+      secondaryMinRatio: SECONDARY_MIN,
+    });
+    expect(result).toHaveLength(2);
+    expect(result).toContain("hsl(0, 0%, 95%)");
+    expect(result).toContain("hsl(0, 70%, 55%)");
+  });
+
+  it("同じプリセットにマッピングされる2色は1色に集約される", () => {
+    const result = filterToMainColors({
+      clusters: [
+        { hsl: { h: 0, s: 65, l: 50 }, ratio: 0.5 },
+        { hsl: { h: 5, s: 70, l: 55 }, ratio: 0.35 },
+      ],
+      secondaryMinRatio: SECONDARY_MIN,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0]).toBe("hsl(0, 70%, 55%)");
+  });
+
+  it("空配列は空配列を返す", () => {
+    expect(
+      filterToMainColors({ clusters: [], secondaryMinRatio: SECONDARY_MIN }),
+    ).toEqual([]);
+  });
+
+  it("単一クラスタは1色を返す", () => {
+    const result = filterToMainColors({
+      clusters: [{ hsl: { h: 210, s: 55, l: 55 }, ratio: 1.0 }],
+      secondaryMinRatio: SECONDARY_MIN,
+    });
+    expect(result).toEqual(["hsl(210, 55%, 55%)"]);
   });
 });

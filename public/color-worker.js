@@ -13,6 +13,7 @@ var ACHROMATIC_SAT_THRESHOLD = 25;
 var ACHROMATIC_VALUE_THRESHOLD = 200;
 var ACHROMATIC_DARK_THRESHOLD = 30;
 var MIN_FILTERED_RATIO = 0.1;
+var SECONDARY_COLOR_MIN_RATIO = 0.3;
 var ACHROMATIC_SAT_THRESHOLD_HSL = 15;
 var ACHROMATIC_LIGHTNESS_MID = 50;
 
@@ -246,14 +247,20 @@ function runKmeans(cv, imageData) {
       return b.ratio - a.ratio;
     });
 
-    var presets = clusters.map(function (c) {
-      return findNearestPreset(c.hsl);
-    });
-    var unique = [];
-    presets.forEach(function (p) {
-      if (unique.indexOf(p) === -1) unique.push(p);
-    });
-    return unique;
+    if (clusters.length === 0) return [];
+
+    var primaryPreset = findNearestPreset(clusters[0].hsl);
+    var results = [primaryPreset];
+
+    for (var si = 1; si < clusters.length; si++) {
+      if (clusters[si].ratio < SECONDARY_COLOR_MIN_RATIO) continue;
+      var preset = findNearestPreset(clusters[si].hsl);
+      if (preset !== primaryPreset && results.indexOf(preset) === -1) {
+        results.push(preset);
+      }
+    }
+
+    return results;
   } finally {
     mats.forEach(function (m) {
       m.delete();
