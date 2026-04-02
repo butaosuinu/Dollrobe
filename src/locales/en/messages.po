@@ -337,6 +337,10 @@ msgstr "Custom name"
 msgid "カテゴリ"
 msgstr "Category"
 
+#: src/components/garment/ImageUpload.tsx
+msgid "カメラで撮影"
+msgstr "Take Photo"
+
 #: src/components/dashboard/WardrobeAnalytics.tsx
 msgid "カラー"
 msgstr "Color"
@@ -684,6 +688,10 @@ msgstr "Write another tag"
 #: src/lib/i18n-labels.ts
 msgid "よく着る服 (14日)"
 msgstr "Frequently worn (14 days)"
+
+#: src/components/garment/ImageUpload.tsx
+msgid "ライブラリから選択"
+msgstr "Choose from Library"
 
 #. placeholder {0}: location.label
 #: src/components/location/StorageLocationEditForm.tsx

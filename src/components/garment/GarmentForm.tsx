@@ -262,7 +262,7 @@ const GarmentForm = ({ garment }: Props) => {
                   }
                 }}
                 className={clsx(
-                  "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                  "rounded-full border px-3 py-2 text-xs font-medium transition-colors",
                   selected
                     ? "border-primary-500 bg-primary-500 text-text-inverse"
                     : "border-border-default bg-surface-overlay text-text-secondary hover:bg-primary-50",

@@ -51,7 +51,7 @@ const DollOption = ({
     id={optionId}
     role="option"
     aria-selected={isSelected}
-    onMouseDown={(e) => {
+    onPointerDown={(e) => {
       e.preventDefault();
       onSelect(doll.id);
     }}
@@ -104,7 +104,7 @@ const DropdownList = ({
       id={getOptionId(0)}
       role="option"
       aria-selected={selectedDollId === undefined}
-      onMouseDown={(e) => {
+      onPointerDown={(e) => {
         e.preventDefault();
         onSelect(undefined);
       }}
@@ -273,7 +273,7 @@ const DollCombobox = ({ dolls, selectedDollId, onChangeDoll }: Props) => {
             blurTimeoutRef.current = setTimeout(closeDropdown, 150);
           }}
           onKeyDown={handleKeyDown}
-          className="h-10 w-full rounded-lg border border-border-default bg-surface-overlay py-2 pl-3 pr-8 text-sm text-text-primary transition-colors placeholder:text-text-tertiary hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+          className="h-10 w-full rounded-lg border border-border-default bg-surface-overlay py-2 pl-3 pr-8 text-base text-text-primary transition-colors placeholder:text-text-tertiary hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 lg:text-sm"
         />
         <ChevronDown
           className={clsx(

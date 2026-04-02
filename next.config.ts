@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   typescript: {
     tsconfigPath: "./tsconfig.app.json",
   },
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.16.*.*"],
   turbopack: {
     rules: {
       "./src/**/*.{js,jsx,ts,tsx}": {
