@@ -312,12 +312,27 @@ const pullDelta = async (
     "storageLocation",
   );
 
-  const totalItems =
-    garments.length +
-    dolls.length +
-    storageCases.length +
-    storageLocations.length;
-  onProgress(totalItems, totalItems);
+  /* eslint-disable functional/no-let, functional/no-loop-statements, no-await-in-loop, @typescript-eslint/prefer-destructuring -- cursor pagination loop with sequential fetches */
+  let { nextCursor } = result;
+  let loadedCount = garments.length;
+  onProgress(loadedCount, result.totalCount);
+
+  while (nextCursor !== undefined) {
+    const page = await trpcClient.sync.pull.query({
+      since: lastSyncedAt,
+      cursor: nextCursor,
+      limit: BATCH_PAGE_LIMIT,
+    });
+
+    const pageGarments = page.garments.map(toClientGarment);
+    await bulkPutIfNotEmpty(getDb().garments, pageGarments);
+
+    loadedCount += pageGarments.length;
+    onProgress(loadedCount, result.totalCount);
+    ({ nextCursor } = page);
+  }
+  /* eslint-enable functional/no-let, functional/no-loop-statements, no-await-in-loop, @typescript-eslint/prefer-destructuring */
+
   setLastSyncedAt(syncStartedAt);
   return { ok: true };
 };

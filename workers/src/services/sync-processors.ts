@@ -289,7 +289,7 @@ const processStorageCaseDelete: ActionProcessor = async (ctx, payload) => {
       `Invalid delete payload: ${parsed.error.message}`,
     );
   }
-  await syncRepo.deleteStorageCaseWithCascade({
+  await syncRepo.deleteStorageCaseWithCascadeAndTombstones({
     drizzleDb: ctx.drizzleDb,
     userId: ctx.userId,
     caseId: parsed.data.id,
@@ -363,7 +363,7 @@ const processDollDelete: ActionProcessor = async (ctx, payload) => {
       `Invalid delete payload: ${parsed.error.message}`,
     );
   }
-  await syncRepo.deleteDoll({
+  await syncRepo.deleteDollWithTombstone({
     drizzleDb: ctx.drizzleDb,
     userId: ctx.userId,
     dollId: parsed.data.id,
