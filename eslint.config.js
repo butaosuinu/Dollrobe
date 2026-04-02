@@ -31,7 +31,6 @@ export default tseslint.config(
       "sentry.edge.config.ts",
       "src/types/**/*.d.ts",
       "public/opencv.js",
-      "public/color-worker.js",
     ],
   },
   js.configs.recommended,

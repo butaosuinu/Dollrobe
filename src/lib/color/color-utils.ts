@@ -130,14 +130,16 @@ export const filterToMainColors = ({
 }: {
   readonly clusters: readonly ColorCluster[];
   readonly secondaryMinRatio: number;
-}): readonly string[] =>
-  clusters.length === 0
+}): readonly string[] => {
+  const [primary] = clusters;
+  return primary === undefined
     ? []
     : collectMainColors({
-        primaryPreset: findNearestPresetColor({ hsl: clusters[0].hsl }),
+        primaryPreset: findNearestPresetColor({ hsl: primary.hsl }),
         secondaryClusters: clusters.slice(1),
         secondaryMinRatio,
       });
+};
 
 const collectMainColors = ({
   primaryPreset,
