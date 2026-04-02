@@ -21,7 +21,7 @@ const Input = ({ label, error, id, ...rest }: Props) => {
       <input
         id={inputId}
         className={clsx(
-          "h-10 rounded-lg border bg-surface-overlay px-3 text-sm text-text-primary transition-colors",
+          "h-10 rounded-lg border bg-surface-overlay px-3 text-base text-text-primary transition-colors lg:text-sm",
           "placeholder:text-text-tertiary",
           "focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100",
           error === undefined

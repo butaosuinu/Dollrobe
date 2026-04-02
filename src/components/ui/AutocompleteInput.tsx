@@ -101,7 +101,7 @@ const AutocompleteInput = ({
           setTimeout(() => setIsOpen(false), 150);
         }}
         onKeyDown={handleKeyDown}
-        className="h-10 rounded-lg border border-border-default bg-surface-overlay px-3 text-sm text-text-primary transition-colors placeholder:text-text-tertiary hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+        className="h-10 rounded-lg border border-border-default bg-surface-overlay px-3 text-base text-text-primary transition-colors placeholder:text-text-tertiary hover:border-border-strong focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 lg:text-sm"
       />
       {showDropdown && (
         <ul
@@ -115,7 +115,7 @@ const AutocompleteInput = ({
               id={`${listboxId}-option-${index}`}
               role="option"
               aria-selected={index === activeIndex}
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.preventDefault();
                 handleSelect(item);
               }}

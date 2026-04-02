@@ -1,8 +1,13 @@
 import { createAuthClient } from "better-auth/react";
-import { WORKERS_URL } from "@/lib/workersUrl";
+import { WORKERS_URL_FOR_FETCH } from "@/lib/workersUrl";
+
+const AUTH_BASE_URL =
+  WORKERS_URL_FOR_FETCH === ""
+    ? `${window.location.origin}/api/auth`
+    : `${WORKERS_URL_FOR_FETCH}/api/auth`;
 
 const client = createAuthClient({
-  baseURL: `${WORKERS_URL}/api/auth`,
+  baseURL: AUTH_BASE_URL,
 });
 
 export type SessionUser = {
