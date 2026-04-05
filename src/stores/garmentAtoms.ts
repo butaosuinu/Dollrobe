@@ -2,81 +2,37 @@ import { atom } from "jotai";
 import { getDb } from "@/lib/db/dexie";
 import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { Garment, ScanConfirmation } from "@/types";
+import { createEntityAtoms, createRestoreAtom } from "./createEntityAtoms";
 
-const garmentsRefreshTriggerAtom = atom(0);
-
-export const garmentsAtom = atom(async (get) =>
-  typeof indexedDB === "undefined"
-    ? ([] satisfies Garment[])
-    : (get(garmentsRefreshTriggerAtom), await getDb().garments.toArray()),
-);
-
-export const refreshGarmentsAtom = atom(undefined, (_get, set) => {
-  set(garmentsRefreshTriggerAtom, (prev) => prev + 1);
+const {
+  dataAtom: garmentsAtom,
+  refreshAtom: refreshGarmentsAtom,
+  addAtom: addGarmentAtom,
+  updateAtom: updateGarmentAtom,
+  deleteAtom: deleteGarmentAtom,
+} = createEntityAtoms<Garment>(() => getDb().garments, {
+  create: SYNC_ACTION_TYPE.GARMENT_CREATE,
+  update: SYNC_ACTION_TYPE.GARMENT_UPDATE,
+  delete: SYNC_ACTION_TYPE.GARMENT_DELETE,
 });
+
+export {
+  garmentsAtom,
+  refreshGarmentsAtom,
+  addGarmentAtom,
+  updateGarmentAtom,
+  deleteGarmentAtom,
+};
 
 export const activeGarmentsAtom = atom(async (get) => {
   const garments = await get(garmentsAtom);
   return garments.filter((g) => g.archivedAt === undefined);
 });
 
-export const addGarmentAtom = atom(
-  undefined,
-  async (_get, set, garment: Garment) => {
-    await getDb().garments.add(garment);
-    await getDb().syncQueue.add({
-      type: SYNC_ACTION_TYPE.GARMENT_CREATE,
-      payload: garment,
-      createdAt: Date.now(),
-    });
-    set(refreshGarmentsAtom);
-  },
-);
-
-export const updateGarmentAtom = atom(
-  undefined,
-  async (_get, set, garment: Garment) => {
-    await getDb().garments.put(garment);
-    await getDb().syncQueue.add({
-      type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
-      payload: garment,
-      createdAt: Date.now(),
-    });
-    set(refreshGarmentsAtom);
-  },
-);
-
-export const deleteGarmentAtom = atom(
-  undefined,
-  async (_get, set, id: string) => {
-    await getDb().garments.delete(id);
-    await getDb().syncQueue.add({
-      type: SYNC_ACTION_TYPE.GARMENT_DELETE,
-      payload: { id },
-      createdAt: Date.now(),
-    });
-    set(refreshGarmentsAtom);
-  },
-);
-
-export const restoreGarmentAtom = atom(
-  undefined,
-  async (_get, set, id: string) => {
-    const now = Date.now();
-    await getDb().garments.update(id, {
-      archivedAt: undefined,
-      updatedAt: now,
-    });
-    const updated = await getDb().garments.get(id);
-    await (updated === undefined
-      ? Promise.resolve()
-      : getDb().syncQueue.add({
-          type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
-          payload: updated,
-          createdAt: now,
-        }));
-    set(refreshGarmentsAtom);
-  },
+export const restoreGarmentAtom = createRestoreAtom(
+  () => getDb().garments,
+  refreshGarmentsAtom,
+  SYNC_ACTION_TYPE.GARMENT_UPDATE,
 );
 
 export const confirmAllGarmentsAtom = atom(

@@ -25,6 +25,7 @@ import type { DrizzleDB } from "../db/client";
 import { createId } from "@paralleldrive/cuid2";
 import { garments, tombstones } from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
+import { buildSetObject } from "./build-set-object";
 
 type GarmentSelectRow = typeof garments.$inferSelect;
 
@@ -228,18 +229,8 @@ const UPDATABLE_FIELD_KEYS = [
   "confidenceDecayDays",
 ] as const;
 
-const buildSetObject = (
-  fields: GarmentUpdatableFields,
-): Record<string, string | number | readonly string[]> => {
-  const entries = UPDATABLE_FIELD_KEYS.flatMap((key) => {
-    const value = fields[key];
-    if (value === undefined) {
-      return [];
-    }
-    return [[key, value]] as const;
-  });
-  return Object.fromEntries(entries);
-};
+const buildGarmentSetObject = (fields: GarmentUpdatableFields) =>
+  buildSetObject({ fields, keys: UPDATABLE_FIELD_KEYS });
 
 export const updateGarmentFields = async ({
   drizzleDb,
@@ -255,7 +246,7 @@ export const updateGarmentFields = async ({
   readonly logger: Logger;
 }): Promise<Garment | undefined> => {
   const setObject = {
-    ...buildSetObject(fields),
+    ...buildGarmentSetObject(fields),
     updatedAt: Date.now(),
   };
 

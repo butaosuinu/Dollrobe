@@ -6,6 +6,7 @@ import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import { dolls } from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
+import { buildSetObject } from "./build-set-object";
 
 type DollSelectRow = typeof dolls.$inferSelect;
 
@@ -128,18 +129,8 @@ const UPDATABLE_FIELD_KEYS = [
   "memo",
 ] as const;
 
-const buildSetObject = (
-  fields: DollUpdatableFields,
-): Record<string, string> => {
-  const entries = UPDATABLE_FIELD_KEYS.flatMap((key) => {
-    const value = fields[key];
-    if (value === undefined) {
-      return [];
-    }
-    return [[key, value]] as const;
-  });
-  return Object.fromEntries(entries);
-};
+const buildDollSetObject = (fields: DollUpdatableFields) =>
+  buildSetObject({ fields, keys: UPDATABLE_FIELD_KEYS });
 
 export const updateDollFields = async ({
   drizzleDb,
@@ -155,7 +146,7 @@ export const updateDollFields = async ({
   readonly logger: Logger;
 }): Promise<Doll | undefined> => {
   const setObject = {
-    ...buildSetObject(fields),
+    ...buildDollSetObject(fields),
     updatedAt: Date.now(),
   };
 

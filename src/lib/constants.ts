@@ -24,6 +24,8 @@ export const CONFIDENCE_THRESHOLD = Object.freeze({
   UNCERTAIN: 0.3,
 });
 
+export const CONFIDENCE_DECAY_MIN = 1;
+export const CONFIDENCE_DECAY_MAX = 365;
 export const DEFAULT_CONFIDENCE_DECAY_DAYS = 30;
 export const SEASONAL_CONFIDENCE_DECAY_DAYS = 90;
 
@@ -55,6 +57,7 @@ export type StorageCaseType =
 
 export const STORAGE_CASE_TYPES: readonly StorageCaseType[] = ["grid", "unit"];
 
+export const GARMENT_NAME_MAX_LENGTH = 100;
 export const CASE_NAME_MAX_LENGTH = 100;
 export const CASE_DESCRIPTION_MAX_LENGTH = 200;
 export const LOCATION_CUSTOM_NAME_MAX_LENGTH = 50;
@@ -63,6 +66,7 @@ export const GARMENT_DESCRIPTION_MAX_LENGTH = 500;
 export const GARMENT_SET_CONTENTS_MAX_LENGTH = 500;
 export const DOLL_NAME_MAX_LENGTH = 100;
 export const DOLL_MEMO_MAX_LENGTH = 500;
+export const MAX_LABEL_LENGTH = 20;
 export const GRID_SIZE_MIN = 1;
 export const GRID_SIZE_MAX = 20;
 

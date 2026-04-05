@@ -20,7 +20,8 @@
     "workers/**/*.ts",
     "src/types/**/*.ts",
     "src/lib/confidence.ts",
-    "src/lib/constants.ts"
+    "src/lib/constants.ts",
+    "src/lib/generateLabel.ts"
   ],
   "exclude": ["node_modules", "workers/**/*.test.ts", "workers/test/**"]
 }

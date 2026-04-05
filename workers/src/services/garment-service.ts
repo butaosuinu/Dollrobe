@@ -5,7 +5,7 @@ import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import * as garmentRepo from "../repositories/garment-repository";
-import * as imageService from "./image-service";
+import { deleteEntityWithImageCleanup } from "./delete-with-image-cleanup";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
 export const listGarments = async ({
@@ -240,47 +240,24 @@ export const deleteGarment = async ({
   readonly bucket: R2Bucket;
   readonly r2PublicUrl: string;
   readonly logger: Logger;
-}): Promise<ServiceResult<{ readonly success: true }>> => {
-  const garment = await garmentRepo.findGarmentById({
-    drizzleDb,
-    id,
-    userId,
-    logger,
-  });
-  if (garment === undefined) {
-    return serviceError("NOT_FOUND", `Garment not found: ${id}`);
-  }
-
-  const changes = await garmentRepo.deleteGarmentWithTombstone({
-    drizzleDb,
-    id,
-    userId,
-    logger,
-  });
-  if (changes === 0) {
-    return serviceError("NOT_FOUND", `Garment not found: ${id}`);
-  }
-
-  if (garment.imageUrl !== undefined) {
-    const r2Key = imageService.extractR2KeyFromUrl({
+}): Promise<ServiceResult<{ readonly success: true }>> =>
+  await deleteEntityWithImageCleanup({
+    finders: {
+      findById: async () =>
+        await garmentRepo.findGarmentById({ drizzleDb, id, userId, logger }),
+      deleteById: async () =>
+        await garmentRepo.deleteGarmentWithTombstone({
+          drizzleDb,
+          id,
+          userId,
+          logger,
+        }),
+    },
+    context: {
+      entityName: "Garment",
+      entityId: id,
+      bucket,
       r2PublicUrl,
-      imageUrl: garment.imageUrl,
-    });
-    if (r2Key !== undefined) {
-      const deleteResult = await imageService.deleteImage({
-        bucket,
-        key: r2Key,
-        logger,
-      });
-      if (!deleteResult.ok) {
-        logger.warn("R2 image cleanup failed after garment deletion", {
-          garmentId: id,
-          r2Key,
-          error: deleteResult.error.message,
-        });
-      }
-    }
-  }
-
-  return serviceOk({ success: true });
-};
+      logger,
+    },
+  });
