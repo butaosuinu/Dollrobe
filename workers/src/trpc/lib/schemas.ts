@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SYNC_ACTION_TYPE, ORPHAN_RESOLUTION } from "@shared/lib/constants";
 import { cuidSchema } from "../../db/validation";
 
 export {
@@ -48,19 +49,15 @@ export const confirmPartialInputSchema = z.object({
     .min(MIN_CONFIRMATIONS_LENGTH),
 });
 
-const SYNC_ACTION_TYPES = [
-  "garment:create",
-  "garment:update",
-  "garment:delete",
-  "storageCase:create",
-  "storageCase:update",
-  "storageCase:delete",
-  "storageLocation:create",
-  "storageLocation:update",
-  "doll:create",
-  "doll:update",
-  "doll:delete",
-] as const;
+const toNonEmptyTuple = <T extends string>(arr: readonly T[]): [T, ...T[]] => {
+  const [first, ...rest] = arr;
+  if (first === undefined) {
+    throw new Error("Array must not be empty");
+  }
+  return [first, ...rest];
+};
+
+const SYNC_ACTION_TYPES = toNonEmptyTuple(Object.values(SYNC_ACTION_TYPE));
 
 const syncQueueItemSchema = z.object({
   type: z.enum(SYNC_ACTION_TYPES),
@@ -74,7 +71,7 @@ export const syncPushInputSchema = z.object({
   items: z.array(syncQueueItemSchema).min(MIN_SYNC_ITEMS_LENGTH),
 });
 
-const ORPHAN_RESOLUTIONS = ["stored_back", "still_using", "lost"] as const;
+const ORPHAN_RESOLUTIONS = toNonEmptyTuple(Object.values(ORPHAN_RESOLUTION));
 
 export const orphanResolveInputSchema = z
   .object({

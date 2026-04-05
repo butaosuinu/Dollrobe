@@ -5,6 +5,19 @@ import {
   DOLL_SIZES,
   GARMENT_STATUSES,
   STORAGE_CASE_TYPES,
+  GARMENT_NAME_MAX_LENGTH,
+  CONFIDENCE_DECAY_MIN,
+  CONFIDENCE_DECAY_MAX,
+  DEFAULT_CONFIDENCE_DECAY_DAYS,
+  CASE_NAME_MAX_LENGTH,
+  DOLL_NAME_MAX_LENGTH,
+  MAX_LABEL_LENGTH,
+  DOLL_MEMO_MAX_LENGTH,
+  GRID_SIZE_MAX,
+  GRID_SIZE_MIN,
+  CASE_DESCRIPTION_MAX_LENGTH,
+  LOCATION_CUSTOM_NAME_MAX_LENGTH,
+  LOCATION_DESCRIPTION_MAX_LENGTH,
 } from "@shared/lib/constants";
 import {
   garments,
@@ -14,19 +27,6 @@ import {
   digests,
   dolls,
 } from "./schema";
-
-const GARMENT_NAME_MAX_LENGTH = 100;
-const CONFIDENCE_DECAY_MIN = 1;
-const CONFIDENCE_DECAY_MAX = 365;
-const DEFAULT_CONFIDENCE_DECAY_DAYS = 30;
-const MAX_NAME_LENGTH = 100;
-const MAX_LABEL_LENGTH = 20;
-const DOLL_MEMO_MAX_LENGTH = 500;
-const MAX_GRID_SIZE = 20;
-const MIN_GRID_SIZE = 1;
-const MAX_CASE_DESCRIPTION_LENGTH = 200;
-const MAX_LOCATION_CUSTOM_NAME_LENGTH = 50;
-const MAX_LOCATION_DESCRIPTION_LENGTH = 200;
 
 const toNonEmptyTuple = <T extends string>(arr: readonly T[]): [T, ...T[]] => {
   const [first, ...rest] = arr;
@@ -67,9 +67,9 @@ export const garmentInsertSchema = createInsertSchema(garments, {
 });
 
 export const storageCaseInsertSchema = createInsertSchema(storageCases, {
-  name: z.string().min(1).max(MAX_NAME_LENGTH),
-  rows: z.number().int().min(MIN_GRID_SIZE).max(MAX_GRID_SIZE),
-  cols: z.number().int().min(MIN_GRID_SIZE).max(MAX_GRID_SIZE),
+  name: z.string().min(1).max(CASE_NAME_MAX_LENGTH),
+  rows: z.number().int().min(GRID_SIZE_MIN).max(GRID_SIZE_MAX),
+  cols: z.number().int().min(GRID_SIZE_MIN).max(GRID_SIZE_MAX),
 });
 
 export const storageLocationInsertSchema = createInsertSchema(
@@ -177,7 +177,7 @@ export const dollSelectSchema = createSelectSchema(dolls, {
 });
 
 export const dollInsertSchema = createInsertSchema(dolls, {
-  name: z.string().min(1).max(MAX_NAME_LENGTH),
+  name: z.string().min(1).max(DOLL_NAME_MAX_LENGTH),
   bodySize: dollSizeSchema,
 });
 
@@ -189,9 +189,9 @@ export const createDollInputSchema = dollInsertSchema
     updatedAt: true,
   })
   .extend({
-    headModel: z.string().max(MAX_NAME_LENGTH).optional(),
-    maker: z.string().max(MAX_NAME_LENGTH).optional(),
-    customizer: z.string().max(MAX_NAME_LENGTH).optional(),
+    headModel: z.string().max(DOLL_NAME_MAX_LENGTH).optional(),
+    maker: z.string().max(DOLL_NAME_MAX_LENGTH).optional(),
+    customizer: z.string().max(DOLL_NAME_MAX_LENGTH).optional(),
     imageUrl: z.url().optional(),
     memo: z.string().max(DOLL_MEMO_MAX_LENGTH).optional(),
   });
@@ -199,11 +199,11 @@ export type CreateDollInput = z.infer<typeof createDollInputSchema>;
 
 export const updateDollInputSchema = z.object({
   id: cuidSchema,
-  name: z.string().min(1).max(MAX_NAME_LENGTH).optional(),
-  headModel: z.string().max(MAX_NAME_LENGTH).optional(),
+  name: z.string().min(1).max(DOLL_NAME_MAX_LENGTH).optional(),
+  headModel: z.string().max(DOLL_NAME_MAX_LENGTH).optional(),
   bodySize: dollSizeSchema.optional(),
-  maker: z.string().max(MAX_NAME_LENGTH).optional(),
-  customizer: z.string().max(MAX_NAME_LENGTH).optional(),
+  maker: z.string().max(DOLL_NAME_MAX_LENGTH).optional(),
+  customizer: z.string().max(DOLL_NAME_MAX_LENGTH).optional(),
   imageUrl: z.url().optional(),
   memo: z.string().max(DOLL_MEMO_MAX_LENGTH).optional(),
 });
@@ -215,21 +215,21 @@ export const listDollsInputSchema = z.object({
 
 const caseDescriptionSchema = z
   .string()
-  .max(MAX_CASE_DESCRIPTION_LENGTH)
+  .max(CASE_DESCRIPTION_MAX_LENGTH)
   .optional()
   .transform((v) => v ?? undefined);
 
 export const createCaseInputSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("grid"),
-    name: z.string().min(1).max(MAX_NAME_LENGTH),
+    name: z.string().min(1).max(CASE_NAME_MAX_LENGTH),
     description: caseDescriptionSchema,
-    rows: z.number().int().min(MIN_GRID_SIZE).max(MAX_GRID_SIZE),
-    cols: z.number().int().min(MIN_GRID_SIZE).max(MAX_GRID_SIZE),
+    rows: z.number().int().min(GRID_SIZE_MIN).max(GRID_SIZE_MAX),
+    cols: z.number().int().min(GRID_SIZE_MIN).max(GRID_SIZE_MAX),
   }),
   z.object({
     type: z.literal("unit"),
-    name: z.string().min(1).max(MAX_NAME_LENGTH),
+    name: z.string().min(1).max(CASE_NAME_MAX_LENGTH),
     description: caseDescriptionSchema,
   }),
 ]);
@@ -237,7 +237,7 @@ export type CreateCaseInput = z.infer<typeof createCaseInputSchema>;
 
 export const updateCaseInputSchema = z.object({
   id: cuidSchema,
-  name: z.string().min(1).max(MAX_NAME_LENGTH),
+  name: z.string().min(1).max(CASE_NAME_MAX_LENGTH),
   description: caseDescriptionSchema,
 });
 
@@ -245,12 +245,12 @@ export const updateLocationInputSchema = z.object({
   id: cuidSchema,
   customName: z
     .string()
-    .max(MAX_LOCATION_CUSTOM_NAME_LENGTH)
+    .max(LOCATION_CUSTOM_NAME_MAX_LENGTH)
     .optional()
     .transform((v) => v ?? undefined),
   description: z
     .string()
-    .max(MAX_LOCATION_DESCRIPTION_LENGTH)
+    .max(LOCATION_DESCRIPTION_MAX_LENGTH)
     .optional()
     .transform((v) => v ?? undefined),
 });
