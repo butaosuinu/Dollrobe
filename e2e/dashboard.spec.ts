@@ -38,19 +38,21 @@ test.describe("ダッシュボード", () => {
   test("ナビゲーションで各ページに遷移できる", async ({ authedPage }) => {
     await authedPage.goto("/");
 
-    await authedPage.getByRole("link", { name: "ワードローブ" }).click();
+    const nav = authedPage.getByRole("banner");
+
+    await nav.getByRole("link", { name: "ワードローブ" }).click();
     await expect(authedPage).toHaveURL(/\/garments/);
 
-    await authedPage.getByRole("link", { name: "ドール" }).click();
+    await nav.getByRole("link", { name: "ドール" }).click();
     await expect(authedPage).toHaveURL(/\/dolls/);
 
-    await authedPage.getByRole("link", { name: "収納" }).click();
+    await nav.getByRole("link", { name: "収納" }).click();
     await expect(authedPage).toHaveURL(/\/locations/);
 
-    await authedPage.getByRole("link", { name: "スキャン" }).click();
+    await nav.getByRole("link", { name: "スキャン" }).click();
     await expect(authedPage).toHaveURL(/\/scan/);
 
-    await authedPage.getByRole("link", { name: "ホーム" }).click();
+    await nav.getByRole("link", { name: "ホーム" }).click();
     await expect(authedPage).toHaveURL("/");
   });
 });

@@ -18,7 +18,10 @@ test.describe("ドール管理", () => {
     await nameInput.waitFor({ state: "visible" });
     await nameInput.fill("テストドール花子");
 
-    await authedPage.getByRole("button", { name: "登録する" }).click();
+    const submitBtn = authedPage.getByRole("button", { name: "登録する" });
+    await submitBtn.scrollIntoViewIfNeeded();
+    await expect(submitBtn).toBeEnabled({ timeout: 5_000 });
+    await submitBtn.click();
 
     await authedPage.waitForURL(/\/dolls$/, { timeout: 15_000 });
     await expect(authedPage.getByText("テストドール花子")).toBeVisible();

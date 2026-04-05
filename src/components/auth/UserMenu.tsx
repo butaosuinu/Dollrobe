@@ -1,15 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { LogOut } from "lucide-react";
 import { t } from "@lingui/core/macro";
 import { authSessionAtom, signOutAtom } from "@/stores/authAtoms";
 
 const UserMenu = () => {
+  const [mounted, setMounted] = useState(false);
   const authState = useAtomValue(authSessionAtom);
   const signOut = useSetAtom(signOutAtom);
 
-  if (authState.user === undefined) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || authState.user === undefined) {
     return undefined;
   }
 
