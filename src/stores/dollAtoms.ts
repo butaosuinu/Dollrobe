@@ -1,13 +1,14 @@
 import { atom } from "jotai";
 import { getDb } from "@/lib/db/dexie";
 import { SYNC_ACTION_TYPE } from "@/lib/constants";
+import { ssrSuspend } from "@/lib/suspense-never";
 import type { Doll } from "@/types";
 
 const dollsRefreshTriggerAtom = atom(0);
 
 export const dollsAtom = atom(async (get) =>
   typeof indexedDB === "undefined"
-    ? ([] satisfies Doll[])
+    ? await ssrSuspend([] satisfies Doll[])
     : (get(dollsRefreshTriggerAtom), await getDb().dolls.toArray()),
 );
 

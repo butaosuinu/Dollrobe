@@ -2,6 +2,7 @@ import { atom } from "jotai";
 import { getDb } from "@/lib/db/dexie";
 import { trpcClient } from "@/lib/trpc";
 import { SYNC_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
+import { ssrSuspend } from "@/lib/suspense-never";
 import type { SyncStatusValue } from "@/lib/constants";
 import type { Doll, Garment, StorageCase, StorageLocation } from "@/types";
 import { refreshDollsAtom } from "@/stores/dollAtoms";
@@ -17,7 +18,7 @@ const pendingSyncCountRefreshTriggerAtom = atom(0);
 
 export const pendingSyncCountAtom = atom(async (get) =>
   typeof indexedDB === "undefined"
-    ? 0
+    ? await ssrSuspend(0)
     : (get(pendingSyncCountRefreshTriggerAtom),
       await getDb().syncQueue.count()),
 );
