@@ -66,15 +66,14 @@ export const createEntityAtoms = <T>(
   return { dataAtom, refreshAtom, addAtom, updateAtom, deleteAtom };
 };
 
+type Restorable = {
+  readonly id: string;
+  readonly archivedAt: number | undefined;
+  readonly updatedAt: number;
+};
+
 export const createRestoreAtom = (
-  getTable: () => Dexie.Table<
-    {
-      readonly id: string;
-      readonly archivedAt: number | undefined;
-      readonly updatedAt: number;
-    },
-    string
-  >,
+  getTable: () => Dexie.Table<Restorable, string>,
   refreshAtom: WritableAtom<undefined, [], void>,
   syncUpdateType: string,
 ) =>

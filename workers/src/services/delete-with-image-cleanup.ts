@@ -8,8 +8,10 @@ type EntityFinders<T> = {
   readonly deleteById: () => Promise<number>;
 };
 
+type DeletableEntityName = "Garment" | "Doll";
+
 type ImageCleanupContext = {
-  readonly entityName: string;
+  readonly entityName: DeletableEntityName;
   readonly entityId: string;
   readonly bucket: R2Bucket;
   readonly r2PublicUrl: string;

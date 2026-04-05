@@ -27,14 +27,7 @@ import {
   digests,
   dolls,
 } from "./schema";
-
-const toNonEmptyTuple = <T extends string>(arr: readonly T[]): [T, ...T[]] => {
-  const [first, ...rest] = arr;
-  if (first === undefined) {
-    throw new Error("Array must not be empty");
-  }
-  return [first, ...rest];
-};
+import { toNonEmptyTuple } from "../lib/to-non-empty-tuple";
 
 export const cuidSchema = z.string().min(1);
 export const storageCaseTypeSchema = z.enum(
