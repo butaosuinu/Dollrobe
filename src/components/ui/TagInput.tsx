@@ -83,7 +83,7 @@ const TagInput = ({
           onKeyDown={handleKeyDown}
           onBlur={addTag}
           placeholder={tags.length === 0 ? placeholder : ""}
-          className="min-w-[80px] flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-tertiary"
+          className="min-w-[80px] flex-1 bg-transparent text-base text-text-primary outline-none placeholder:text-text-tertiary lg:text-sm"
         />
       </div>
     </div>

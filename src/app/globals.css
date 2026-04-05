@@ -85,6 +85,18 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+button,
+a,
+input,
+select,
+textarea,
+label[for],
+[role="button"],
+[role="option"],
+[role="combobox"] {
+  touch-action: manipulation;
+}
+
 h1,
 h2,
 h3,

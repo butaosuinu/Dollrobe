@@ -29,6 +29,9 @@ importers:
       '@tanstack/react-virtual':
         specifier: ^3.13.23
         version: 3.13.23(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@techstark/opencv-js':
+        specifier: 4.12.0-release.1
+        version: 4.12.0-release.1
       '@trpc/client':
         specifier: ^11.1.0
         version: 11.12.0(@trpc/server@11.12.0(typescript@5.9.3))(typescript@5.9.3)
@@ -3107,6 +3110,9 @@ packages:
 
   '@tanstack/virtual-core@3.13.23':
     resolution: {integrity: sha512-zSz2Z2HNyLjCplANTDyl3BcdQJc2k1+yyFoKhNRmCr7V7dY8o8q5m8uFTI1/Pg1kL+Hgrz6u3Xo6eFUB7l66cg==}
+
+  '@techstark/opencv-js@4.12.0-release.1':
+    resolution: {integrity: sha512-LtTaph9v/HqLPXEg3m1xs2h7QJh10pUpuDT0nj8g77lelWnTwwQrehtd+fXElLOdrkqc4Fea6Z/sJBvEJLYPfw==}
 
   '@testing-library/dom@10.4.1':
     resolution: {integrity: sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==}
@@ -9482,6 +9488,8 @@ snapshots:
       react-dom: 19.2.4(react@19.2.4)
 
   '@tanstack/virtual-core@3.13.23': {}
+
+  '@techstark/opencv-js@4.12.0-release.1': {}
 
   '@testing-library/dom@10.4.1':
     dependencies:

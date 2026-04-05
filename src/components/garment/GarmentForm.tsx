@@ -8,6 +8,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import clsx from "clsx";
+import { Loader2 } from "lucide-react";
 import { addGarmentAtom, updateGarmentAtom } from "@/stores/garmentAtoms";
 import { authSessionAtom } from "@/stores/authAtoms";
 import type { DollSize, Garment, GarmentCategory } from "@/types";
@@ -24,6 +25,8 @@ import {
 } from "@/lib/i18n-labels";
 import { isGarmentCategory, isDollSize } from "@/lib/typeGuards";
 import { useImageUpload } from "@/hooks/useImageUpload";
+import { useColorExtraction } from "@/hooks/useColorExtraction";
+import { preloadColorExtraction } from "@/lib/image/extract-colors";
 import { useBrandSuggestions } from "@/hooks/useBrandSuggestions";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -102,6 +105,7 @@ const GarmentForm = ({ garment }: Props) => {
   const updateGarment = useSetAtom(updateGarmentAtom);
   const authState = useAtomValue(authSessionAtom);
   const { uploadState, upload, reset: resetUpload } = useImageUpload();
+  const { extractionState, extractColors } = useColorExtraction();
   const initial = getInitialValues(garment);
   const [name, setName] = useState(initial.name);
   const [category, setCategory] = useState<GarmentCategory>(initial.category);
@@ -120,6 +124,10 @@ const GarmentForm = ({ garment }: Props) => {
   const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined);
   const previousImageUrlRef = useRef<string | undefined>(undefined);
 
+  useEffect(() => {
+    preloadColorExtraction();
+  }, []);
+
   useEffect(
     () => () => {
       if (previousImageUrlRef.current !== undefined) {
@@ -129,7 +137,7 @@ const GarmentForm = ({ garment }: Props) => {
     [],
   );
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     if (previousImageUrlRef.current !== undefined) {
       URL.revokeObjectURL(previousImageUrlRef.current);
     }
@@ -138,6 +146,15 @@ const GarmentForm = ({ garment }: Props) => {
     setImagePreview(url);
     setSelectedFile(file);
     resetUpload();
+
+    if (colors.length === 0) {
+      const result = await extractColors({ file }).catch(() => ({
+        presetColors: [] as readonly string[],
+      }));
+      if (result.presetColors.length > 0) {
+        setColors((prev) => (prev.length === 0 ? result.presetColors : prev));
+      }
+    }
   };
 
   const isProcessing =
@@ -262,7 +279,7 @@ const GarmentForm = ({ garment }: Props) => {
                   }
                 }}
                 className={clsx(
-                  "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                  "rounded-full border px-3 py-2 text-xs font-medium transition-colors",
                   selected
                     ? "border-primary-500 bg-primary-500 text-text-inverse"
                     : "border-border-default bg-surface-overlay text-text-secondary hover:bg-primary-50",
@@ -292,6 +309,15 @@ const GarmentForm = ({ garment }: Props) => {
         maxLength={GARMENT_DESCRIPTION_MAX_LENGTH}
         rows={3}
       />
+
+      {extractionState.status === "loading" && (
+        <div className="flex items-center gap-2 text-sm text-text-tertiary">
+          <Loader2 className="size-4 animate-spin" />
+          <span>
+            <Trans>色を分析中...</Trans>
+          </span>
+        </div>
+      )}
 
       <ColorPicker label={t`色`} colors={colors} onChangeColors={setColors} />
 

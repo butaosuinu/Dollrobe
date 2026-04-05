@@ -19,7 +19,7 @@ const LocaleSelector = () => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: PointerEvent) => {
       if (
         ref.current !== null &&
         event.target instanceof Node &&
@@ -28,8 +28,9 @@ const LocaleSelector = () => {
         setIsOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("pointerdown", handleClickOutside);
+    return () =>
+      document.removeEventListener("pointerdown", handleClickOutside);
   }, []);
 
   const handleSelect = (locale: Locale) => {

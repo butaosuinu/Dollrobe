@@ -1,6 +1,7 @@
 import type { Garment, GarmentCategory, DollSize } from "@/types";
 import type { ColorName } from "@/lib/constants";
-import { GARMENT_CATEGORIES, DOLL_SIZES, PRESET_COLORS } from "@/lib/constants";
+import { GARMENT_CATEGORIES, DOLL_SIZES } from "@/lib/constants";
+import { PRESET_COLORS } from "@/lib/color/presets";
 
 type ParsedHsl = {
   readonly h: number;

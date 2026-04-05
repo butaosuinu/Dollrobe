@@ -36,12 +36,12 @@ const Button = ({
 }: Props) => (
   <button
     className={clsx(
-      "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
+      "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
       "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
       VARIANT_STYLES[variant],
       SIZE_STYLES[size],
       fullWidth && "w-full",
-      disabled && "pointer-events-none opacity-50",
+      disabled && "opacity-50",
     )}
     disabled={disabled}
     {...rest}

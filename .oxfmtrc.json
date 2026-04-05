@@ -10,6 +10,7 @@
     ".next/",
     "node_modules/",
     "public/sw.js",
+    "public/opencv.js",
     "pnpm-lock.yaml"
   ]
 }

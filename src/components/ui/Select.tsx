@@ -30,7 +30,7 @@ const Select = ({ label, options, error, placeholder, id, ...rest }: Props) => {
         <select
           id={selectId}
           className={clsx(
-            "h-10 w-full appearance-none rounded-lg border bg-surface-overlay px-3 pr-8 text-sm text-text-primary transition-colors",
+            "h-10 w-full appearance-none rounded-lg border bg-surface-overlay px-3 pr-8 text-base text-text-primary transition-colors lg:text-sm",
             "focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100",
             error === undefined
               ? "border-border-default hover:border-border-strong"
