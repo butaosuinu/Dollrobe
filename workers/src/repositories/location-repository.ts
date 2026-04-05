@@ -3,7 +3,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { DrizzleDB } from "../db/client";
 import { garments, storageCases, storageLocations } from "../db/schema";
-import { generateLabel } from "../trpc/lib/d1-helpers";
+import { generateLabel } from "@shared/lib/generateLabel";
 
 const CASE_TYPE_MAP: Record<string, StorageCaseType> = {
   grid: "grid",

@@ -4,7 +4,7 @@ import { createId } from "@paralleldrive/cuid2";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import * as dollRepo from "../repositories/doll-repository";
-import * as imageService from "./image-service";
+import { deleteEntityWithImageCleanup } from "./delete-with-image-cleanup";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
 export const listDolls = async ({
@@ -161,47 +161,13 @@ export const deleteDoll = async ({
   readonly bucket: R2Bucket;
   readonly r2PublicUrl: string;
   readonly logger: Logger;
-}): Promise<ServiceResult<{ readonly success: true }>> => {
-  const doll = await dollRepo.findDollById({
-    drizzleDb,
-    id,
-    userId,
-    logger,
+}): Promise<ServiceResult<{ readonly success: true }>> =>
+  await deleteEntityWithImageCleanup({
+    finders: {
+      findById: async () =>
+        await dollRepo.findDollById({ drizzleDb, id, userId, logger }),
+      deleteById: async () =>
+        await dollRepo.deleteDollById({ drizzleDb, id, userId, logger }),
+    },
+    context: { entityName: "Doll", entityId: id, bucket, r2PublicUrl, logger },
   });
-  if (doll === undefined) {
-    return serviceError("NOT_FOUND", `Doll not found: ${id}`);
-  }
-
-  const changes = await dollRepo.deleteDollById({
-    drizzleDb,
-    id,
-    userId,
-    logger,
-  });
-  if (changes === 0) {
-    return serviceError("NOT_FOUND", `Doll not found: ${id}`);
-  }
-
-  if (doll.imageUrl !== undefined) {
-    const r2Key = imageService.extractR2KeyFromUrl({
-      r2PublicUrl,
-      imageUrl: doll.imageUrl,
-    });
-    if (r2Key !== undefined) {
-      const deleteResult = await imageService.deleteImage({
-        bucket,
-        key: r2Key,
-        logger,
-      });
-      if (!deleteResult.ok) {
-        logger.warn("R2 image cleanup failed after doll deletion", {
-          dollId: id,
-          r2Key,
-          error: deleteResult.error.message,
-        });
-      }
-    }
-  }
-
-  return serviceOk({ success: true });
-};

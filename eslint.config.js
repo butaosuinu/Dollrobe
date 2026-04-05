@@ -164,6 +164,13 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/lib/generateLabel.ts"],
+    rules: {
+      "functional/no-conditional-statements": "off",
+      "functional/no-throw-statements": "off",
+    },
+  },
+  {
     files: ["src/lib/image/**/*.ts"],
     rules: {
       "functional/no-expression-statements": "off",
