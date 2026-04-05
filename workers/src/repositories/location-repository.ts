@@ -277,7 +277,12 @@ export const deleteCaseWithCascade = async ({
 
   const clearGarments = drizzleDb
     .update(garments)
-    .set({ locationId: null, status: garmentStatus, checkedOutAt: now })
+    .set({
+      locationId: null,
+      status: garmentStatus,
+      checkedOutAt: now,
+      updatedAt: now,
+    })
     .where(
       and(
         inArray(garments.locationId, locationSubquery),
@@ -372,6 +377,7 @@ export const deleteLocationWithCascade = async ({
       locationId: null,
       status: garmentStatus,
       checkedOutAt: now,
+      updatedAt: now,
     })
     .where(and(eq(garments.locationId, id), eq(garments.userId, userId)));
 

@@ -222,12 +222,33 @@ const pullFull = async (
     limit: INITIAL_PAGE_LIMIT,
   });
 
-  const garments = firstPage.garments.map(toClientGarment);
   const storageCases = firstPage.storageCases.map(toClientStorageCase);
   const storageLocations = firstPage.storageLocations.map(
     toClientStorageLocation,
   );
   const dolls = firstPage.dolls.map(toClientDoll);
+
+  /* eslint-disable functional/no-let, functional/no-loop-statements, no-await-in-loop, functional/immutable-data, @typescript-eslint/prefer-destructuring -- cursor pagination: collect all pages before atomic write */
+  const garmentPages: Garment[][] = [firstPage.garments.map(toClientGarment)];
+  let loadedCount = firstPage.garments.length;
+  onProgress(loadedCount, firstPage.totalCount);
+
+  let { nextCursor } = firstPage;
+
+  while (nextCursor !== undefined) {
+    const page = await trpcClient.sync.pull.query({
+      cursor: nextCursor,
+      limit: BATCH_PAGE_LIMIT,
+    });
+
+    garmentPages.push(page.garments.map(toClientGarment));
+    loadedCount += page.garments.length;
+    onProgress(loadedCount, firstPage.totalCount);
+    ({ nextCursor } = page);
+  }
+  /* eslint-enable functional/no-let, functional/no-loop-statements, no-await-in-loop, functional/immutable-data, @typescript-eslint/prefer-destructuring */
+
+  const allGarments = garmentPages.flat();
 
   const d = getDb();
   await d.transaction(
@@ -240,32 +261,11 @@ const pullFull = async (
       await d.storageLocations.clear();
 
       await bulkPutIfNotEmpty(d.dolls, dolls);
-      await bulkPutIfNotEmpty(d.garments, garments);
+      await bulkPutIfNotEmpty(d.garments, allGarments);
       await bulkPutIfNotEmpty(d.storageCases, storageCases);
       await bulkPutIfNotEmpty(d.storageLocations, storageLocations);
     },
   );
-
-  onProgress(garments.length, firstPage.totalCount);
-
-  /* eslint-disable functional/no-let, functional/no-loop-statements, no-await-in-loop, @typescript-eslint/prefer-destructuring -- cursor pagination loop with sequential fetches */
-  let { nextCursor } = firstPage;
-  let loadedCount = garments.length;
-
-  while (nextCursor !== undefined) {
-    const page = await trpcClient.sync.pull.query({
-      cursor: nextCursor,
-      limit: BATCH_PAGE_LIMIT,
-    });
-
-    const pageGarments = page.garments.map(toClientGarment);
-    await bulkPutIfNotEmpty(getDb().garments, pageGarments);
-
-    loadedCount += pageGarments.length;
-    onProgress(loadedCount, firstPage.totalCount);
-    ({ nextCursor } = page);
-  }
-  /* eslint-enable functional/no-let, functional/no-loop-statements, no-await-in-loop, @typescript-eslint/prefer-destructuring */
 
   setLastSyncedAt(syncStartedAt);
   return { ok: true };

@@ -328,6 +328,7 @@ export const deleteStorageCaseWithCascadeAndTombstones = async ({
       locationId: null,
       status: GARMENT_STATUS.CHECKED_OUT,
       checkedOutAt: now,
+      updatedAt: now,
     })
     .where(
       and(
