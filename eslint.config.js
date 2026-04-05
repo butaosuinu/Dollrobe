@@ -31,6 +31,8 @@ export default tseslint.config(
       "sentry.edge.config.ts",
       "src/types/**/*.d.ts",
       "public/opencv.js",
+      "e2e/",
+      "playwright.config.ts",
     ],
   },
   js.configs.recommended,

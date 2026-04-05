@@ -129,6 +129,20 @@ app.use(
   }),
 );
 
+app.post("/api/test/reset", async (c) => {
+  if (c.env.E2E_TEST_MODE !== "true") {
+    return c.json({ error: "Not available" }, 403);
+  }
+  const db = c.env.DB;
+  await db.exec("DELETE FROM digests");
+  await db.exec("DELETE FROM garments");
+  await db.exec("DELETE FROM storage_locations");
+  await db.exec("DELETE FROM storage_cases");
+  await db.exec("DELETE FROM coordinates");
+  await db.exec("DELETE FROM dolls");
+  return c.json({ ok: true });
+});
+
 app.get("/health", (c) => c.json({ status: "ok" }));
 
 export default {

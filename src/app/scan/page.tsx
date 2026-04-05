@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
 import { useAtomValue, useSetAtom } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { msg } from "@lingui/core/macro";
@@ -92,6 +93,16 @@ const ScanPage = () => {
       i18n,
     ],
   );
+
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_E2E_MODE === "true") {
+      window.__e2eSimulateScan = handleScan;
+      window.__e2eScanLocationsLoaded = locations.length;
+      return () => {
+        window.__e2eSimulateScan = undefined;
+      };
+    }
+  }, [handleScan, locations.length]);
 
   const { nfcState } = useNfcReader({
     onScan: handleScan,

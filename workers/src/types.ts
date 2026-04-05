@@ -20,4 +20,5 @@ export type Env = {
   readonly TRUSTED_ORIGINS: string;
   readonly ALLOWED_ORIGINS: string;
   readonly LOG_LEVEL?: string;
+  readonly E2E_TEST_MODE?: string;
 };

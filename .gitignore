@@ -161,3 +161,9 @@ next-env.d.ts
 
 # Certificates
 certificates/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
