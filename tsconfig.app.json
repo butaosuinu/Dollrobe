@@ -31,6 +31,8 @@
     "node_modules",
     "src/app/sw.ts",
     "workers/**/*.test.ts",
-    "workers/test/**"
+    "workers/test/**",
+    "src/lib/image/extract-colors.worker.ts",
+    "src/lib/image/extract-colors-core.ts"
   ]
 }

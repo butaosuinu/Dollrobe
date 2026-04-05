@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   },
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.16.*.*"],
   turbopack: {
+    resolveAlias: {
+      fs: "./src/lib/stubs/fs-stub.cjs",
+    },
     rules: {
       "./src/**/*.{js,jsx,ts,tsx}": {
         loaders: [

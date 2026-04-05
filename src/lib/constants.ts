@@ -180,25 +180,27 @@ export const BULK_CAPTURE = Object.freeze({
   FLASH_DURATION_MS: 150,
 });
 
+export const COLOR_EXTRACTION = Object.freeze({
+  ANALYSIS_MAX_DIMENSION: 200,
+  KMEANS_K: 3,
+  KMEANS_ATTEMPTS: 1,
+  KMEANS_MAX_ITERATIONS: 10,
+  KMEANS_EPSILON: 1.0,
+  MIN_CLUSTER_RATIO: 0.05,
+  KMEANS_PP_CENTERS: 2,
+  ACHROMATIC_SAT_THRESHOLD: 25,
+  ACHROMATIC_VALUE_THRESHOLD: 200,
+  ACHROMATIC_DARK_THRESHOLD: 30,
+  MIN_FILTERED_RATIO: 0.1,
+  SECONDARY_COLOR_MIN_RATIO: 0.3,
+});
+
 export const MIME_TO_EXTENSION = Object.freeze({
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
   "image/heic": "heic",
 } as const);
-
-export const PRESET_COLORS = [
-  "hsl(0, 0%, 10%)",
-  "hsl(0, 0%, 95%)",
-  "hsl(0, 70%, 55%)",
-  "hsl(210, 70%, 55%)",
-  "hsl(120, 40%, 45%)",
-  "hsl(45, 90%, 55%)",
-  "hsl(280, 60%, 55%)",
-  "hsl(330, 70%, 60%)",
-  "hsl(25, 70%, 50%)",
-  "hsl(180, 50%, 45%)",
-] as const;
 
 export type ColorName =
   | "black"

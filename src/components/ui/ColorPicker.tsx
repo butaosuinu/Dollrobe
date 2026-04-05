@@ -2,7 +2,7 @@
 
 import { Plus, X } from "lucide-react";
 import clsx from "clsx";
-import { PRESET_COLORS } from "@/lib/constants";
+import { PRESET_COLORS } from "@/lib/color/presets";
 
 type Props = {
   readonly label?: string;
