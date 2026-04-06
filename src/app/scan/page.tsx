@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { useAtomValue, useSetAtom } from "jotai";
 import { Trans } from "@lingui/react/macro";
@@ -93,17 +93,6 @@ const ScanPage = () => {
       i18n,
     ],
   );
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === "production") return;
-    const handler = (e: Event) => {
-      if (e instanceof CustomEvent && typeof e.detail === "string") {
-        handleScan(e.detail);
-      }
-    };
-    document.addEventListener("dwg:scan", handler);
-    return () => document.removeEventListener("dwg:scan", handler);
-  }, [handleScan]);
 
   const { nfcState } = useNfcReader({
     onScan: handleScan,

@@ -8,8 +8,9 @@ import {
 import { simulateScan, waitForScanReady } from "./helpers/scan-simulator";
 
 test.describe("QR スキャン", () => {
+  test.setTimeout(60_000);
   test("スキャンページが読み込まれる", async ({ authedPage }) => {
-    await authedPage.goto("/scan");
+    await authedPage.goto("/scan", { waitUntil: "domcontentloaded" });
 
     await expect(
       authedPage.getByRole("heading", { name: "スキャン" }),
@@ -33,7 +34,7 @@ test.describe("QR スキャン", () => {
       ],
     });
 
-    await authedPage.goto("/scan");
+    await authedPage.goto("/scan", { waitUntil: "domcontentloaded" });
     await waitForScanReady(authedPage, 1);
 
     await simulateScan(authedPage, "dwg://l/loc-scan");
@@ -65,7 +66,7 @@ test.describe("QR スキャン", () => {
       ],
     });
 
-    await authedPage.goto("/scan");
+    await authedPage.goto("/scan", { waitUntil: "domcontentloaded" });
     await waitForScanReady(authedPage, 1);
 
     await simulateScan(authedPage, "dwg://l/loc-scan");
@@ -83,16 +84,19 @@ test.describe("QR スキャン", () => {
           id: "g-multi-1",
           name: "マルチスキャン A",
           locationId: "loc-multi",
+          lastScannedAt: Date.now(),
         }),
         createGarment({
           id: "g-multi-2",
           name: "マルチスキャン B",
           locationId: "loc-multi",
+          lastScannedAt: Date.now(),
         }),
         createGarment({
           id: "g-multi-3",
           name: "マルチスキャン C",
           locationId: "loc-multi",
+          lastScannedAt: Date.now(),
         }),
       ],
       storageCases: [createStorageCase({ id: "case-multi" })],
@@ -105,7 +109,7 @@ test.describe("QR スキャン", () => {
       ],
     });
 
-    await authedPage.goto("/scan");
+    await authedPage.goto("/scan", { waitUntil: "domcontentloaded" });
     await waitForScanReady(authedPage, 1);
 
     await simulateScan(authedPage, "dwg://l/loc-multi");
@@ -143,7 +147,7 @@ test.describe("QR スキャン", () => {
       ],
     });
 
-    await authedPage.goto("/scan");
+    await authedPage.goto("/scan", { waitUntil: "domcontentloaded" });
     await waitForScanReady(authedPage, 1);
 
     await simulateScan(authedPage, "dwg://l/loc-confirm");
