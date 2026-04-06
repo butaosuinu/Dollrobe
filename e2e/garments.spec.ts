@@ -16,7 +16,11 @@ test.describe("ワードローブ（服管理）", () => {
   });
 
   test("新規服を作成して一覧に表示される", async ({ authedPage }) => {
-    await authedPage.goto("/garments/new");
+    await authedPage.goto("/garments");
+    const ctaBtn = authedPage.getByRole("button", { name: "服を登録" });
+    await ctaBtn.waitFor({ state: "visible", timeout: 15_000 });
+    await ctaBtn.click();
+    await authedPage.waitForURL(/\/garments\/new/);
 
     const nameInput = authedPage.getByPlaceholder("ドール服の名前");
     const submitBtn = authedPage.getByRole("button", { name: "登録する" });
