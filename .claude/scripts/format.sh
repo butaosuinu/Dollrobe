@@ -6,6 +6,12 @@ if [ -z "$file_path" ] || [ ! -f "$file_path" ]; then
   exit 0
 fi
 
+case "$file_path" in
+  */.claude/*|*/.mcp.json)
+    exit 0
+    ;;
+esac
+
 ext="${file_path##*.}"
 
 case "$ext" in
