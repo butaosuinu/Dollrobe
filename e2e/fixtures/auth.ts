@@ -1,8 +1,6 @@
 import { test as base, type Page } from "@playwright/test";
 import { seedIndexedDB, type SeedData } from "./seed";
 
-export { expect } from "@playwright/test";
-
 const SESSION_RESPONSE = {
   user: {
     id: "temp-user-001",
@@ -82,5 +80,3 @@ export const test = base.extend<TestFixtures>({
     await use(seedFn);
   },
 });
-
-export type { SeedData };

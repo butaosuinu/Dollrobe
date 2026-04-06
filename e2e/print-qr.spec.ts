@@ -1,4 +1,5 @@
-import { test, expect } from "./fixtures/index";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/auth";
 
 test.describe("QR ラベル印刷ページ", () => {
   test("QR ラベルが URL パラメータで表示される", async ({ authedPage }) => {

@@ -1,4 +1,5 @@
-import { test, expect } from "./fixtures/index";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/auth";
 
 test.describe("CSV インポート", () => {
   test("ドロップゾーンが表示される", async ({ authedPage }) => {

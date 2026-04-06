@@ -95,6 +95,7 @@ const ScanPage = () => {
   );
 
   useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
     const handler = (e: Event) => {
       if (e instanceof CustomEvent && typeof e.detail === "string") {
         handleScan(e.detail);

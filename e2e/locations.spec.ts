@@ -1,4 +1,5 @@
-import { test, expect } from "./fixtures/index";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/auth";
 import { createStorageCase, createStorageLocation } from "./fixtures/factories";
 
 test.describe("収納場所管理", () => {
