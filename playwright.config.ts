@@ -19,7 +19,7 @@ export default defineConfig({
   webServer: [
     {
       command:
-        "wrangler dev --var E2E_TEST_MODE:true --var BETTER_AUTH_SECRET:e2e-test-secret --var BETTER_AUTH_URL:http://localhost:8787",
+        "wrangler dev --var BETTER_AUTH_SECRET:e2e-test-secret --var BETTER_AUTH_URL:http://localhost:8787",
       port: 8787,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
@@ -29,9 +29,6 @@ export default defineConfig({
       url: "http://localhost:3000",
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
-      env: {
-        NEXT_PUBLIC_E2E_MODE: "true",
-      },
     },
   ],
 });

@@ -2,7 +2,6 @@ import type Dexie from "dexie";
 import { atom } from "jotai";
 import type { Atom, WritableAtom } from "jotai";
 import { getDb } from "@/lib/db/dexie";
-import { ssrSuspend } from "@/lib/suspense-never";
 
 type SyncActionTypes = {
   readonly create: string;
@@ -26,7 +25,7 @@ export const createEntityAtoms = <T>(
 
   const dataAtom = atom(async (get) =>
     typeof indexedDB === "undefined"
-      ? await ssrSuspend([] satisfies T[] as T[])
+      ? ([] satisfies T[] as T[])
       : (get(refreshTriggerAtom), await getTable().toArray()),
   );
 

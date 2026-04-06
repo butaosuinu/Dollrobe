@@ -3,14 +3,13 @@ import { createId } from "@paralleldrive/cuid2";
 import { getDb } from "@/lib/db/dexie";
 import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import { generateLabel } from "@/lib/generateLabel";
-import { ssrSuspend } from "@/lib/suspense-never";
 import type { StorageCase, StorageLocation } from "@/types";
 
 const storageCasesRefreshTriggerAtom = atom(0);
 
 export const storageCasesAtom = atom(async (get) =>
   typeof indexedDB === "undefined"
-    ? await ssrSuspend([] satisfies StorageCase[])
+    ? ([] satisfies StorageCase[])
     : (get(storageCasesRefreshTriggerAtom),
       await getDb().storageCases.toArray()),
 );
@@ -23,7 +22,7 @@ const storageLocationsRefreshTriggerAtom = atom(0);
 
 export const storageLocationsAtom = atom(async (get) =>
   typeof indexedDB === "undefined"
-    ? await ssrSuspend([] satisfies StorageLocation[])
+    ? ([] satisfies StorageLocation[])
     : (get(storageLocationsRefreshTriggerAtom),
       await getDb().storageLocations.toArray()),
 );

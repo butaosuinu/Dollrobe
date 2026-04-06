@@ -270,23 +270,3 @@ export const getDb = (): DollWardrobeDB => {
 /* eslint-enable functional/no-conditional-statements, functional/immutable-data */
 
 export type { DollWardrobeDB };
-
-/* eslint-disable functional/no-conditional-statements, functional/immutable-data -- E2E test seeding: exposes harmless DB write function for Playwright */
-if (
-  typeof window !== "undefined" &&
-  process.env.NEXT_PUBLIC_E2E_MODE === "true"
-) {
-  window.__e2eSeedDb = async (
-    data: Record<string, ReadonlyArray<Record<string, unknown>>>,
-  ) => {
-    const db = getDb();
-    await Promise.all(
-      Object.entries(data).map(async ([tableName, records]) => {
-        if (records.length > 0) {
-          await db.table(tableName).bulkPut([...records]);
-        }
-      }),
-    );
-  };
-}
-/* eslint-enable functional/no-conditional-statements, functional/immutable-data */

@@ -1,5 +1,4 @@
 import { test as base, type Page } from "@playwright/test";
-import { resetD1 } from "../helpers/d1-reset";
 import { seedIndexedDB, type SeedData } from "./seed";
 
 export { expect } from "@playwright/test";
@@ -23,7 +22,24 @@ type TestFixtures = {
 
 export const test = base.extend<TestFixtures>({
   authedPage: async ({ page }, use) => {
-    await resetD1();
+    await page.addInitScript(() => {
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of Array.from(mutation.addedNodes)) {
+            if (
+              node instanceof HTMLElement &&
+              node.tagName.toLowerCase() === "nextjs-portal"
+            ) {
+              node.remove();
+            }
+          }
+        }
+      });
+      observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+    });
 
     await page.route("**/api/auth/get-session", (route) =>
       route.fulfill({

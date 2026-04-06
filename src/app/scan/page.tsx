@@ -95,14 +95,14 @@ const ScanPage = () => {
   );
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_E2E_MODE === "true") {
-      window.__e2eSimulateScan = handleScan;
-      window.__e2eScanLocationsLoaded = locations.length;
-      return () => {
-        window.__e2eSimulateScan = undefined;
-      };
-    }
-  }, [handleScan, locations.length]);
+    const handler = (e: Event) => {
+      if (e instanceof CustomEvent && typeof e.detail === "string") {
+        handleScan(e.detail);
+      }
+    };
+    document.addEventListener("dwg:scan", handler);
+    return () => document.removeEventListener("dwg:scan", handler);
+  }, [handleScan]);
 
   const { nfcState } = useNfcReader({
     onScan: handleScan,

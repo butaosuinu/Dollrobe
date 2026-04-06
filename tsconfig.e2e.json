@@ -15,5 +15,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["e2e/**/*.ts", "playwright.config.ts", "src/types/e2e.d.ts"]
+  "include": ["e2e/**/*.ts", "playwright.config.ts"]
 }
