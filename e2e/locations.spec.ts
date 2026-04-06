@@ -18,13 +18,17 @@ test.describe("収納場所管理", () => {
   test("収納ケースを作成してカード表示される", async ({ authedPage }) => {
     await authedPage.goto("/locations");
 
-    await authedPage
-      .getByRole("button", { name: "ケースを追加" })
-      .first()
-      .click();
+    await expect(async () => {
+      await authedPage
+        .getByRole("button", { name: "ケースを追加" })
+        .first()
+        .click();
+      await expect(
+        authedPage.getByRole("dialog", { name: "ケースを追加" }),
+      ).toBeVisible();
+    }).toPass({ timeout: 10_000 });
 
     const dialog = authedPage.getByRole("dialog", { name: "ケースを追加" });
-    await dialog.waitFor({ state: "visible" });
 
     await dialog.getByLabel("ケース名").fill("テストケース");
 

@@ -33,6 +33,10 @@ const extractUser = (
 const authRefreshTriggerAtom = atom(0);
 
 export const authSessionAtom = atom(async (get): Promise<AuthState> => {
+  // eslint-disable-next-line functional/no-conditional-statements -- SSR guard
+  if (typeof window === "undefined") {
+    return { user: undefined, isAuthenticated: false };
+  }
   get(authRefreshTriggerAtom);
   const session = await getSession().catch(() => undefined);
   const user = extractUser(session);
