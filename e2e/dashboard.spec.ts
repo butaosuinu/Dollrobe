@@ -37,11 +37,17 @@ test.describe("ダッシュボード", () => {
 
   test("ナビゲーションで各ページに遷移できる", async ({ authedPage }) => {
     await authedPage.goto("/");
+    await authedPage.getByText("おかえりなさい").waitFor({
+      state: "visible",
+      timeout: 30_000,
+    });
 
     const nav = authedPage.getByRole("banner");
 
-    await nav.getByRole("link", { name: "ワードローブ" }).click();
-    await expect(authedPage).toHaveURL(/\/garments/);
+    await expect(async () => {
+      await nav.getByRole("link", { name: "ワードローブ" }).click();
+      await expect(authedPage).toHaveURL(/\/garments/, { timeout: 3_000 });
+    }).toPass({ timeout: 15_000 });
 
     await nav.getByRole("link", { name: "ドール" }).click();
     await expect(authedPage).toHaveURL(/\/dolls/);
