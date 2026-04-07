@@ -167,3 +167,6 @@ certificates/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# claude local settings
+.claude/settings.local.json
