@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-
 import { useAtomValue, useSetAtom } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { msg } from "@lingui/core/macro";
