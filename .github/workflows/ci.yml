@@ -81,6 +81,30 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:workers
 
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm i18n:compile
+      - run: npx playwright install --with-deps chromium
+      - run: pnpm db:migrate:local
+      - name: Run Playwright
+        run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   format-check:
     name: Format Check
     runs-on: ubuntu-latest

@@ -10,6 +10,10 @@ const QR_OPTIONS = Object.freeze({
   width: 200,
   margin: 2,
   errorCorrectionLevel: "M" as const,
+  color: {
+    dark: "#000000",
+    light: "#ffffff",
+  },
 });
 
 export const generateQrDataUrl = async ({
