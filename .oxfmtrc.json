@@ -11,6 +11,8 @@
     "node_modules/",
     "public/sw.js",
     "public/opencv.js",
-    "pnpm-lock.yaml"
+    "pnpm-lock.yaml",
+    ".claude/",
+    ".mcp.json"
   ]
 }
