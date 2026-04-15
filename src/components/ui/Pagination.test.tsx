@@ -16,7 +16,7 @@ const defaultProps = {
 };
 
 const renderPagination = (
-  overrides: Partial<typeof defaultProps> & {
+  overrides: Omit<Partial<typeof defaultProps>, "pagination"> & {
     pagination?: Partial<(typeof defaultProps)["pagination"]>;
   } = {},
 ) => {
