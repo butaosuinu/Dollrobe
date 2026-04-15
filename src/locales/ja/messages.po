@@ -83,6 +83,14 @@ msgstr "{0}着をスキャンしました"
 msgid "{0}行 x {1}列"
 msgstr "{0}行 x {1}列"
 
+#: src/components/ui/Pagination.tsx
+msgid "{displayStart}-{displayEnd} / {totalCount}件"
+msgstr "{displayStart}-{displayEnd} / {totalCount}件"
+
+#: src/components/ui/Pagination.tsx
+#~ msgid "{displayStart}-{endIndex} / {totalCount}件"
+#~ msgstr "{displayStart}-{endIndex} / {totalCount}件"
+
 #: src/components/scan/OrphanCheckoutDialog.tsx
 msgid "{elapsedDays}日前から取り出し中"
 msgstr "{elapsedDays}日前から取り出し中"
@@ -95,6 +103,10 @@ msgstr "{errorCount}件 エラー"
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount}着 要確認"
+
+#: src/components/ui/Pagination.tsx
+msgid "{size}件表示"
+msgstr "{size}件表示"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件 有効"
@@ -607,6 +619,10 @@ msgstr "ブランド/メーカー"
 msgid "プレビュー"
 msgstr "プレビュー"
 
+#: src/components/ui/Pagination.tsx
+msgid "ページネーション"
+msgstr "ページネーション"
+
 #: src/app/nfc-write/page.tsx
 #: src/app/print/page.tsx
 msgid "ページの読み込みに失敗しました"
@@ -848,11 +864,17 @@ msgstr "列数"
 msgid "削除"
 msgstr "削除"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "前のページ"
+msgstr "前のページ"
+
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "前の値を適用"
 msgstr "前の値を適用"
 
 #: src/components/garment/bulk/BulkMetadataForm.tsx
+#: src/components/ui/Pagination.tsx
 msgid "前へ"
 msgstr "前へ"
 
@@ -1072,9 +1094,15 @@ msgstr "未配置"
 msgid "未配置にする"
 msgstr "未配置にする"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "次のページ"
+msgstr "次のページ"
+
 #: src/app/nfc-write/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
+#: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "次へ"
 
@@ -1177,6 +1205,10 @@ msgstr "自由にメモを入力..."
 msgid "色"
 msgstr "色"
 
+#: src/components/garment/GarmentForm.tsx
+msgid "色を分析中..."
+msgstr "色を分析中..."
+
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "行"
 msgstr "行"
@@ -1192,6 +1224,10 @@ msgstr "衣装ケースを追加して、服の収納場所を管理しましょ
 #: src/app/dolls/page.tsx
 #~ msgid "表示するドールがありません"
 #~ msgstr "表示するドールがありません"
+
+#: src/components/ui/Pagination.tsx
+msgid "表示件数"
+msgstr "表示件数"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts
