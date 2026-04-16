@@ -83,6 +83,14 @@ msgstr "已扫描{0}件"
 msgid "{0}行 x {1}列"
 msgstr "{0}行 x {1}列"
 
+#: src/components/ui/Pagination.tsx
+msgid "{displayStart}-{displayEnd} / {totalCount}件"
+msgstr "{displayStart}-{displayEnd} / 共{totalCount}项"
+
+#: src/components/ui/Pagination.tsx
+#~ msgid "{displayStart}-{endIndex} / {totalCount}件"
+#~ msgstr "{displayStart}-{endIndex} / 共{totalCount}项"
+
 #: src/components/scan/OrphanCheckoutDialog.tsx
 msgid "{elapsedDays}日前から取り出し中"
 msgstr "{elapsedDays}天前取出"
@@ -95,6 +103,10 @@ msgstr "{errorCount}项错误"
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount}件 待确认"
+
+#: src/components/ui/Pagination.tsx
+msgid "{size}件表示"
+msgstr "显示{size}项"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件 有効"
@@ -607,6 +619,10 @@ msgstr "品牌/厂商"
 msgid "プレビュー"
 msgstr "预览"
 
+#: src/components/ui/Pagination.tsx
+msgid "ページネーション"
+msgstr "分页"
+
 #: src/app/nfc-write/page.tsx
 #: src/app/print/page.tsx
 msgid "ページの読み込みに失敗しました"
@@ -848,11 +864,17 @@ msgstr "列数"
 msgid "削除"
 msgstr "删除"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "前のページ"
+msgstr "上一页"
+
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "前の値を適用"
 msgstr "应用上一个值"
 
 #: src/components/garment/bulk/BulkMetadataForm.tsx
+#: src/components/ui/Pagination.tsx
 msgid "前へ"
 msgstr "上一步"
 
@@ -1072,9 +1094,15 @@ msgstr "未分配"
 msgid "未配置にする"
 msgstr "取消分配"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "次のページ"
+msgstr "下一页"
+
 #: src/app/nfc-write/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
+#: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "下一步"
 
@@ -1177,6 +1205,10 @@ msgstr "自由输入备注..."
 msgid "色"
 msgstr "颜色"
 
+#: src/components/garment/GarmentForm.tsx
+msgid "色を分析中..."
+msgstr "正在分析颜色..."
+
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "行"
 msgstr "行"
@@ -1192,6 +1224,10 @@ msgstr "添加收纳箱来管理衣服的存放位置"
 #: src/app/dolls/page.tsx
 #~ msgid "表示するドールがありません"
 #~ msgstr "没有可显示的娃娃"
+
+#: src/components/ui/Pagination.tsx
+msgid "表示件数"
+msgstr "每页显示数"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts

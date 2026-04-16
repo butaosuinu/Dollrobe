@@ -30,6 +30,8 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import DollCombobox from "@/components/garment/DollCombobox";
 import GarmentGrid from "@/components/garment/GarmentGrid";
 import GarmentList from "@/components/garment/GarmentList";
+import Pagination from "@/components/ui/Pagination";
+import usePagination from "@/hooks/usePagination";
 import ChipGroup from "@/components/ui/ChipGroup";
 import EmptyState from "@/components/ui/EmptyState";
 import FAB from "@/components/ui/FAB";
@@ -241,6 +243,13 @@ const GarmentListContent = () => {
     selectedDoll,
   ]);
 
+  const {
+    paginatedItems: paginatedGarments,
+    onChangePage,
+    onChangePageSize,
+    ...paginationData
+  } = usePagination({ items: filteredGarments });
+
   if (allGarments.length === 0) {
     return (
       <EmptyState
@@ -321,10 +330,19 @@ const GarmentListContent = () => {
         <p className="py-12 text-center text-sm text-text-tertiary">
           <Trans>一致する服が見つかりません</Trans>
         </p>
-      ) : viewMode === "grid" ? (
-        <GarmentGrid garments={filteredGarments} />
       ) : (
-        <GarmentList garments={filteredGarments} />
+        <>
+          {viewMode === "grid" ? (
+            <GarmentGrid garments={paginatedGarments} />
+          ) : (
+            <GarmentList garments={paginatedGarments} />
+          )}
+          <Pagination
+            pagination={paginationData}
+            onChangePage={onChangePage}
+            onChangePageSize={onChangePageSize}
+          />
+        </>
       )}
     </div>
   );

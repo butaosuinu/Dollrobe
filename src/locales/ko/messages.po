@@ -83,6 +83,14 @@ msgstr "{0}벌 스캔 완료"
 msgid "{0}行 x {1}列"
 msgstr "{0}행 x {1}열"
 
+#: src/components/ui/Pagination.tsx
+msgid "{displayStart}-{displayEnd} / {totalCount}件"
+msgstr "{displayStart}-{displayEnd} / {totalCount}건"
+
+#: src/components/ui/Pagination.tsx
+#~ msgid "{displayStart}-{endIndex} / {totalCount}件"
+#~ msgstr "{displayStart}-{endIndex} / {totalCount}건"
+
 #: src/components/scan/OrphanCheckoutDialog.tsx
 msgid "{elapsedDays}日前から取り出し中"
 msgstr "{elapsedDays}일 전부터 꺼낸 상태"
@@ -95,6 +103,10 @@ msgstr "{errorCount}건 오류"
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount}벌 확인 필요"
+
+#: src/components/ui/Pagination.tsx
+msgid "{size}件表示"
+msgstr "{size}건 표시"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件 有効"
@@ -607,6 +619,10 @@ msgstr "브랜드/메이커"
 msgid "プレビュー"
 msgstr "미리보기"
 
+#: src/components/ui/Pagination.tsx
+msgid "ページネーション"
+msgstr "페이지네이션"
+
 #: src/app/nfc-write/page.tsx
 #: src/app/print/page.tsx
 msgid "ページの読み込みに失敗しました"
@@ -848,11 +864,17 @@ msgstr "열 수"
 msgid "削除"
 msgstr "삭제"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "前のページ"
+msgstr "이전 페이지"
+
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "前の値を適用"
 msgstr "이전 값 적용"
 
 #: src/components/garment/bulk/BulkMetadataForm.tsx
+#: src/components/ui/Pagination.tsx
 msgid "前へ"
 msgstr "이전"
 
@@ -1072,9 +1094,15 @@ msgstr "미배치"
 msgid "未配置にする"
 msgstr "미배치로 설정"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "次のページ"
+msgstr "다음 페이지"
+
 #: src/app/nfc-write/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
+#: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "다음"
 
@@ -1177,6 +1205,10 @@ msgstr "자유롭게 메모를 입력..."
 msgid "色"
 msgstr "색상"
 
+#: src/components/garment/GarmentForm.tsx
+msgid "色を分析中..."
+msgstr "색상 분석 중..."
+
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "行"
 msgstr "행"
@@ -1192,6 +1224,10 @@ msgstr "의상 케이스를 추가하여 옷의 수납 장소를 관리하세요
 #: src/app/dolls/page.tsx
 #~ msgid "表示するドールがありません"
 #~ msgstr "표시할 인형이 없습니다"
+
+#: src/components/ui/Pagination.tsx
+msgid "表示件数"
+msgstr "표시 건수"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts

@@ -83,6 +83,14 @@ msgstr "{0} garments scanned"
 msgid "{0}行 x {1}列"
 msgstr "{0} rows x {1} cols"
 
+#: src/components/ui/Pagination.tsx
+msgid "{displayStart}-{displayEnd} / {totalCount}件"
+msgstr "{displayStart}-{displayEnd} / {totalCount} items"
+
+#: src/components/ui/Pagination.tsx
+#~ msgid "{displayStart}-{endIndex} / {totalCount}件"
+#~ msgstr "{displayStart}-{endIndex} / {totalCount} items"
+
 #: src/components/scan/OrphanCheckoutDialog.tsx
 msgid "{elapsedDays}日前から取り出し中"
 msgstr "Checked out {elapsedDays} days ago"
@@ -95,6 +103,10 @@ msgstr "{errorCount} errors"
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount} items need review"
+
+#: src/components/ui/Pagination.tsx
+msgid "{size}件表示"
+msgstr "Show {size}"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件 有効"
@@ -607,6 +619,10 @@ msgstr "Brand/Maker"
 msgid "プレビュー"
 msgstr "Preview"
 
+#: src/components/ui/Pagination.tsx
+msgid "ページネーション"
+msgstr "Pagination"
+
 #: src/app/nfc-write/page.tsx
 #: src/app/print/page.tsx
 msgid "ページの読み込みに失敗しました"
@@ -848,11 +864,17 @@ msgstr "Columns"
 msgid "削除"
 msgstr "Delete"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "前のページ"
+msgstr "Previous page"
+
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "前の値を適用"
 msgstr "Apply previous values"
 
 #: src/components/garment/bulk/BulkMetadataForm.tsx
+#: src/components/ui/Pagination.tsx
 msgid "前へ"
 msgstr "Back"
 
@@ -1072,9 +1094,15 @@ msgstr "Unassigned"
 msgid "未配置にする"
 msgstr "Unassign"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "次のページ"
+msgstr "Next page"
+
 #: src/app/nfc-write/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
+#: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "Next"
 
@@ -1177,6 +1205,10 @@ msgstr "Enter notes freely..."
 msgid "色"
 msgstr "Colors"
 
+#: src/components/garment/GarmentForm.tsx
+msgid "色を分析中..."
+msgstr "Analyzing colors..."
+
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "行"
 msgstr "Row"
@@ -1192,6 +1224,10 @@ msgstr "Add costume cases to manage garment storage"
 #: src/app/dolls/page.tsx
 #~ msgid "表示するドールがありません"
 #~ msgstr "No dolls to display"
+
+#: src/components/ui/Pagination.tsx
+msgid "表示件数"
+msgstr "Items per page"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/lib/i18n-labels.ts
