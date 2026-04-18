@@ -81,6 +81,10 @@ msgstr "{0} garments scanned"
 msgid "{0}行 x {1}列"
 msgstr "{0} rows x {1} cols"
 
+#: src/components/dashboard/StaleLocationItem.tsx
+msgid "{daysSinceLastVisit}日前に最後に開けました"
+msgstr "Last opened {daysSinceLastVisit} days ago"
+
 #: src/components/ui/Pagination.tsx
 msgid "{displayStart}-{displayEnd} / {totalCount}件"
 msgstr "{displayStart}-{displayEnd} / {totalCount} items"
@@ -227,6 +231,11 @@ msgstr "NFC not supported"
 #: src/app/print/page.tsx
 msgid "QR ラベル印刷"
 msgstr "QR Label Print"
+
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageGrid.tsx
+msgid "QR 確認より信頼度は控えめに戻ります（約0.5）"
+msgstr "Confidence is restored conservatively compared to QR scan (approx. 0.5)"
 
 #: src/components/dashboard/AlertPanel.tsx
 #~ msgid "QRスキャンで戻す場所を記録できます"
@@ -438,6 +447,10 @@ msgstr "Cyan"
 #: src/components/digest/DigestCard.tsx
 msgid "しばらく確認していない服が{0}着あります"
 msgstr "{0} garments have not been checked in a while"
+
+#: src/components/dashboard/StaleLocationsCard.tsx
+msgid "しばらく開けていない場所"
+msgstr "Places not opened for a while"
 
 #: src/components/dashboard/CheckedOutSection.tsx
 msgid "しまった"
@@ -688,6 +701,10 @@ msgstr "No storage locations yet"
 msgid "まだ服がありません"
 msgstr "No garments yet"
 
+#: src/components/dashboard/StaleLocationItem.tsx
+msgid "まだ開けていません"
+msgstr "Not yet opened"
+
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
 msgid "メーカー"
@@ -780,6 +797,11 @@ msgstr "Unknown"
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "Sort"
+
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageGrid.tsx
+msgid "今ここにいなくても確認"
+msgstr "Confirm without being here"
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "作成"
@@ -1092,6 +1114,10 @@ msgstr "Register garment"
 #: src/app/garments/[id]/edit/page.tsx
 msgid "服を編集"
 msgstr "Edit garment"
+
+#: src/components/dashboard/StaleLocationItem.tsx
+msgid "未確認 {uncertainItemCount}着"
+msgstr "{uncertainItemCount} items unconfirmed"
 
 #: src/components/digest/DigestCard.tsx
 msgid "未読"

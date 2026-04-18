@@ -1,5 +1,10 @@
 import { factory, primaryKey, nullable } from "@mswjs/data";
-import type { DollSize, GarmentCategory, GarmentStatus } from "@/types";
+import type {
+  DollSize,
+  GarmentCategory,
+  GarmentStatus,
+  StorageCaseType,
+} from "@/types";
 
 export const FIXED_NOW = new Date("2025-06-15T00:00:00Z").getTime();
 
@@ -43,6 +48,8 @@ export const testDb = factory({
     id: primaryKey(String),
     userId: () => "user-1",
     name: () => "衣装ケース A",
+    type: (): StorageCaseType => "grid",
+    description: nullable((): string | null => null),
     rows: () => 3,
     cols: () => 3,
     createdAt: () => FIXED_NOW,
@@ -52,8 +59,13 @@ export const testDb = factory({
     userId: () => "user-1",
     caseId: () => "case-1",
     label: () => "A-1",
+    customName: nullable((): string | null => null),
+    description: nullable((): string | null => null),
     row: () => 0,
     col: () => 0,
+    lastVisitedAt: nullable((): number | null => null),
+    confirmAllCount: () => 0,
+    correctionCount: () => 0,
     createdAt: () => FIXED_NOW,
   },
 });

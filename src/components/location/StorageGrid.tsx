@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSetAtom } from "jotai";
 import { Pencil } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import type { Garment, StorageCase, StorageLocation } from "@/types";
+import { GARMENT_STATUS } from "@/lib/constants";
 import { updateStorageLocationAtom } from "@/stores/locationAtoms";
+import { confirmAllByMemoryAtom } from "@/stores/garmentAtoms";
 import StorageCell from "@/components/location/StorageCell";
 import StorageLocationEditForm from "@/components/location/StorageLocationEditForm";
 import BottomSheet from "@/components/ui/BottomSheet";
+import Button from "@/components/ui/Button";
 import IconButton from "@/components/ui/IconButton";
 import GarmentList from "@/components/garment/GarmentList";
 
@@ -17,9 +20,99 @@ type Props = {
   readonly storageCase: StorageCase;
   readonly locations: readonly StorageLocation[];
   readonly garments: readonly Garment[];
+  readonly initialSelectedLocationId?: string;
 };
 
-const StorageGrid = ({ storageCase, locations, garments }: Props) => {
+const useInitialLocationSelection = ({
+  locations,
+  initialSelectedLocationId,
+  onSelect,
+}: {
+  readonly locations: readonly StorageLocation[];
+  readonly initialSelectedLocationId: string | undefined;
+  readonly onSelect: (location: StorageLocation) => void;
+}) => {
+  const appliedRef = useRef(false);
+  useEffect(() => {
+    const shouldSkip =
+      appliedRef.current || initialSelectedLocationId === undefined;
+    const target = shouldSkip
+      ? undefined
+      : locations.find((l) => l.id === initialSelectedLocationId);
+    if (target !== undefined) {
+      onSelect(target);
+      appliedRef.current = true;
+    }
+  }, [initialSelectedLocationId, locations, onSelect]);
+};
+
+type SelectedLocationSheetProps = {
+  readonly storageCase: StorageCase;
+  readonly location: StorageLocation;
+  readonly garments: readonly Garment[];
+  readonly onClose: () => void;
+  readonly onEdit: () => void;
+};
+
+const SelectedLocationSheet = ({
+  storageCase,
+  location,
+  garments,
+  onClose,
+  onEdit,
+}: SelectedLocationSheetProps) => {
+  const confirmByMemory = useSetAtom(confirmAllByMemoryAtom);
+  const displayName = location.customName ?? location.label;
+  const hasStoredGarments = garments.some(
+    (g) => g.status === GARMENT_STATUS.STORED && g.archivedAt === undefined,
+  );
+
+  const handleMemoryConfirm = async () => {
+    await confirmByMemory(location.id);
+    onClose();
+  };
+
+  return (
+    <BottomSheet
+      isOpen
+      onClose={onClose}
+      title={`${storageCase.name} - ${displayName}`}
+    >
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          {location.description !== undefined && (
+            <p className="text-xs text-text-tertiary">{location.description}</p>
+          )}
+        </div>
+        <IconButton icon={Pencil} label={t`編集`} size="sm" onClick={onEdit} />
+      </div>
+      {garments.length > 0 ? (
+        <GarmentList garments={garments} />
+      ) : (
+        <p className="py-8 text-center text-sm text-text-tertiary">
+          <Trans>この場所には服がありません</Trans>
+        </p>
+      )}
+      {hasStoredGarments && (
+        <div className="mt-4 flex flex-col gap-2">
+          <Button variant="secondary" fullWidth onClick={handleMemoryConfirm}>
+            <Trans>今ここにいなくても確認</Trans>
+          </Button>
+          <p className="text-center text-xs text-text-tertiary">
+            <Trans>QR 確認より信頼度は控えめに戻ります（約0.5）</Trans>
+          </p>
+        </div>
+      )}
+    </BottomSheet>
+  );
+};
+
+const StorageGrid = ({
+  storageCase,
+  locations,
+  garments,
+  initialSelectedLocationId,
+}: Props) => {
   const [selectedLocation, setSelectedLocation] = useState<
     StorageLocation | undefined
   >(undefined);
@@ -28,18 +121,14 @@ const StorageGrid = ({ storageCase, locations, garments }: Props) => {
   >(undefined);
   const updateLocation = useSetAtom(updateStorageLocationAtom);
 
+  useInitialLocationSelection({
+    locations,
+    initialSelectedLocationId,
+    onSelect: setSelectedLocation,
+  });
+
   const getGarmentsForLocation = (locationId: string) =>
     garments.filter((g) => g.locationId === locationId);
-
-  const selectedGarments =
-    selectedLocation !== undefined
-      ? getGarmentsForLocation(selectedLocation.id)
-      : [];
-
-  const selectedDisplayName =
-    selectedLocation !== undefined
-      ? (selectedLocation.customName ?? selectedLocation.label)
-      : undefined;
 
   const handleEditSubmit = async (input: {
     readonly customName: string | undefined;
@@ -54,6 +143,9 @@ const StorageGrid = ({ storageCase, locations, garments }: Props) => {
     setEditingLocation(undefined);
     setSelectedLocation(undefined);
   };
+
+  const showSelectionSheet =
+    selectedLocation !== undefined && editingLocation === undefined;
 
   return (
     <>
@@ -77,42 +169,15 @@ const StorageGrid = ({ storageCase, locations, garments }: Props) => {
         </div>
       </div>
 
-      <BottomSheet
-        isOpen={selectedLocation !== undefined && editingLocation === undefined}
-        onClose={() => setSelectedLocation(undefined)}
-        title={
-          selectedLocation !== undefined
-            ? `${storageCase.name} - ${selectedDisplayName}`
-            : undefined
-        }
-      >
-        {selectedLocation !== undefined && (
-          <>
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                {selectedLocation.description !== undefined && (
-                  <p className="text-xs text-text-tertiary">
-                    {selectedLocation.description}
-                  </p>
-                )}
-              </div>
-              <IconButton
-                icon={Pencil}
-                label={t`編集`}
-                size="sm"
-                onClick={() => setEditingLocation(selectedLocation)}
-              />
-            </div>
-            {selectedGarments.length > 0 ? (
-              <GarmentList garments={selectedGarments} />
-            ) : (
-              <p className="py-8 text-center text-sm text-text-tertiary">
-                <Trans>この場所には服がありません</Trans>
-              </p>
-            )}
-          </>
-        )}
-      </BottomSheet>
+      {showSelectionSheet && selectedLocation !== undefined && (
+        <SelectedLocationSheet
+          storageCase={storageCase}
+          location={selectedLocation}
+          garments={getGarmentsForLocation(selectedLocation.id)}
+          onClose={() => setSelectedLocation(undefined)}
+          onEdit={() => setEditingLocation(selectedLocation)}
+        />
+      )}
 
       <BottomSheet
         isOpen={editingLocation !== undefined}
