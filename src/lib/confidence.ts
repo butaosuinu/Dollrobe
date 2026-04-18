@@ -4,6 +4,10 @@ import {
   GARMENT_STATUS,
   MS_PER_DAY,
   ORPHAN_CHECKOUT_THRESHOLD_DAYS,
+  REVIEW_THRESHOLD_DEFAULT,
+  REVIEW_THRESHOLD_STABLE,
+  STABILITY_MIN_SAMPLE_SIZE,
+  STABILITY_THRESHOLD,
 } from "@/lib/constants";
 
 export type ConfidenceInput = {
@@ -37,13 +41,30 @@ export const getItemsNeedingReview = <
 >(
   garments: readonly T[],
   locationId: string,
+  threshold: number = REVIEW_THRESHOLD_DEFAULT,
 ): readonly T[] =>
   garments.filter(
     (g) =>
       g.locationId === locationId &&
       g.status === GARMENT_STATUS.STORED &&
-      getConfidence(g) < CONFIDENCE_THRESHOLD.CONFIRMED,
+      getConfidence(g) < threshold,
   );
+
+export const getLocationStabilityScore = ({
+  confirmAllCount,
+  correctionCount,
+}: {
+  readonly confirmAllCount: number;
+  readonly correctionCount: number;
+}): number => {
+  const total = confirmAllCount + correctionCount;
+  return total < STABILITY_MIN_SAMPLE_SIZE ? 0.5 : confirmAllCount / total;
+};
+
+export const getReviewThreshold = (stabilityScore: number): number =>
+  stabilityScore >= STABILITY_THRESHOLD
+    ? REVIEW_THRESHOLD_STABLE
+    : REVIEW_THRESHOLD_DEFAULT;
 
 export const getElapsedDays = (lastScannedAt: number): number =>
   Math.floor((Date.now() - lastScannedAt) / MS_PER_DAY);

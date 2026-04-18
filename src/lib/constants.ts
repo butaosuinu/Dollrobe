@@ -24,6 +24,11 @@ export const CONFIDENCE_THRESHOLD = Object.freeze({
   UNCERTAIN: 0.3,
 });
 
+export const REVIEW_THRESHOLD_DEFAULT = 0.7;
+export const REVIEW_THRESHOLD_STABLE = 0.5;
+export const STABILITY_THRESHOLD = 0.8;
+export const STABILITY_MIN_SAMPLE_SIZE = 3;
+
 export const CONFIDENCE_DECAY_MIN = 1;
 export const CONFIDENCE_DECAY_MAX = 365;
 export const DEFAULT_CONFIDENCE_DECAY_DAYS = 30;

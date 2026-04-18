@@ -4,10 +4,16 @@ import {
   getConfidenceLabel,
   getElapsedDays,
   getItemsNeedingReview,
+  getLocationStabilityScore,
   getOrphanedCheckouts,
+  getReviewThreshold,
 } from "./confidence";
 import type { Garment } from "@/types";
-import { MS_PER_DAY } from "@/lib/constants";
+import {
+  MS_PER_DAY,
+  REVIEW_THRESHOLD_DEFAULT,
+  REVIEW_THRESHOLD_STABLE,
+} from "@/lib/constants";
 
 const createGarment = (overrides: Partial<Garment> = {}): Garment => ({
   id: "g1",
@@ -112,6 +118,105 @@ describe("getItemsNeedingReview", () => {
     const result = getItemsNeedingReview(garments, "loc1");
     expect(result).toHaveLength(1);
     expect(result[0]?.id).toBe("g2");
+  });
+
+  it("threshold 省略時はデフォルト(0.7)で判定する", () => {
+    // 経過 10日 / decay 30日 → confidence ≒ 0.667 (< 0.7)
+    const garments = [
+      createGarment({
+        id: "g1",
+        locationId: "loc1",
+        lastScannedAt: Date.now() - 10 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      }),
+    ];
+    const result = getItemsNeedingReview(
+      garments,
+      "loc1",
+      REVIEW_THRESHOLD_DEFAULT,
+    );
+    expect(result).toHaveLength(1);
+  });
+
+  it("threshold=0.5 を渡すと信頼度 0.6 のアイテムは除外される", () => {
+    // 経過 12日 / decay 30日 → confidence = 0.6
+    const garments = [
+      createGarment({
+        id: "g1",
+        locationId: "loc1",
+        lastScannedAt: Date.now() - 12 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      }),
+    ];
+    const result = getItemsNeedingReview(
+      garments,
+      "loc1",
+      REVIEW_THRESHOLD_STABLE,
+    );
+    expect(result).toHaveLength(0);
+  });
+
+  it("threshold=0.5 を渡すと信頼度 0.4 のアイテムは含まれる", () => {
+    // 経過 18日 / decay 30日 → confidence = 0.4
+    const garments = [
+      createGarment({
+        id: "g1",
+        locationId: "loc1",
+        lastScannedAt: Date.now() - 18 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      }),
+    ];
+    const result = getItemsNeedingReview(
+      garments,
+      "loc1",
+      REVIEW_THRESHOLD_STABLE,
+    );
+    expect(result).toHaveLength(1);
+  });
+});
+
+describe("getLocationStabilityScore", () => {
+  it("サンプル数 3 件未満では中立値 0.5 を返す", () => {
+    expect(
+      getLocationStabilityScore({ confirmAllCount: 0, correctionCount: 0 }),
+    ).toBe(0.5);
+    expect(
+      getLocationStabilityScore({ confirmAllCount: 2, correctionCount: 0 }),
+    ).toBe(0.5);
+    expect(
+      getLocationStabilityScore({ confirmAllCount: 1, correctionCount: 1 }),
+    ).toBe(0.5);
+  });
+
+  it("全て確認の場合 1.0 を返す", () => {
+    expect(
+      getLocationStabilityScore({ confirmAllCount: 10, correctionCount: 0 }),
+    ).toBe(1.0);
+  });
+
+  it("半々の場合 0.5 を返す", () => {
+    expect(
+      getLocationStabilityScore({ confirmAllCount: 5, correctionCount: 5 }),
+    ).toBe(0.5);
+  });
+
+  it("8/10 の場合 0.8 を返す", () => {
+    expect(
+      getLocationStabilityScore({ confirmAllCount: 8, correctionCount: 2 }),
+    ).toBe(0.8);
+  });
+});
+
+describe("getReviewThreshold", () => {
+  it("安定度 0.8 以上では閾値 0.5 を返す", () => {
+    expect(getReviewThreshold(0.8)).toBe(REVIEW_THRESHOLD_STABLE);
+    expect(getReviewThreshold(1.0)).toBe(REVIEW_THRESHOLD_STABLE);
+  });
+
+  it("安定度 0.8 未満では閾値 0.7 を返す", () => {
+    expect(getReviewThreshold(0.79)).toBe(REVIEW_THRESHOLD_DEFAULT);
+    expect(getReviewThreshold(0.5)).toBe(REVIEW_THRESHOLD_DEFAULT);
+    expect(getReviewThreshold(0)).toBe(REVIEW_THRESHOLD_DEFAULT);
   });
 });
 

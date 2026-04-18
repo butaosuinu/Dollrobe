@@ -210,6 +210,7 @@ describe("scanRouter", () => {
       });
 
       const result = await caller.scan.confirmPartial({
+        locationId: locId,
         confirmations: [{ garmentId, confirmed: true }],
       });
 
@@ -232,6 +233,7 @@ describe("scanRouter", () => {
       });
 
       const result = await caller.scan.confirmPartial({
+        locationId: locId,
         confirmations: [{ garmentId, confirmed: false }],
       });
 
@@ -259,6 +261,7 @@ describe("scanRouter", () => {
       });
 
       const result = await caller.scan.confirmPartial({
+        locationId: locId,
         confirmations: [
           { garmentId: g1, confirmed: true },
           { garmentId: g2, confirmed: false },
