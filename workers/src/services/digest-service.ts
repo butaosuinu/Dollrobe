@@ -92,11 +92,18 @@ export const generateDigestForUser = async ({
     logger,
   });
 
+  const decrementedCount = await garmentRepo.decrementAllRecentCheckoutCounts({
+    drizzleDb,
+    userId,
+    logger,
+  });
+
   logger.info("digest generated", {
     userId,
     unknownCount: unknownItems.length,
     orphanedCount: orphanedItems.length,
     totalGarments: garments.length,
+    recentCheckoutCountDecremented: decrementedCount,
   });
 
   return serviceOk(digestData);
