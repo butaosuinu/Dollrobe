@@ -69,6 +69,106 @@ describe("sync router", () => {
 
       expectTRPCError(error, "BAD_REQUEST");
     });
+
+    it("storageLocation:update で confirmAllCount/correctionCount/lastVisitedAt がサーバーに書き込まれる", async () => {
+      const db = getTestDb();
+      const { id: caseId } = await insertStorageCase({ db });
+      const { id: locationId } = await insertStorageLocation({
+        db,
+        overrides: { caseId },
+      });
+
+      const caller = getCaller();
+      const now = Date.now();
+
+      await caller.sync.push({
+        items: [
+          {
+            type: "storageLocation:update",
+            payload: {
+              id: locationId,
+              userId: TEMP_USER_ID,
+              caseId,
+              label: "A-1",
+              row: 0,
+              col: 0,
+              lastVisitedAt: now,
+              confirmAllCount: 5,
+              correctionCount: 2,
+              createdAt: now,
+            },
+            createdAt: now,
+          },
+        ],
+      });
+
+      const pulled = await caller.sync.pull();
+      const loc = pulled.storageLocations[0];
+      expect(loc?.confirmAllCount).toBe(5);
+      expect(loc?.correctionCount).toBe(2);
+      expect(loc?.lastVisitedAt).toBe(now);
+    });
+
+    it("カウンター列を含まない storageLocation:update で既存カウンターが保持される", async () => {
+      const db = getTestDb();
+      const { id: caseId } = await insertStorageCase({ db });
+      const { id: locationId } = await insertStorageLocation({
+        db,
+        overrides: { caseId },
+      });
+
+      const caller = getCaller();
+      const now = Date.now();
+
+      // 最初にカウンターをセット
+      await caller.sync.push({
+        items: [
+          {
+            type: "storageLocation:update",
+            payload: {
+              id: locationId,
+              userId: TEMP_USER_ID,
+              caseId,
+              label: "A-1",
+              row: 0,
+              col: 0,
+              lastVisitedAt: now,
+              confirmAllCount: 7,
+              correctionCount: 1,
+              createdAt: now,
+            },
+            createdAt: now,
+          },
+        ],
+      });
+
+      // カウンター列を含まない payload（古い client 相当）で name だけ変更
+      await caller.sync.push({
+        items: [
+          {
+            type: "storageLocation:update",
+            payload: {
+              id: locationId,
+              userId: TEMP_USER_ID,
+              caseId,
+              label: "A-1",
+              customName: "新しい名前",
+              row: 0,
+              col: 0,
+              createdAt: now,
+            },
+            createdAt: now + 1,
+          },
+        ],
+      });
+
+      const pulled = await caller.sync.pull();
+      const loc = pulled.storageLocations[0];
+      expect(loc?.customName).toBe("新しい名前");
+      expect(loc?.confirmAllCount).toBe(7);
+      expect(loc?.correctionCount).toBe(1);
+      expect(loc?.lastVisitedAt).toBe(now);
+    });
   });
 
   describe("pull", () => {

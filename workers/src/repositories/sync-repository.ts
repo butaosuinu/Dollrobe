@@ -120,12 +120,24 @@ export const upsertStorageCase = async ({
 export const upsertStorageLocation = async ({
   drizzleDb,
   locationValues,
+  includeCounters,
   logger,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly locationValues: typeof storageLocations.$inferInsert;
+  readonly includeCounters: boolean;
   readonly logger: Logger;
 }): Promise<void> => {
+  // includeCounters=false のとき、古い client からの update payload で
+  // カウンターを 0 に上書きしないよう conflict update の set から除外する
+  const counterSet = includeCounters
+    ? {
+        lastVisitedAt: sql`excluded.last_visited_at`,
+        confirmAllCount: sql`excluded.confirm_all_count`,
+        correctionCount: sql`excluded.correction_count`,
+      }
+    : {};
+
   await drizzleDb
     .insert(storageLocations)
     .values(locationValues)
@@ -135,6 +147,7 @@ export const upsertStorageLocation = async ({
         label: sql`excluded.label`,
         customName: sql`excluded.custom_name`,
         description: sql`excluded.description`,
+        ...counterSet,
       },
       setWhere: eq(storageLocations.userId, sql`excluded.user_id`),
     })
