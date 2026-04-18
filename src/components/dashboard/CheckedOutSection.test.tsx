@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MS_PER_DAY } from "@/lib/constants";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
@@ -130,6 +131,7 @@ describe("CheckedOutSection", () => {
   });
 
   it("「しまった」をクリックするとスキャン画面に遷移する", async () => {
+    const user = userEvent.setup();
     testDb.garment.create({
       id: "g-1",
       name: "テストドレスA",
@@ -141,12 +143,13 @@ describe("CheckedOutSection", () => {
     await renderWithProviders(<CheckedOutSection />);
 
     const button = await screen.findByRole("button", { name: /しまった/ });
-    fireEvent.click(button);
+    await user.click(button);
 
     expect(mockPush).toHaveBeenCalledWith("/scan");
   });
 
   it("「使用中」をクリックすると checkedOutAt が更新され、ボタンが非表示になる", async () => {
+    const user = userEvent.setup();
     testDb.garment.create({
       id: "g-1",
       name: "テストドレスA",
@@ -158,15 +161,18 @@ describe("CheckedOutSection", () => {
     await renderWithProviders(<CheckedOutSection />);
 
     const button = await screen.findByRole("button", { name: /使用中/ });
-    fireEvent.click(button);
+    await user.click(button);
 
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
-      const { getDb } = await import("@/lib/db/dexie");
-      const db = getDb();
       const g = await db.garments.get("g-1");
       expect(g?.checkedOutAt).toBeGreaterThan(FIXED_NOW - 5 * MS_PER_DAY);
-      expect(g?.status).toBe("checked_out");
     });
+
+    const g = await db.garments.get("g-1");
+    expect(g?.status).toBe("checked_out");
+
     await waitFor(() => {
       expect(
         screen.queryByRole("button", { name: /使用中/ }),
@@ -176,6 +182,7 @@ describe("CheckedOutSection", () => {
   });
 
   it("「紛失」をクリックすると確認ダイアログが開く", async () => {
+    const user = userEvent.setup();
     testDb.garment.create({
       id: "g-1",
       name: "テストドレスA",
@@ -187,7 +194,7 @@ describe("CheckedOutSection", () => {
     await renderWithProviders(<CheckedOutSection />);
 
     const button = await screen.findByRole("button", { name: /紛失$/ });
-    fireEvent.click(button);
+    await user.click(button);
 
     expect(
       await screen.findByText("紛失として記録しますか？"),
@@ -198,6 +205,7 @@ describe("CheckedOutSection", () => {
   });
 
   it("紛失確認ダイアログで確定すると status = 'lost' になりアイテムがセクションから消える", async () => {
+    const user = userEvent.setup();
     testDb.garment.create({
       id: "g-1",
       name: "テストドレスA",
@@ -209,16 +217,16 @@ describe("CheckedOutSection", () => {
     await renderWithProviders(<CheckedOutSection />);
 
     const lostButton = await screen.findByRole("button", { name: /紛失$/ });
-    fireEvent.click(lostButton);
+    await user.click(lostButton);
 
     const confirmButton = await screen.findByRole("button", {
       name: "紛失として記録",
     });
-    fireEvent.click(confirmButton);
+    await user.click(confirmButton);
 
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
     await waitFor(async () => {
-      const { getDb } = await import("@/lib/db/dexie");
-      const db = getDb();
       const g = await db.garments.get("g-1");
       expect(g?.status).toBe("lost");
     });
@@ -228,6 +236,7 @@ describe("CheckedOutSection", () => {
   });
 
   it("紛失確認ダイアログでキャンセルすると status が変わらずダイアログが閉じる", async () => {
+    const user = userEvent.setup();
     testDb.garment.create({
       id: "g-1",
       name: "テストドレスA",
@@ -239,12 +248,12 @@ describe("CheckedOutSection", () => {
     await renderWithProviders(<CheckedOutSection />);
 
     const lostButton = await screen.findByRole("button", { name: /紛失$/ });
-    fireEvent.click(lostButton);
+    await user.click(lostButton);
 
     const cancelButton = await screen.findByRole("button", {
       name: "キャンセル",
     });
-    fireEvent.click(cancelButton);
+    await user.click(cancelButton);
 
     await waitFor(() => {
       expect(
