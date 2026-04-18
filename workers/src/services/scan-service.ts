@@ -1,4 +1,8 @@
-import { GARMENT_STATUS } from "@shared/lib/constants";
+import {
+  GARMENT_STATUS,
+  REVIEW_THRESHOLD_DEFAULT,
+} from "@shared/lib/constants";
+import { getConfidence } from "@shared/lib/confidence";
 import type { DrizzleDB } from "../db/client";
 import * as locationRepo from "../repositories/location-repository";
 import * as scanRepo from "../repositories/scan-repository";
@@ -49,7 +53,13 @@ export const checkout = async ({
   readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly garmentId: string;
-}): Promise<ServiceResult<{ readonly success: true }>> => {
+}): Promise<
+  ServiceResult<{
+    readonly success: true;
+    readonly sameLocationItemCount: number;
+    readonly uncertainItemCount: number;
+  }>
+> => {
   const existing = await scanRepo.findGarmentIdAndStatus({
     drizzleDb,
     userId,
@@ -59,8 +69,34 @@ export const checkout = async ({
     return serviceError("NOT_FOUND", "指定された服が見つかりません");
   }
 
+  const prevLocationId = existing.locationId;
+  const others =
+    prevLocationId === null
+      ? []
+      : await scanRepo.listStoredGarmentsAtLocationExcluding({
+          drizzleDb,
+          userId,
+          locationId: prevLocationId,
+          excludeGarmentId: garmentId,
+        });
+  const sameLocationItemCount = others.length;
+  const uncertainItemCount = others.filter(
+    (g) =>
+      getConfidence({
+        lastScannedAt: g.lastScannedAt,
+        confidenceDecayDays: g.confidenceDecayDays,
+        status: GARMENT_STATUS.STORED,
+        recentCheckoutCount: g.recentCheckoutCount,
+        confidenceDecayDaysOverride: g.confidenceDecayDaysOverride ?? undefined,
+      }) < REVIEW_THRESHOLD_DEFAULT,
+  ).length;
+
   await scanRepo.checkout({ drizzleDb, userId, garmentId });
-  return serviceOk({ success: true });
+  return serviceOk({
+    success: true,
+    sameLocationItemCount,
+    uncertainItemCount,
+  });
 };
 
 export const confirmAll = async ({

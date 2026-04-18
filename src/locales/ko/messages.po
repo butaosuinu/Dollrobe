@@ -106,6 +106,10 @@ msgstr "{needsReviewCount}벌 확인 필요"
 msgid "{size}件表示"
 msgstr "{size}건 표시"
 
+#: src/components/scan/CheckoutConfirmSheet.tsx
+msgid "{uncertainItemCount} 件が最後のスキャンから時間が経っています"
+msgstr "{uncertainItemCount}개 아이템이 마지막 스캔 이후 시간이 지났습니다"
+
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件 有効"
 msgstr "{validCount}건 유효"
@@ -420,6 +424,10 @@ msgstr "이 장소에 의류가 없습니다"
 msgid "この場所の全服を確認済みにする"
 msgstr "이 장소의 모든 옷을 확인 완료로 표시"
 
+#: src/components/scan/CheckoutConfirmSheet.tsx
+msgid "この引き出しの他の服、まだありますか？"
+msgstr "이 서랍의 다른 옷들, 아직 있나요?"
+
 #: src/app/garments/page.tsx
 #: src/components/dashboard/WardrobeAnalytics.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
@@ -446,6 +454,10 @@ msgstr "넣어뒀음"
 #: src/lib/i18n-labels.ts
 msgid "シューズ"
 msgstr "슈즈"
+
+#: src/components/scan/CheckoutConfirmSheet.tsx
+msgid "スキップ"
+msgstr "건너뛰기"
 
 #: src/app/scan/page.tsx
 #: src/lib/nav-items.ts
@@ -840,6 +852,7 @@ msgstr "먼저 수납 장소를 만들어 주세요"
 msgid "全ドール"
 msgstr "모든 인형"
 
+#: src/components/scan/CheckoutConfirmSheet.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "全部ある"
 msgstr "전부 있음"
