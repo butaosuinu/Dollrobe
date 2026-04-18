@@ -9,6 +9,7 @@ import { createId } from "@paralleldrive/cuid2";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import * as garmentRepo from "../repositories/garment-repository";
+import * as locationRepo from "../repositories/location-repository";
 import * as digestRepo from "../repositories/digest-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
@@ -28,17 +29,33 @@ export const generateDigestForUser = async ({
     logger,
   });
 
+  const locations = await locationRepo.findLocationsByUserId({
+    drizzleDb,
+    userId,
+  });
+  const visitedAtByLocationId = new Map(
+    locations.map((l) => [l.id, l.lastVisitedAt]),
+  );
+  const getGarmentConfidence = (g: (typeof garments)[number]): number =>
+    getConfidence({
+      ...g,
+      lastLocationVisitedAt:
+        g.locationId !== undefined
+          ? visitedAtByLocationId.get(g.locationId)
+          : undefined,
+    });
+
   const unknownItems: readonly DigestUnknownItem[] = garments
     .filter((g) => {
       if (g.status !== GARMENT_STATUS.STORED) {
         return false;
       }
-      return getConfidence(g) < CONFIDENCE_THRESHOLD.UNCERTAIN;
+      return getGarmentConfidence(g) < CONFIDENCE_THRESHOLD.UNCERTAIN;
     })
     .map((g) => ({
       garmentId: g.id,
       garmentName: g.name,
-      confidence: getConfidence(g),
+      confidence: getGarmentConfidence(g),
     }));
 
   const orphanedGarments = getOrphanedCheckouts(

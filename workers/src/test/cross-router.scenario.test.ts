@@ -131,6 +131,7 @@ describe("ルーター横断シナリオ", () => {
     });
 
     await caller.scan.confirmPartial({
+      locationId,
       confirmations: [
         { garmentId: garment1.id, confirmed: true },
         { garmentId: garment2.id, confirmed: false },

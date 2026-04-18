@@ -16,6 +16,7 @@ type Props = {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly itemsNeedingReview: readonly Garment[];
+  readonly lastLocationVisitedAt?: number;
   readonly onConfirmAll: () => void;
   readonly onConfirmPartial: (
     confirmations: readonly ScanConfirmation[],
@@ -26,6 +27,7 @@ const OpportunisticReviewDialog = ({
   isOpen,
   onClose,
   itemsNeedingReview,
+  lastLocationVisitedAt,
   onConfirmAll,
   onConfirmPartial,
 }: Props) => {
@@ -73,6 +75,7 @@ const OpportunisticReviewDialog = ({
                 key={garment.id}
                 garment={garment}
                 mode="overview"
+                lastLocationVisitedAt={lastLocationVisitedAt}
               />
             ))}
           </div>
@@ -98,6 +101,7 @@ const OpportunisticReviewDialog = ({
                 key={garment.id}
                 garment={garment}
                 mode="individual"
+                lastLocationVisitedAt={lastLocationVisitedAt}
                 isConfirmed={confirmationMap.get(garment.id) ?? true}
                 onToggle={handleToggle}
               />
