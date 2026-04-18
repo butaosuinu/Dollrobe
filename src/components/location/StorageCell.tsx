@@ -13,13 +13,16 @@ type Props = {
 
 const getWorstConfidence = (
   garments: readonly Garment[],
+  lastLocationVisitedAt: number | undefined,
 ): "confirmed" | "uncertain" | "unknown" | "empty" => {
   if (garments.length === 0) return "empty";
 
   const stored = garments.filter((g) => g.status === GARMENT_STATUS.STORED);
   if (stored.length === 0) return "empty";
 
-  const worstConfidence = Math.min(...stored.map((g) => getConfidence(g)));
+  const worstConfidence = Math.min(
+    ...stored.map((g) => getConfidence({ ...g, lastLocationVisitedAt })),
+  );
   return getConfidenceLabel(worstConfidence);
 };
 
@@ -31,7 +34,7 @@ const CELL_BG = {
 } as const;
 
 const StorageCell = ({ location, garments, onClick, isSelected }: Props) => {
-  const status = getWorstConfidence(garments);
+  const status = getWorstConfidence(garments, location.lastVisitedAt);
   const displayName = location.customName ?? location.label;
 
   return (

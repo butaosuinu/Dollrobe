@@ -78,6 +78,7 @@ export type StorageLocation = {
   readonly description: string | undefined;
   readonly row: number;
   readonly col: number;
+  readonly lastVisitedAt: number | undefined;
   readonly createdAt: number;
 };
 

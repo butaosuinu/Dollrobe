@@ -51,6 +51,10 @@ export const confirmAllGarmentsAtom = atom(
     await getDb().garments.bulkPut(
       storedGarments.map((g) => ({ ...g, lastScannedAt: now, updatedAt: now })),
     );
+    await getDb()
+      .storageLocations.where("id")
+      .equals(locationId)
+      .modify({ lastVisitedAt: now });
     await getDb().syncQueue.bulkAdd(
       storedGarments.map((g) => ({
         type: SYNC_ACTION_TYPE.GARMENT_UPDATE,

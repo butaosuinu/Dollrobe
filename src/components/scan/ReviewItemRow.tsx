@@ -12,12 +12,19 @@ type ReviewMode = "overview" | "individual";
 type Props = {
   readonly garment: Garment;
   readonly mode: ReviewMode;
+  readonly lastLocationVisitedAt?: number;
   readonly isConfirmed?: boolean;
   readonly onToggle?: (garmentId: string, confirmed: boolean) => void;
 };
 
-const ReviewItemRow = ({ garment, mode, isConfirmed, onToggle }: Props) => {
-  const confidence = getConfidence(garment);
+const ReviewItemRow = ({
+  garment,
+  mode,
+  lastLocationVisitedAt,
+  isConfirmed,
+  onToggle,
+}: Props) => {
+  const confidence = getConfidence({ ...garment, lastLocationVisitedAt });
   const label = getConfidenceLabel(confidence);
 
   return (

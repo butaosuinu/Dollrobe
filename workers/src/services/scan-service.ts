@@ -1,5 +1,6 @@
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { DrizzleDB } from "../db/client";
+import * as locationRepo from "../repositories/location-repository";
 import * as scanRepo from "../repositories/scan-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
@@ -29,6 +30,13 @@ export const checkin = async ({
       `${String(garmentIds.length - totalChanges)}件の服が見つかりませんでした`,
     );
   }
+
+  await locationRepo.updateLastVisitedAt({
+    drizzleDb,
+    id: locationId,
+    userId,
+    visitedAt: Date.now(),
+  });
 
   return serviceOk({ success: true, checkedInCount: totalChanges });
 };
@@ -70,6 +78,12 @@ export const confirmAll = async ({
     drizzleDb,
     userId,
     locationId,
+  });
+  await locationRepo.updateLastVisitedAt({
+    drizzleDb,
+    id: locationId,
+    userId,
+    visitedAt: Date.now(),
   });
   return serviceOk({ success: true, confirmedCount });
 };
