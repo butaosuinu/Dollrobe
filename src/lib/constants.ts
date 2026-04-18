@@ -42,8 +42,6 @@ export const CHECKOUT_ACTIVITY_THRESHOLD = Object.freeze({
   LOW: 1,
 } as const);
 
-export const RECENT_CHECKOUT_WINDOW_DAYS = 90;
-
 export const ORPHAN_CHECKOUT_THRESHOLD_DAYS = 3;
 
 export const MS_PER_DAY = 86_400_000;
