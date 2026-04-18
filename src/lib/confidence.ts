@@ -4,6 +4,8 @@ import {
   CONFIDENCE_THRESHOLD,
   DECAY_DAYS_BY_ACTIVITY,
   GARMENT_STATUS,
+  LOCATION_VISIT_BOOST_MAX,
+  LOCATION_VISIT_DECAY_DAYS,
   MS_PER_DAY,
   ORPHAN_CHECKOUT_THRESHOLD_DAYS,
 } from "@/lib/constants";
@@ -46,14 +48,32 @@ const resolveDecayDays = (input: ConfidenceInput): number =>
         confidenceDecayDaysOverride: input.confidenceDecayDaysOverride,
       });
 
+const getVisitBoost = (
+  lastScannedAt: number,
+  lastLocationVisitedAt: number | undefined,
+): number =>
+  lastLocationVisitedAt === undefined || lastLocationVisitedAt <= lastScannedAt
+    ? 0
+    : Math.max(
+        0,
+        LOCATION_VISIT_BOOST_MAX *
+          (1 -
+            (Date.now() - lastLocationVisitedAt) /
+              MS_PER_DAY /
+              LOCATION_VISIT_DECAY_DAYS),
+      );
+
 export const getConfidence = (input: ConfidenceInput): number =>
   input.status === GARMENT_STATUS.STORED
-    ? Math.max(
-        0,
-        1 -
-          (Date.now() - input.lastScannedAt) /
-            MS_PER_DAY /
-            resolveDecayDays(input),
+    ? Math.min(
+        1,
+        Math.max(
+          0,
+          1 -
+            (Date.now() - input.lastScannedAt) /
+              MS_PER_DAY /
+              resolveDecayDays(input),
+        ) + getVisitBoost(input.lastScannedAt, input.lastLocationVisitedAt),
       )
     : 0;
 
@@ -69,12 +89,14 @@ export const getItemsNeedingReview = <
 >(
   garments: readonly T[],
   locationId: string,
+  lastLocationVisitedAt?: number,
 ): readonly T[] =>
   garments.filter(
     (g) =>
       g.locationId === locationId &&
       g.status === GARMENT_STATUS.STORED &&
-      getConfidence(g) < CONFIDENCE_THRESHOLD.CONFIRMED,
+      getConfidence({ ...g, lastLocationVisitedAt }) <
+        CONFIDENCE_THRESHOLD.CONFIRMED,
   );
 
 export const getElapsedDays = (lastScannedAt: number): number =>

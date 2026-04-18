@@ -10,6 +10,7 @@ import { msg, t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { activeGarmentsAtom, garmentsAtom } from "@/stores/garmentAtoms";
 import { dollsAtom, selectedDollIdAtom } from "@/stores/dollAtoms";
+import { storageLocationsAtom } from "@/stores/locationAtoms";
 import { pendingArchivesAtom } from "@/stores/pendingArchiveAtoms";
 import { canDollWear } from "@/lib/doll-compatibility";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
@@ -53,14 +54,26 @@ const CATEGORY_FILTERS = [
   })),
 ];
 
-const GARMENT_COMPARATORS = Object.freeze({
-  newest: (a: Garment, b: Garment) => b.createdAt - a.createdAt,
-  oldest: (a: Garment, b: Garment) => a.createdAt - b.createdAt,
-  confidence_asc: (a: Garment, b: Garment) =>
-    getConfidence(a) - getConfidence(b),
-  confidence_desc: (a: Garment, b: Garment) =>
-    getConfidence(b) - getConfidence(a),
-} satisfies Record<SortOptionValue, (a: Garment, b: Garment) => number>);
+type GarmentComparator = (a: Garment, b: Garment) => number;
+
+const buildGarmentComparators = (
+  visitedAtById: ReadonlyMap<string, number | undefined>,
+): Record<SortOptionValue, GarmentComparator> => {
+  const confidenceOf = (g: Garment) =>
+    getConfidence({
+      ...g,
+      lastLocationVisitedAt:
+        g.locationId !== undefined
+          ? visitedAtById.get(g.locationId)
+          : undefined,
+    });
+  return {
+    newest: (a, b) => b.createdAt - a.createdAt,
+    oldest: (a, b) => a.createdAt - b.createdAt,
+    confidence_asc: (a, b) => confidenceOf(a) - confidenceOf(b),
+    confidence_desc: (a, b) => confidenceOf(b) - confidenceOf(a),
+  };
+};
 
 type FilterPanelProps = {
   readonly isOpen: boolean;
@@ -143,6 +156,7 @@ const matchesGarmentFilter = ({
   confidenceFilter,
   dollSizeFilter,
   selectedDoll,
+  visitedAtById,
 }: {
   readonly garment: Garment;
   readonly query: string;
@@ -152,15 +166,21 @@ const matchesGarmentFilter = ({
   readonly selectedDoll:
     | { readonly bodySize: Garment["dollSizes"][number] }
     | undefined;
+  readonly visitedAtById: ReadonlyMap<string, number | undefined>;
 }): boolean => {
   const matchesCategory =
     activeCategory === "all" || garment.category === activeCategory;
   const nameMatches = garment.name.toLowerCase().includes(query);
   const tagMatches = garment.tags.some((t) => t.toLowerCase().includes(query));
   const matchesSearch = [query === "", nameMatches, tagMatches].some(Boolean);
+  const lastLocationVisitedAt =
+    garment.locationId !== undefined
+      ? visitedAtById.get(garment.locationId)
+      : undefined;
   const matchesConfidence =
     confidenceFilter === "all" ||
-    getConfidenceLabel(getConfidence(garment)) === confidenceFilter;
+    getConfidenceLabel(getConfidence({ ...garment, lastLocationVisitedAt })) ===
+      confidenceFilter;
   const matchesDollSize =
     dollSizeFilter === "all" || garment.dollSizes.includes(dollSizeFilter);
   const matchesDoll =
@@ -184,8 +204,17 @@ const GarmentListContent = () => {
   const allGarments = useAtomValue(garmentsAtom);
   const activeGarments = useAtomValue(activeGarmentsAtom);
   const dolls = useAtomValue(dollsAtom);
+  const locations = useAtomValue(storageLocationsAtom);
   const pendingArchives = useAtomValue(pendingArchivesAtom);
   const [selectedDollId, setSelectedDollId] = useAtom(selectedDollIdAtom);
+  const visitedAtById = useMemo(
+    () => new Map(locations.map((l) => [l.id, l.lastVisitedAt])),
+    [locations],
+  );
+  const comparators = useMemo(
+    () => buildGarmentComparators(visitedAtById),
+    [visitedAtById],
+  );
 
   const garments = useMemo(() => {
     const pendingGarmentIds = new Set(
@@ -229,10 +258,11 @@ const GarmentListContent = () => {
         confidenceFilter,
         dollSizeFilter,
         selectedDoll,
+        visitedAtById,
       }),
     );
 
-    return [...filtered].sort(GARMENT_COMPARATORS[sortOption]);
+    return [...filtered].sort(comparators[sortOption]);
   }, [
     garments,
     searchQuery,
@@ -241,6 +271,8 @@ const GarmentListContent = () => {
     dollSizeFilter,
     sortOption,
     selectedDoll,
+    visitedAtById,
+    comparators,
   ]);
 
   const {

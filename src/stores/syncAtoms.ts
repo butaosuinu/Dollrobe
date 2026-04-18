@@ -201,6 +201,7 @@ const pullServerState = async (): Promise<SyncResult> => {
       description: l.description ?? undefined,
       row: l.row,
       col: l.col,
+      lastVisitedAt: l.lastVisitedAt ?? undefined,
       createdAt: l.createdAt,
     }));
 

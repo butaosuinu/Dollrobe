@@ -98,6 +98,88 @@ describe("getConfidence", () => {
     });
     expect(getConfidence(garment)).toBeCloseTo(1 - 7 / 60, 2);
   });
+
+  describe("場所訪問ブースト", () => {
+    it("lastLocationVisitedAtがundefinedのとき従来と同じ結果を返す", () => {
+      const garment = createGarment({
+        lastScannedAt: Date.now() - 15 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
+      });
+      expect(getConfidence(garment)).toBeCloseTo(0.5, 1);
+    });
+
+    it("訪問が新しくかつ減衰期間内ならブーストが適用される", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
+      });
+      expect(
+        getConfidence({ ...garment, lastLocationVisitedAt: now }),
+      ).toBeCloseTo(0.75, 2);
+    });
+
+    it("訪問が3.5日前（減衰半ば）ならブースト0.125が加算される", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
+      });
+      expect(
+        getConfidence({
+          ...garment,
+          lastLocationVisitedAt: now - 3.5 * MS_PER_DAY,
+        }),
+      ).toBeCloseTo(0.625, 2);
+    });
+
+    it("訪問が7日より古ければブーストは0", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
+      });
+      expect(
+        getConfidence({
+          ...garment,
+          lastLocationVisitedAt: now - 8 * MS_PER_DAY,
+        }),
+      ).toBeCloseTo(0.5, 1);
+    });
+
+    it("ブーストを加算しても1.0を超えない", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 3 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
+      });
+      expect(getConfidence({ ...garment, lastLocationVisitedAt: now })).toBe(1);
+    });
+
+    it("訪問がスキャンと同じ時刻ならブースト0（<=判定）", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
+      });
+      expect(
+        getConfidence({
+          ...garment,
+          lastLocationVisitedAt: now - 15 * MS_PER_DAY,
+        }),
+      ).toBeCloseTo(0.5, 1);
+    });
+
+    it("checked_outステータスではブーストも無効", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        status: "checked_out",
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
+      });
+      expect(getConfidence({ ...garment, lastLocationVisitedAt: now })).toBe(0);
+    });
+  });
 });
 
 describe("estimateDecayDays", () => {

@@ -91,6 +91,7 @@ const buildLocations = ({
           description: undefined,
           row: 0,
           col: 0,
+          lastVisitedAt: undefined,
           createdAt: now,
         },
       ]
@@ -106,6 +107,7 @@ const buildLocations = ({
           description: undefined,
           row,
           col,
+          lastVisitedAt: undefined,
           createdAt: now,
         };
       });

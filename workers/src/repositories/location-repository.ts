@@ -35,6 +35,7 @@ const toStorageLocation = (
   description: row.description ?? undefined,
   row: row.row,
   col: row.col,
+  lastVisitedAt: row.lastVisitedAt ?? undefined,
   createdAt: row.createdAt,
 });
 
@@ -348,6 +349,25 @@ export const updateLocation = async ({
       customName: customName ?? null,
       description: description ?? null,
     })
+    .where(
+      and(eq(storageLocations.id, id), eq(storageLocations.userId, userId)),
+    );
+};
+
+export const updateLastVisitedAt = async ({
+  drizzleDb,
+  id,
+  userId,
+  visitedAt,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly id: string;
+  readonly userId: string;
+  readonly visitedAt: number;
+}): Promise<void> => {
+  await drizzleDb
+    .update(storageLocations)
+    .set({ lastVisitedAt: visitedAt })
     .where(
       and(eq(storageLocations.id, id), eq(storageLocations.userId, userId)),
     );

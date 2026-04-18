@@ -74,6 +74,7 @@ export const createStorageLocation = (
   description: undefined,
   row: 0,
   col: 0,
+  lastVisitedAt: undefined,
   createdAt: FIXED_NOW,
   ...overrides,
 });

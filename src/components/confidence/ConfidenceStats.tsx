@@ -3,9 +3,11 @@
 import { msg } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
+import { useAtomValue } from "jotai";
 import Card from "@/components/ui/Card";
 import type { Garment } from "@/types";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
+import { storageLocationsAtom } from "@/stores/locationAtoms";
 
 type Props = {
   readonly garments: readonly Garment[];
@@ -13,10 +15,18 @@ type Props = {
 
 const ConfidenceStats = ({ garments }: Props) => {
   const { i18n } = useLingui();
+  const locations = useAtomValue(storageLocationsAtom);
+  const visitedAtById = new Map(locations.map((l) => [l.id, l.lastVisitedAt]));
   const stored = garments.filter((g) => g.status === "stored");
   const counts = stored.reduce(
     (acc, g) => {
-      const label = getConfidenceLabel(getConfidence(g));
+      const lastLocationVisitedAt =
+        g.locationId !== undefined
+          ? visitedAtById.get(g.locationId)
+          : undefined;
+      const label = getConfidenceLabel(
+        getConfidence({ ...g, lastLocationVisitedAt }),
+      );
       return { ...acc, [label]: acc[label] + 1 };
     },
     { confirmed: 0, uncertain: 0, unknown: 0 },

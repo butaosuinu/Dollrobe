@@ -56,20 +56,18 @@ msgstr "{0} items"
 msgid "{0}着が取り出されたままのようです"
 msgstr "{0} garments seem to still be checked out"
 
-#. placeholder {0}: orphaned.length
 #: src/components/dashboard/AlertPanel.tsx
-msgid "{0}着の服が3日以上取り出し中です"
-msgstr "{0} garments have been checked out for over 3 days"
+#~ msgid "{0}着の服が3日以上取り出し中です"
+#~ msgstr "{0} garments have been checked out for over 3 days"
 
 #. placeholder {0}: compatible.length
 #: src/components/doll/CompatibleGarmentList.tsx
 msgid "{0}着の服が着用可能"
 msgstr "{0} garments can be worn"
 
-#. placeholder {0}: checkedOut.length
 #: src/components/dashboard/AlertPanel.tsx
-msgid "{0}着の服を取り出し中"
-msgstr "{0} garments checked out"
+#~ msgid "{0}着の服を取り出し中"
+#~ msgstr "{0} garments checked out"
 
 #. placeholder {0}: scannedIds.length
 #: src/components/scan/ScanSessionPanel.tsx
@@ -91,7 +89,7 @@ msgstr "{displayStart}-{displayEnd} / {totalCount} items"
 #~ msgid "{displayStart}-{endIndex} / {totalCount}件"
 #~ msgstr "{displayStart}-{endIndex} / {totalCount} items"
 
-#: src/components/scan/OrphanCheckoutDialog.tsx
+#: src/components/dashboard/CheckedOutSection.tsx
 msgid "{elapsedDays}日前から取り出し中"
 msgstr "Checked out {elapsedDays} days ago"
 
@@ -134,6 +132,11 @@ msgstr "Delete \"{0}\"? Garments in this case will be marked as \"checked out\".
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」を完全に削除しますか？この操作は取り消せません。"
 msgstr "Permanently delete \"{0}\"? This action cannot be undone."
+
+#. placeholder {0}: lostTarget.name
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
+msgstr "Mark \"{0}\" as lost. Its location information will be cleared."
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -226,8 +229,8 @@ msgid "QR ラベル印刷"
 msgstr "QR Label Print"
 
 #: src/components/dashboard/AlertPanel.tsx
-msgid "QRスキャンで戻す場所を記録できます"
-msgstr "You can record the return location with a QR scan"
+#~ msgid "QRスキャンで戻す場所を記録できます"
+#~ msgstr "You can record the return location with a QR scan"
 
 #: src/components/garment/GarmentDetail.tsx
 msgid "QRを印刷"
@@ -436,7 +439,7 @@ msgstr "Cyan"
 msgid "しばらく確認していない服が{0}着あります"
 msgstr "{0} garments have not been checked in a while"
 
-#: src/components/scan/OrphanCheckoutDialog.tsx
+#: src/components/dashboard/CheckedOutSection.tsx
 msgid "しまった"
 msgstr "Put away"
 
@@ -591,8 +594,8 @@ msgid "ない"
 msgstr "Missing"
 
 #: src/components/scan/OrphanCheckoutDialog.tsx
-msgid "なくした"
-msgstr "Lost"
+#~ msgid "なくした"
+#~ msgstr "Lost"
 
 #: src/lib/i18n-labels.ts
 msgid "ピンク"
@@ -674,8 +677,8 @@ msgid "まだレポートがありません"
 msgstr "No reports yet"
 
 #: src/components/scan/OrphanCheckoutDialog.tsx
-msgid "まだ使用中"
-msgstr "Still in use"
+#~ msgid "まだ使用中"
+#~ msgstr "Still in use"
 
 #: src/app/locations/page.tsx
 msgid "まだ収納場所がありません"
@@ -781,6 +784,10 @@ msgstr "Sort"
 #: src/components/location/StorageCaseForm.tsx
 msgid "作成"
 msgstr "Create"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "使用中"
+msgstr "In use"
 
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "例: ワンピース用"
@@ -904,8 +911,8 @@ msgid "収納場所がありません"
 msgstr "No storage locations"
 
 #: src/components/dashboard/AlertPanel.tsx
-msgid "収納場所を確認して状態を更新しましょう"
-msgstr "Check storage and update status"
+#~ msgid "収納場所を確認して状態を更新しましょう"
+#~ msgstr "Check storage and update status"
 
 #: src/components/garment/LocationPicker.tsx
 msgid "収納場所を選択"
@@ -915,6 +922,10 @@ msgstr "Select storage location"
 #: src/lib/i18n-labels.ts
 msgid "取り出し中"
 msgstr "Checked out"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "取り出し中の服"
+msgstr "Checked-out garments"
 
 #: src/stores/pendingArchiveAtoms.ts
 msgid "取り消す"
@@ -1160,17 +1171,26 @@ msgid "確定する"
 msgstr "Confirm"
 
 #: src/components/dashboard/AlertPanel.tsx
-msgid "確認"
-msgstr "Check"
+#~ msgid "確認"
+#~ msgstr "Check"
 
 #. placeholder {0}: digest.totalGarments
 #: src/components/digest/DigestCard.tsx
 msgid "管理中の服: {0}着"
 msgstr "Managed garments: {0}"
 
+#: src/components/dashboard/CheckedOutSection.tsx
 #: src/lib/i18n-labels.ts
 msgid "紛失"
 msgstr "Lost"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "紛失として記録"
+msgstr "Mark as lost"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "紛失として記録しますか？"
+msgstr "Mark as lost?"
 
 #: src/lib/i18n-labels.ts
 msgid "紫"

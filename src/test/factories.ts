@@ -70,6 +70,7 @@ export const createTestStorageLocation = (
   description: undefined,
   row: 0,
   col: 0,
+  lastVisitedAt: undefined,
   createdAt: FIXED_NOW,
   ...overrides,
 });

@@ -4,9 +4,8 @@ import { Suspense } from "react";
 import { Trans } from "@lingui/react/macro";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import StatsOverview from "@/components/dashboard/StatsOverview";
-import AlertPanel from "@/components/dashboard/AlertPanel";
+import CheckedOutSection from "@/components/dashboard/CheckedOutSection";
 import RecentItems from "@/components/dashboard/RecentItems";
-import OrphanCheckoutDialog from "@/components/scan/OrphanCheckoutDialog";
 import DigestBanner from "@/components/digest/DigestBanner";
 import WardrobeAnalytics from "@/components/dashboard/WardrobeAnalytics";
 import Skeleton from "@/components/ui/Skeleton";
@@ -39,25 +38,23 @@ const DashboardPage = () => (
       </Suspense>
     </ErrorBoundary>
 
-    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[2fr_1fr] lg:items-start lg:gap-8">
-      <ErrorBoundary
-        fallback={
-          <p className="text-sm text-danger">
-            <Trans>読み込みに失敗しました</Trans>
-          </p>
-        }
-      >
-        <Suspense fallback={<StatsLoading />}>
-          <StatsOverview />
-        </Suspense>
-      </ErrorBoundary>
+    <ErrorBoundary
+      fallback={
+        <p className="text-sm text-danger">
+          <Trans>読み込みに失敗しました</Trans>
+        </p>
+      }
+    >
+      <Suspense fallback={<StatsLoading />}>
+        <StatsOverview />
+      </Suspense>
+    </ErrorBoundary>
 
-      <ErrorBoundary fallback={<></>}>
-        <Suspense fallback={<Skeleton className="h-20 rounded-xl" />}>
-          <AlertPanel />
-        </Suspense>
-      </ErrorBoundary>
-    </div>
+    <ErrorBoundary fallback={<></>}>
+      <Suspense fallback={<Skeleton className="h-32 rounded-xl" />}>
+        <CheckedOutSection />
+      </Suspense>
+    </ErrorBoundary>
 
     <ErrorBoundary fallback={<></>}>
       <Suspense fallback={<Skeleton className="h-48 rounded-xl" />}>
@@ -68,12 +65,6 @@ const DashboardPage = () => (
     <ErrorBoundary fallback={<></>}>
       <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
         <WardrobeAnalytics />
-      </Suspense>
-    </ErrorBoundary>
-
-    <ErrorBoundary fallback={<></>}>
-      <Suspense>
-        <OrphanCheckoutDialog />
       </Suspense>
     </ErrorBoundary>
   </div>

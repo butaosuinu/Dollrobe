@@ -58,6 +58,7 @@ const toStorageLocation = (
   description: undefined,
   row: raw.row,
   col: raw.col,
+  lastVisitedAt: undefined,
   createdAt: raw.createdAt,
 });
 

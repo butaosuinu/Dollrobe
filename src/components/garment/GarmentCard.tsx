@@ -5,8 +5,10 @@ import { Shirt } from "lucide-react";
 import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
+import { useAtomValue } from "jotai";
 import type { Garment } from "@/types";
 import { GARMENT_CATEGORY_LABEL, DOLL_SIZE_LABEL } from "@/lib/i18n-labels";
+import { storageLocationsAtom } from "@/stores/locationAtoms";
 import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
 import Card from "@/components/ui/Card";
 
@@ -16,6 +18,11 @@ type Props = {
 
 const GarmentCard = ({ garment }: Props) => {
   const { i18n } = useLingui();
+  const locations = useAtomValue(storageLocationsAtom);
+  const lastLocationVisitedAt =
+    garment.locationId !== undefined
+      ? locations.find((l) => l.id === garment.locationId)?.lastVisitedAt
+      : undefined;
   const isCheckedOut = garment.status === "checked_out";
 
   return (
@@ -57,7 +64,11 @@ const GarmentCard = ({ garment }: Props) => {
           </p>
         )}
         <div className="mt-2">
-          <ConfidenceIndicator garment={garment} compact />
+          <ConfidenceIndicator
+            garment={garment}
+            lastLocationVisitedAt={lastLocationVisitedAt}
+            compact
+          />
         </div>
       </Card>
     </Link>
