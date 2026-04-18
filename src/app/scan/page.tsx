@@ -127,7 +127,8 @@ const ScanPage = () => {
   const handleReviewConfirmPartial = async (
     confirmations: readonly ScanConfirmation[],
   ) => {
-    await confirmPartial(confirmations);
+    if (activeLocationId === undefined) return;
+    await confirmPartial({ locationId: activeLocationId, confirmations });
     setReviewDialogOpen(false);
   };
 

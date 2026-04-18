@@ -4,8 +4,10 @@ import Link from "next/link";
 import { Shirt } from "lucide-react";
 import clsx from "clsx";
 import { useLingui } from "@lingui/react";
+import { useAtomValue } from "jotai";
 import type { Garment } from "@/types";
 import { GARMENT_CATEGORY_LABEL, DOLL_SIZE_LABEL } from "@/lib/i18n-labels";
+import { storageLocationsAtom } from "@/stores/locationAtoms";
 import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
 
 type Props = {
@@ -14,6 +16,8 @@ type Props = {
 
 const GarmentList = ({ garments }: Props) => {
   const { i18n } = useLingui();
+  const locations = useAtomValue(storageLocationsAtom);
+  const visitedAtById = new Map(locations.map((l) => [l.id, l.lastVisitedAt]));
 
   return (
     <div className="flex flex-col gap-2">
@@ -53,7 +57,15 @@ const GarmentList = ({ garments }: Props) => {
                 {garment.brand !== undefined && ` ・ ${garment.brand}`}
               </p>
             </div>
-            <ConfidenceIndicator garment={garment} compact />
+            <ConfidenceIndicator
+              garment={garment}
+              lastLocationVisitedAt={
+                garment.locationId !== undefined
+                  ? visitedAtById.get(garment.locationId)
+                  : undefined
+              }
+              compact
+            />
           </div>
         </Link>
       ))}

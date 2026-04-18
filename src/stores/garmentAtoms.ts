@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db/dexie";
 import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { Garment, ScanConfirmation } from "@/types";
 import { createEntityAtoms, createRestoreAtom } from "./createEntityAtoms";
+import { refreshStorageLocationsAtom } from "./locationAtoms";
 
 const {
   dataAtom: garmentsAtom,
@@ -63,12 +64,21 @@ export const confirmAllGarmentsAtom = atom(
       })),
     );
     set(refreshGarmentsAtom);
+    set(refreshStorageLocationsAtom);
   },
 );
 
 export const confirmPartialGarmentsAtom = atom(
   undefined,
-  async (_get, _set, confirmations: readonly ScanConfirmation[]) => {
+  async (
+    _get,
+    set,
+    input: {
+      readonly locationId: string;
+      readonly confirmations: readonly ScanConfirmation[];
+    },
+  ) => {
+    const { locationId, confirmations } = input;
     const now = Date.now();
     const confirmedIds = confirmations
       .filter((c) => c.confirmed)
@@ -124,5 +134,12 @@ export const confirmPartialGarmentsAtom = atom(
         createdAt: now,
       })),
     );
+
+    await getDb()
+      .storageLocations.where("id")
+      .equals(locationId)
+      .modify({ lastVisitedAt: now });
+    set(refreshGarmentsAtom);
+    set(refreshStorageLocationsAtom);
   },
 );

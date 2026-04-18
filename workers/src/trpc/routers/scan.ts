@@ -56,6 +56,7 @@ export const scanRouter = router({
         await scanService.confirmPartial({
           drizzleDb: createDrizzle(ctx.env.DB),
           userId: TEMP_USER_ID,
+          locationId: input.locationId,
           confirmations: input.confirmations,
         }),
       ),

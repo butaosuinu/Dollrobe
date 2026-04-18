@@ -96,10 +96,12 @@ type Confirmation = {
 export const confirmPartial = async ({
   drizzleDb,
   userId,
+  locationId,
   confirmations,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly userId: string;
+  readonly locationId: string;
   readonly confirmations: readonly Confirmation[];
 }): Promise<
   ServiceResult<{
@@ -109,6 +111,12 @@ export const confirmPartial = async ({
   }>
 > => {
   await scanRepo.batchConfirmPartial({ drizzleDb, userId, confirmations });
+  await locationRepo.updateLastVisitedAt({
+    drizzleDb,
+    id: locationId,
+    userId,
+    visitedAt: Date.now(),
+  });
 
   const confirmedCount = confirmations.filter((c) => c.confirmed).length;
   const deniedCount = confirmations.length - confirmedCount;
