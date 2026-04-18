@@ -144,6 +144,8 @@ const registerSingleItem = async ({
     description: undefined,
     setContents: undefined,
     confidenceDecayDays: metadata.confidenceDecayDays,
+    confidenceDecayDaysOverride: undefined,
+    recentCheckoutCount: 0,
     imageUrl,
     locationId: undefined,
     status: GARMENT_STATUS.CHECKED_OUT,

@@ -216,6 +216,8 @@ const GarmentForm = ({ garment }: Props) => {
         locationId: undefined,
         status: GARMENT_STATUS.STORED,
         lastScannedAt: now,
+        confidenceDecayDaysOverride: undefined,
+        recentCheckoutCount: 0,
         checkedOutAt: undefined,
         archivedAt: undefined,
         createdAt: now,

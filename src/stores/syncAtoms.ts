@@ -113,6 +113,8 @@ const toClientGarment = (g: {
   readonly status: Garment["status"];
   readonly lastScannedAt: number;
   readonly confidenceDecayDays: number;
+  readonly confidenceDecayDaysOverride?: number | null;
+  readonly recentCheckoutCount: number;
   readonly brand?: string | null;
   readonly description?: string | null;
   readonly setContents?: string | null;
@@ -133,6 +135,8 @@ const toClientGarment = (g: {
   status: g.status,
   lastScannedAt: g.lastScannedAt,
   confidenceDecayDays: g.confidenceDecayDays,
+  confidenceDecayDaysOverride: g.confidenceDecayDaysOverride ?? undefined,
+  recentCheckoutCount: g.recentCheckoutCount,
   brand: g.brand ?? undefined,
   description: g.description ?? undefined,
   setContents: g.setContents ?? undefined,

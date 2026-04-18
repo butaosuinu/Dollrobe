@@ -134,6 +134,30 @@ describe("scanRouter", () => {
         caller.scan.checkout({ garmentId: "nonexistent" }),
       ).rejects.toMatchObject({ code: "NOT_FOUND" });
     });
+
+    it("チェックアウト時に recentCheckoutCount がインクリメントされる", async () => {
+      const { id: garmentId } = await insertGarment({
+        db,
+        overrides: { status: "stored", recentCheckoutCount: 2 },
+      });
+
+      await caller.scan.checkout({ garmentId });
+
+      const garment = await caller.garment.get({ id: garmentId });
+      expect(garment.recentCheckoutCount).toBe(3);
+    });
+
+    it("初回チェックアウト時 0 → 1 になる", async () => {
+      const { id: garmentId } = await insertGarment({
+        db,
+        overrides: { status: "stored" },
+      });
+
+      await caller.scan.checkout({ garmentId });
+
+      const garment = await caller.garment.get({ id: garmentId });
+      expect(garment.recentCheckoutCount).toBe(1);
+    });
   });
 
   describe("confirmAll", () => {
