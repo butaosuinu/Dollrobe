@@ -5,7 +5,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import type { ScanConfirmation } from "@/types";
+import type { ScanConfirmation, StorageLocation } from "@/types";
 import {
   activeLocationIdAtom,
   scannedGarmentIdsAtom,
@@ -18,8 +18,12 @@ import {
   confirmPartialGarmentsAtom,
 } from "@/stores/garmentAtoms";
 import { storageLocationsAtom } from "@/stores/locationAtoms";
-import { QR_SCHEME } from "@/lib/constants";
-import { getItemsNeedingReview } from "@/lib/confidence";
+import { QR_SCHEME, REVIEW_THRESHOLD_DEFAULT } from "@/lib/constants";
+import {
+  getItemsNeedingReview,
+  getLocationStabilityScore,
+  getReviewThreshold,
+} from "@/lib/confidence";
 import { useNfcReader } from "@/hooks/useNfcReader";
 import { useNfcSupported } from "@/hooks/useNfcSupported";
 import QrScanner from "@/components/scan/QrScanner";
@@ -28,6 +32,16 @@ import ScanSessionPanel from "@/components/scan/ScanSessionPanel";
 import NfcCapabilityBadge from "@/components/scan/NfcCapabilityBadge";
 import NfcReader from "@/components/scan/NfcReader";
 import OpportunisticReviewDialog from "@/components/scan/OpportunisticReviewDialog";
+
+const getThresholdForLocation = (loc: StorageLocation | undefined): number =>
+  loc === undefined
+    ? REVIEW_THRESHOLD_DEFAULT
+    : getReviewThreshold(
+        getLocationStabilityScore({
+          confirmAllCount: loc.confirmAllCount,
+          correctionCount: loc.correctionCount,
+        }),
+      );
 
 const ScanPage = () => {
   const { i18n } = useLingui();
@@ -63,11 +77,10 @@ const ScanPage = () => {
           subtitle: i18n._(msg`場所を設定しました`),
         });
 
-        const needsReview = getItemsNeedingReview(
-          garments,
-          locationId,
-          loc?.lastVisitedAt,
-        );
+        const needsReview = getItemsNeedingReview(garments, locationId, {
+          threshold: getThresholdForLocation(loc),
+          lastLocationVisitedAt: loc?.lastVisitedAt,
+        });
         if (needsReview.length > 0) {
           setReviewDialogOpen(true);
         }
@@ -111,11 +124,10 @@ const ScanPage = () => {
 
   const itemsNeedingReview =
     activeLocationId !== undefined
-      ? getItemsNeedingReview(
-          garments,
-          activeLocationId,
-          activeLocation?.lastVisitedAt,
-        )
+      ? getItemsNeedingReview(garments, activeLocationId, {
+          threshold: getThresholdForLocation(activeLocation),
+          lastLocationVisitedAt: activeLocation?.lastVisitedAt,
+        })
       : [];
 
   const handleReviewConfirmAll = async () => {

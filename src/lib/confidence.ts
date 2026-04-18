@@ -8,6 +8,10 @@ import {
   LOCATION_VISIT_DECAY_DAYS,
   MS_PER_DAY,
   ORPHAN_CHECKOUT_THRESHOLD_DAYS,
+  REVIEW_THRESHOLD_DEFAULT,
+  REVIEW_THRESHOLD_STABLE,
+  STABILITY_MIN_SAMPLE_SIZE,
+  STABILITY_THRESHOLD,
 } from "@/lib/constants";
 
 export type ConfidenceInput = {
@@ -89,15 +93,38 @@ export const getItemsNeedingReview = <
 >(
   garments: readonly T[],
   locationId: string,
-  lastLocationVisitedAt?: number,
-): readonly T[] =>
-  garments.filter(
+  options: {
+    readonly threshold?: number;
+    readonly lastLocationVisitedAt?: number;
+  } = {},
+): readonly T[] => {
+  const threshold = options.threshold ?? REVIEW_THRESHOLD_DEFAULT;
+  return garments.filter(
     (g) =>
       g.locationId === locationId &&
       g.status === GARMENT_STATUS.STORED &&
-      getConfidence({ ...g, lastLocationVisitedAt }) <
-        CONFIDENCE_THRESHOLD.CONFIRMED,
+      getConfidence({
+        ...g,
+        lastLocationVisitedAt: options.lastLocationVisitedAt,
+      }) < threshold,
   );
+};
+
+export const getLocationStabilityScore = ({
+  confirmAllCount,
+  correctionCount,
+}: {
+  readonly confirmAllCount: number;
+  readonly correctionCount: number;
+}): number => {
+  const total = confirmAllCount + correctionCount;
+  return total < STABILITY_MIN_SAMPLE_SIZE ? 0.5 : confirmAllCount / total;
+};
+
+export const getReviewThreshold = (stabilityScore: number): number =>
+  stabilityScore >= STABILITY_THRESHOLD
+    ? REVIEW_THRESHOLD_STABLE
+    : REVIEW_THRESHOLD_DEFAULT;
 
 export const getElapsedDays = (lastScannedAt: number): number =>
   Math.floor((Date.now() - lastScannedAt) / MS_PER_DAY);

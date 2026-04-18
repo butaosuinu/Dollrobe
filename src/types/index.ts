@@ -81,6 +81,8 @@ export type StorageLocation = {
   readonly row: number;
   readonly col: number;
   readonly lastVisitedAt: number | undefined;
+  readonly confirmAllCount: number;
+  readonly correctionCount: number;
   readonly createdAt: number;
 };
 

@@ -79,11 +79,13 @@ export const confirmAll = async ({
     userId,
     locationId,
   });
-  await locationRepo.updateLastVisitedAt({
+  await locationRepo.incrementLocationCounters({
     drizzleDb,
     id: locationId,
     userId,
-    visitedAt: Date.now(),
+    confirmAllDelta: 1,
+    correctionDelta: 0,
+    now: Date.now(),
   });
   return serviceOk({ success: true, confirmedCount });
 };
@@ -111,15 +113,20 @@ export const confirmPartial = async ({
   }>
 > => {
   await scanRepo.batchConfirmPartial({ drizzleDb, userId, confirmations });
-  await locationRepo.updateLastVisitedAt({
-    drizzleDb,
-    id: locationId,
-    userId,
-    visitedAt: Date.now(),
-  });
 
   const confirmedCount = confirmations.filter((c) => c.confirmed).length;
   const deniedCount = confirmations.length - confirmedCount;
+  const hasDiscrepancy = deniedCount > 0;
+
+  // incrementLocationCounters は lastVisitedAt も同時に更新する
+  await locationRepo.incrementLocationCounters({
+    drizzleDb,
+    id: locationId,
+    userId,
+    confirmAllDelta: hasDiscrepancy ? 0 : 1,
+    correctionDelta: hasDiscrepancy ? 1 : 0,
+    now: Date.now(),
+  });
 
   return serviceOk({ success: true, confirmedCount, deniedCount });
 };

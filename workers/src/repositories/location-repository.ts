@@ -1,6 +1,6 @@
 import type { StorageCase, StorageCaseType, StorageLocation } from "@/types";
 import { createId } from "@paralleldrive/cuid2";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import type { DrizzleDB } from "../db/client";
 import { garments, storageCases, storageLocations } from "../db/schema";
 import { generateLabel } from "@shared/lib/generateLabel";
@@ -36,6 +36,8 @@ const toStorageLocation = (
   row: row.row,
   col: row.col,
   lastVisitedAt: row.lastVisitedAt ?? undefined,
+  confirmAllCount: row.confirmAllCount,
+  correctionCount: row.correctionCount,
   createdAt: row.createdAt,
 });
 
@@ -368,6 +370,33 @@ export const updateLastVisitedAt = async ({
   await drizzleDb
     .update(storageLocations)
     .set({ lastVisitedAt: visitedAt })
+    .where(
+      and(eq(storageLocations.id, id), eq(storageLocations.userId, userId)),
+    );
+};
+
+export const incrementLocationCounters = async ({
+  drizzleDb,
+  id,
+  userId,
+  confirmAllDelta,
+  correctionDelta,
+  now,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly id: string;
+  readonly userId: string;
+  readonly confirmAllDelta: number;
+  readonly correctionDelta: number;
+  readonly now: number;
+}): Promise<void> => {
+  await drizzleDb
+    .update(storageLocations)
+    .set({
+      confirmAllCount: sql`${storageLocations.confirmAllCount} + ${confirmAllDelta}`,
+      correctionCount: sql`${storageLocations.correctionCount} + ${correctionDelta}`,
+      lastVisitedAt: now,
+    })
     .where(
       and(eq(storageLocations.id, id), eq(storageLocations.userId, userId)),
     );

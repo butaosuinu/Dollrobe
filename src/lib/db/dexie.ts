@@ -252,6 +252,33 @@ class DollWardrobeDB extends Dexie {
           });
         /* eslint-enable functional/no-conditional-statements, no-param-reassign, @typescript-eslint/prefer-destructuring */
       });
+    this.version(10)
+      .stores({
+        garments: "id, userId, locationId, status, category, archivedAt",
+        storageCases: "id, userId",
+        storageLocations: "id, userId, caseId",
+        coordinates: "id, userId",
+        syncQueue: "++id, type, createdAt",
+        dolls: "id, userId, bodySize, archivedAt",
+      })
+      .upgrade(async (tx) => {
+        const locationsTable = tx.table("storageLocations");
+        /* eslint-disable functional/no-conditional-statements, no-param-reassign -- Dexie modify callback requires in-place mutation */
+        await locationsTable
+          .toCollection()
+          .modify((l: Record<string, unknown>) => {
+            if (l.confirmAllCount === undefined) {
+              l.confirmAllCount = 0;
+            }
+            if (l.correctionCount === undefined) {
+              l.correctionCount = 0;
+            }
+            if (l.lastVisitedAt === undefined) {
+              l.lastVisitedAt = undefined;
+            }
+          });
+        /* eslint-enable functional/no-conditional-statements, no-param-reassign */
+      });
   }
 }
 

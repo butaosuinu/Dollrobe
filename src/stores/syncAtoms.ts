@@ -202,6 +202,8 @@ const pullServerState = async (): Promise<SyncResult> => {
       row: l.row,
       col: l.col,
       lastVisitedAt: l.lastVisitedAt ?? undefined,
+      confirmAllCount: l.confirmAllCount,
+      correctionCount: l.correctionCount,
       createdAt: l.createdAt,
     }));
 
