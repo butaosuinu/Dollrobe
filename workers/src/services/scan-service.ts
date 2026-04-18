@@ -31,6 +31,13 @@ export const checkin = async ({
     );
   }
 
+  await locationRepo.updateLastVisitedAt({
+    drizzleDb,
+    id: locationId,
+    userId,
+    visitedAt: Date.now(),
+  });
+
   return serviceOk({ success: true, checkedInCount: totalChanges });
 };
 
@@ -111,6 +118,7 @@ export const confirmPartial = async ({
   const deniedCount = confirmations.length - confirmedCount;
   const hasDiscrepancy = deniedCount > 0;
 
+  // incrementLocationCounters は lastVisitedAt も同時に更新する
   await locationRepo.incrementLocationCounters({
     drizzleDb,
     id: locationId,

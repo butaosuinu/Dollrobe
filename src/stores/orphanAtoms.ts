@@ -1,12 +1,6 @@
 import { atom } from "jotai";
 import { activeGarmentsAtom, updateGarmentAtom } from "@/stores/garmentAtoms";
-import { getOrphanedCheckouts } from "@/lib/confidence";
 import { GARMENT_STATUS } from "@/lib/constants";
-
-export const orphanedCheckoutsAtom = atom(async (get) => {
-  const garments = await get(activeGarmentsAtom);
-  return getOrphanedCheckouts(garments);
-});
 
 export const resolveStillUsingAtom = atom(
   undefined,

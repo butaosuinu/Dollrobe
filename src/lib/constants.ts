@@ -36,6 +36,9 @@ export const SEASONAL_CONFIDENCE_DECAY_DAYS = 90;
 
 export const ORPHAN_CHECKOUT_THRESHOLD_DAYS = 3;
 
+export const LOCATION_VISIT_BOOST_MAX = 0.25;
+export const LOCATION_VISIT_DECAY_DAYS = 7;
+
 export const MS_PER_DAY = 86_400_000;
 
 export const SYNC_ACTION_TYPE = Object.freeze({

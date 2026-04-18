@@ -103,6 +103,34 @@ describe("scanRouter", () => {
       const garment = await caller.garment.get({ id: garmentId });
       expect(garment.lastScannedAt).toBeGreaterThan(oldTimestamp);
     });
+
+    it("checkin で storage_locations.last_visited_at が更新される", async () => {
+      const { id: caseId } = await insertStorageCase({ db });
+      const { id: locId } = await insertStorageLocation({
+        db,
+        overrides: { caseId },
+      });
+      const { id: garmentId } = await insertGarment({
+        db,
+        overrides: { status: "checked_out" },
+      });
+
+      const before = Date.now();
+      await caller.scan.checkin({
+        locationId: locId,
+        garmentIds: [garmentId],
+      });
+      const after = Date.now();
+
+      const row = await db
+        .prepare("SELECT last_visited_at FROM storage_locations WHERE id = ?1")
+        .bind(locId)
+        .first<{ last_visited_at: number | null }>();
+      expect(row?.last_visited_at).not.toBeNull();
+      const visitedAt = row?.last_visited_at ?? 0;
+      expect(visitedAt).toBeGreaterThanOrEqual(before);
+      expect(visitedAt).toBeLessThanOrEqual(after);
+    });
   });
 
   describe("checkout", () => {
@@ -190,6 +218,31 @@ describe("scanRouter", () => {
 
       expect(result.confirmedCount).toBe(1);
     });
+
+    it("confirmAll で storage_locations.last_visited_at が更新される", async () => {
+      const { id: caseId } = await insertStorageCase({ db });
+      const { id: locId } = await insertStorageLocation({
+        db,
+        overrides: { caseId },
+      });
+      await insertGarment({
+        db,
+        overrides: { locationId: locId, status: "stored" },
+      });
+
+      const before = Date.now();
+      await caller.scan.confirmAll({ locationId: locId });
+      const after = Date.now();
+
+      const row = await db
+        .prepare("SELECT last_visited_at FROM storage_locations WHERE id = ?1")
+        .bind(locId)
+        .first<{ last_visited_at: number | null }>();
+      expect(row?.last_visited_at).not.toBeNull();
+      const visitedAt = row?.last_visited_at ?? 0;
+      expect(visitedAt).toBeGreaterThanOrEqual(before);
+      expect(visitedAt).toBeLessThanOrEqual(after);
+    });
   });
 
   describe("confirmPartial", () => {
@@ -276,6 +329,34 @@ describe("scanRouter", () => {
 
       const garment2 = await caller.garment.get({ id: g2 });
       expect(garment2.status).toBe("checked_out");
+    });
+
+    it("confirmPartial で storage_locations.last_visited_at が更新される", async () => {
+      const { id: caseId } = await insertStorageCase({ db });
+      const { id: locId } = await insertStorageLocation({
+        db,
+        overrides: { caseId },
+      });
+      const { id: garmentId } = await insertGarment({
+        db,
+        overrides: { locationId: locId, status: "stored" },
+      });
+
+      const before = Date.now();
+      await caller.scan.confirmPartial({
+        locationId: locId,
+        confirmations: [{ garmentId, confirmed: true }],
+      });
+      const after = Date.now();
+
+      const row = await db
+        .prepare("SELECT last_visited_at FROM storage_locations WHERE id = ?1")
+        .bind(locId)
+        .first<{ last_visited_at: number | null }>();
+      expect(row?.last_visited_at).not.toBeNull();
+      const visitedAt = row?.last_visited_at ?? 0;
+      expect(visitedAt).toBeGreaterThanOrEqual(before);
+      expect(visitedAt).toBeLessThanOrEqual(after);
     });
   });
 

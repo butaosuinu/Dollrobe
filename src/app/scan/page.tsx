@@ -77,11 +77,10 @@ const ScanPage = () => {
           subtitle: i18n._(msg`場所を設定しました`),
         });
 
-        const needsReview = getItemsNeedingReview(
-          garments,
-          locationId,
-          getThresholdForLocation(loc),
-        );
+        const needsReview = getItemsNeedingReview(garments, locationId, {
+          threshold: getThresholdForLocation(loc),
+          lastLocationVisitedAt: loc?.lastVisitedAt,
+        });
         if (needsReview.length > 0) {
           setReviewDialogOpen(true);
         }
@@ -125,11 +124,10 @@ const ScanPage = () => {
 
   const itemsNeedingReview =
     activeLocationId !== undefined
-      ? getItemsNeedingReview(
-          garments,
-          activeLocationId,
-          getThresholdForLocation(activeLocation),
-        )
+      ? getItemsNeedingReview(garments, activeLocationId, {
+          threshold: getThresholdForLocation(activeLocation),
+          lastLocationVisitedAt: activeLocation?.lastVisitedAt,
+        })
       : [];
 
   const handleReviewConfirmAll = async () => {
@@ -189,6 +187,7 @@ const ScanPage = () => {
         isOpen={reviewDialogOpen}
         onClose={handleReviewClose}
         itemsNeedingReview={itemsNeedingReview}
+        lastLocationVisitedAt={activeLocation?.lastVisitedAt}
         onConfirmAll={handleReviewConfirmAll}
         onConfirmPartial={handleReviewConfirmPartial}
       />

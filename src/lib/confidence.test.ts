@@ -77,6 +77,88 @@ describe("getConfidence", () => {
     const garment = createGarment({ status: "lost" });
     expect(getConfidence(garment)).toBe(0);
   });
+
+  describe("場所訪問ブースト", () => {
+    it("lastLocationVisitedAtがundefinedのとき従来と同じ結果を返す", () => {
+      const garment = createGarment({
+        lastScannedAt: Date.now() - 15 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      });
+      expect(getConfidence(garment)).toBeCloseTo(0.5, 1);
+    });
+
+    it("訪問が新しくかつ減衰期間内ならブーストが適用される", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      });
+      expect(
+        getConfidence({ ...garment, lastLocationVisitedAt: now }),
+      ).toBeCloseTo(0.75, 2);
+    });
+
+    it("訪問が3.5日前（減衰半ば）ならブースト0.125が加算される", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      });
+      expect(
+        getConfidence({
+          ...garment,
+          lastLocationVisitedAt: now - 3.5 * MS_PER_DAY,
+        }),
+      ).toBeCloseTo(0.625, 2);
+    });
+
+    it("訪問が7日より古ければブーストは0", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      });
+      expect(
+        getConfidence({
+          ...garment,
+          lastLocationVisitedAt: now - 8 * MS_PER_DAY,
+        }),
+      ).toBeCloseTo(0.5, 1);
+    });
+
+    it("ブーストを加算しても1.0を超えない", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 3 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      });
+      expect(getConfidence({ ...garment, lastLocationVisitedAt: now })).toBe(1);
+    });
+
+    it("訪問がスキャンと同じ時刻ならブースト0（<=判定）", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      });
+      expect(
+        getConfidence({
+          ...garment,
+          lastLocationVisitedAt: now - 15 * MS_PER_DAY,
+        }),
+      ).toBeCloseTo(0.5, 1);
+    });
+
+    it("checked_outステータスではブーストも無効", () => {
+      const now = Date.now();
+      const garment = createGarment({
+        status: "checked_out",
+        lastScannedAt: now - 15 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      });
+      expect(getConfidence({ ...garment, lastLocationVisitedAt: now })).toBe(0);
+    });
+  });
 });
 
 describe("getConfidenceLabel", () => {
@@ -130,11 +212,9 @@ describe("getItemsNeedingReview", () => {
         confidenceDecayDays: 30,
       }),
     ];
-    const result = getItemsNeedingReview(
-      garments,
-      "loc1",
-      REVIEW_THRESHOLD_DEFAULT,
-    );
+    const result = getItemsNeedingReview(garments, "loc1", {
+      threshold: REVIEW_THRESHOLD_DEFAULT,
+    });
     expect(result).toHaveLength(1);
   });
 
@@ -148,11 +228,9 @@ describe("getItemsNeedingReview", () => {
         confidenceDecayDays: 30,
       }),
     ];
-    const result = getItemsNeedingReview(
-      garments,
-      "loc1",
-      REVIEW_THRESHOLD_STABLE,
-    );
+    const result = getItemsNeedingReview(garments, "loc1", {
+      threshold: REVIEW_THRESHOLD_STABLE,
+    });
     expect(result).toHaveLength(0);
   });
 
@@ -166,11 +244,9 @@ describe("getItemsNeedingReview", () => {
         confidenceDecayDays: 30,
       }),
     ];
-    const result = getItemsNeedingReview(
-      garments,
-      "loc1",
-      REVIEW_THRESHOLD_STABLE,
-    );
+    const result = getItemsNeedingReview(garments, "loc1", {
+      threshold: REVIEW_THRESHOLD_STABLE,
+    });
     expect(result).toHaveLength(1);
   });
 });

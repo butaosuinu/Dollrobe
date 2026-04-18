@@ -356,6 +356,25 @@ export const updateLocation = async ({
     );
 };
 
+export const updateLastVisitedAt = async ({
+  drizzleDb,
+  id,
+  userId,
+  visitedAt,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly id: string;
+  readonly userId: string;
+  readonly visitedAt: number;
+}): Promise<void> => {
+  await drizzleDb
+    .update(storageLocations)
+    .set({ lastVisitedAt: visitedAt })
+    .where(
+      and(eq(storageLocations.id, id), eq(storageLocations.userId, userId)),
+    );
+};
+
 export const incrementLocationCounters = async ({
   drizzleDb,
   id,
