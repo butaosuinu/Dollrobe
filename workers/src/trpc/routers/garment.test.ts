@@ -278,6 +278,33 @@ describe("garmentRouter", () => {
     });
   });
 
+  describe("update with override", () => {
+    it("confidenceDecayDaysOverride を新規設定できる", async () => {
+      const { id } = await insertGarment({ db });
+
+      const result = await caller.garment.update({
+        id,
+        confidenceDecayDaysOverride: 45,
+      });
+
+      expect(result.confidenceDecayDaysOverride).toBe(45);
+    });
+
+    it("confidenceDecayDaysOverride を null でクリアできる", async () => {
+      const { id } = await insertGarment({
+        db,
+        overrides: { confidenceDecayDaysOverride: 45 },
+      });
+
+      const result = await caller.garment.update({
+        id,
+        confidenceDecayDaysOverride: null,
+      });
+
+      expect(result.confidenceDecayDaysOverride).toBeUndefined();
+    });
+  });
+
   describe("delete", () => {
     it("既存の garment を削除する", async () => {
       const { id } = await insertGarment({ db });

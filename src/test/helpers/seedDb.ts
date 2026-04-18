@@ -26,6 +26,7 @@ const toGarment = (
   ...raw,
   imageUrl: nullToUndefined(raw.imageUrl),
   locationId: nullToUndefined(raw.locationId),
+  confidenceDecayDaysOverride: nullToUndefined(raw.confidenceDecayDaysOverride),
   brand: nullToUndefined(raw.brand),
   description: undefined,
   setContents: undefined,

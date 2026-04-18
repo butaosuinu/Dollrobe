@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
+  estimateDecayDays,
   getConfidence,
   getConfidenceLabel,
+  getEffectiveDecayDays,
   getElapsedDays,
   getItemsNeedingReview,
   getLocationStabilityScore,
@@ -10,6 +12,7 @@ import {
 } from "./confidence";
 import type { Garment } from "@/types";
 import {
+  DECAY_DAYS_BY_ACTIVITY,
   MS_PER_DAY,
   REVIEW_THRESHOLD_DEFAULT,
   REVIEW_THRESHOLD_STABLE,
@@ -28,6 +31,8 @@ const createGarment = (overrides: Partial<Garment> = {}): Garment => ({
   status: "stored",
   lastScannedAt: Date.now(),
   confidenceDecayDays: 30,
+  confidenceDecayDaysOverride: undefined,
+  recentCheckoutCount: 0,
   brand: undefined,
   description: undefined,
   setContents: undefined,
@@ -44,18 +49,18 @@ describe("getConfidence", () => {
     expect(getConfidence(garment)).toBeCloseTo(1.0, 1);
   });
 
-  it("decayDaysの半分経過で信頼度0.5を返す", () => {
+  it("decayDaysの半分経過で信頼度0.5を返す（override 指定時）", () => {
     const garment = createGarment({
       lastScannedAt: Date.now() - 15 * MS_PER_DAY,
-      confidenceDecayDays: 30,
+      confidenceDecayDaysOverride: 30,
     });
     expect(getConfidence(garment)).toBeCloseTo(0.5, 1);
   });
 
-  it("decayDays経過後は信頼度0を返す", () => {
+  it("decayDays経過後は信頼度0を返す（override 指定時）", () => {
     const garment = createGarment({
       lastScannedAt: Date.now() - 30 * MS_PER_DAY,
-      confidenceDecayDays: 30,
+      confidenceDecayDaysOverride: 30,
     });
     expect(getConfidence(garment)).toBe(0);
   });
@@ -63,7 +68,7 @@ describe("getConfidence", () => {
   it("decayDaysを超過しても負にならない", () => {
     const garment = createGarment({
       lastScannedAt: Date.now() - 60 * MS_PER_DAY,
-      confidenceDecayDays: 30,
+      confidenceDecayDaysOverride: 30,
     });
     expect(getConfidence(garment)).toBe(0);
   });
@@ -78,11 +83,34 @@ describe("getConfidence", () => {
     expect(getConfidence(garment)).toBe(0);
   });
 
+  it("recentCheckoutCount に応じて effective decay days が反映される", () => {
+    const highActivity = createGarment({
+      lastScannedAt: Date.now() - 7 * MS_PER_DAY,
+      recentCheckoutCount: 6,
+    });
+    expect(getConfidence(highActivity)).toBeCloseTo(0.5, 1);
+
+    const noActivity = createGarment({
+      lastScannedAt: Date.now() - 7 * MS_PER_DAY,
+      recentCheckoutCount: 0,
+    });
+    expect(getConfidence(noActivity)).toBeCloseTo(1 - 7 / 90, 2);
+  });
+
+  it("override が recentCheckoutCount より優先される", () => {
+    const garment = createGarment({
+      lastScannedAt: Date.now() - 7 * MS_PER_DAY,
+      recentCheckoutCount: 6,
+      confidenceDecayDaysOverride: 60,
+    });
+    expect(getConfidence(garment)).toBeCloseTo(1 - 7 / 60, 2);
+  });
+
   describe("場所訪問ブースト", () => {
     it("lastLocationVisitedAtがundefinedのとき従来と同じ結果を返す", () => {
       const garment = createGarment({
         lastScannedAt: Date.now() - 15 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       });
       expect(getConfidence(garment)).toBeCloseTo(0.5, 1);
     });
@@ -91,7 +119,7 @@ describe("getConfidence", () => {
       const now = Date.now();
       const garment = createGarment({
         lastScannedAt: now - 15 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       });
       expect(
         getConfidence({ ...garment, lastLocationVisitedAt: now }),
@@ -102,7 +130,7 @@ describe("getConfidence", () => {
       const now = Date.now();
       const garment = createGarment({
         lastScannedAt: now - 15 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       });
       expect(
         getConfidence({
@@ -116,7 +144,7 @@ describe("getConfidence", () => {
       const now = Date.now();
       const garment = createGarment({
         lastScannedAt: now - 15 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       });
       expect(
         getConfidence({
@@ -130,7 +158,7 @@ describe("getConfidence", () => {
       const now = Date.now();
       const garment = createGarment({
         lastScannedAt: now - 3 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       });
       expect(getConfidence({ ...garment, lastLocationVisitedAt: now })).toBe(1);
     });
@@ -139,7 +167,7 @@ describe("getConfidence", () => {
       const now = Date.now();
       const garment = createGarment({
         lastScannedAt: now - 15 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       });
       expect(
         getConfidence({
@@ -154,10 +182,53 @@ describe("getConfidence", () => {
       const garment = createGarment({
         status: "checked_out",
         lastScannedAt: now - 15 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       });
       expect(getConfidence({ ...garment, lastLocationVisitedAt: now })).toBe(0);
     });
+  });
+});
+
+describe("estimateDecayDays", () => {
+  it.each([
+    [0, DECAY_DAYS_BY_ACTIVITY.NONE],
+    [1, DECAY_DAYS_BY_ACTIVITY.LOW],
+    [2, DECAY_DAYS_BY_ACTIVITY.LOW],
+    [3, DECAY_DAYS_BY_ACTIVITY.MEDIUM],
+    [5, DECAY_DAYS_BY_ACTIVITY.MEDIUM],
+    [6, DECAY_DAYS_BY_ACTIVITY.HIGH],
+    [100, DECAY_DAYS_BY_ACTIVITY.HIGH],
+  ])("recentCheckoutCount=%i のとき %i 日を返す", (count, expected) => {
+    expect(estimateDecayDays(count)).toBe(expected);
+  });
+});
+
+describe("getEffectiveDecayDays", () => {
+  it("override が設定されていればそれを優先", () => {
+    expect(
+      getEffectiveDecayDays({
+        recentCheckoutCount: 10,
+        confidenceDecayDaysOverride: 45,
+      }),
+    ).toBe(45);
+  });
+
+  it("override が undefined なら recentCheckoutCount から推定値を返す", () => {
+    expect(
+      getEffectiveDecayDays({
+        recentCheckoutCount: 5,
+        confidenceDecayDaysOverride: undefined,
+      }),
+    ).toBe(DECAY_DAYS_BY_ACTIVITY.MEDIUM);
+  });
+
+  it("recentCheckoutCount=0 なら NONE (90日)", () => {
+    expect(
+      getEffectiveDecayDays({
+        recentCheckoutCount: 0,
+        confidenceDecayDaysOverride: undefined,
+      }),
+    ).toBe(DECAY_DAYS_BY_ACTIVITY.NONE);
   });
 });
 
@@ -185,16 +256,19 @@ describe("getItemsNeedingReview", () => {
         id: "g1",
         locationId: "loc1",
         lastScannedAt: Date.now(),
+        confidenceDecayDaysOverride: 30,
       }),
       createGarment({
         id: "g2",
         locationId: "loc1",
         lastScannedAt: Date.now() - 25 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
       }),
       createGarment({
         id: "g3",
         locationId: "loc2",
         lastScannedAt: Date.now() - 25 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
       }),
     ];
     const result = getItemsNeedingReview(garments, "loc1");
@@ -209,7 +283,7 @@ describe("getItemsNeedingReview", () => {
         id: "g1",
         locationId: "loc1",
         lastScannedAt: Date.now() - 10 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       }),
     ];
     const result = getItemsNeedingReview(garments, "loc1", {
@@ -225,7 +299,7 @@ describe("getItemsNeedingReview", () => {
         id: "g1",
         locationId: "loc1",
         lastScannedAt: Date.now() - 12 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       }),
     ];
     const result = getItemsNeedingReview(garments, "loc1", {
@@ -241,7 +315,7 @@ describe("getItemsNeedingReview", () => {
         id: "g1",
         locationId: "loc1",
         lastScannedAt: Date.now() - 18 * MS_PER_DAY,
-        confidenceDecayDays: 30,
+        confidenceDecayDaysOverride: 30,
       }),
     ];
     const result = getItemsNeedingReview(garments, "loc1", {

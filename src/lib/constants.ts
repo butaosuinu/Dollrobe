@@ -34,6 +34,19 @@ export const CONFIDENCE_DECAY_MAX = 365;
 export const DEFAULT_CONFIDENCE_DECAY_DAYS = 30;
 export const SEASONAL_CONFIDENCE_DECAY_DAYS = 90;
 
+export const DECAY_DAYS_BY_ACTIVITY = Object.freeze({
+  HIGH: 14,
+  MEDIUM: 30,
+  LOW: 60,
+  NONE: 90,
+} as const);
+
+export const CHECKOUT_ACTIVITY_THRESHOLD = Object.freeze({
+  HIGH: 6,
+  MEDIUM: 3,
+  LOW: 1,
+} as const);
+
 export const ORPHAN_CHECKOUT_THRESHOLD_DAYS = 3;
 
 export const LOCATION_VISIT_BOOST_MAX = 0.25;

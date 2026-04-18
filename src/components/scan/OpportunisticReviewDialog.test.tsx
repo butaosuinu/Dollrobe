@@ -16,6 +16,7 @@ const staleGarments: readonly Garment[] = [
     status: "stored",
     lastScannedAt: TWENTY_DAYS_AGO,
     confidenceDecayDays: 30,
+    confidenceDecayDaysOverride: 30,
   }),
   createTestGarment({
     id: "g-2",
@@ -24,6 +25,7 @@ const staleGarments: readonly Garment[] = [
     status: "stored",
     lastScannedAt: TWENTY_DAYS_AGO,
     confidenceDecayDays: 30,
+    confidenceDecayDaysOverride: 30,
   }),
 ];
 

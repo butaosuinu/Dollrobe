@@ -76,6 +76,7 @@ export const createGarment = async ({
     readonly description?: string;
     readonly setContents?: string;
     readonly confidenceDecayDays: number;
+    readonly confidenceDecayDaysOverride?: number;
   };
   readonly logger: Logger;
 }): Promise<ServiceResult<Garment>> => {
@@ -106,6 +107,7 @@ export const createGarment = async ({
       status,
       lastScannedAt: now,
       confidenceDecayDays: input.confidenceDecayDays,
+      confidenceDecayDaysOverride: input.confidenceDecayDaysOverride,
       checkedOutAt,
       createdAt: now,
       updatedAt: now,
@@ -188,6 +190,7 @@ export const updateGarment = async ({
     readonly description?: string;
     readonly setContents?: string;
     readonly confidenceDecayDays?: number;
+    readonly confidenceDecayDaysOverride?: number | null;
   };
   readonly logger: Logger;
 }): Promise<ServiceResult<Garment>> => {
@@ -217,6 +220,7 @@ export const updateGarment = async ({
       description: input.description,
       setContents: input.setContents,
       confidenceDecayDays: input.confidenceDecayDays,
+      confidenceDecayDaysOverride: input.confidenceDecayDaysOverride,
     },
     logger,
   });

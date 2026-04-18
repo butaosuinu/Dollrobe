@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { DrizzleDB } from "../db/client";
 import { garments } from "../db/schema";
@@ -84,6 +84,7 @@ export const checkout = async ({
       status: GARMENT_STATUS.CHECKED_OUT,
       checkedOutAt: now,
       updatedAt: now,
+      recentCheckoutCount: sql`${garments.recentCheckoutCount} + 1`,
     })
     .where(and(eq(garments.id, garmentId), eq(garments.userId, userId)));
 };

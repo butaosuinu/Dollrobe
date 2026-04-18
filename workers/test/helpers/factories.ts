@@ -17,6 +17,8 @@ type InsertGarmentParams = {
     readonly status: string;
     readonly lastScannedAt: number;
     readonly confidenceDecayDays: number;
+    readonly confidenceDecayDaysOverride: number;
+    readonly recentCheckoutCount: number;
     readonly checkedOutAt: number;
   }>;
 };
@@ -30,8 +32,8 @@ export const insertGarment = async ({
 
   await db
     .prepare(
-      `INSERT INTO garments (id, user_id, name, category, doll_sizes, colors, tags, image_url, location_id, brand, status, last_scanned_at, confidence_decay_days, checked_out_at, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)`,
+      `INSERT INTO garments (id, user_id, name, category, doll_sizes, colors, tags, image_url, location_id, brand, status, last_scanned_at, confidence_decay_days, confidence_decay_days_override, recent_checkout_count, checked_out_at, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)`,
     )
     .bind(
       id,
@@ -47,6 +49,8 @@ export const insertGarment = async ({
       overrides.status ?? "stored",
       overrides.lastScannedAt ?? now,
       overrides.confidenceDecayDays ?? 30,
+      overrides.confidenceDecayDaysOverride ?? null,
+      overrides.recentCheckoutCount ?? 0,
       overrides.checkedOutAt ?? null,
       now,
       now,

@@ -28,6 +28,7 @@ describe("digestRouter", () => {
           name: "古い服",
           lastScannedAt: oldTimestamp,
           confidenceDecayDays: 30,
+          confidenceDecayDaysOverride: 30,
         },
       });
       await insertGarment({
@@ -36,6 +37,7 @@ describe("digestRouter", () => {
           name: "新しい服",
           lastScannedAt: Date.now(),
           confidenceDecayDays: 30,
+          confidenceDecayDaysOverride: 30,
         },
       });
 
@@ -63,6 +65,31 @@ describe("digestRouter", () => {
       expect(result.orphanedItems[0].garmentName).toBe("取り出し中の服");
     });
 
+    it("digest 生成時に recentCheckoutCount が 1 ずつデクリメントされる (下限 0)", async () => {
+      const { id: g1 } = await insertGarment({
+        db,
+        overrides: { name: "活動的な服", recentCheckoutCount: 3 },
+      });
+      const { id: g2 } = await insertGarment({
+        db,
+        overrides: { name: "ほぼ動かない服", recentCheckoutCount: 1 },
+      });
+      const { id: g3 } = await insertGarment({
+        db,
+        overrides: { name: "止まっている服", recentCheckoutCount: 0 },
+      });
+
+      await caller.digest.generate();
+
+      const after1 = await caller.garment.get({ id: g1 });
+      const after2 = await caller.garment.get({ id: g2 });
+      const after3 = await caller.garment.get({ id: g3 });
+
+      expect(after1.recentCheckoutCount).toBe(2);
+      expect(after2.recentCheckoutCount).toBe(0);
+      expect(after3.recentCheckoutCount).toBe(0);
+    });
+
     it("すべての問題を同時に検出する", async () => {
       const oldTimestamp = Date.now() - MS_PER_DAY * 31;
       const fourDaysAgo = Date.now() - MS_PER_DAY * 4;
@@ -73,6 +100,7 @@ describe("digestRouter", () => {
           name: "古い服",
           lastScannedAt: oldTimestamp,
           confidenceDecayDays: 30,
+          confidenceDecayDaysOverride: 30,
         },
       });
       await insertGarment({
@@ -89,6 +117,7 @@ describe("digestRouter", () => {
           name: "正常な服",
           lastScannedAt: Date.now(),
           confidenceDecayDays: 30,
+          confidenceDecayDaysOverride: 30,
         },
       });
 
@@ -209,6 +238,7 @@ describe("digestRouter", () => {
           name: "古い服",
           lastScannedAt: oldTimestamp,
           confidenceDecayDays: 30,
+          confidenceDecayDaysOverride: 30,
         },
       });
 

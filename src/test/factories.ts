@@ -17,6 +17,8 @@ export const createTestGarment = (
   status: "stored",
   lastScannedAt: FIXED_NOW,
   confidenceDecayDays: 30,
+  confidenceDecayDaysOverride: undefined,
+  recentCheckoutCount: 0,
   brand: undefined,
   description: undefined,
   setContents: undefined,
