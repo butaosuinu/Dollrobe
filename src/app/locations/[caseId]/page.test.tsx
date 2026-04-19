@@ -5,6 +5,7 @@ import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import { getDb } from "@/lib/db/dexie";
 import { MS_PER_DAY } from "@/lib/constants";
+import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import CaseDetailPage from "./page";
 
 const mockRouterBack = vi.fn();
@@ -160,13 +161,14 @@ describe("CaseDetailPage", () => {
     expect(screen.getByText("赤いスカート")).toBeInTheDocument();
   });
 
-  it("記憶ベース確認ボタンで lastScannedAt を半回復し lastVisitedAt を更新する", async () => {
+  it("記憶ベース確認ボタンで lastScannedAt を半回復させ、location は変更しない", async () => {
+    const originalLastVisitedAt = FIXED_NOW - 30 * MS_PER_DAY;
     testDb.storageCase.create({ id: "case-1", name: "衣装ケース A" });
     testDb.storageLocation.create({
       id: "loc-target",
       caseId: "case-1",
       label: "A-1",
-      lastVisitedAt: FIXED_NOW - 30 * MS_PER_DAY,
+      lastVisitedAt: originalLastVisitedAt,
       confirmAllCount: 5,
       correctionCount: 2,
     });
@@ -194,8 +196,20 @@ describe("CaseDetailPage", () => {
       expect(garment?.lastScannedAt).toBe(expectedLastScannedAt);
     });
 
+    // 実効信頼度は 0.5 付近に収まり、confirmed ラベルにはならないこと。
+    const updatedGarment = await getDb().garments.get("g-1");
     const location = await getDb().storageLocations.get("loc-target");
-    expect(location?.lastVisitedAt).toBe(FIXED_NOW);
+    expect(updatedGarment).toBeDefined();
+    if (updatedGarment === undefined) return;
+    const confidence = getConfidence({
+      ...updatedGarment,
+      lastLocationVisitedAt: location?.lastVisitedAt,
+    });
+    expect(confidence).toBeCloseTo(0.5, 5);
+    expect(getConfidenceLabel(confidence)).toBe("uncertain");
+
+    // location 側は一切変更しない（visit boost が乗らないようにするため）。
+    expect(location?.lastVisitedAt).toBe(originalLastVisitedAt);
     expect(location?.confirmAllCount).toBe(5);
     expect(location?.correctionCount).toBe(2);
   });

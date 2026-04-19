@@ -222,19 +222,9 @@ export const confirmAllByMemoryAtom = atom(
       })),
     );
 
-    const location = await getDb().storageLocations.get(locationId);
-    await (location === undefined
-      ? Promise.resolve()
-      : Promise.all([
-          getDb().storageLocations.put({ ...location, lastVisitedAt: now }),
-          getDb().syncQueue.add({
-            type: SYNC_ACTION_TYPE.STORAGE_LOCATION_UPDATE,
-            payload: { ...location, lastVisitedAt: now },
-            createdAt: now,
-          }),
-        ]));
-
+    // 記憶ベース確認は物理訪問ではないため location.lastVisitedAt は更新しない。
+    // 更新してしまうと getConfidence の visit boost (+0.25) が乗り、
+    // 実効信頼度が 0.75 になって confirmed 扱いとなり、QR 確認との差別化が失われる。
     set(refreshGarmentsAtom);
-    set(refreshStorageLocationsAtom);
   },
 );
