@@ -41,6 +41,9 @@ export const handleDigestQueue = async ({
       });
 
       if (result.ok) {
+        childLogger.info("digest queue processed", {
+          skipped: result.data.skipped,
+        });
         msg.ack();
       } else {
         childLogger.error("digest generation failed", {
