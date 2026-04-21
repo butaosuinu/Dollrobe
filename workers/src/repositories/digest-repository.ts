@@ -1,4 +1,4 @@
-import type { Digest, DigestUnknownItem, DigestOrphanedItem } from "@/types";
+import type { Digest } from "@/types";
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
@@ -7,44 +7,13 @@ import { wrapDbError } from "../trpc/lib/d1-helpers";
 
 type DigestSelectRow = typeof digests.$inferSelect;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
-const isDigestUnknownItem = (item: unknown): item is DigestUnknownItem =>
-  isRecord(item) &&
-  typeof item.garmentId === "string" &&
-  typeof item.garmentName === "string" &&
-  typeof item.confidence === "number";
-
-const isDigestOrphanedItem = (item: unknown): item is DigestOrphanedItem =>
-  isRecord(item) &&
-  typeof item.garmentId === "string" &&
-  typeof item.garmentName === "string" &&
-  typeof item.checkedOutAt === "number";
-
-const parseUnknownItems = (raw: string): readonly DigestUnknownItem[] => {
-  const parsed: unknown = JSON.parse(raw);
-  if (!Array.isArray(parsed)) {
-    return [];
-  }
-  return parsed.filter(isDigestUnknownItem);
-};
-
-const parseOrphanedItems = (raw: string): readonly DigestOrphanedItem[] => {
-  const parsed: unknown = JSON.parse(raw);
-  if (!Array.isArray(parsed)) {
-    return [];
-  }
-  return parsed.filter(isDigestOrphanedItem);
-};
-
 const toDigest = (row: DigestSelectRow): Digest => ({
   id: row.id,
   userId: row.userId,
-  unknownItems: parseUnknownItems(row.unknownItems),
-  orphanedItems: parseOrphanedItems(row.orphanedItems),
+  accuracyScore: row.accuracyScore,
+  confirmedCount: row.confirmedCount,
+  uncertainCount: row.uncertainCount,
   unknownCount: row.unknownCount,
-  orphanedCount: row.orphanedCount,
   totalGarments: row.totalGarments,
   isRead: row.isRead,
   generatedAt: row.generatedAt,
@@ -54,10 +23,10 @@ const toDigest = (row: DigestSelectRow): Digest => ({
 type DigestInsertData = {
   readonly id: string;
   readonly userId: string;
-  readonly unknownItems: readonly DigestUnknownItem[];
-  readonly orphanedItems: readonly DigestOrphanedItem[];
+  readonly accuracyScore: number;
+  readonly confirmedCount: number;
+  readonly uncertainCount: number;
   readonly unknownCount: number;
-  readonly orphanedCount: number;
   readonly totalGarments: number;
   readonly isRead: boolean;
   readonly generatedAt: number;
@@ -75,11 +44,7 @@ export const insertDigest = async ({
 }): Promise<void> => {
   await drizzleDb
     .insert(digests)
-    .values({
-      ...digest,
-      unknownItems: JSON.stringify(digest.unknownItems),
-      orphanedItems: JSON.stringify(digest.orphanedItems),
-    })
+    .values(digest)
     .catch(wrapDbError({ context: "insert digest", logger }));
 };
 

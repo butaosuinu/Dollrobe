@@ -1,7 +1,7 @@
 "use client";
 
 import { useSetAtom } from "jotai";
-import { Eye, EyeOff, AlertTriangle, Clock, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Sparkles } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import { msg } from "@lingui/core/macro";
@@ -23,10 +23,12 @@ const formatDate = (timestamp: number, locale: string): string => {
   });
 };
 
+const formatPercent = (score: number): number => Math.round(score * 100);
+
 const DigestCard = ({ digest }: Props) => {
   const markRead = useSetAtom(markDigestReadAtom);
   const { i18n } = useLingui();
-  const hasIssues = digest.unknownCount > 0 || digest.orphanedCount > 0;
+  const percent = formatPercent(digest.accuracyScore);
 
   const handleMarkRead = async () => {
     if (!digest.isRead) {
@@ -66,64 +68,47 @@ const DigestCard = ({ digest }: Props) => {
         </div>
       </div>
 
-      <div className="mt-3 space-y-2">
-        {hasIssues ? (
-          <>
-            {digest.unknownCount > 0 && (
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-500" />
-                <div>
-                  <p className="text-sm text-text-primary">
-                    <Trans>
-                      しばらく確認していない服が{digest.unknownCount}
-                      着あります
-                    </Trans>
-                  </p>
-                  <ul className="mt-1 space-y-0.5">
-                    {digest.unknownItems.map((item) => (
-                      <li
-                        key={item.garmentId}
-                        className="text-xs text-text-secondary"
-                      >
-                        {item.garmentName}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-            {digest.orphanedCount > 0 && (
-              <div className="flex items-start gap-2">
-                <Clock className="mt-0.5 size-4 shrink-0 text-orange-500" />
-                <div>
-                  <p className="text-sm text-text-primary">
-                    <Trans>
-                      {digest.orphanedCount}
-                      着が取り出されたままのようです
-                    </Trans>
-                  </p>
-                  <ul className="mt-1 space-y-0.5">
-                    {digest.orphanedItems.map((item) => (
-                      <li
-                        key={item.garmentId}
-                        className="text-xs text-text-secondary"
-                      >
-                        {item.garmentName}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="flex items-center gap-2">
-            <CheckCircle className="size-4 text-emerald-500" />
-            <p className="text-sm text-text-primary">
-              <Trans>すべて確認済みです！ワードローブは良い状態です</Trans>
-            </p>
-          </div>
-        )}
+      <div className="mt-3">
+        <p className="text-sm text-text-secondary">
+          <Trans>あなたの在庫状況</Trans>
+        </p>
+        <p className="mt-1 text-3xl font-semibold text-text-primary">
+          <Trans>{percent}% 正確</Trans>
+        </p>
+      </div>
+
+      <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-lg bg-surface-raised p-2">
+          <dt className="text-xs text-text-secondary">
+            <Trans>確定</Trans>
+          </dt>
+          <dd className="text-base font-medium text-text-primary">
+            {digest.confirmedCount}
+          </dd>
+        </div>
+        <div className="rounded-lg bg-surface-raised p-2">
+          <dt className="text-xs text-text-secondary">
+            <Trans>要確認</Trans>
+          </dt>
+          <dd className="text-base font-medium text-text-primary">
+            {digest.uncertainCount}
+          </dd>
+        </div>
+        <div className="rounded-lg bg-surface-raised p-2">
+          <dt className="text-xs text-text-secondary">
+            <Trans>不明</Trans>
+          </dt>
+          <dd className="text-base font-medium text-text-primary">
+            {digest.unknownCount}
+          </dd>
+        </div>
+      </dl>
+
+      <div className="mt-3 flex items-start gap-2 rounded-lg bg-primary-50/60 p-2">
+        <Sparkles className="mt-0.5 size-4 shrink-0 text-primary-500" />
+        <p className="text-xs text-text-secondary">
+          <Trans>次に引き出しを開けたときに自動で確認されます</Trans>
+        </p>
       </div>
 
       <div className="mt-3 border-t border-border-default pt-2">

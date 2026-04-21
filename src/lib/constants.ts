@@ -49,6 +49,8 @@ export const CHECKOUT_ACTIVITY_THRESHOLD = Object.freeze({
 
 export const ORPHAN_CHECKOUT_THRESHOLD_DAYS = 3;
 
+export const DIGEST_SKIP_THRESHOLD = 0.95;
+
 export const LOCATION_VISIT_BOOST_MAX = 0.25;
 export const LOCATION_VISIT_DECAY_DAYS = 7;
 
