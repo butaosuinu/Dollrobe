@@ -37,7 +37,7 @@ describe("sync で confidenceDecayDaysOverride を伝搬", () => {
       ],
     });
     expect(
-      (await caller.sync.pull()).garments[0]?.confidenceDecayDaysOverride,
+      (await caller.sync.pull({})).garments[0]?.confidenceDecayDaysOverride,
     ).toBe(45);
 
     await caller.sync.push({
@@ -54,7 +54,7 @@ describe("sync で confidenceDecayDaysOverride を伝搬", () => {
       ],
     });
     expect(
-      (await caller.sync.pull()).garments[0]?.confidenceDecayDaysOverride,
+      (await caller.sync.pull({})).garments[0]?.confidenceDecayDaysOverride,
     ).toBeUndefined();
   });
 });

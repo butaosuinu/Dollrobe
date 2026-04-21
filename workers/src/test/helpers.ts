@@ -27,6 +27,7 @@ export const expectTRPCError = (error: unknown, code: string) => {
 
 export const resetDatabase = async (db: D1Database) => {
   await db.exec("DELETE FROM digests");
+  await db.exec("DELETE FROM tombstones");
   await db.exec("DELETE FROM garments");
   await db.exec("DELETE FROM storage_locations");
   await db.exec("DELETE FROM storage_cases");

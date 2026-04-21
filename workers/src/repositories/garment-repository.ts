@@ -5,7 +5,16 @@ import type {
   GarmentStatus,
 } from "@/types";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  lt,
+  or,
+  sql,
+  count as drizzleCount,
+} from "drizzle-orm";
 import {
   GARMENT_CATEGORIES,
   DOLL_SIZES,
@@ -13,7 +22,8 @@ import {
 } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
-import { garments } from "../db/schema";
+import { createId } from "@paralleldrive/cuid2";
+import { garments, tombstones } from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
 import { buildSetObject } from "./build-set-object";
 
@@ -264,6 +274,95 @@ export const updateGarmentFields = async ({
   return toGarment(row);
 };
 
+type CursorParts = {
+  readonly updatedAt: number;
+  readonly id: string;
+};
+
+const parseCursor = (cursor: string): CursorParts | undefined => {
+  const [updatedAtStr, id] = cursor.split(":");
+  const updatedAt = Number(updatedAtStr);
+  return id !== undefined && !Number.isNaN(updatedAt)
+    ? { updatedAt, id }
+    : undefined;
+};
+
+const buildCursor = (g: Garment): string => `${g.updatedAt}:${g.id}`;
+
+export type PaginatedGarments = {
+  readonly garments: readonly Garment[];
+  readonly nextCursor: string | undefined;
+  readonly totalCount: number;
+};
+
+export const findGarmentsPaginated = async ({
+  drizzleDb,
+  userId,
+  since,
+  cursor,
+  limit,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly since?: number;
+  readonly cursor?: string;
+  readonly limit: number;
+  readonly logger: Logger;
+}): Promise<PaginatedGarments> => {
+  const cursorParts = cursor !== undefined ? parseCursor(cursor) : undefined;
+
+  const sinceCondition =
+    since !== undefined ? [gt(garments.updatedAt, since)] : [];
+  const cursorCondition =
+    cursorParts !== undefined
+      ? [
+          or(
+            lt(garments.updatedAt, cursorParts.updatedAt),
+            and(
+              eq(garments.updatedAt, cursorParts.updatedAt),
+              lt(garments.id, cursorParts.id),
+            ),
+          ),
+        ]
+      : [];
+
+  const conditions = [
+    eq(garments.userId, userId),
+    ...sinceCondition,
+    ...cursorCondition,
+  ];
+  const countConditions = [eq(garments.userId, userId), ...sinceCondition];
+
+  const [rows, countResult] = await Promise.all([
+    drizzleDb
+      .select()
+      .from(garments)
+      .where(and(...conditions))
+      .orderBy(desc(garments.updatedAt), desc(garments.id))
+      .limit(limit + 1)
+      .catch(wrapDbError({ context: "fetch garments paginated", logger })),
+    drizzleDb
+      .select({ count: drizzleCount() })
+      .from(garments)
+      .where(and(...countConditions))
+      .catch(wrapDbError({ context: "count garments", logger })),
+  ]);
+
+  const hasMore = rows.length > limit;
+  const pageRows = hasMore ? rows.slice(0, limit) : rows;
+  const pageGarments = pageRows.map(toGarment);
+  const lastItem = pageGarments[pageGarments.length - 1];
+  const nextCursor =
+    hasMore && lastItem !== undefined ? buildCursor(lastItem) : undefined;
+
+  return {
+    garments: pageGarments,
+    nextCursor,
+    totalCount: countResult[0]?.count ?? 0,
+  };
+};
+
 export const deleteGarmentById = async ({
   drizzleDb,
   id,
@@ -281,6 +380,36 @@ export const deleteGarmentById = async ({
     .catch(wrapDbError({ context: "delete garment", logger }));
 
   return Number(result.meta.changes);
+};
+
+export const deleteGarmentWithTombstone = async ({
+  drizzleDb,
+  id,
+  userId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly id: string;
+  readonly userId: string;
+  readonly logger: Logger;
+}): Promise<number> => {
+  const deleteStatement = drizzleDb
+    .delete(garments)
+    .where(and(eq(garments.id, id), eq(garments.userId, userId)));
+
+  const tombstoneStatement = drizzleDb.insert(tombstones).values({
+    id: createId(),
+    userId,
+    entityType: "garment",
+    entityId: id,
+    deletedAt: Date.now(),
+  });
+
+  const [deleteResult] = await drizzleDb
+    .batch([deleteStatement, tombstoneStatement])
+    .catch(wrapDbError({ context: "delete garment with tombstone", logger }));
+
+  return Number(deleteResult.meta.changes);
 };
 
 export const decrementAllRecentCheckoutCounts = async ({

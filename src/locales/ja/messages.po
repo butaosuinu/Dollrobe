@@ -937,6 +937,7 @@ msgid "古い順"
 msgstr "古い順"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 msgid "合計"
 msgstr "合計"
 
@@ -1149,6 +1150,7 @@ msgid "白"
 msgstr "白"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 msgid "着"
 msgstr "着"
 
@@ -1161,6 +1163,7 @@ msgid "着用可能な服がありません"
 msgstr "着用可能な服がありません"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "確定"
@@ -1250,6 +1253,7 @@ msgid "表示件数"
 msgstr "表示件数"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "要確認"

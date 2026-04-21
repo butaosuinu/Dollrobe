@@ -250,7 +250,12 @@ export const deleteGarment = async ({
       findById: async () =>
         await garmentRepo.findGarmentById({ drizzleDb, id, userId, logger }),
       deleteById: async () =>
-        await garmentRepo.deleteGarmentById({ drizzleDb, id, userId, logger }),
+        await garmentRepo.deleteGarmentWithTombstone({
+          drizzleDb,
+          id,
+          userId,
+          logger,
+        }),
     },
     context: {
       entityName: "Garment",

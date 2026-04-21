@@ -937,6 +937,7 @@ msgid "古い順"
 msgstr "Oldest first"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 msgid "合計"
 msgstr "Total"
 
@@ -1149,6 +1150,7 @@ msgid "白"
 msgstr "White"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 msgid "着"
 msgstr "items"
 
@@ -1161,6 +1163,7 @@ msgid "着用可能な服がありません"
 msgstr "No compatible garments"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "確定"
@@ -1250,6 +1253,7 @@ msgid "表示件数"
 msgstr "Items per page"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "要確認"

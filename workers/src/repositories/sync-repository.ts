@@ -1,8 +1,15 @@
-import { and, eq, lte, sql } from "drizzle-orm";
+import { and, eq, inArray, lte, sql } from "drizzle-orm";
+import { createId } from "@paralleldrive/cuid2";
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
-import { dolls, garments, storageCases, storageLocations } from "../db/schema";
+import {
+  dolls,
+  garments,
+  storageCases,
+  storageLocations,
+  tombstones,
+} from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
 import * as locationRepo from "./location-repository";
 
@@ -90,6 +97,37 @@ export const deleteGarment = async ({
     .delete(garments)
     .where(and(eq(garments.id, garmentId), eq(garments.userId, userId)))
     .catch(wrapDbError({ context: "delete garment (sync)", logger }));
+};
+
+export const deleteGarmentWithTombstone = async ({
+  drizzleDb,
+  userId,
+  garmentId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly garmentId: string;
+  readonly logger: Logger;
+}): Promise<void> => {
+  const deleteStatement = drizzleDb
+    .delete(garments)
+    .where(and(eq(garments.id, garmentId), eq(garments.userId, userId)));
+
+  const tombstoneStatement = drizzleDb.insert(tombstones).values({
+    id: createId(),
+    userId,
+    entityType: "garment",
+    entityId: garmentId,
+    deletedAt: Date.now(),
+  });
+
+  await drizzleDb.batch([deleteStatement, tombstoneStatement]).catch(
+    wrapDbError({
+      context: "delete garment with tombstone (sync)",
+      logger,
+    }),
+  );
 };
 
 export const upsertStorageCase = async ({
@@ -205,6 +243,37 @@ export const deleteDoll = async ({
     .catch(wrapDbError({ context: "delete doll (sync)", logger }));
 };
 
+export const deleteDollWithTombstone = async ({
+  drizzleDb,
+  userId,
+  dollId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly dollId: string;
+  readonly logger: Logger;
+}): Promise<void> => {
+  const deleteStatement = drizzleDb
+    .delete(dolls)
+    .where(and(eq(dolls.id, dollId), eq(dolls.userId, userId)));
+
+  const tombstoneStatement = drizzleDb.insert(tombstones).values({
+    id: createId(),
+    userId,
+    entityType: "doll",
+    entityId: dollId,
+    deletedAt: Date.now(),
+  });
+
+  await drizzleDb.batch([deleteStatement, tombstoneStatement]).catch(
+    wrapDbError({
+      context: "delete doll with tombstone (sync)",
+      logger,
+    }),
+  );
+};
+
 export const deleteStorageCaseWithCascade = async ({
   drizzleDb,
   userId,
@@ -225,5 +294,106 @@ export const deleteStorageCaseWithCascade = async ({
     })
     .catch(
       wrapDbError({ context: "delete storage case cascade (sync)", logger }),
+    );
+};
+
+export const deleteStorageCaseWithCascadeAndTombstones = async ({
+  drizzleDb,
+  userId,
+  caseId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly caseId: string;
+  readonly logger: Logger;
+}): Promise<void> => {
+  const now = Date.now();
+
+  const locationRows = await drizzleDb
+    .select({ id: storageLocations.id })
+    .from(storageLocations)
+    .where(
+      and(
+        eq(storageLocations.caseId, caseId),
+        eq(storageLocations.userId, userId),
+      ),
+    )
+    .catch(
+      wrapDbError({
+        context: "fetch locations for cascade tombstone (sync)",
+        logger,
+      }),
+    );
+
+  const locationSubquery = drizzleDb
+    .select({ id: storageLocations.id })
+    .from(storageLocations)
+    .where(
+      and(
+        eq(storageLocations.caseId, caseId),
+        eq(storageLocations.userId, userId),
+      ),
+    );
+
+  const clearGarments = drizzleDb
+    .update(garments)
+    .set({
+      locationId: null,
+      status: GARMENT_STATUS.CHECKED_OUT,
+      checkedOutAt: now,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        inArray(garments.locationId, locationSubquery),
+        eq(garments.userId, userId),
+      ),
+    );
+
+  const deleteLocations = drizzleDb
+    .delete(storageLocations)
+    .where(
+      and(
+        eq(storageLocations.caseId, caseId),
+        eq(storageLocations.userId, userId),
+      ),
+    );
+
+  const deleteCase = drizzleDb
+    .delete(storageCases)
+    .where(and(eq(storageCases.id, caseId), eq(storageCases.userId, userId)));
+
+  const caseTombstone = drizzleDb.insert(tombstones).values({
+    id: createId(),
+    userId,
+    entityType: "storageCase",
+    entityId: caseId,
+    deletedAt: now,
+  });
+
+  const locationTombstones = locationRows.map((loc) =>
+    drizzleDb.insert(tombstones).values({
+      id: createId(),
+      userId,
+      entityType: "storageLocation",
+      entityId: loc.id,
+      deletedAt: now,
+    }),
+  );
+
+  await drizzleDb
+    .batch([
+      clearGarments,
+      deleteLocations,
+      deleteCase,
+      caseTombstone,
+      ...locationTombstones,
+    ])
+    .catch(
+      wrapDbError({
+        context: "delete storage case cascade with tombstones (sync)",
+        logger,
+      }),
     );
 };
