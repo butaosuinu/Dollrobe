@@ -56,20 +56,18 @@ msgstr "{0}件"
 msgid "{0}着が取り出されたままのようです"
 msgstr "{0}件衣服似乎仍处于取出状态"
 
-#. placeholder {0}: orphaned.length
 #: src/components/dashboard/AlertPanel.tsx
-msgid "{0}着の服が3日以上取り出し中です"
-msgstr "{0}件衣服已取出超过3天"
+#~ msgid "{0}着の服が3日以上取り出し中です"
+#~ msgstr "{0}件衣服已取出超过3天"
 
 #. placeholder {0}: compatible.length
 #: src/components/doll/CompatibleGarmentList.tsx
 msgid "{0}着の服が着用可能"
 msgstr "{0}件衣服可穿着"
 
-#. placeholder {0}: checkedOut.length
 #: src/components/dashboard/AlertPanel.tsx
-msgid "{0}着の服を取り出し中"
-msgstr "{0}件衣服取出中"
+#~ msgid "{0}着の服を取り出し中"
+#~ msgstr "{0}件衣服取出中"
 
 #. placeholder {0}: scannedIds.length
 #: src/components/scan/ScanSessionPanel.tsx
@@ -83,7 +81,15 @@ msgstr "已扫描{0}件"
 msgid "{0}行 x {1}列"
 msgstr "{0}行 x {1}列"
 
-#: src/components/scan/OrphanCheckoutDialog.tsx
+#: src/components/ui/Pagination.tsx
+msgid "{displayStart}-{displayEnd} / {totalCount}件"
+msgstr "{displayStart}-{displayEnd} / 共{totalCount}项"
+
+#: src/components/ui/Pagination.tsx
+#~ msgid "{displayStart}-{endIndex} / {totalCount}件"
+#~ msgstr "{displayStart}-{endIndex} / 共{totalCount}项"
+
+#: src/components/dashboard/CheckedOutSection.tsx
 msgid "{elapsedDays}日前から取り出し中"
 msgstr "{elapsedDays}天前取出"
 
@@ -95,6 +101,10 @@ msgstr "{errorCount}项错误"
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount}件 待确认"
+
+#: src/components/ui/Pagination.tsx
+msgid "{size}件表示"
+msgstr "显示{size}项"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件 有効"
@@ -122,6 +132,11 @@ msgstr "确定删除\"{0}\"吗？箱内的衣服将变为\"取出中\"状态。"
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」を完全に削除しますか？この操作は取り消せません。"
 msgstr "确定永久删除\"{0}\"吗？此操作无法撤销。"
+
+#. placeholder {0}: lostTarget.name
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
+msgstr "将「{0}」标记为丢失。收纳位置信息将被清除。"
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -214,8 +229,8 @@ msgid "QR ラベル印刷"
 msgstr "QR标签打印"
 
 #: src/components/dashboard/AlertPanel.tsx
-msgid "QRスキャンで戻す場所を記録できます"
-msgstr "可以通过QR扫描记录归还位置"
+#~ msgid "QRスキャンで戻す場所を記録できます"
+#~ msgstr "可以通过QR扫描记录归还位置"
 
 #: src/components/garment/GarmentDetail.tsx
 msgid "QRを印刷"
@@ -424,7 +439,7 @@ msgstr "青色"
 msgid "しばらく確認していない服が{0}着あります"
 msgstr "有{0}件衣服已很久未确认"
 
-#: src/components/scan/OrphanCheckoutDialog.tsx
+#: src/components/dashboard/CheckedOutSection.tsx
 msgid "しまった"
 msgstr "已收好"
 
@@ -579,8 +594,8 @@ msgid "ない"
 msgstr "不在"
 
 #: src/components/scan/OrphanCheckoutDialog.tsx
-msgid "なくした"
-msgstr "丢失了"
+#~ msgid "なくした"
+#~ msgstr "丢失了"
 
 #: src/lib/i18n-labels.ts
 msgid "ピンク"
@@ -606,6 +621,10 @@ msgstr "品牌/厂商"
 #: src/components/garment/ImageUpload.tsx
 msgid "プレビュー"
 msgstr "预览"
+
+#: src/components/ui/Pagination.tsx
+msgid "ページネーション"
+msgstr "分页"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/print/page.tsx
@@ -658,8 +677,8 @@ msgid "まだレポートがありません"
 msgstr "还没有报告"
 
 #: src/components/scan/OrphanCheckoutDialog.tsx
-msgid "まだ使用中"
-msgstr "仍在使用中"
+#~ msgid "まだ使用中"
+#~ msgstr "仍在使用中"
 
 #: src/app/locations/page.tsx
 msgid "まだ収納場所がありません"
@@ -766,6 +785,10 @@ msgstr "排序"
 msgid "作成"
 msgstr "创建"
 
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "使用中"
+msgstr "使用中"
+
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "例: ワンピース用"
 msgstr "例如: 连衣裙用"
@@ -848,11 +871,17 @@ msgstr "列数"
 msgid "削除"
 msgstr "删除"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "前のページ"
+msgstr "上一页"
+
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "前の値を適用"
 msgstr "应用上一个值"
 
 #: src/components/garment/bulk/BulkMetadataForm.tsx
+#: src/components/ui/Pagination.tsx
 msgid "前へ"
 msgstr "上一步"
 
@@ -882,8 +911,8 @@ msgid "収納場所がありません"
 msgstr "没有收纳位置"
 
 #: src/components/dashboard/AlertPanel.tsx
-msgid "収納場所を確認して状態を更新しましょう"
-msgstr "请确认收纳位置并更新状态"
+#~ msgid "収納場所を確認して状態を更新しましょう"
+#~ msgstr "请确认收纳位置并更新状态"
 
 #: src/components/garment/LocationPicker.tsx
 msgid "収納場所を選択"
@@ -893,6 +922,10 @@ msgstr "选择收纳位置"
 #: src/lib/i18n-labels.ts
 msgid "取り出し中"
 msgstr "取出中"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "取り出し中の服"
+msgstr "取出中的服装"
 
 #: src/stores/pendingArchiveAtoms.ts
 msgid "取り消す"
@@ -904,6 +937,7 @@ msgid "古い順"
 msgstr "最旧优先"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 msgid "合計"
 msgstr "合计"
 
@@ -1072,9 +1106,15 @@ msgstr "未分配"
 msgid "未配置にする"
 msgstr "取消分配"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "次のページ"
+msgstr "下一页"
+
 #: src/app/nfc-write/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
+#: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "下一步"
 
@@ -1110,6 +1150,7 @@ msgid "白"
 msgstr "白色"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 msgid "着"
 msgstr "件"
 
@@ -1122,6 +1163,7 @@ msgid "着用可能な服がありません"
 msgstr "没有可穿着的衣服"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "確定"
@@ -1132,17 +1174,26 @@ msgid "確定する"
 msgstr "确认"
 
 #: src/components/dashboard/AlertPanel.tsx
-msgid "確認"
-msgstr "确认"
+#~ msgid "確認"
+#~ msgstr "确认"
 
 #. placeholder {0}: digest.totalGarments
 #: src/components/digest/DigestCard.tsx
 msgid "管理中の服: {0}着"
 msgstr "管理中的衣服：{0}件"
 
+#: src/components/dashboard/CheckedOutSection.tsx
 #: src/lib/i18n-labels.ts
 msgid "紛失"
 msgstr "丢失"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "紛失として記録"
+msgstr "标记为丢失"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "紛失として記録しますか？"
+msgstr "是否标记为丢失？"
 
 #: src/lib/i18n-labels.ts
 msgid "紫"
@@ -1177,6 +1228,10 @@ msgstr "自由输入备注..."
 msgid "色"
 msgstr "颜色"
 
+#: src/components/garment/GarmentForm.tsx
+msgid "色を分析中..."
+msgstr "正在分析颜色..."
+
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "行"
 msgstr "行"
@@ -1193,7 +1248,12 @@ msgstr "添加收纳箱来管理衣服的存放位置"
 #~ msgid "表示するドールがありません"
 #~ msgstr "没有可显示的娃娃"
 
+#: src/components/ui/Pagination.tsx
+msgid "表示件数"
+msgstr "每页显示数"
+
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "要確認"

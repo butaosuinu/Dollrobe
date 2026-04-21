@@ -81,6 +81,7 @@ export const createGarmentInputSchema = garmentInsertSchema
     status: true,
     lastScannedAt: true,
     checkedOutAt: true,
+    recentCheckoutCount: true,
     createdAt: true,
     updatedAt: true,
   })
@@ -99,6 +100,12 @@ export const createGarmentInputSchema = garmentInsertSchema
       .min(CONFIDENCE_DECAY_MIN)
       .max(CONFIDENCE_DECAY_MAX)
       .default(DEFAULT_CONFIDENCE_DECAY_DAYS),
+    confidenceDecayDaysOverride: z
+      .number()
+      .int()
+      .min(CONFIDENCE_DECAY_MIN)
+      .max(CONFIDENCE_DECAY_MAX)
+      .optional(),
   });
 export type CreateGarmentInput = z.infer<typeof createGarmentInputSchema>;
 
@@ -119,6 +126,13 @@ export const updateGarmentInputSchema = z.object({
     .int()
     .min(CONFIDENCE_DECAY_MIN)
     .max(CONFIDENCE_DECAY_MAX)
+    .optional(),
+  confidenceDecayDaysOverride: z
+    .number()
+    .int()
+    .min(CONFIDENCE_DECAY_MIN)
+    .max(CONFIDENCE_DECAY_MAX)
+    .nullable()
     .optional(),
 });
 export type UpdateGarmentInput = z.infer<typeof updateGarmentInputSchema>;

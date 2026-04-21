@@ -17,6 +17,8 @@ import type { Doll, DollSize } from "@/types";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import DollGrid from "@/components/doll/DollGrid";
 import DollList from "@/components/doll/DollList";
+import Pagination from "@/components/ui/Pagination";
+import usePagination from "@/hooks/usePagination";
 import ChipGroup from "@/components/ui/ChipGroup";
 import EmptyState from "@/components/ui/EmptyState";
 import FAB from "@/components/ui/FAB";
@@ -181,6 +183,13 @@ const DollListContent = () => {
     return [...filtered].sort(DOLL_COMPARATORS[sortOption]);
   }, [dolls, searchQuery, activeSize, customizerFilter, sortOption]);
 
+  const {
+    paginatedItems: paginatedDolls,
+    onChangePage,
+    onChangePageSize,
+    ...paginationData
+  } = usePagination({ items: filteredDolls });
+
   if (allDolls.length === 0) {
     return (
       <EmptyState
@@ -260,10 +269,19 @@ const DollListContent = () => {
         <p className="py-12 text-center text-sm text-text-tertiary">
           <Trans>一致するドールが見つかりません</Trans>
         </p>
-      ) : viewMode === "grid" ? (
-        <DollGrid dolls={filteredDolls} />
       ) : (
-        <DollList dolls={filteredDolls} />
+        <>
+          {viewMode === "grid" ? (
+            <DollGrid dolls={paginatedDolls} />
+          ) : (
+            <DollList dolls={paginatedDolls} />
+          )}
+          <Pagination
+            pagination={paginationData}
+            onChangePage={onChangePage}
+            onChangePageSize={onChangePageSize}
+          />
+        </>
       )}
     </div>
   );

@@ -29,13 +29,20 @@ const StorageCaseCard = ({
   onDelete,
 }: Props) => {
   const locationIds = new Set(locations.map((l) => l.id));
+  const visitedAtById = new Map(locations.map((l) => [l.id, l.lastVisitedAt]));
   const caseGarments = garments.filter(
     (g) => g.locationId !== undefined && locationIds.has(g.locationId),
   );
   const needsReviewCount = caseGarments.filter(
     (g) =>
       g.status === GARMENT_STATUS.STORED &&
-      getConfidence(g) < CONFIDENCE_THRESHOLD.CONFIRMED,
+      getConfidence({
+        ...g,
+        lastLocationVisitedAt:
+          g.locationId !== undefined
+            ? visitedAtById.get(g.locationId)
+            : undefined,
+      }) < CONFIDENCE_THRESHOLD.CONFIRMED,
   ).length;
 
   const isUnit = storageCase.type === STORAGE_CASE_TYPE.UNIT;

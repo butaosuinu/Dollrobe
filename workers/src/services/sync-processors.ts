@@ -45,6 +45,7 @@ const garmentPayloadSchema = z.preprocess(
     status: z.string(),
     lastScannedAt: z.number(),
     confidenceDecayDays: z.number(),
+    confidenceDecayDaysOverride: z.number().nullable().optional(),
     brand: z.string().optional(),
     checkedOutAt: z.number().optional(),
     createdAt: z.number(),
@@ -77,6 +78,9 @@ const storageLocationSchema = z.object({
   description: z.string().optional(),
   row: z.number().int(),
   col: z.number().int(),
+  lastVisitedAt: z.number().optional(),
+  confirmAllCount: z.number().int().nonnegative().optional(),
+  correctionCount: z.number().int().nonnegative().optional(),
   createdAt: z.number(),
 });
 
@@ -119,6 +123,7 @@ const toGarmentInsertValues = ({
   status: parsed.status,
   lastScannedAt: parsed.lastScannedAt,
   confidenceDecayDays: parsed.confidenceDecayDays,
+  confidenceDecayDaysOverride: parsed.confidenceDecayDaysOverride ?? null,
   brand: parsed.brand ?? null,
   checkedOutAt: parsed.checkedOutAt ?? null,
   archivedAt: parsed.archivedAt ?? null,
@@ -158,8 +163,18 @@ const toLocationInsertValues = ({
   description: parsed.description ?? null,
   row: parsed.row,
   col: parsed.col,
+  lastVisitedAt: parsed.lastVisitedAt ?? null,
+  confirmAllCount: parsed.confirmAllCount ?? 0,
+  correctionCount: parsed.correctionCount ?? 0,
   createdAt: parsed.createdAt,
 });
+
+const hasLocationCounters = (
+  parsed: z.infer<typeof storageLocationSchema>,
+): boolean =>
+  parsed.confirmAllCount !== undefined ||
+  parsed.correctionCount !== undefined ||
+  parsed.lastVisitedAt !== undefined;
 
 const toDollInsertValues = ({
   parsed,
@@ -237,6 +252,7 @@ const processStorageCaseCreate: ActionProcessor = async (ctx, payload) => {
             parsed: loc,
             authenticatedUserId: ctx.userId,
           }),
+          includeCounters: hasLocationCounters(loc),
           logger: ctx.logger,
         });
       }),
@@ -312,6 +328,7 @@ const processStorageLocationCreate: ActionProcessor = async (ctx, payload) => {
       parsed: parsed.data,
       authenticatedUserId: ctx.userId,
     }),
+    includeCounters: hasLocationCounters(parsed.data),
     logger: ctx.logger,
   });
   return serviceOk({ processed: true });
@@ -331,6 +348,7 @@ const processStorageLocationUpdate: ActionProcessor = async (ctx, payload) => {
       parsed: parsed.data,
       authenticatedUserId: ctx.userId,
     }),
+    includeCounters: hasLocationCounters(parsed.data),
     logger: ctx.logger,
   });
   return serviceOk({ processed: true });

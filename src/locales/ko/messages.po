@@ -56,20 +56,18 @@ msgstr "{0}벌"
 msgid "{0}着が取り出されたままのようです"
 msgstr "{0}벌의 옷이 꺼낸 상태로 남아있는 것 같습니다"
 
-#. placeholder {0}: orphaned.length
 #: src/components/dashboard/AlertPanel.tsx
-msgid "{0}着の服が3日以上取り出し中です"
-msgstr "{0}벌의 옷이 3일 이상 꺼낸 상태입니다"
+#~ msgid "{0}着の服が3日以上取り出し中です"
+#~ msgstr "{0}벌의 옷이 3일 이상 꺼낸 상태입니다"
 
 #. placeholder {0}: compatible.length
 #: src/components/doll/CompatibleGarmentList.tsx
 msgid "{0}着の服が着用可能"
 msgstr "{0}벌의 옷을 입힐 수 있습니다"
 
-#. placeholder {0}: checkedOut.length
 #: src/components/dashboard/AlertPanel.tsx
-msgid "{0}着の服を取り出し中"
-msgstr "{0}벌의 옷을 꺼낸 중"
+#~ msgid "{0}着の服を取り出し中"
+#~ msgstr "{0}벌의 옷을 꺼낸 중"
 
 #. placeholder {0}: scannedIds.length
 #: src/components/scan/ScanSessionPanel.tsx
@@ -83,7 +81,15 @@ msgstr "{0}벌 스캔 완료"
 msgid "{0}行 x {1}列"
 msgstr "{0}행 x {1}열"
 
-#: src/components/scan/OrphanCheckoutDialog.tsx
+#: src/components/ui/Pagination.tsx
+msgid "{displayStart}-{displayEnd} / {totalCount}件"
+msgstr "{displayStart}-{displayEnd} / {totalCount}건"
+
+#: src/components/ui/Pagination.tsx
+#~ msgid "{displayStart}-{endIndex} / {totalCount}件"
+#~ msgstr "{displayStart}-{endIndex} / {totalCount}건"
+
+#: src/components/dashboard/CheckedOutSection.tsx
 msgid "{elapsedDays}日前から取り出し中"
 msgstr "{elapsedDays}일 전부터 꺼낸 상태"
 
@@ -95,6 +101,10 @@ msgstr "{errorCount}건 오류"
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount}벌 확인 필요"
+
+#: src/components/ui/Pagination.tsx
+msgid "{size}件表示"
+msgstr "{size}건 표시"
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件 有効"
@@ -122,6 +132,11 @@ msgstr "\"{0}\"을(를) 삭제하시겠습니까? 케이스 안의 옷은 \"꺼�
 #: src/components/garment/GarmentDetail.tsx
 msgid "「{0}」を完全に削除しますか？この操作は取り消せません。"
 msgstr "\"{0}\"을(를) 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+
+#. placeholder {0}: lostTarget.name
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
+msgstr "\"{0}\"을(를) 분실로 표시합니다. 수납 위치 정보는 지워집니다."
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -214,8 +229,8 @@ msgid "QR ラベル印刷"
 msgstr "QR 라벨 인쇄"
 
 #: src/components/dashboard/AlertPanel.tsx
-msgid "QRスキャンで戻す場所を記録できます"
-msgstr "QR 스캔으로 반납 장소를 기록할 수 있습니다"
+#~ msgid "QRスキャンで戻す場所を記録できます"
+#~ msgstr "QR 스캔으로 반납 장소를 기록할 수 있습니다"
 
 #: src/components/garment/GarmentDetail.tsx
 msgid "QRを印刷"
@@ -424,7 +439,7 @@ msgstr "시안"
 msgid "しばらく確認していない服が{0}着あります"
 msgstr "한동안 확인하지 않은 옷이 {0}벌 있습니다"
 
-#: src/components/scan/OrphanCheckoutDialog.tsx
+#: src/components/dashboard/CheckedOutSection.tsx
 msgid "しまった"
 msgstr "넣어뒀음"
 
@@ -579,8 +594,8 @@ msgid "ない"
 msgstr "없음"
 
 #: src/components/scan/OrphanCheckoutDialog.tsx
-msgid "なくした"
-msgstr "분실함"
+#~ msgid "なくした"
+#~ msgstr "분실함"
 
 #: src/lib/i18n-labels.ts
 msgid "ピンク"
@@ -606,6 +621,10 @@ msgstr "브랜드/메이커"
 #: src/components/garment/ImageUpload.tsx
 msgid "プレビュー"
 msgstr "미리보기"
+
+#: src/components/ui/Pagination.tsx
+msgid "ページネーション"
+msgstr "페이지네이션"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/print/page.tsx
@@ -658,8 +677,8 @@ msgid "まだレポートがありません"
 msgstr "아직 리포트가 없습니다"
 
 #: src/components/scan/OrphanCheckoutDialog.tsx
-msgid "まだ使用中"
-msgstr "아직 사용 중"
+#~ msgid "まだ使用中"
+#~ msgstr "아직 사용 중"
 
 #: src/app/locations/page.tsx
 msgid "まだ収納場所がありません"
@@ -766,6 +785,10 @@ msgstr "정렬"
 msgid "作成"
 msgstr "생성"
 
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "使用中"
+msgstr "사용 중"
+
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "例: ワンピース用"
 msgstr "예: 원피스용"
@@ -848,11 +871,17 @@ msgstr "열 수"
 msgid "削除"
 msgstr "삭제"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "前のページ"
+msgstr "이전 페이지"
+
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "前の値を適用"
 msgstr "이전 값 적용"
 
 #: src/components/garment/bulk/BulkMetadataForm.tsx
+#: src/components/ui/Pagination.tsx
 msgid "前へ"
 msgstr "이전"
 
@@ -882,8 +911,8 @@ msgid "収納場所がありません"
 msgstr "수납 장소가 없습니다"
 
 #: src/components/dashboard/AlertPanel.tsx
-msgid "収納場所を確認して状態を更新しましょう"
-msgstr "수납 장소를 확인하고 상태를 업데이트하세요"
+#~ msgid "収納場所を確認して状態を更新しましょう"
+#~ msgstr "수납 장소를 확인하고 상태를 업데이트하세요"
 
 #: src/components/garment/LocationPicker.tsx
 msgid "収納場所を選択"
@@ -893,6 +922,10 @@ msgstr "수납 장소 선택"
 #: src/lib/i18n-labels.ts
 msgid "取り出し中"
 msgstr "꺼낸 중"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "取り出し中の服"
+msgstr "꺼낸 의상"
 
 #: src/stores/pendingArchiveAtoms.ts
 msgid "取り消す"
@@ -904,6 +937,7 @@ msgid "古い順"
 msgstr "오래된 순"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 msgid "合計"
 msgstr "합계"
 
@@ -1072,9 +1106,15 @@ msgstr "미배치"
 msgid "未配置にする"
 msgstr "미배치로 설정"
 
+#: src/components/ui/Pagination.tsx
+#: src/components/ui/Pagination.tsx
+msgid "次のページ"
+msgstr "다음 페이지"
+
 #: src/app/nfc-write/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
+#: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "다음"
 
@@ -1110,6 +1150,7 @@ msgid "白"
 msgstr "흰색"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 msgid "着"
 msgstr "벌"
 
@@ -1122,6 +1163,7 @@ msgid "着用可能な服がありません"
 msgstr "입힐 수 있는 옷이 없습니다"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "確定"
@@ -1132,17 +1174,26 @@ msgid "確定する"
 msgstr "확정"
 
 #: src/components/dashboard/AlertPanel.tsx
-msgid "確認"
-msgstr "확인"
+#~ msgid "確認"
+#~ msgstr "확인"
 
 #. placeholder {0}: digest.totalGarments
 #: src/components/digest/DigestCard.tsx
 msgid "管理中の服: {0}着"
 msgstr "관리 중인 옷: {0}벌"
 
+#: src/components/dashboard/CheckedOutSection.tsx
 #: src/lib/i18n-labels.ts
 msgid "紛失"
 msgstr "분실"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "紛失として記録"
+msgstr "분실로 기록"
+
+#: src/components/dashboard/CheckedOutSection.tsx
+msgid "紛失として記録しますか？"
+msgstr "분실로 기록하시겠습니까?"
 
 #: src/lib/i18n-labels.ts
 msgid "紫"
@@ -1177,6 +1228,10 @@ msgstr "자유롭게 메모를 입력..."
 msgid "色"
 msgstr "색상"
 
+#: src/components/garment/GarmentForm.tsx
+msgid "色を分析中..."
+msgstr "색상 분석 중..."
+
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "行"
 msgstr "행"
@@ -1193,7 +1248,12 @@ msgstr "의상 케이스를 추가하여 옷의 수납 장소를 관리하세요
 #~ msgid "表示するドールがありません"
 #~ msgstr "표시할 인형이 없습니다"
 
+#: src/components/ui/Pagination.tsx
+msgid "表示件数"
+msgstr "표시 건수"
+
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/dashboard/StatsOverview.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "要確認"

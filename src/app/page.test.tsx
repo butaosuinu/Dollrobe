@@ -69,10 +69,10 @@ describe("DashboardPage", () => {
     expect(statsSection.getByText("1")).toBeInTheDocument();
   });
 
-  it("3日以上チェックアウト中の服がある場合に警告を表示する", async () => {
+  it("3日以上チェックアウト中の服がある場合にセクションと解決ボタンを表示する", async () => {
     testDb.garment.create({
       id: "g-1",
-      name: "取り出し中の服",
+      name: "貸し出しドレス",
       status: "checked_out",
       checkedOutAt: FIXED_NOW - 4 * MS_PER_DAY,
     });
@@ -80,15 +80,16 @@ describe("DashboardPage", () => {
 
     await renderWithProviders(<DashboardPage />);
 
+    expect(await screen.findByText("4日前から取り出し中")).toBeInTheDocument();
     expect(
-      await screen.findByText("1着の服が3日以上取り出し中です"),
+      screen.getByRole("button", { name: /しまった/ }),
     ).toBeInTheDocument();
   });
 
-  it("3日未満のチェックアウトでは別メッセージを表示する", async () => {
+  it("3日未満のチェックアウトはセクションに表示されるがボタンは非表示", async () => {
     testDb.garment.create({
       id: "g-1",
-      name: "取り出し中の服",
+      name: "貸し出しドレス",
       status: "checked_out",
       checkedOutAt: FIXED_NOW - 1 * MS_PER_DAY,
     });
@@ -96,7 +97,10 @@ describe("DashboardPage", () => {
 
     await renderWithProviders(<DashboardPage />);
 
-    expect(await screen.findByText("1着の服を取り出し中")).toBeInTheDocument();
+    expect(await screen.findByText("1日前から取り出し中")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /しまった/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("最近のアイテムをlastScannedAt順で表示する", async () => {

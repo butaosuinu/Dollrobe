@@ -10,11 +10,16 @@ import ConfidenceBar from "@/components/confidence/ConfidenceBar";
 
 type Props = {
   readonly garment: Garment;
+  readonly lastLocationVisitedAt?: number;
   readonly compact?: boolean;
 };
 
-const ConfidenceIndicator = ({ garment, compact = false }: Props) => {
-  const confidence = getConfidence(garment);
+const ConfidenceIndicator = ({
+  garment,
+  lastLocationVisitedAt,
+  compact = false,
+}: Props) => {
+  const confidence = getConfidence({ ...garment, lastLocationVisitedAt });
   const label = getConfidenceLabel(confidence);
   const locale = useAtomValue(localeAtom);
 

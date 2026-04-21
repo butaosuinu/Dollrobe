@@ -5,17 +5,24 @@ import { useAtomValue } from "jotai";
 import { Shirt } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
-import { wardrobeStatsAtom } from "@/stores/wardrobeStatsAtom";
+import { activeGarmentsAtom } from "@/stores/garmentAtoms";
+import { storageLocationsAtom } from "@/stores/locationAtoms";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_CATEGORY_LABEL } from "@/lib/i18n-labels";
 import ConfidenceBadge from "@/components/confidence/ConfidenceBadge";
 import Card from "@/components/ui/Card";
 
+const RECENT_COUNT = 8;
+
 const RecentItems = () => {
-  const stats = useAtomValue(wardrobeStatsAtom);
+  const garments = useAtomValue(activeGarmentsAtom);
+  const locations = useAtomValue(storageLocationsAtom);
   const { i18n } = useLingui();
 
-  const recentGarments = stats.recentItems;
+  const visitedAtById = new Map(locations.map((l) => [l.id, l.lastVisitedAt]));
+  const recentGarments = [...garments]
+    .sort((a, b) => b.lastScannedAt - a.lastScannedAt)
+    .slice(0, RECENT_COUNT);
 
   if (recentGarments.length === 0) {
     return undefined;
@@ -36,7 +43,14 @@ const RecentItems = () => {
       </div>
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 [scroll-snap-type:x_mandatory] lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
         {recentGarments.map((garment) => {
-          const confidence = getConfidence(garment);
+          const lastLocationVisitedAt =
+            garment.locationId !== undefined
+              ? visitedAtById.get(garment.locationId)
+              : undefined;
+          const confidence = getConfidence({
+            ...garment,
+            lastLocationVisitedAt,
+          });
           const label = getConfidenceLabel(confidence);
 
           return (

@@ -18,6 +18,8 @@ const createGarment = (overrides: Partial<Garment> = {}): Garment => ({
   status: "stored",
   lastScannedAt: FIXED_NOW,
   confidenceDecayDays: 30,
+  confidenceDecayDaysOverride: undefined,
+  recentCheckoutCount: 0,
   brand: undefined,
   description: undefined,
   setContents: undefined,
@@ -55,11 +57,20 @@ describe("computeWardrobeStats", () => {
 
   it("信頼度別のカウントを正しく集計する", () => {
     const garments = [
-      createGarment({ id: "g1", lastScannedAt: FIXED_NOW }),
-      createGarment({ id: "g2", lastScannedAt: FIXED_NOW - 5 * MS_PER_DAY }),
+      createGarment({
+        id: "g1",
+        lastScannedAt: FIXED_NOW,
+        confidenceDecayDaysOverride: 30,
+      }),
+      createGarment({
+        id: "g2",
+        lastScannedAt: FIXED_NOW - 5 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
+      }),
       createGarment({
         id: "g3",
         lastScannedAt: FIXED_NOW - 25 * MS_PER_DAY,
+        confidenceDecayDaysOverride: 30,
       }),
     ];
     const stats = computeWardrobeStats(garments);

@@ -47,6 +47,8 @@ export type Garment = {
   readonly status: GarmentStatus;
   readonly lastScannedAt: number;
   readonly confidenceDecayDays: number;
+  readonly confidenceDecayDaysOverride: number | undefined;
+  readonly recentCheckoutCount: number;
   readonly brand: string | undefined;
   readonly description: string | undefined;
   readonly setContents: string | undefined;
@@ -78,6 +80,9 @@ export type StorageLocation = {
   readonly description: string | undefined;
   readonly row: number;
   readonly col: number;
+  readonly lastVisitedAt: number | undefined;
+  readonly confirmAllCount: number;
+  readonly correctionCount: number;
   readonly createdAt: number;
 };
 

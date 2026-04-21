@@ -137,6 +137,8 @@ const toClientGarment = (g: {
   readonly status: Garment["status"];
   readonly lastScannedAt: number;
   readonly confidenceDecayDays: number;
+  readonly confidenceDecayDaysOverride?: number | null;
+  readonly recentCheckoutCount: number;
   readonly brand?: string | null;
   readonly description?: string | null;
   readonly setContents?: string | null;
@@ -157,6 +159,8 @@ const toClientGarment = (g: {
   status: g.status,
   lastScannedAt: g.lastScannedAt,
   confidenceDecayDays: g.confidenceDecayDays,
+  confidenceDecayDaysOverride: g.confidenceDecayDaysOverride ?? undefined,
+  recentCheckoutCount: g.recentCheckoutCount,
   brand: g.brand ?? undefined,
   description: g.description ?? undefined,
   setContents: g.setContents ?? undefined,
@@ -366,6 +370,9 @@ const toClientStorageLocation = (l: {
   readonly description?: string | null;
   readonly row: number;
   readonly col: number;
+  readonly lastVisitedAt?: number | null;
+  readonly confirmAllCount: number;
+  readonly correctionCount: number;
   readonly createdAt: number;
 }): StorageLocation => ({
   id: l.id,
@@ -376,5 +383,8 @@ const toClientStorageLocation = (l: {
   description: l.description ?? undefined,
   row: l.row,
   col: l.col,
+  lastVisitedAt: l.lastVisitedAt ?? undefined,
+  confirmAllCount: l.confirmAllCount,
+  correctionCount: l.correctionCount,
   createdAt: l.createdAt,
 });

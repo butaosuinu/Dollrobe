@@ -194,6 +194,7 @@ describe("スキャン操作シナリオ", () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       const result = await caller.scan.confirmPartial({
+        locationId,
         confirmations: [
           { garmentId: garment1.id, confirmed: true },
           { garmentId: garment2.id, confirmed: false },

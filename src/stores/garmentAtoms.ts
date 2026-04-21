@@ -1,8 +1,43 @@
 import { atom } from "jotai";
 import { getDb } from "@/lib/db/dexie";
 import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
-import type { Garment, ScanConfirmation } from "@/types";
+import type { Garment, ScanConfirmation, StorageLocation } from "@/types";
 import { createEntityAtoms, createRestoreAtom } from "./createEntityAtoms";
+import { refreshStorageLocationsAtom } from "./locationAtoms";
+
+const recordLocationVisit = async ({
+  locationId,
+  confirmAllDelta,
+  correctionDelta,
+  now,
+}: {
+  readonly locationId: string;
+  readonly confirmAllDelta: number;
+  readonly correctionDelta: number;
+  readonly now: number;
+}): Promise<StorageLocation | undefined> => {
+  const location = await getDb().storageLocations.get(locationId);
+  const updated: StorageLocation | undefined =
+    location === undefined
+      ? undefined
+      : {
+          ...location,
+          confirmAllCount: location.confirmAllCount + confirmAllDelta,
+          correctionCount: location.correctionCount + correctionDelta,
+          lastVisitedAt: now,
+        };
+  await (updated === undefined
+    ? Promise.resolve()
+    : Promise.all([
+        getDb().storageLocations.put(updated),
+        getDb().syncQueue.add({
+          type: SYNC_ACTION_TYPE.STORAGE_LOCATION_UPDATE,
+          payload: updated,
+          createdAt: now,
+        }),
+      ]));
+  return updated;
+};
 
 const {
   dataAtom: garmentsAtom,
@@ -58,14 +93,29 @@ export const confirmAllGarmentsAtom = atom(
         createdAt: now,
       })),
     );
+    await recordLocationVisit({
+      locationId,
+      confirmAllDelta: 1,
+      correctionDelta: 0,
+      now,
+    });
     set(refreshGarmentsAtom);
+    set(refreshStorageLocationsAtom);
   },
 );
 
 export const confirmPartialGarmentsAtom = atom(
   undefined,
-  async (_get, _set, confirmations: readonly ScanConfirmation[]) => {
+  async (
+    _get,
+    set,
+    input: {
+      readonly locationId: string;
+      readonly confirmations: readonly ScanConfirmation[];
+    },
+  ) => {
     const now = Date.now();
+    const { locationId, confirmations } = input;
     const confirmedIds = confirmations
       .filter((c) => c.confirmed)
       .map((c) => c.garmentId);
@@ -120,5 +170,15 @@ export const confirmPartialGarmentsAtom = atom(
         createdAt: now,
       })),
     );
+
+    const hasDiscrepancy = deniedIds.length > 0;
+    await recordLocationVisit({
+      locationId,
+      confirmAllDelta: hasDiscrepancy ? 0 : 1,
+      correctionDelta: hasDiscrepancy ? 1 : 0,
+      now,
+    });
+    set(refreshGarmentsAtom);
+    set(refreshStorageLocationsAtom);
   },
 );

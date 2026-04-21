@@ -21,6 +21,8 @@ export const createGarment = (overrides: Partial<Garment> = {}): Garment => ({
   status: "stored",
   lastScannedAt: FIXED_NOW,
   confidenceDecayDays: 30,
+  confidenceDecayDaysOverride: undefined,
+  recentCheckoutCount: 0,
   brand: undefined,
   description: undefined,
   setContents: undefined,
@@ -72,6 +74,9 @@ export const createStorageLocation = (
   description: undefined,
   row: 0,
   col: 0,
+  lastVisitedAt: undefined,
+  confirmAllCount: 0,
+  correctionCount: 0,
   createdAt: FIXED_NOW,
   ...overrides,
 });

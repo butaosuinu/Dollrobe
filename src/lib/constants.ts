@@ -24,12 +24,33 @@ export const CONFIDENCE_THRESHOLD = Object.freeze({
   UNCERTAIN: 0.3,
 });
 
+export const REVIEW_THRESHOLD_DEFAULT = 0.7;
+export const REVIEW_THRESHOLD_STABLE = 0.5;
+export const STABILITY_THRESHOLD = 0.8;
+export const STABILITY_MIN_SAMPLE_SIZE = 3;
+
 export const CONFIDENCE_DECAY_MIN = 1;
 export const CONFIDENCE_DECAY_MAX = 365;
 export const DEFAULT_CONFIDENCE_DECAY_DAYS = 30;
 export const SEASONAL_CONFIDENCE_DECAY_DAYS = 90;
 
+export const DECAY_DAYS_BY_ACTIVITY = Object.freeze({
+  HIGH: 14,
+  MEDIUM: 30,
+  LOW: 60,
+  NONE: 90,
+} as const);
+
+export const CHECKOUT_ACTIVITY_THRESHOLD = Object.freeze({
+  HIGH: 6,
+  MEDIUM: 3,
+  LOW: 1,
+} as const);
+
 export const ORPHAN_CHECKOUT_THRESHOLD_DAYS = 3;
+
+export const LOCATION_VISIT_BOOST_MAX = 0.25;
+export const LOCATION_VISIT_DECAY_DAYS = 7;
 
 export const MS_PER_DAY = 86_400_000;
 
@@ -217,3 +238,7 @@ export type ColorName =
   | "pink"
   | "orange"
   | "cyan";
+
+export const PAGE_SIZES = [20, 50, 100] as const;
+export type PageSize = (typeof PAGE_SIZES)[number];
+export const DEFAULT_PAGE_SIZE: PageSize = 20;

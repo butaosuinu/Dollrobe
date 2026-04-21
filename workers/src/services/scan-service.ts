@@ -1,5 +1,6 @@
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { DrizzleDB } from "../db/client";
+import * as locationRepo from "../repositories/location-repository";
 import * as scanRepo from "../repositories/scan-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
 
@@ -29,6 +30,13 @@ export const checkin = async ({
       `${String(garmentIds.length - totalChanges)}件の服が見つかりませんでした`,
     );
   }
+
+  await locationRepo.updateLastVisitedAt({
+    drizzleDb,
+    id: locationId,
+    userId,
+    visitedAt: Date.now(),
+  });
 
   return serviceOk({ success: true, checkedInCount: totalChanges });
 };
@@ -71,6 +79,14 @@ export const confirmAll = async ({
     userId,
     locationId,
   });
+  await locationRepo.incrementLocationCounters({
+    drizzleDb,
+    id: locationId,
+    userId,
+    confirmAllDelta: 1,
+    correctionDelta: 0,
+    now: Date.now(),
+  });
   return serviceOk({ success: true, confirmedCount });
 };
 
@@ -82,10 +98,12 @@ type Confirmation = {
 export const confirmPartial = async ({
   drizzleDb,
   userId,
+  locationId,
   confirmations,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly userId: string;
+  readonly locationId: string;
   readonly confirmations: readonly Confirmation[];
 }): Promise<
   ServiceResult<{
@@ -98,6 +116,17 @@ export const confirmPartial = async ({
 
   const confirmedCount = confirmations.filter((c) => c.confirmed).length;
   const deniedCount = confirmations.length - confirmedCount;
+  const hasDiscrepancy = deniedCount > 0;
+
+  // incrementLocationCounters は lastVisitedAt も同時に更新する
+  await locationRepo.incrementLocationCounters({
+    drizzleDb,
+    id: locationId,
+    userId,
+    confirmAllDelta: hasDiscrepancy ? 0 : 1,
+    correctionDelta: hasDiscrepancy ? 1 : 0,
+    now: Date.now(),
+  });
 
   return serviceOk({ success: true, confirmedCount, deniedCount });
 };

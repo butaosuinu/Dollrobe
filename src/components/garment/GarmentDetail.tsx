@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { Shirt, Archive, RotateCcw, Trash2, Edit3, QrCode } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -15,6 +15,7 @@ import {
   GARMENT_STATUS_LABEL,
 } from "@/lib/i18n-labels";
 import { deleteGarmentAtom, restoreGarmentAtom } from "@/stores/garmentAtoms";
+import { storageLocationsAtom } from "@/stores/locationAtoms";
 import { requestArchiveAtom } from "@/stores/pendingArchiveAtoms";
 import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
 import GarmentLocationRow from "@/components/garment/GarmentLocationRow";
@@ -27,12 +28,22 @@ type Props = {
   readonly garment: Garment;
 };
 
+const useLastLocationVisitedAt = (
+  locationId: string | undefined,
+): number | undefined => {
+  const locations = useAtomValue(storageLocationsAtom);
+  return locationId === undefined
+    ? undefined
+    : locations.find((l) => l.id === locationId)?.lastVisitedAt;
+};
+
 const GarmentDetail = ({ garment }: Props) => {
   const { i18n } = useLingui();
   const router = useRouter();
   const deleteGarment = useSetAtom(deleteGarmentAtom);
   const restoreGarment = useSetAtom(restoreGarmentAtom);
   const requestArchive = useSetAtom(requestArchiveAtom);
+  const lastLocationVisitedAt = useLastLocationVisitedAt(garment.locationId);
   const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const isArchived = garment.archivedAt !== undefined;
@@ -84,7 +95,11 @@ const GarmentDetail = ({ garment }: Props) => {
               </p>
             )}
           </div>
-          <ConfidenceIndicator garment={garment} compact />
+          <ConfidenceIndicator
+            garment={garment}
+            lastLocationVisitedAt={lastLocationVisitedAt}
+            compact
+          />
         </div>
 
         <Card>
@@ -105,7 +120,10 @@ const GarmentDetail = ({ garment }: Props) => {
                 {i18n._(GARMENT_STATUS_LABEL[garment.status])}
               </Badge>
             </div>
-            <ConfidenceIndicator garment={garment} />
+            <ConfidenceIndicator
+              garment={garment}
+              lastLocationVisitedAt={lastLocationVisitedAt}
+            />
           </div>
         </Card>
 

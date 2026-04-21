@@ -90,6 +90,8 @@ const toGarment = (row: GarmentSelectRow): Garment => {
     status,
     lastScannedAt: row.lastScannedAt,
     confidenceDecayDays: row.confidenceDecayDays,
+    confidenceDecayDaysOverride: row.confidenceDecayDaysOverride ?? undefined,
+    recentCheckoutCount: row.recentCheckoutCount,
     brand: row.brand ?? undefined,
     description: row.description ?? undefined,
     setContents: row.setContents ?? undefined,
@@ -213,6 +215,7 @@ type GarmentUpdatableFields = {
   readonly description?: string;
   readonly setContents?: string;
   readonly confidenceDecayDays?: number;
+  readonly confidenceDecayDaysOverride?: number | null;
 };
 
 const UPDATABLE_FIELD_KEYS = [
@@ -227,6 +230,7 @@ const UPDATABLE_FIELD_KEYS = [
   "description",
   "setContents",
   "confidenceDecayDays",
+  "confidenceDecayDaysOverride",
 ] as const;
 
 const buildGarmentSetObject = (fields: GarmentUpdatableFields) =>
@@ -406,4 +410,31 @@ export const deleteGarmentWithTombstone = async ({
     .catch(wrapDbError({ context: "delete garment with tombstone", logger }));
 
   return Number(deleteResult.meta.changes);
+};
+
+export const decrementAllRecentCheckoutCounts = async ({
+  drizzleDb,
+  userId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly logger: Logger;
+}): Promise<number> => {
+  const result = await drizzleDb
+    .update(garments)
+    .set({
+      recentCheckoutCount: sql`MAX(0, ${garments.recentCheckoutCount} - 1)`,
+    })
+    .where(
+      and(
+        eq(garments.userId, userId),
+        sql`${garments.recentCheckoutCount} > 0`,
+      ),
+    )
+    .catch(
+      wrapDbError({ context: "decrement recent checkout counts", logger }),
+    );
+
+  return Number(result.meta.changes);
 };

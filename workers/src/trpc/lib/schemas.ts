@@ -40,6 +40,7 @@ export const confirmAllInputSchema = z.object({
 });
 
 export const confirmPartialInputSchema = z.object({
+  locationId: cuidSchema,
   confirmations: z
     .array(
       z.object({

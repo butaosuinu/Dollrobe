@@ -6,8 +6,10 @@ import { Shirt } from "lucide-react";
 import clsx from "clsx";
 import { useLingui } from "@lingui/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useAtomValue } from "jotai";
 import type { Garment } from "@/types";
 import { GARMENT_CATEGORY_LABEL, DOLL_SIZE_LABEL } from "@/lib/i18n-labels";
+import { storageLocationsAtom } from "@/stores/locationAtoms";
 import ConfidenceIndicator from "@/components/confidence/ConfidenceIndicator";
 
 type Props = {
@@ -20,6 +22,8 @@ const OVERSCAN = 5;
 const GarmentList = ({ garments }: Props) => {
   const { i18n } = useLingui();
   const parentRef = useRef<HTMLDivElement>(null);
+  const locations = useAtomValue(storageLocationsAtom);
+  const visitedAtById = new Map(locations.map((l) => [l.id, l.lastVisitedAt]));
 
   const virtualizer = useVirtualizer({
     count: garments.length,
@@ -38,6 +42,11 @@ const GarmentList = ({ garments }: Props) => {
         {virtualizer.getVirtualItems().map((virtualRow) => {
           const garment = garments[virtualRow.index];
           if (garment === undefined) return undefined;
+
+          const lastLocationVisitedAt =
+            garment.locationId !== undefined
+              ? visitedAtById.get(garment.locationId)
+              : undefined;
 
           return (
             <div
@@ -79,7 +88,11 @@ const GarmentList = ({ garments }: Props) => {
                       {garment.brand !== undefined && ` ・ ${garment.brand}`}
                     </p>
                   </div>
-                  <ConfidenceIndicator garment={garment} compact />
+                  <ConfidenceIndicator
+                    garment={garment}
+                    lastLocationVisitedAt={lastLocationVisitedAt}
+                    compact
+                  />
                 </div>
               </Link>
             </div>
