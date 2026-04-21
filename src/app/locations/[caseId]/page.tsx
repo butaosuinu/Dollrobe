@@ -1,12 +1,12 @@
 "use client";
 
 import { Suspense } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useAtomValue } from "jotai";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useAtomValue, useSetAtom } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { storageCasesAtom, storageLocationsAtom } from "@/stores/locationAtoms";
-import { garmentsAtom } from "@/stores/garmentAtoms";
+import { confirmAllByMemoryAtom, garmentsAtom } from "@/stores/garmentAtoms";
 import { getConfidence } from "@/lib/confidence";
 import {
   CONFIDENCE_THRESHOLD,
@@ -17,17 +17,60 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import StorageGrid from "@/components/location/StorageGrid";
 import GarmentList from "@/components/garment/GarmentList";
 import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import Skeleton from "@/components/ui/Skeleton";
+import type { Garment, StorageLocation } from "@/types";
+
+type UnitCaseBodyProps = {
+  readonly garments: readonly Garment[];
+  readonly unitLocation: StorageLocation | undefined;
+};
+
+const UnitCaseBody = ({ garments, unitLocation }: UnitCaseBodyProps) => {
+  const confirmByMemory = useSetAtom(confirmAllByMemoryAtom);
+  const hasStored = garments.some(
+    (g) => g.status === GARMENT_STATUS.STORED && g.archivedAt === undefined,
+  );
+
+  const handleMemoryConfirm = async () => {
+    if (unitLocation === undefined) return;
+    await confirmByMemory(unitLocation.id);
+  };
+
+  return (
+    <>
+      {garments.length > 0 ? (
+        <GarmentList garments={garments} />
+      ) : (
+        <p className="py-8 text-center text-sm text-text-tertiary">
+          <Trans>このボックスには服がありません</Trans>
+        </p>
+      )}
+      {hasStored && unitLocation !== undefined && (
+        <div className="flex flex-col gap-2">
+          <Button variant="secondary" fullWidth onClick={handleMemoryConfirm}>
+            <Trans>今ここにいなくても確認</Trans>
+          </Button>
+          <p className="text-center text-xs text-text-tertiary">
+            <Trans>QR 確認より信頼度は控えめに戻ります（約0.5）</Trans>
+          </p>
+        </div>
+      )}
+    </>
+  );
+};
 
 const CaseDetailContent = () => {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const cases = useAtomValue(storageCasesAtom);
   const locations = useAtomValue(storageLocationsAtom);
   const garments = useAtomValue(garmentsAtom);
 
   const storageCase = cases.find((c) => c.id === params.caseId);
+  const initialLocationId = searchParams.get("location") ?? undefined;
 
   if (storageCase === undefined) {
     return (
@@ -88,18 +131,13 @@ const CaseDetailContent = () => {
         )}
       </div>
       {isUnit ? (
-        caseGarments.length > 0 ? (
-          <GarmentList garments={caseGarments} />
-        ) : (
-          <p className="py-8 text-center text-sm text-text-tertiary">
-            <Trans>このボックスには服がありません</Trans>
-          </p>
-        )
+        <UnitCaseBody garments={caseGarments} unitLocation={caseLocations[0]} />
       ) : (
         <StorageGrid
           storageCase={storageCase}
           locations={caseLocations}
           garments={garments}
+          initialSelectedLocationId={initialLocationId}
         />
       )}
     </>

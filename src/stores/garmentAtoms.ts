@@ -1,9 +1,12 @@
 import { atom } from "jotai";
 import { getDb } from "@/lib/db/dexie";
-import { GARMENT_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
+import { GARMENT_STATUS, MS_PER_DAY, SYNC_ACTION_TYPE } from "@/lib/constants";
+import { getEffectiveDecayDays } from "@/lib/confidence";
 import type { Garment, ScanConfirmation, StorageLocation } from "@/types";
 import { createEntityAtoms, createRestoreAtom } from "./createEntityAtoms";
 import { refreshStorageLocationsAtom } from "./locationAtoms";
+
+const MEMORY_CONFIRM_CONFIDENCE = 0.5;
 
 const recordLocationVisit = async ({
   locationId,
@@ -180,5 +183,48 @@ export const confirmPartialGarmentsAtom = atom(
     });
     set(refreshGarmentsAtom);
     set(refreshStorageLocationsAtom);
+  },
+);
+
+export const confirmAllByMemoryAtom = atom(
+  undefined,
+  async (_get, set, locationId: string) => {
+    const now = Date.now();
+    const garments = await getDb()
+      .garments.where("locationId")
+      .equals(locationId)
+      .toArray();
+
+    const storedGarments = garments.filter(
+      (g) => g.status === GARMENT_STATUS.STORED && g.archivedAt === undefined,
+    );
+
+    const updates = storedGarments.map((g) => {
+      const decayDays = getEffectiveDecayDays({
+        recentCheckoutCount: g.recentCheckoutCount,
+        confidenceDecayDaysOverride: g.confidenceDecayDaysOverride,
+      });
+      const halfElapsedMs =
+        decayDays * (1 - MEMORY_CONFIRM_CONFIDENCE) * MS_PER_DAY;
+      return {
+        ...g,
+        lastScannedAt: now - halfElapsedMs,
+        updatedAt: now,
+      };
+    });
+
+    await getDb().garments.bulkPut(updates);
+    await getDb().syncQueue.bulkAdd(
+      updates.map((g) => ({
+        type: SYNC_ACTION_TYPE.GARMENT_UPDATE,
+        payload: g,
+        createdAt: now,
+      })),
+    );
+
+    // 記憶ベース確認は物理訪問ではないため location.lastVisitedAt は更新しない。
+    // 更新してしまうと getConfidence の visit boost (+0.25) が乗り、
+    // 実効信頼度が 0.75 になって confirmed 扱いとなり、QR 確認との差別化が失われる。
+    set(refreshGarmentsAtom);
   },
 );

@@ -6,6 +6,7 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import CheckedOutSection from "@/components/dashboard/CheckedOutSection";
 import RecentItems from "@/components/dashboard/RecentItems";
+import StaleLocationsCard from "@/components/dashboard/StaleLocationsCard";
 import DigestBanner from "@/components/digest/DigestBanner";
 import WardrobeAnalytics from "@/components/dashboard/WardrobeAnalytics";
 import Skeleton from "@/components/ui/Skeleton";
@@ -35,6 +36,12 @@ const DashboardPage = () => (
     <ErrorBoundary fallback={<></>}>
       <Suspense fallback={<></>}>
         <DigestBanner />
+      </Suspense>
+    </ErrorBoundary>
+
+    <ErrorBoundary fallback={<></>}>
+      <Suspense fallback={<Skeleton className="h-32 rounded-xl" />}>
+        <StaleLocationsCard />
       </Suspense>
     </ErrorBoundary>
 

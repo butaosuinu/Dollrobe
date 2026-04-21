@@ -1,16 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
+import { getDb } from "@/lib/db/dexie";
+import { MS_PER_DAY } from "@/lib/constants";
+import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import CaseDetailPage from "./page";
 
 const mockRouterBack = vi.fn();
 const mockRouterPush = vi.fn();
+const searchParamsRef = vi.hoisted(() => ({
+  current: new URLSearchParams(),
+}));
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ caseId: "case-1" }),
   useRouter: () => ({ back: mockRouterBack, push: mockRouterPush }),
+  useSearchParams: () => searchParamsRef.current,
 }));
 
 vi.mock("next/link", () => ({
@@ -33,6 +40,7 @@ describe("CaseDetailPage", () => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     mockRouterBack.mockClear();
     mockRouterPush.mockClear();
+    searchParamsRef.current = new URLSearchParams();
   });
 
   afterEach(() => {
@@ -123,5 +131,86 @@ describe("CaseDetailPage", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByText("白いドレス")).toBeInTheDocument();
+  });
+
+  it("location クエリが指定されていると該当 BottomSheet を初期表示する", async () => {
+    testDb.storageCase.create({ id: "case-1", name: "衣装ケース A" });
+    testDb.storageLocation.create({
+      id: "loc-1",
+      caseId: "case-1",
+      label: "A-1",
+    });
+    testDb.storageLocation.create({
+      id: "loc-target",
+      caseId: "case-1",
+      label: "B-2",
+      lastVisitedAt: FIXED_NOW - 20 * MS_PER_DAY,
+    });
+    testDb.garment.create({
+      id: "g-target",
+      name: "赤いスカート",
+      locationId: "loc-target",
+      lastScannedAt: FIXED_NOW - 20 * MS_PER_DAY,
+    });
+    await seedDbFromTestDb();
+    searchParamsRef.current = new URLSearchParams("location=loc-target");
+
+    await renderWithProviders(<CaseDetailPage />);
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("赤いスカート")).toBeInTheDocument();
+  });
+
+  it("記憶ベース確認ボタンで lastScannedAt を半回復させ、location は変更しない", async () => {
+    const originalLastVisitedAt = FIXED_NOW - 30 * MS_PER_DAY;
+    testDb.storageCase.create({ id: "case-1", name: "衣装ケース A" });
+    testDb.storageLocation.create({
+      id: "loc-target",
+      caseId: "case-1",
+      label: "A-1",
+      lastVisitedAt: originalLastVisitedAt,
+      confirmAllCount: 5,
+      correctionCount: 2,
+    });
+    testDb.garment.create({
+      id: "g-1",
+      name: "白いドレス",
+      locationId: "loc-target",
+      status: "stored",
+      lastScannedAt: FIXED_NOW - 30 * MS_PER_DAY,
+      confidenceDecayDaysOverride: 30,
+    });
+    await seedDbFromTestDb();
+    searchParamsRef.current = new URLSearchParams("location=loc-target");
+
+    await renderWithProviders(<CaseDetailPage />);
+
+    const button = await screen.findByRole("button", {
+      name: "今ここにいなくても確認",
+    });
+    fireEvent.click(button);
+
+    const expectedLastScannedAt = FIXED_NOW - 15 * MS_PER_DAY;
+    await waitFor(async () => {
+      const garment = await getDb().garments.get("g-1");
+      expect(garment?.lastScannedAt).toBe(expectedLastScannedAt);
+    });
+
+    // 実効信頼度は 0.5 付近に収まり、confirmed ラベルにはならないこと。
+    const updatedGarment = await getDb().garments.get("g-1");
+    const location = await getDb().storageLocations.get("loc-target");
+    expect(updatedGarment).toBeDefined();
+    if (updatedGarment === undefined) return;
+    const confidence = getConfidence({
+      ...updatedGarment,
+      lastLocationVisitedAt: location?.lastVisitedAt,
+    });
+    expect(confidence).toBeCloseTo(0.5, 5);
+    expect(getConfidenceLabel(confidence)).toBe("uncertain");
+
+    // location 側は一切変更しない（visit boost が乗らないようにするため）。
+    expect(location?.lastVisitedAt).toBe(originalLastVisitedAt);
+    expect(location?.confirmAllCount).toBe(5);
+    expect(location?.correctionCount).toBe(2);
   });
 });

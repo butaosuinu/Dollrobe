@@ -81,6 +81,10 @@ msgstr "已扫描{0}件"
 msgid "{0}行 x {1}列"
 msgstr "{0}行 x {1}列"
 
+#: src/components/dashboard/StaleLocationItem.tsx
+msgid "{daysSinceLastVisit}日前に最後に開けました"
+msgstr "{daysSinceLastVisit}天前最后一次打开"
+
 #: src/components/ui/Pagination.tsx
 msgid "{displayStart}-{displayEnd} / {totalCount}件"
 msgstr "{displayStart}-{displayEnd} / 共{totalCount}项"
@@ -227,6 +231,11 @@ msgstr "不支持NFC"
 #: src/app/print/page.tsx
 msgid "QR ラベル印刷"
 msgstr "QR标签打印"
+
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageGrid.tsx
+msgid "QR 確認より信頼度は控えめに戻ります（約0.5）"
+msgstr "信任度比 QR 扫描恢复得更保守（约 0.5）"
 
 #: src/components/dashboard/AlertPanel.tsx
 #~ msgid "QRスキャンで戻す場所を記録できます"
@@ -438,6 +447,10 @@ msgstr "青色"
 #: src/components/digest/DigestCard.tsx
 msgid "しばらく確認していない服が{0}着あります"
 msgstr "有{0}件衣服已很久未确认"
+
+#: src/components/dashboard/StaleLocationsCard.tsx
+msgid "しばらく開けていない場所"
+msgstr "有段时间未打开的位置"
 
 #: src/components/dashboard/CheckedOutSection.tsx
 msgid "しまった"
@@ -688,6 +701,10 @@ msgstr "尚无收纳位置"
 msgid "まだ服がありません"
 msgstr "尚无衣服"
 
+#: src/components/dashboard/StaleLocationItem.tsx
+msgid "まだ開けていません"
+msgstr "尚未打开"
+
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
 msgid "メーカー"
@@ -780,6 +797,11 @@ msgstr "未知"
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "排序"
+
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageGrid.tsx
+msgid "今ここにいなくても確認"
+msgstr "不在现场也可确认"
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "作成"
@@ -1092,6 +1114,10 @@ msgstr "登记衣服"
 #: src/app/garments/[id]/edit/page.tsx
 msgid "服を編集"
 msgstr "编辑衣服"
+
+#: src/components/dashboard/StaleLocationItem.tsx
+msgid "未確認 {uncertainItemCount}着"
+msgstr "未确认 {uncertainItemCount}件"
 
 #: src/components/digest/DigestCard.tsx
 msgid "未読"
