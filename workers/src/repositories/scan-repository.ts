@@ -1,4 +1,4 @@
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, ne, sql } from "drizzle-orm";
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { DrizzleDB } from "../db/client";
 import { garments } from "../db/schema";
@@ -97,14 +97,66 @@ export const findGarmentIdAndStatus = async ({
   readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly garmentId: string;
-}): Promise<{ readonly id: string; readonly status: string } | undefined> => {
+}): Promise<
+  | {
+      readonly id: string;
+      readonly status: string;
+      readonly locationId: string | null;
+    }
+  | undefined
+> => {
   const row = await drizzleDb
-    .select({ id: garments.id, status: garments.status })
+    .select({
+      id: garments.id,
+      status: garments.status,
+      locationId: garments.locationId,
+    })
     .from(garments)
     .where(and(eq(garments.id, garmentId), eq(garments.userId, userId)))
     .get();
 
   return row ?? undefined;
+};
+
+export type StoredGarmentForConfidence = {
+  readonly id: string;
+  readonly lastScannedAt: number;
+  readonly confidenceDecayDays: number;
+  readonly confidenceDecayDaysOverride: number | null;
+  readonly recentCheckoutCount: number;
+};
+
+export const listStoredGarmentsAtLocationExcluding = async ({
+  drizzleDb,
+  userId,
+  locationId,
+  excludeGarmentId,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly locationId: string;
+  readonly excludeGarmentId: string;
+}): Promise<readonly StoredGarmentForConfidence[]> => {
+  const rows = await drizzleDb
+    .select({
+      id: garments.id,
+      lastScannedAt: garments.lastScannedAt,
+      confidenceDecayDays: garments.confidenceDecayDays,
+      confidenceDecayDaysOverride: garments.confidenceDecayDaysOverride,
+      recentCheckoutCount: garments.recentCheckoutCount,
+    })
+    .from(garments)
+    .where(
+      and(
+        eq(garments.locationId, locationId),
+        eq(garments.userId, userId),
+        eq(garments.status, GARMENT_STATUS.STORED),
+        ne(garments.id, excludeGarmentId),
+      ),
+    )
+    .all();
+
+  return rows;
 };
 
 export const confirmAllAtLocation = async ({

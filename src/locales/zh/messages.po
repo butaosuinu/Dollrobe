@@ -110,6 +110,10 @@ msgstr "{needsReviewCount}件 待确认"
 msgid "{size}件表示"
 msgstr "显示{size}项"
 
+#: src/components/scan/CheckoutConfirmSheet.tsx
+msgid "{uncertainItemCount} 件が最後のスキャンから時間が経っています"
+msgstr "{uncertainItemCount} 件自上次扫描以来已过去一段时间"
+
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件 有効"
 msgstr "{validCount}项有效"
@@ -429,6 +433,10 @@ msgstr "这个位置没有衣服"
 msgid "この場所の全服を確認済みにする"
 msgstr "将此位置的所有衣服标记为已确认"
 
+#: src/components/scan/CheckoutConfirmSheet.tsx
+msgid "この引き出しの他の服、まだありますか？"
+msgstr "这个抽屉里的其他衣服都还在吗？"
+
 #: src/app/garments/page.tsx
 #: src/components/dashboard/WardrobeAnalytics.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
@@ -459,6 +467,10 @@ msgstr "已收好"
 #: src/lib/i18n-labels.ts
 msgid "シューズ"
 msgstr "鞋子"
+
+#: src/components/scan/CheckoutConfirmSheet.tsx
+msgid "スキップ"
+msgstr "跳过"
 
 #: src/app/scan/page.tsx
 #: src/lib/nav-items.ts
@@ -862,6 +874,7 @@ msgstr "请先创建收纳位置"
 msgid "全ドール"
 msgstr "所有娃娃"
 
+#: src/components/scan/CheckoutConfirmSheet.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "全部ある"
 msgstr "全部都在"
