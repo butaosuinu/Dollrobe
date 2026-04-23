@@ -68,6 +68,16 @@ export const testDb = factory({
     correctionCount: () => 0,
     createdAt: () => FIXED_NOW,
   },
+  coordinate: {
+    id: primaryKey(String),
+    userId: () => "user-1",
+    name: () => "テストコーデ",
+    garmentIds: (): string[] => [],
+    isAiGenerated: (): boolean => false,
+    memo: nullable((): string | null => null),
+    createdAt: () => FIXED_NOW,
+    updatedAt: () => FIXED_NOW,
+  },
 });
 
 export const resetTestDb = (): void => {
@@ -75,4 +85,5 @@ export const resetTestDb = (): void => {
   testDb.garment.deleteMany({ where: {} });
   testDb.storageCase.deleteMany({ where: {} });
   testDb.storageLocation.deleteMany({ where: {} });
+  testDb.coordinate.deleteMany({ where: {} });
 };

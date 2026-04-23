@@ -68,6 +68,9 @@ export const SYNC_ACTION_TYPE = Object.freeze({
   DOLL_CREATE: "doll:create",
   DOLL_UPDATE: "doll:update",
   DOLL_DELETE: "doll:delete",
+  COORDINATE_CREATE: "coordinate:create",
+  COORDINATE_UPDATE: "coordinate:update",
+  COORDINATE_DELETE: "coordinate:delete",
 });
 
 export const STORAGE_CASE_TYPE = Object.freeze({
