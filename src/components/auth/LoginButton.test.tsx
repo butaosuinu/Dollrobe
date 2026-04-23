@@ -36,6 +36,31 @@ describe("LoginButton", () => {
     expect(mockSignInSocial).toHaveBeenCalledWith({ provider: "twitter" });
   });
 
+  it("callbackURL 指定時に絶対 URL が渡される", async () => {
+    const user = userEvent.setup();
+    render(<LoginButton provider="google" callbackURL="/dashboard" />, {
+      wrapper: I18nTestWrapper,
+    });
+
+    await user.click(screen.getByRole("button", { name: "Google でログイン" }));
+
+    expect(mockSignInSocial).toHaveBeenCalledWith({
+      provider: "google",
+      callbackURL: `${window.location.origin}/dashboard`,
+    });
+  });
+
+  it("callbackURL が危険なパスの場合は破棄される", async () => {
+    const user = userEvent.setup();
+    render(<LoginButton provider="google" callbackURL="//evil.com/steal" />, {
+      wrapper: I18nTestWrapper,
+    });
+
+    await user.click(screen.getByRole("button", { name: "Google でログイン" }));
+
+    expect(mockSignInSocial).toHaveBeenCalledWith({ provider: "google" });
+  });
+
   it("ログインエラー時にconsole.errorが呼ばれる", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")

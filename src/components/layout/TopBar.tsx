@@ -36,13 +36,16 @@ const TopBar = () => {
     <header className="sticky top-0 z-40 border-b border-border-default bg-surface-overlay/80 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 lg:px-8">
         <div className="flex items-center gap-8">
-          <h1 className="font-display text-lg font-bold tracking-tight text-primary-700">
+          <Link
+            href="/dashboard"
+            className="font-display text-lg font-bold tracking-tight text-primary-700 transition-opacity hover:opacity-80"
+          >
             Doll Wardrobe
-          </h1>
+          </Link>
           <nav className="hidden items-center gap-1 lg:flex">
             {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
               const isActive =
-                href === "/" ? pathname === "/" : pathname.startsWith(href);
+                pathname === href || pathname.startsWith(`${href}/`);
 
               return (
                 <Link

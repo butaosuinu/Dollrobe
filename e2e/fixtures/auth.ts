@@ -20,6 +20,16 @@ type TestFixtures = {
 
 export const test = base.extend<TestFixtures>({
   authedPage: async ({ page }, use) => {
+    // middleware が cookie 有無で認証判定するため事前に注入
+    await page.context().addCookies([
+      {
+        name: "better-auth.session_token",
+        value: "e2e-fake-session",
+        domain: "localhost",
+        path: "/",
+      },
+    ]);
+
     // Next.js dev overlay 除去（ハイドレーションミスマッチのオーバーレイが
     // getByText のstrict mode violationを起こすため）
     await page.addInitScript(() => {
@@ -148,7 +158,7 @@ export const test = base.extend<TestFixtures>({
   },
 
   seed: async ({ authedPage }, use) => {
-    await authedPage.goto("/");
+    await authedPage.goto("/dashboard");
     await authedPage.getByText("おかえりなさい").waitFor({
       state: "visible",
       timeout: 30_000,

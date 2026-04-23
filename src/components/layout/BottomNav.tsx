@@ -17,8 +17,7 @@ const BottomNav = () => {
     >
       <div className="flex h-16 items-center justify-around">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const isActive =
-            href === "/" ? pathname === "/" : pathname.startsWith(href);
+          const isActive = pathname === href || pathname.startsWith(`${href}/`);
           const isScan = href === "/scan";
 
           return (

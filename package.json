@@ -28,6 +28,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
+    "lp:screenshots": "tsx scripts/capture-lp-screenshots.ts",
     "precheck": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm i18n:check",
     "precheck:full": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm i18n:check && pnpm test"
   },
@@ -100,6 +101,7 @@
     "prettier": "^3.5.3",
     "tailwindcss": "^4.1.4",
     "tsc-files": "^1.1.4",
+    "tsx": "^4.19.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.0",
     "vitest": "^3.1.2",

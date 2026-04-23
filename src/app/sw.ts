@@ -1,6 +1,6 @@
 import { defaultCache } from "@serwist/turbopack/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { CacheFirst, ExpirationPlugin, Serwist } from "serwist";
+import { CacheFirst, ExpirationPlugin, NetworkFirst, Serwist } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -12,12 +12,22 @@ declare const self: ServiceWorkerGlobalScope & WorkerGlobalScope;
 
 const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
 
+const MARKETING_PATHS = Object.freeze(["/", "/login"]);
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: [
+    {
+      matcher: ({ url, request }) =>
+        request.mode === "navigate" && MARKETING_PATHS.includes(url.pathname),
+      handler: new NetworkFirst({
+        cacheName: "marketing-pages",
+        networkTimeoutSeconds: 5,
+      }),
+    },
     {
       matcher: ({ url }) => url.pathname.endsWith(".wasm"),
       handler: new CacheFirst({

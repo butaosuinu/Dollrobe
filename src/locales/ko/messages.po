@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: STEP_TITLES[step]
-#: src/app/garments/import/page.tsx
+#: src/app/(app)/garments/import/page.tsx
 msgid "{0}"
 msgstr "{0}"
 
@@ -45,7 +45,7 @@ msgstr "{0}건 등록에 성공했습니다"
 
 #. placeholder {0}: caseGarments.length
 #. placeholder {0}: garments.length
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 #: src/components/location/StorageCell.tsx
 msgid "{0}着"
@@ -75,7 +75,7 @@ msgstr "{0}벌 스캔 완료"
 
 #. placeholder {0}: storageCase.rows
 #. placeholder {1}: storageCase.cols
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 msgid "{0}行 x {1}列"
 msgstr "{0}행 x {1}열"
@@ -100,7 +100,7 @@ msgstr "{elapsedDays}일 전부터 꺼낸 상태"
 msgid "{errorCount}件 エラー"
 msgstr "{errorCount}건 오류"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount}벌 확인 필요"
@@ -133,7 +133,7 @@ msgid "「{0}」をアーカイブしますか？"
 msgstr "\"{0}\"을(를) 아카이브하시겠습니까?"
 
 #. placeholder {0}: deletingCase.name
-#: src/app/locations/page.tsx
+#: src/app/(app)/locations/page.tsx
 msgid "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
 msgstr "\"{0}\"을(를) 삭제하시겠습니까? 케이스 안의 옷은 \"꺼낸 중\" 상태가 됩니다."
 
@@ -149,8 +149,12 @@ msgstr "\"{0}\"을(를) 완전히 삭제하시겠습니까? 이 작업은 되돌
 msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
 msgstr "\"{0}\"을(를) 분실로 표시합니다. 수납 위치 정보는 지워집니다."
 
-#: src/app/garments/new/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(marketing)/login/page.tsx
+msgid "← サービス紹介に戻る"
+msgstr "← 서비스 소개로 돌아가기"
+
+#: src/app/(app)/garments/new/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "CSVインポート"
 msgstr "CSV 가져오기"
 
@@ -206,19 +210,23 @@ msgstr "MDD S버스트 (~40cm)"
 msgid "MSD (~43cm)"
 msgstr "MSD (~43cm)"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "NFC タグにタッチしてください..."
 msgstr "NFC 태그에 터치해 주세요..."
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "NFC タグへの書き込みが完了しました"
 msgstr "NFC 태그 쓰기가 완료되었습니다"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "NFC タグ書き込み"
 msgstr "NFC 태그 쓰기"
 
-#: src/app/nfc-write/page.tsx
+#: src/components/marketing/FeatureGrid.tsx
+msgid "NFC にも対応"
+msgstr "NFC 도 지원"
+
+#: src/app/(app)/nfc-write/page.tsx
 #: src/components/scan/NfcReader.tsx
 msgid "NFC の権限が拒否されました"
 msgstr "NFC 권한이 거부되었습니다"
@@ -235,11 +243,27 @@ msgstr "NFC 대기 중..."
 msgid "NFC 非対応"
 msgstr "NFC 미지원"
 
-#: src/app/print/page.tsx
+#: src/components/marketing/StepsSection.tsx
+msgid "QR / NFC ラベルを印刷して貼る"
+msgstr "QR / NFC 라벨을 인쇄해 붙이기"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "QR スキャンで収納記録"
+msgstr "QR 스캔으로 수납 기록"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "QR と NFC で、<0/>収納を半自動化する"
+msgstr "QR 과 NFC 로,<0/>수납을 반자동화"
+
+#: src/components/marketing/Hero.tsx
+msgid "QR と NFC で、ドール服の収納を半自動で管理。手入力は一切なし。スキャンするだけで、 どこに何があるかが常に最新の状態になります。"
+msgstr "QR 과 NFC 로 인형 옷 수납을 반자동으로 관리합니다. 직접 입력할 필요 없이, 스캔만으로 어디에 무엇이 있는지 항상 최신 상태로 유지됩니다."
+
+#: src/app/(app)/print/page.tsx
 msgid "QR ラベル印刷"
 msgstr "QR 라벨 인쇄"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 #: src/components/location/StorageGrid.tsx
 msgid "QR 確認より信頼度は控えめに戻ります（約0.5）"
 msgstr "QR 확인보다 신뢰도가 조금 회복됩니다 (약 0.5)"
@@ -272,7 +296,7 @@ msgstr "X (Twitter)로 로그인"
 msgid "YoSD (~26cm)"
 msgstr "YoSD (~26cm)"
 
-#: src/app/archive/page.tsx
+#: src/app/(app)/archive/page.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollDetail.tsx
@@ -282,16 +306,16 @@ msgstr "YoSD (~26cm)"
 msgid "アーカイブ"
 msgstr "아카이브"
 
-#: src/app/dolls/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(app)/dolls/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "アーカイブ ({archivedCount})"
 msgstr "아카이브 ({archivedCount})"
 
-#: src/app/archive/page.tsx
+#: src/app/(app)/archive/page.tsx
 msgid "アーカイブしたドールはここに表示されます"
 msgstr "아카이브된 인형이 여기에 표시됩니다"
 
-#: src/app/archive/page.tsx
+#: src/app/(app)/archive/page.tsx
 msgid "アーカイブした服はここに表示されます"
 msgstr "아카이브된 옷이 여기에 표시됩니다"
 
@@ -299,14 +323,22 @@ msgstr "아카이브된 옷이 여기에 표시됩니다"
 msgid "アーカイブしました"
 msgstr "아카이브되었습니다"
 
-#: src/app/archive/page.tsx
-#: src/app/archive/page.tsx
+#: src/app/(app)/archive/page.tsx
+#: src/app/(app)/archive/page.tsx
 msgid "アーカイブは空です"
 msgstr "아카이브가 비어 있습니다"
 
 #: src/lib/i18n-labels.ts
 msgid "アウター"
 msgstr "아우터"
+
+#: src/components/marketing/MarketingFooter.tsx
+msgid "アカウントを作るのに、10 秒もかかりません。"
+msgstr "계정을 만드는 데 10 초면 충분합니다."
+
+#: src/app/(marketing)/login/page.tsx
+msgid "アカウントを作成してドール服管理を始めましょう"
+msgstr "계정을 만들고 인형 옷 관리를 시작해 보세요"
 
 #: src/lib/i18n-labels.ts
 msgid "アクセサリー"
@@ -321,6 +353,10 @@ msgstr "업로드 중..."
 #: src/components/digest/DigestCard.tsx
 msgid "あなたの在庫状況"
 msgstr "재고 상태"
+
+#: src/components/marketing/Hero.tsx
+msgid "あの服、どこにしまったっけ？<0/><1>を、終わらせる。</1>"
+msgstr "그 옷, 어디에 넣어뒀더라?<0/><1>그 질문을 끝내세요.</1>"
 
 #: src/components/scan/ReviewItemRow.tsx
 msgid "ある"
@@ -342,7 +378,7 @@ msgstr "가져오기 완료"
 msgid "ウィッグ"
 msgstr "가발"
 
-#: src/app/page.tsx
+#: src/app/(app)/dashboard/page.tsx
 msgid "おかえりなさい"
 msgstr "다녀오셨습니까"
 
@@ -350,8 +386,12 @@ msgstr "다녀오셨습니까"
 msgid "オレンジ"
 msgstr "오렌지"
 
-#: src/app/dolls/page.tsx
-#: src/app/dolls/page.tsx
+#: src/components/marketing/StepsSection.tsx
+msgid "お迎えしたドールと、衣装を入れる引き出しやケースをアプリに追加します。"
+msgstr "데려온 인형과, 옷을 넣을 서랍이나 케이스를 앱에 추가합니다."
+
+#: src/app/(app)/dolls/page.tsx
+#: src/app/(app)/dolls/page.tsx
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
 msgid "カスタマイザー"
@@ -380,7 +420,7 @@ msgstr "카메라로 촬영"
 msgid "カラー"
 msgstr "컬러"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
@@ -392,22 +432,22 @@ msgstr "취소"
 msgid "グリッド表示"
 msgstr "그리드 보기"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 msgid "ケースが見つかりません"
 msgstr "케이스를 찾을 수 없습니다"
 
-#: src/app/locations/page.tsx
+#: src/app/(app)/locations/page.tsx
 msgid "ケースを削除"
 msgstr "케이스 삭제"
 
-#: src/app/locations/page.tsx
+#: src/app/(app)/locations/page.tsx
 msgid "ケースを編集"
 msgstr "케이스 편집"
 
-#: src/app/locations/page.tsx
-#: src/app/locations/page.tsx
-#: src/app/locations/page.tsx
-#: src/app/locations/page.tsx
+#: src/app/(app)/locations/page.tsx
+#: src/app/(app)/locations/page.tsx
+#: src/app/(app)/locations/page.tsx
+#: src/app/(app)/locations/page.tsx
 msgid "ケースを追加"
 msgstr "케이스 추가"
 
@@ -420,15 +460,15 @@ msgstr "케이스 목록"
 msgid "ケース名"
 msgstr "케이스 이름"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 msgid "ケース詳細"
 msgstr "케이스 상세"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "이 기기는 NFC 쓰기를 지원하지 않습니다. Android Chrome을 이용해 주세요."
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 msgid "このボックスには服がありません"
 msgstr "이 박스에 의류가 없습니다"
 
@@ -444,7 +484,7 @@ msgstr "이 장소의 모든 옷을 확인 완료로 표시"
 msgid "この引き出しの他の服、まだありますか？"
 msgstr "이 서랍의 다른 옷들, 아직 있나요?"
 
-#: src/app/garments/page.tsx
+#: src/app/(app)/garments/page.tsx
 #: src/components/dashboard/WardrobeAnalytics.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "サイズ"
@@ -457,6 +497,10 @@ msgstr "샘플 CSV 다운로드"
 #: src/lib/i18n-labels.ts
 msgid "シアン"
 msgstr "시안"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "しばらく着せていない服が、いつの間にか箱の底で見つからない服になっている。"
+msgstr "한동안 입히지 않은 옷이 어느새 상자 바닥에 묻혀 보이지 않게 됩니다."
 
 #: src/components/digest/DigestCard.tsx
 #~ msgid "しばらく確認していない服が{0}着あります"
@@ -478,12 +522,12 @@ msgstr "슈즈"
 msgid "スキップ"
 msgstr "건너뛰기"
 
-#: src/app/scan/page.tsx
+#: src/app/(app)/scan/page.tsx
 #: src/lib/nav-items.ts
 msgid "スキャン"
 msgstr "스캔"
 
-#: src/app/scan/page.tsx
+#: src/app/(app)/scan/page.tsx
 msgid "スキャンしました"
 msgstr "스캔 완료"
 
@@ -491,14 +535,18 @@ msgstr "스캔 완료"
 msgid "スキャン中の場所"
 msgstr "스캔 중인 장소"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "スキャン画面"
+msgstr "스캔 화면"
+
 #: src/components/dashboard/StatsOverview.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "ステータス"
 msgstr "상태"
 
-#: src/app/dolls/page.tsx
-#: src/app/dolls/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(app)/dolls/page.tsx
+#: src/app/(app)/dolls/page.tsx
+#: src/app/(app)/garments/page.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "すべて"
@@ -548,9 +596,17 @@ msgstr "유형"
 msgid "タグ"
 msgstr "태그"
 
-#: src/app/page.tsx
+#: src/components/marketing/FeatureGrid.tsx
+msgid "タグに触れるだけで場所を記録。QR が読みづらい現場でもスムーズ（Android）。"
+msgstr "태그에 대기만 해도 위치가 기록됩니다. QR 이 읽히기 어려운 곳에서도 부드럽게 (Android)."
+
+#: src/app/(app)/dashboard/page.tsx
 msgid "ダッシュボード"
 msgstr "대시보드"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "ダッシュボード画面"
+msgstr "대시보드 화면"
 
 #: src/components/digest/DigestBanner.tsx
 msgid "タップして確認する"
@@ -560,18 +616,22 @@ msgstr "탭하여 확인하기"
 msgid "データがありません"
 msgstr "데이터가 없습니다"
 
-#: src/app/garments/page.tsx
+#: src/components/marketing/FeatureGrid.tsx
+msgid "できること"
+msgstr "기능"
+
+#: src/app/(app)/garments/page.tsx
 #: src/lib/nav-items.ts
 msgid "ドール"
 msgstr "인형"
 
 #. placeholder {0}: archivedDolls.length
-#: src/app/archive/page.tsx
+#: src/app/(app)/archive/page.tsx
 msgid "ドール ({0})"
 msgstr "인형 ({0})"
 
-#: src/app/dolls/[id]/edit/page.tsx
-#: src/app/dolls/[id]/page.tsx
+#: src/app/(app)/dolls/[id]/edit/page.tsx
+#: src/app/(app)/dolls/[id]/page.tsx
 msgid "ドールが見つかりません"
 msgstr "인형을 찾을 수 없습니다"
 
@@ -584,6 +644,10 @@ msgstr "인형 사이즈"
 msgid "ドールで絞り込み"
 msgstr "인형으로 필터"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "ドールと収納場所を登録"
+msgstr "인형과 수납 장소 등록"
+
 #: src/components/doll/DollForm.tsx
 msgid "ドールの名前"
 msgstr "인형 이름"
@@ -592,25 +656,37 @@ msgstr "인형 이름"
 msgid "ドールを検索..."
 msgstr "인형 검색..."
 
-#: src/app/dolls/new/page.tsx
-#: src/app/dolls/page.tsx
-#: src/app/dolls/page.tsx
+#: src/app/(app)/dolls/new/page.tsx
+#: src/app/(app)/dolls/page.tsx
+#: src/app/(app)/dolls/page.tsx
 msgid "ドールを登録"
 msgstr "인형 등록"
 
-#: src/app/dolls/[id]/edit/page.tsx
+#: src/app/(app)/dolls/[id]/edit/page.tsx
 msgid "ドールを編集"
 msgstr "인형 편집"
 
-#: src/app/dolls/page.tsx
+#: src/app/(app)/dolls/page.tsx
 #: src/components/garment/DollCombobox.tsx
 msgid "ドール一覧"
 msgstr "인형 목록"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "ドール服コレクターの「あるある」"
+msgstr "인형 옷 수집가라면 누구나"
+
+#: src/components/marketing/Hero.tsx
+msgid "ドール服のための収納管理 PWA"
+msgstr "인형 옷을 위한 수납 관리 PWA"
 
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "ドール服の名前"
 msgstr "인형 옷 이름"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "どこにしまったか分からない"
+msgstr "어디에 넣었는지 기억나지 않아요"
 
 #: src/lib/i18n-labels.ts
 msgid "トップス"
@@ -628,6 +704,10 @@ msgstr "없음"
 #~ msgid "なくした"
 #~ msgstr "분실함"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "はじめの 4 ステップ"
+msgstr "처음 4 단계"
+
 #: src/lib/i18n-labels.ts
 msgid "ピンク"
 msgstr "핑크"
@@ -635,6 +715,10 @@ msgstr "핑크"
 #: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "필터"
+
+#: src/components/marketing/MarketingFooter.tsx
+msgid "プライバシーポリシー"
+msgstr "개인정보 처리방침"
 
 #: src/components/garment/GarmentForm.tsx
 msgid "ブラウス、スカート、リボン等"
@@ -657,8 +741,8 @@ msgstr "미리보기"
 msgid "ページネーション"
 msgstr "페이지네이션"
 
-#: src/app/nfc-write/page.tsx
-#: src/app/print/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
+#: src/app/(app)/print/page.tsx
 msgid "ページの読み込みに失敗しました"
 msgstr "페이지 로딩에 실패했습니다"
 
@@ -680,7 +764,7 @@ msgstr "볼크스, 아존 등"
 msgid "ホーム"
 msgstr "홈"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 #: src/components/garment/LocationPicker.tsx
 #: src/components/location/StorageCaseCard.tsx
 #: src/components/location/StorageCaseForm.tsx
@@ -695,7 +779,7 @@ msgstr "바디 사이즈"
 msgid "ボトムス"
 msgstr "하의"
 
-#: src/app/dolls/page.tsx
+#: src/app/(app)/dolls/page.tsx
 msgid "まだドールがいません"
 msgstr "아직 인형이 없습니다"
 
@@ -703,7 +787,7 @@ msgstr "아직 인형이 없습니다"
 msgid "またはクリックしてファイルを選択"
 msgstr "또는 클릭하여 파일 선택"
 
-#: src/app/digest/page.tsx
+#: src/app/(app)/digest/page.tsx
 msgid "まだレポートがありません"
 msgstr "아직 리포트가 없습니다"
 
@@ -711,11 +795,11 @@ msgstr "아직 리포트가 없습니다"
 #~ msgid "まだ使用中"
 #~ msgstr "아직 사용 중"
 
-#: src/app/locations/page.tsx
+#: src/app/(app)/locations/page.tsx
 msgid "まだ収納場所がありません"
 msgstr "아직 수납 장소가 없습니다"
 
-#: src/app/garments/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "まだ服がありません"
 msgstr "아직 옷이 없습니다"
 
@@ -735,7 +819,7 @@ msgstr "메이커"
 msgid "メモ"
 msgstr "메모"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "もう1枚書き込む"
 msgstr "한 장 더 쓰기"
 
@@ -764,12 +848,20 @@ msgstr "초기화"
 msgid "ログアウト"
 msgstr "로그아웃"
 
-#: src/app/garments/page.tsx
+#: src/app/(marketing)/login/page.tsx
+msgid "ログイン"
+msgstr "로그인"
+
+#: src/app/(marketing)/login/page.tsx
+msgid "ログインすると利用規約とプライバシーポリシーに同意したものとみなされます"
+msgstr "로그인하면 이용약관과 개인정보 처리방침에 동의한 것으로 간주됩니다."
+
+#: src/app/(app)/garments/page.tsx
 #: src/lib/nav-items.ts
 msgid "ワードローブ"
 msgstr "옷장"
 
-#: src/app/digest/page.tsx
+#: src/app/(app)/digest/page.tsx
 msgid "ワードローブの状況をお伝えします"
 msgstr "옷장 현황을 알려드립니다"
 
@@ -782,6 +874,10 @@ msgstr "옷장 보기"
 msgid "ワードローブ分析"
 msgstr "워드로브 분석"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "ワードローブ画面"
+msgstr "워드로브 화면"
+
 #: src/lib/i18n-labels.ts
 msgid "ワンピース"
 msgstr "원피스"
@@ -790,19 +886,19 @@ msgstr "원피스"
 msgid "一括登録中..."
 msgstr "일괄 등록 중..."
 
-#: src/app/dolls/page.tsx
+#: src/app/(app)/dolls/page.tsx
 msgid "一致するドールが見つかりません"
 msgstr "일치하는 인형을 찾을 수 없습니다"
 
-#: src/app/garments/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "一致する服が見つかりません"
 msgstr "일치하는 옷을 찾을 수 없습니다"
 
-#: src/app/dolls/[id]/edit/page.tsx
-#: src/app/dolls/[id]/page.tsx
-#: src/app/garments/[id]/edit/page.tsx
-#: src/app/garments/[id]/page.tsx
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/dolls/[id]/edit/page.tsx
+#: src/app/(app)/dolls/[id]/page.tsx
+#: src/app/(app)/garments/[id]/edit/page.tsx
+#: src/app/(app)/garments/[id]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 msgid "一覧に戻る"
 msgstr "목록으로 돌아가기"
 
@@ -812,19 +908,27 @@ msgstr "목록으로 돌아가기"
 msgid "不明"
 msgstr "불명"
 
-#: src/app/dolls/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(app)/dolls/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "並び替え"
 msgstr "정렬"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
 #: src/components/location/StorageGrid.tsx
 msgid "今ここにいなくても確認"
 msgstr "지금 여기 없어도 확인"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "以降はスキャンするだけ"
+msgstr "그 이후로는 스캔만 하면 됩니다"
+
 #: src/components/location/StorageCaseForm.tsx
 msgid "作成"
 msgstr "생성"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "使い方"
+msgstr "사용법"
 
 #: src/components/dashboard/CheckedOutSection.tsx
 msgid "使用中"
@@ -852,7 +956,7 @@ msgstr "예: 의상 케이스 A"
 msgid "保存"
 msgstr "저장"
 
-#: src/app/garments/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "信頼度"
 msgstr "신뢰도"
 
@@ -886,11 +990,11 @@ msgstr "모든 인형"
 msgid "全部ある"
 msgstr "전부 있음"
 
-#: src/app/dolls/page.tsx
+#: src/app/(app)/dolls/page.tsx
 msgid "最初のドールを登録してみましょう"
 msgstr "첫 번째 인형을 등록해 보세요"
 
-#: src/app/garments/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "最初のドール服を登録してみましょう"
 msgstr "첫 번째 인형 옷을 등록해 보세요"
 
@@ -898,15 +1002,27 @@ msgstr "첫 번째 인형 옷을 등록해 보세요"
 msgid "最近のアイテム"
 msgstr "최근 아이템"
 
+#: src/components/marketing/FeatureGrid.tsx
+msgid "最近確認していない服を教えてくれる"
+msgstr "최근에 확인하지 않은 옷을 알려줍니다"
+
 #: src/components/garment/ImageUpload.tsx
 msgid "写真を追加"
 msgstr "사진 추가"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "出し入れの度に場所の QR を読むだけで、居場所が常に最新の状態に保たれます。"
+msgstr "꺼내고 넣을 때마다 위치 QR 을 읽기만 해도, 위치가 항상 최신 상태로 유지됩니다."
 
 #: src/components/location/StorageCaseForm.tsx
 msgid "列数"
 msgstr "열 수"
 
-#: src/app/locations/page.tsx
+#: src/components/marketing/MarketingFooter.tsx
+msgid "利用規約"
+msgstr "이용약관"
+
+#: src/app/(app)/locations/page.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/location/StorageCaseCard.tsx
@@ -927,11 +1043,11 @@ msgstr "이전 값 적용"
 msgid "前へ"
 msgstr "이전"
 
-#: src/app/print/page.tsx
+#: src/app/(app)/print/page.tsx
 msgid "印刷"
 msgstr "인쇄"
 
-#: src/app/print/page.tsx
+#: src/app/(app)/print/page.tsx
 msgid "印刷する QR コードが選択されていません"
 msgstr "인쇄할 QR 코드가 선택되지 않았습니다"
 
@@ -939,12 +1055,28 @@ msgstr "인쇄할 QR 코드가 선택되지 않았습니다"
 msgid "収納"
 msgstr "수납"
 
+#: src/components/marketing/FeatureGrid.tsx
+msgid "収納グリッドで一目で把握"
+msgstr "수납 그리드로 한눈에 파악"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "収納グリッド画面"
+msgstr "수납 그리드 화면"
+
+#: src/components/marketing/MarketingFooter.tsx
+msgid "収納の答え合わせを、<0/>スキャン 1 回に。"
+msgstr "수납 상태 확인을,<0/>스캔 1 회로."
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "収納を入れ替えたらズレる"
+msgstr "수납을 바꾸면 어긋나요"
+
 #: src/lib/i18n-labels.ts
 msgid "収納中"
 msgstr "수납 중"
 
-#: src/app/locations/page.tsx
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/locations/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "収納場所"
 msgstr "수납 장소"
 
@@ -959,6 +1091,14 @@ msgstr "수납 장소가 없습니다"
 #: src/components/garment/LocationPicker.tsx
 msgid "収納場所を選択"
 msgstr "수납 장소 선택"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "取り出したまま忘れている服を検知"
+msgstr "꺼내 둔 채 잊어버린 옷 감지"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "取り出して何日も戻していない服を通知。「戻した／着せた／見つからない」の 3 択で片付きます。"
+msgstr "며칠 동안 돌려놓지 않은 옷을 알려줍니다. 「돌려놓음 / 입혔음 / 찾을 수 없음」 3 가지 선택으로 정리됩니다."
 
 #: src/components/garment/GarmentCard.tsx
 #: src/lib/i18n-labels.ts
@@ -997,17 +1137,25 @@ msgstr "이름: A→Z"
 msgid "名前: Z→A"
 msgstr "이름: Z→A"
 
-#: src/app/dolls/page.tsx
+#: src/app/(app)/dolls/page.tsx
 msgid "名前やカスタマイザーで検索..."
 msgstr "이름이나 커스터마이저로 검색..."
 
-#: src/app/garments/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "名前やタグで検索..."
 msgstr "이름이나 태그로 검색..."
 
 #: src/components/garment/ImageUpload.tsx
 msgid "圧縮中..."
 msgstr "압축 중..."
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "場所の QR → 服の QR を連続スキャンするだけ。どこに何をしまったかが、自動で残ります。"
+msgstr "장소 QR → 옷 QR 을 연속 스캔하면, 어디에 무엇을 두었는지 자동으로 기록됩니다."
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "場所の QR をスキャンしたときに、しばらく見ていない服だけをその場でピックアップ。"
+msgstr "장소 QR 을 스캔하면, 한동안 확인하지 않은 옷만 그 자리에서 알려줍니다."
 
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "場所のQRをスキャンして、収納場所を設定してください"
@@ -1017,13 +1165,17 @@ msgstr "장소의 QR을 스캔하여 수납 장소를 설정하세요"
 msgid "場所を設定"
 msgstr "장소 설정"
 
-#: src/app/scan/page.tsx
+#: src/app/(app)/scan/page.tsx
 msgid "場所を設定しました"
 msgstr "장소가 설정되었습니다"
 
 #: src/components/garment/GarmentLocationRow.tsx
 msgid "変更"
 msgstr "변경"
+
+#: src/components/marketing/MarketingHeader.tsx
+msgid "始める"
+msgstr "시작하기"
 
 #: src/lib/i18n-labels.ts
 msgid "季節物 (90日)"
@@ -1044,6 +1196,14 @@ msgstr "모자/헤드드레스"
 msgid "引き出し"
 msgstr "서랍"
 
+#: src/components/marketing/FeatureGrid.tsx
+msgid "引き出しのマス目ごとに「今、何が入っているか」を図で確認できます。"
+msgstr "서랍의 칸마다 「지금, 무엇이 들어 있는지」를 그림으로 확인할 수 있습니다."
+
+#: src/components/marketing/StepsSection.tsx
+msgid "引き出しや服のタグに QR を貼るだけ。NFC シールでも代用できます（Android）。"
+msgstr "서랍이나 옷의 태그에 QR 을 붙이기만 하면 됩니다. NFC 스티커로도 대체할 수 있습니다 (Android)."
+
 #: src/components/location/StorageGrid.tsx
 msgid "引き出しを編集"
 msgstr "서랍 편집"
@@ -1053,8 +1213,8 @@ msgstr "서랍 편집"
 msgid "復元"
 msgstr "복원"
 
-#: src/app/nfc-write/page.tsx
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
@@ -1083,55 +1243,71 @@ msgstr "읽음"
 msgid "更新する"
 msgstr "업데이트"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "書き込みがキャンセルされました"
 msgstr "쓰기가 취소되었습니다"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "書き込みに失敗しました"
 msgstr "쓰기에 실패했습니다"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "書き込み対象"
 msgstr "쓰기 대상"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "書き込む"
 msgstr "쓰기"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "書き込む収納場所を選択"
 msgstr "쓸 수납 장소 선택"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "書き込む対象を選択してください"
 msgstr "쓸 대상을 선택해 주세요"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "書き込む服を選択"
 msgstr "쓸 옷 선택"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "服"
 msgstr "옷"
 
 #. placeholder {0}: archivedGarments.length
-#: src/app/archive/page.tsx
+#: src/app/(app)/archive/page.tsx
 msgid "服 ({0})"
 msgstr "옷 ({0})"
 
-#: src/app/garments/[id]/edit/page.tsx
-#: src/app/garments/[id]/page.tsx
+#: src/components/marketing/ProblemSection.tsx
+msgid "服が増えるほど、<0/>管理が難しくなる"
+msgstr "옷이 늘어날수록,<0/>관리가 어려워집니다"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "服が増えるほど、どの引き出しに何を入れたか思い出せなくなる。探すだけで時間が溶けていく。"
+msgstr "옷이 늘어날수록, 어느 서랍에 무엇을 넣었는지 기억하기 어려워집니다. 찾는 데만 시간이 녹아내립니다."
+
+#: src/app/(app)/garments/[id]/edit/page.tsx
+#: src/app/(app)/garments/[id]/page.tsx
 msgid "服が見つかりません"
 msgstr "옷을 찾을 수 없습니다"
 
-#: src/app/garments/new/page.tsx
-#: src/app/garments/page.tsx
-#: src/app/garments/page.tsx
+#: src/components/marketing/StepsSection.tsx
+msgid "服と場所の QR を順番にスキャン。「どこに、何を入れたか」が自動で記録されます。"
+msgstr "옷과 장소의 QR 을 순서대로 스캔. 「어디에, 무엇을 넣었는지」가 자동으로 기록됩니다."
+
+#: src/components/marketing/StepsSection.tsx
+msgid "服を QR と紐づけて収納"
+msgstr "옷을 QR 과 연결해 수납"
+
+#: src/app/(app)/garments/new/page.tsx
+#: src/app/(app)/garments/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "服を登録"
 msgstr "옷 등록"
 
-#: src/app/garments/[id]/edit/page.tsx
+#: src/app/(app)/garments/[id]/edit/page.tsx
 msgid "服を編集"
 msgstr "옷 편집"
 
@@ -1160,16 +1336,29 @@ msgstr "다음에 서랍을 열 때 자동으로 확인됩니다"
 msgid "次のページ"
 msgstr "다음 페이지"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
 #: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "다음"
 
-#: src/app/digest/page.tsx
+#: src/app/(app)/digest/page.tsx
 msgid "毎週月曜日に自動生成されます"
 msgstr "매주 월요일에 자동 생성됩니다"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "気づいたら行方不明"
+msgstr "어느새 행방불명"
+
+#: src/components/marketing/Hero.tsx
+#: src/components/marketing/MarketingFooter.tsx
+msgid "無料で始める"
+msgstr "무료로 시작하기"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "片付けの度に場所が変わり、アプリの記録と現実の居場所がすぐに合わなくなる。"
+msgstr "정리할 때마다 위치가 바뀌어, 앱의 기록과 실제 위치가 금세 어긋납니다."
 
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "状態"
@@ -1185,6 +1374,10 @@ msgstr "이미지를 업로드하고 있습니다 ({0}/{1})"
 #: src/components/garment/GarmentForm.tsx
 msgid "登録する"
 msgstr "등록"
+
+#: src/components/marketing/Hero.tsx
+msgid "登録は Google / X アカウントで 10 秒"
+msgstr "Google / X 계정으로 10 초면 가입"
 
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "登録完了"
@@ -1202,7 +1395,7 @@ msgstr "흰색"
 msgid "着"
 msgstr "벌"
 
-#: src/app/dolls/[id]/page.tsx
+#: src/app/(app)/dolls/[id]/page.tsx
 msgid "着用可能な服"
 msgstr "입힐 수 있는 옷"
 
@@ -1288,7 +1481,7 @@ msgstr "행"
 msgid "行数"
 msgstr "행 수"
 
-#: src/app/locations/page.tsx
+#: src/app/(app)/locations/page.tsx
 msgid "衣装ケースを追加して、服の収納場所を管理しましょう"
 msgstr "의상 케이스를 추가하여 옷의 수납 장소를 관리하세요"
 
@@ -1320,8 +1513,8 @@ msgstr "언어"
 msgid "該当するドールがありません"
 msgstr "해당하는 인형이 없습니다"
 
-#: src/app/dolls/[id]/page.tsx
-#: src/app/garments/[id]/page.tsx
+#: src/app/(app)/dolls/[id]/page.tsx
+#: src/app/(app)/garments/[id]/page.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "詳細"
 msgstr "상세"
@@ -1332,18 +1525,18 @@ msgstr "상세"
 msgid "説明"
 msgstr "설명"
 
-#: src/app/archive/page.tsx
-#: src/app/digest/page.tsx
-#: src/app/dolls/[id]/edit/page.tsx
-#: src/app/dolls/[id]/page.tsx
-#: src/app/dolls/[id]/page.tsx
-#: src/app/dolls/page.tsx
-#: src/app/garments/[id]/edit/page.tsx
-#: src/app/garments/[id]/page.tsx
-#: src/app/garments/page.tsx
-#: src/app/locations/[caseId]/page.tsx
-#: src/app/locations/page.tsx
-#: src/app/page.tsx
+#: src/app/(app)/archive/page.tsx
+#: src/app/(app)/dashboard/page.tsx
+#: src/app/(app)/digest/page.tsx
+#: src/app/(app)/dolls/[id]/edit/page.tsx
+#: src/app/(app)/dolls/[id]/page.tsx
+#: src/app/(app)/dolls/[id]/page.tsx
+#: src/app/(app)/dolls/page.tsx
+#: src/app/(app)/garments/[id]/edit/page.tsx
+#: src/app/(app)/garments/[id]/page.tsx
+#: src/app/(app)/garments/page.tsx
+#: src/app/(app)/locations/[caseId]/page.tsx
+#: src/app/(app)/locations/page.tsx
 msgid "読み込みに失敗しました"
 msgstr "로딩에 실패했습니다"
 
@@ -1355,17 +1548,25 @@ msgstr "빨강"
 msgid "通常 (30日)"
 msgstr "보통 (30일)"
 
-#: src/app/garments/bulk/page.tsx
-#: src/app/garments/new/page.tsx
-#: src/app/garments/page.tsx
+#: src/components/marketing/FeatureGrid.tsx
+msgid "通知は月曜の朝 1 回だけ。通知疲れしない、穏やかな設計。"
+msgstr "알림은 월요일 아침 1 회뿐. 알림 피로 없이, 부드러운 설계."
+
+#: src/app/(app)/garments/bulk/page.tsx
+#: src/app/(app)/garments/new/page.tsx
+#: src/app/(app)/garments/page.tsx
 msgid "連続撮影"
 msgstr "연속 촬영"
 
-#: src/app/digest/page.tsx
+#: src/components/marketing/FeatureGrid.tsx
+msgid "週 1 回のダイジェスト"
+msgstr "주 1 회 다이제스트"
+
+#: src/app/(app)/digest/page.tsx
 msgid "週間レポート"
 msgstr "주간 리포트"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(app)/nfc-write/page.tsx
 msgid "選択してください"
 msgstr "선택해 주세요"
 

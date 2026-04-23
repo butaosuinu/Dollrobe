@@ -35,6 +35,7 @@ export default tseslint.config(
       "playwright.config.ts",
       ".claude/",
       ".mcp.json",
+      "scripts/",
     ],
   },
   js.configs.recommended,
@@ -188,6 +189,16 @@ export default tseslint.config(
     rules: {
       "functional/no-expression-statements": "off",
       "functional/no-conditional-statements": "off",
+      "@typescript-eslint/prefer-destructuring": "off",
+    },
+  },
+  {
+    files: ["src/middleware.ts"],
+    rules: {
+      "functional/no-expression-statements": "off",
+      "functional/no-conditional-statements": "off",
+      "functional/immutable-data": "off",
+      "functional/no-return-void": "off",
       "@typescript-eslint/prefer-destructuring": "off",
     },
   },

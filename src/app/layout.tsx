@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { zenMaruGothic, notoSansJP, notoSansKR, notoSansSC } from "@/lib/fonts";
-import AppShell from "@/components/layout/AppShell";
 import "@/app/globals.css";
 import { SerwistProvider } from "@/app/serwist-provider";
 import LinguiClientProvider from "@/components/i18n/LinguiProvider";
@@ -28,9 +27,7 @@ const RootLayout = ({ children }: { readonly children: React.ReactNode }) => (
         swUrl="/serwist/sw.js"
         disable={process.env.NODE_ENV === "development"}
       >
-        <LinguiClientProvider>
-          <AppShell>{children}</AppShell>
-        </LinguiClientProvider>
+        <LinguiClientProvider>{children}</LinguiClientProvider>
       </SerwistProvider>
     </body>
   </html>
