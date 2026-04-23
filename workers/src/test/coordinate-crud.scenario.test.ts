@@ -184,4 +184,53 @@ describe("コーデ CRUD シナリオ", () => {
       expectTRPCError(error, "NOT_FOUND");
     });
   });
+
+  describe("garmentIds の所有権検証", () => {
+    it("存在しない garmentId で create すると BAD_REQUEST になる", async () => {
+      const caller = getCaller();
+
+      const error = await caller.coordinate
+        .create(
+          createTestCoordinateInput({
+            garmentIds: ["nonexistent-garment-id"],
+          }),
+        )
+        .catch((e: unknown) => e);
+
+      expectTRPCError(error, "BAD_REQUEST");
+    });
+
+    it("有効な garmentId と無効な garmentId を混在で create すると BAD_REQUEST になる", async () => {
+      const caller = getCaller();
+      const garment = await caller.garment.create(
+        createTestGarmentInput({ name: "実在する服" }),
+      );
+
+      const error = await caller.coordinate
+        .create(
+          createTestCoordinateInput({
+            garmentIds: [garment.id, "nonexistent-garment-id"],
+          }),
+        )
+        .catch((e: unknown) => e);
+
+      expectTRPCError(error, "BAD_REQUEST");
+    });
+
+    it("存在しない garmentId で update すると BAD_REQUEST になる", async () => {
+      const caller = getCaller();
+      const created = await caller.coordinate.create(
+        createTestCoordinateInput(),
+      );
+
+      const error = await caller.coordinate
+        .update({
+          id: created.id,
+          garmentIds: ["nonexistent-garment-id"],
+        })
+        .catch((e: unknown) => e);
+
+      expectTRPCError(error, "BAD_REQUEST");
+    });
+  });
 });

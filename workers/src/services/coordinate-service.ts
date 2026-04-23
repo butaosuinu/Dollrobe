@@ -3,7 +3,40 @@ import { createId } from "@paralleldrive/cuid2";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import * as coordinateRepo from "../repositories/coordinate-repository";
+import * as garmentRepo from "../repositories/garment-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
+
+const verifyGarmentOwnership = async ({
+  drizzleDb,
+  garmentIds,
+  userId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly garmentIds: readonly string[];
+  readonly userId: string;
+  readonly logger: Logger;
+}): Promise<ServiceResult<true>> => {
+  if (garmentIds.length === 0) {
+    return serviceOk(true);
+  }
+
+  const uniqueIds = Array.from(new Set(garmentIds));
+  const owned = await garmentRepo.findGarmentsByIds({
+    drizzleDb,
+    ids: uniqueIds,
+    userId,
+    logger,
+  });
+
+  if (owned.length !== uniqueIds.length) {
+    return serviceError(
+      "BAD_REQUEST",
+      "指定された服の一部が存在しないか、このユーザーのものではありません",
+    );
+  }
+  return serviceOk(true);
+};
 
 export const listCoordinates = async ({
   drizzleDb,
@@ -66,6 +99,16 @@ export const createCoordinate = async ({
   };
   readonly logger: Logger;
 }): Promise<ServiceResult<Coordinate>> => {
+  const ownership = await verifyGarmentOwnership({
+    drizzleDb,
+    garmentIds: input.garmentIds,
+    userId,
+    logger,
+  });
+  if (!ownership.ok) {
+    return ownership;
+  }
+
   const id = createId();
   const now = Date.now();
 
@@ -120,6 +163,18 @@ export const updateCoordinate = async ({
   });
   if (existing === undefined) {
     return serviceError("NOT_FOUND", `Coordinate not found: ${input.id}`);
+  }
+
+  if (input.garmentIds !== undefined) {
+    const ownership = await verifyGarmentOwnership({
+      drizzleDb,
+      garmentIds: input.garmentIds,
+      userId,
+      logger,
+    });
+    if (!ownership.ok) {
+      return ownership;
+    }
   }
 
   const coordinate = await coordinateRepo.updateCoordinateFields({
