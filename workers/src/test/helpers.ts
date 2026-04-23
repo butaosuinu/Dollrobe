@@ -3,7 +3,10 @@ import { TRPCError } from "@trpc/server";
 import { createCallerFactory } from "../trpc/index";
 import { appRouter } from "../trpc/router";
 import type { TRPCContext } from "../trpc/index";
-import type { CreateGarmentInput } from "../db/validation";
+import type {
+  CreateGarmentInput,
+  CreateCoordinateInput,
+} from "../db/validation";
 import { createLogger } from "../lib/logger";
 
 const createCaller = createCallerFactory(appRouter);
@@ -43,6 +46,15 @@ export const createTestGarmentInput = (
   colors: ["hsl(0,100%,50%)"],
   tags: ["test"],
   confidenceDecayDays: 30,
+  ...overrides,
+});
+
+export const createTestCoordinateInput = (
+  overrides: Partial<CreateCoordinateInput> = {},
+): CreateCoordinateInput => ({
+  name: "テストコーデ",
+  garmentIds: [],
+  isAiGenerated: false,
   ...overrides,
 });
 
