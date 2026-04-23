@@ -2,7 +2,13 @@ import { and, eq, lte, sql } from "drizzle-orm";
 import { GARMENT_STATUS } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
-import { dolls, garments, storageCases, storageLocations } from "../db/schema";
+import {
+  coordinates,
+  dolls,
+  garments,
+  storageCases,
+  storageLocations,
+} from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
 import * as locationRepo from "./location-repository";
 
@@ -203,6 +209,54 @@ export const deleteDoll = async ({
     .delete(dolls)
     .where(and(eq(dolls.id, dollId), eq(dolls.userId, userId)))
     .catch(wrapDbError({ context: "delete doll (sync)", logger }));
+};
+
+export const upsertCoordinate = async ({
+  drizzleDb,
+  coordinateValues,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly coordinateValues: typeof coordinates.$inferInsert;
+  readonly logger: Logger;
+}): Promise<void> => {
+  await drizzleDb
+    .insert(coordinates)
+    .values(coordinateValues)
+    .onConflictDoUpdate({
+      target: coordinates.id,
+      set: {
+        name: sql`excluded.name`,
+        garmentIds: sql`excluded.garment_ids`,
+        isAiGenerated: sql`excluded.is_ai_generated`,
+        memo: sql`excluded.memo`,
+        updatedAt: sql`excluded.updated_at`,
+      },
+      setWhere: and(
+        eq(coordinates.userId, sql`excluded.user_id`),
+        lte(coordinates.updatedAt, sql`excluded.updated_at`),
+      ),
+    })
+    .catch(wrapDbError({ context: "upsert coordinate", logger }));
+};
+
+export const deleteCoordinate = async ({
+  drizzleDb,
+  userId,
+  coordinateId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly coordinateId: string;
+  readonly logger: Logger;
+}): Promise<void> => {
+  await drizzleDb
+    .delete(coordinates)
+    .where(
+      and(eq(coordinates.id, coordinateId), eq(coordinates.userId, userId)),
+    )
+    .catch(wrapDbError({ context: "delete coordinate (sync)", logger }));
 };
 
 export const deleteStorageCaseWithCascade = async ({

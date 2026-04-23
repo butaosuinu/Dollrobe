@@ -169,6 +169,44 @@ export const insertDoll = async ({ db, overrides = {} }: InsertDollParams) => {
   return { id };
 };
 
+type InsertCoordinateParams = {
+  readonly db: D1Database;
+  readonly overrides?: Partial<{
+    readonly id: string;
+    readonly name: string;
+    readonly garmentIds: readonly string[];
+    readonly isAiGenerated: boolean;
+    readonly memo: string;
+  }>;
+};
+
+export const insertCoordinate = async ({
+  db,
+  overrides = {},
+}: InsertCoordinateParams) => {
+  const id = overrides.id ?? createId();
+  const now = Date.now();
+
+  await db
+    .prepare(
+      `INSERT INTO coordinates (id, user_id, name, garment_ids, is_ai_generated, memo, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)`,
+    )
+    .bind(
+      id,
+      TEMP_USER_ID,
+      overrides.name ?? "テストコーデ",
+      JSON.stringify(overrides.garmentIds ?? []),
+      overrides.isAiGenerated === true ? 1 : 0,
+      overrides.memo ?? null,
+      now,
+      now,
+    )
+    .run();
+
+  return { id };
+};
+
 type InsertDigestParams = {
   readonly db: D1Database;
   readonly overrides?: Partial<{

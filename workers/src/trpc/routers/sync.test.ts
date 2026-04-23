@@ -7,6 +7,7 @@ import {
   expectTRPCError,
 } from "../../test/helpers";
 import {
+  insertCoordinate,
   insertDoll,
   insertGarment,
   insertStorageCase,
@@ -109,6 +110,118 @@ describe("sync router", () => {
       expect(loc?.lastVisitedAt).toBe(now);
     });
 
+    it("coordinate:create で保存され pull で取得できる", async () => {
+      const caller = getCaller();
+      const now = Date.now();
+      const id = createId();
+
+      const result = await caller.sync.push({
+        items: [
+          {
+            type: "coordinate:create",
+            payload: {
+              id,
+              userId: TEMP_USER_ID,
+              name: "春コーデ",
+              garmentIds: ["g1", "g2"],
+              isAiGenerated: false,
+              memo: "お気に入り",
+              createdAt: now,
+              updatedAt: now,
+            },
+            createdAt: now,
+          },
+        ],
+      });
+
+      expect(result.processedCount).toBe(1);
+
+      const pulled = await caller.sync.pull();
+      expect(pulled.coordinates).toHaveLength(1);
+      const coord = pulled.coordinates[0];
+      expect(coord?.id).toBe(id);
+      expect(coord?.name).toBe("春コーデ");
+      expect(coord?.garmentIds).toEqual(["g1", "g2"]);
+      expect(coord?.isAiGenerated).toBe(false);
+      expect(coord?.memo).toBe("お気に入り");
+    });
+
+    it("coordinate:update で LWW により新しい updatedAt のみ適用される", async () => {
+      const db = getTestDb();
+      const { id } = await insertCoordinate({ db, overrides: { name: "旧" } });
+
+      const caller = getCaller();
+      const now = Date.now();
+
+      // 古い payload (updatedAt が小さい) — 適用されない
+      await caller.sync.push({
+        items: [
+          {
+            type: "coordinate:update",
+            payload: {
+              id,
+              userId: TEMP_USER_ID,
+              name: "古い更新",
+              garmentIds: [],
+              isAiGenerated: false,
+              createdAt: now - 10_000,
+              updatedAt: now - 10_000,
+            },
+            createdAt: now - 10_000,
+          },
+        ],
+      });
+
+      const pulledOld = await caller.sync.pull();
+      expect(pulledOld.coordinates[0]?.name).toBe("旧");
+
+      // 新しい payload — 適用される
+      await caller.sync.push({
+        items: [
+          {
+            type: "coordinate:update",
+            payload: {
+              id,
+              userId: TEMP_USER_ID,
+              name: "新しい更新",
+              garmentIds: ["g1"],
+              isAiGenerated: true,
+              createdAt: now,
+              updatedAt: now + 10_000,
+            },
+            createdAt: now + 10_000,
+          },
+        ],
+      });
+
+      const pulledNew = await caller.sync.pull();
+      expect(pulledNew.coordinates[0]?.name).toBe("新しい更新");
+      expect(pulledNew.coordinates[0]?.isAiGenerated).toBe(true);
+      expect(pulledNew.coordinates[0]?.garmentIds).toEqual(["g1"]);
+    });
+
+    it("coordinate:delete で行が削除される", async () => {
+      const db = getTestDb();
+      const { id } = await insertCoordinate({ db });
+
+      const caller = getCaller();
+      const beforeDelete = await caller.sync.pull();
+      expect(beforeDelete.coordinates).toHaveLength(1);
+
+      await caller.sync.push({
+        items: [
+          {
+            type: "coordinate:delete",
+            payload: { id },
+            createdAt: Date.now(),
+          },
+        ],
+      });
+
+      const afterDelete = await caller.sync.pull();
+      expect(afterDelete.coordinates).toHaveLength(0);
+    });
+
     it("カウンター列を含まない storageLocation:update で既存カウンターが保持される", async () => {
       const db = getTestDb();
       const { id: caseId } = await insertStorageCase({ db });
@@ -180,6 +293,7 @@ describe("sync router", () => {
       expect(result.garments).toEqual([]);
       expect(result.storageCases).toEqual([]);
       expect(result.storageLocations).toEqual([]);
+      expect(result.coordinates).toEqual([]);
     });
 
     it("factory で挿入したデータを pull で取得できる", async () => {
@@ -191,6 +305,7 @@ describe("sync router", () => {
       });
       await insertGarment({ db });
       await insertDoll({ db });
+      await insertCoordinate({ db });
 
       const caller = getCaller();
       const result = await caller.sync.pull();
@@ -199,6 +314,7 @@ describe("sync router", () => {
       expect(result.garments).toHaveLength(1);
       expect(result.storageCases).toHaveLength(1);
       expect(result.storageLocations).toHaveLength(1);
+      expect(result.coordinates).toHaveLength(1);
     });
   });
 });

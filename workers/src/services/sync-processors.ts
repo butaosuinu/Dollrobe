@@ -197,6 +197,34 @@ const toDollInsertValues = ({
   updatedAt: parsed.updatedAt,
 });
 
+const coordinatePayloadSchema = z.object({
+  id: z.string().min(1),
+  userId: z.string().min(1),
+  name: z.string().min(1),
+  garmentIds: z.array(z.string()),
+  isAiGenerated: z.boolean(),
+  memo: z.string().optional(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
+const toCoordinateInsertValues = ({
+  parsed,
+  authenticatedUserId,
+}: {
+  readonly parsed: z.infer<typeof coordinatePayloadSchema>;
+  readonly authenticatedUserId: string;
+}) => ({
+  id: parsed.id,
+  userId: authenticatedUserId,
+  name: parsed.name,
+  garmentIds: parsed.garmentIds,
+  isAiGenerated: parsed.isAiGenerated,
+  memo: parsed.memo ?? null,
+  createdAt: parsed.createdAt,
+  updatedAt: parsed.updatedAt,
+});
+
 const processGarmentUpsert: ActionProcessor = async (ctx, payload) => {
   const parsed = garmentPayloadSchema.safeParse(payload);
   if (!parsed.success) {
@@ -390,6 +418,42 @@ const processDollDelete: ActionProcessor = async (ctx, payload) => {
   return serviceOk({ processed: true });
 };
 
+const processCoordinateUpsert: ActionProcessor = async (ctx, payload) => {
+  const parsed = coordinatePayloadSchema.safeParse(payload);
+  if (!parsed.success) {
+    return serviceError(
+      "BAD_REQUEST",
+      `Invalid coordinate payload: ${parsed.error.message}`,
+    );
+  }
+  await syncRepo.upsertCoordinate({
+    drizzleDb: ctx.drizzleDb,
+    coordinateValues: toCoordinateInsertValues({
+      parsed: parsed.data,
+      authenticatedUserId: ctx.userId,
+    }),
+    logger: ctx.logger,
+  });
+  return serviceOk({ processed: true });
+};
+
+const processCoordinateDelete: ActionProcessor = async (ctx, payload) => {
+  const parsed = deletePayloadSchema.safeParse(payload);
+  if (!parsed.success) {
+    return serviceError(
+      "BAD_REQUEST",
+      `Invalid delete payload: ${parsed.error.message}`,
+    );
+  }
+  await syncRepo.deleteCoordinate({
+    drizzleDb: ctx.drizzleDb,
+    userId: ctx.userId,
+    coordinateId: parsed.data.id,
+    logger: ctx.logger,
+  });
+  return serviceOk({ processed: true });
+};
+
 export const ACTION_PROCESSORS: Readonly<Record<string, ActionProcessor>> = {
   "garment:create": processGarmentUpsert,
   "garment:update": processGarmentUpsert,
@@ -402,4 +466,7 @@ export const ACTION_PROCESSORS: Readonly<Record<string, ActionProcessor>> = {
   "doll:create": processDollUpsert,
   "doll:update": processDollUpsert,
   "doll:delete": processDollDelete,
+  "coordinate:create": processCoordinateUpsert,
+  "coordinate:update": processCoordinateUpsert,
+  "coordinate:delete": processCoordinateDelete,
 };
