@@ -52,9 +52,9 @@ const filterGarments = (
 
 type SelectedListProps = {
   readonly selectedGarments: readonly Garment[];
-  readonly onMoveLeft: (index: number) => void;
-  readonly onMoveRight: (index: number) => void;
-  readonly onRemove: (index: number) => void;
+  readonly onMoveLeft: (id: string) => void;
+  readonly onMoveRight: (id: string) => void;
+  readonly onRemove: (id: string) => void;
 };
 
 const SelectedGarmentsList = ({
@@ -99,7 +99,7 @@ const SelectedGarmentsList = ({
             <button
               type="button"
               aria-label={t`前へ`}
-              onClick={() => onMoveLeft(index)}
+              onClick={() => onMoveLeft(garment.id)}
               disabled={index === 0}
               className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-50 disabled:opacity-30"
             >
@@ -108,7 +108,7 @@ const SelectedGarmentsList = ({
             <button
               type="button"
               aria-label={t`次へ`}
-              onClick={() => onMoveRight(index)}
+              onClick={() => onMoveRight(garment.id)}
               disabled={index === lastIndex}
               className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-50 disabled:opacity-30"
             >
@@ -117,7 +117,7 @@ const SelectedGarmentsList = ({
             <button
               type="button"
               aria-label={t`削除`}
-              onClick={() => onRemove(index)}
+              onClick={() => onRemove(garment.id)}
               className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-red-50 hover:text-danger"
             >
               <RemoveIcon className="size-4" />
@@ -223,20 +223,24 @@ type BuilderState = {
   readonly memo: string;
   readonly searchQuery: string;
   readonly isValid: boolean;
+  readonly submitError: string | undefined;
   readonly setName: (value: string) => void;
   readonly setMemo: (value: string) => void;
   readonly setSearchQuery: (value: string) => void;
   readonly toggleGarment: (id: string) => void;
-  readonly moveLeft: (index: number) => void;
-  readonly moveRight: (index: number) => void;
-  readonly removeAt: (index: number) => void;
+  readonly moveLeft: (id: string) => void;
+  readonly moveRight: (id: string) => void;
+  readonly removeAt: (id: string) => void;
   readonly handleSubmit: (e: React.SyntheticEvent) => Promise<void>;
 };
 
-const useCoordinateBuilder = (
-  initial: Coordinate | undefined,
-  onSubmit: (data: CoordinateBuilderSubmitData) => Promise<void>,
-): BuilderState => {
+const useCoordinateBuilder = ({
+  initial,
+  onSubmit,
+}: {
+  readonly initial: Coordinate | undefined;
+  readonly onSubmit: (data: CoordinateBuilderSubmitData) => Promise<void>;
+}): BuilderState => {
   const allGarments = useAtomValue(activeGarmentsAtom);
   const [selectedIds, setSelectedIds] = useState<readonly string[]>(
     initial?.garmentIds ?? [],
@@ -245,6 +249,7 @@ const useCoordinateBuilder = (
   const [memo, setMemo] = useState(initial?.memo ?? "");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | undefined>(undefined);
 
   const garmentById = useMemo(
     () => new Map(allGarments.map((g) => [g.id, g])),
@@ -269,12 +274,20 @@ const useCoordinateBuilder = (
     e.preventDefault();
     if (!isValid) return;
     setIsSubmitting(true);
-    await onSubmit({
+    setSubmitError(undefined);
+    const caughtError = await onSubmit({
       name: trimmedName,
       memo: memo.trim() === "" ? undefined : memo.trim(),
       garmentIds: [...selectedIds],
-    }).catch(() => undefined);
+    }).catch((err: unknown) => err);
     setIsSubmitting(false);
+    if (caughtError !== undefined) {
+      setSubmitError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : t`保存に失敗しました`,
+      );
+    }
   };
 
   return {
@@ -286,6 +299,7 @@ const useCoordinateBuilder = (
     memo,
     searchQuery,
     isValid,
+    submitError,
     setName,
     setMemo,
     setSearchQuery,
@@ -293,11 +307,29 @@ const useCoordinateBuilder = (
       setSelectedIds((prev) =>
         prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id],
       ),
-    moveLeft: (index) => setSelectedIds((prev) => swap(prev, index, index - 1)),
-    moveRight: (index) =>
-      setSelectedIds((prev) => swap(prev, index, index + 1)),
-    removeAt: (index) =>
-      setSelectedIds((prev) => prev.filter((_, i) => i !== index)),
+    moveLeft: (id) =>
+      setSelectedIds((prev) => {
+        const i = prev.indexOf(id);
+        if (i === -1) return prev;
+        const prevVisible = prev
+          .slice(0, i)
+          .filter((pid) => garmentById.has(pid))
+          .pop();
+        if (prevVisible === undefined) return prev;
+        return swap(prev, i, prev.indexOf(prevVisible));
+      }),
+    moveRight: (id) =>
+      setSelectedIds((prev) => {
+        const i = prev.indexOf(id);
+        if (i === -1) return prev;
+        const nextVisible = prev
+          .slice(i + 1)
+          .find((pid) => garmentById.has(pid));
+        if (nextVisible === undefined) return prev;
+        return swap(prev, i, prev.indexOf(nextVisible));
+      }),
+    removeAt: (id) =>
+      setSelectedIds((prev) => prev.filter((pid) => pid !== id)),
     handleSubmit,
   };
 };
@@ -308,7 +340,7 @@ const CoordinateBuilder = ({
   onSubmit,
   onCancel,
 }: Props) => {
-  const s = useCoordinateBuilder(initial, onSubmit);
+  const s = useCoordinateBuilder({ initial, onSubmit });
 
   return (
     <form onSubmit={s.handleSubmit} className="flex flex-col gap-5">
@@ -356,6 +388,15 @@ const CoordinateBuilder = ({
         maxLength={COORDINATE_MEMO_MAX_LENGTH}
         rows={3}
       />
+
+      {s.submitError !== undefined && (
+        <p
+          role="alert"
+          className="rounded-lg border border-danger/30 bg-red-50 px-3 py-2 text-sm text-danger"
+        >
+          {s.submitError}
+        </p>
+      )}
 
       <div className="flex flex-col gap-2 lg:flex-row">
         {onCancel !== undefined && (

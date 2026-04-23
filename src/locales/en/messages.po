@@ -920,6 +920,10 @@ msgstr "Save"
 msgid "保存する"
 msgstr "Save"
 
+#: src/components/coordinate/CoordinateBuilder.tsx
+msgid "保存に失敗しました"
+msgstr "Failed to save"
+
 #: src/app/garments/page.tsx
 msgid "信頼度"
 msgstr "Confidence"
