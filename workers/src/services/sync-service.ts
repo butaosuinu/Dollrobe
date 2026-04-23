@@ -1,6 +1,13 @@
-import type { Doll, Garment, StorageCase, StorageLocation } from "@/types";
+import type {
+  Coordinate,
+  Doll,
+  Garment,
+  StorageCase,
+  StorageLocation,
+} from "@/types";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
+import * as coordinateRepo from "../repositories/coordinate-repository";
 import * as dollRepo from "../repositories/doll-repository";
 import * as garmentRepo from "../repositories/garment-repository";
 import * as locationRepo from "../repositories/location-repository";
@@ -28,9 +35,12 @@ const SYNC_TYPE_PRIORITY: ReadonlyMap<string, number> = new Map([
   ["doll:update", 5],
   ["garment:create", 6],
   ["garment:update", 7],
-  ["garment:delete", 8],
-  ["doll:delete", 9],
-  ["storageCase:delete", 10],
+  ["coordinate:create", 8],
+  ["coordinate:update", 9],
+  ["garment:delete", 10],
+  ["coordinate:delete", 11],
+  ["doll:delete", 12],
+  ["storageCase:delete", 13],
 ]);
 
 const DEFAULT_PRIORITY = 100;
@@ -149,28 +159,41 @@ export const pull = async ({
     readonly storageCases: readonly StorageCase[];
     readonly storageLocations: readonly StorageLocation[];
     readonly dolls: readonly Doll[];
+    readonly coordinates: readonly Coordinate[];
   }>
 > => {
   logger.info("Sync pull started");
 
-  const [pulledGarments, pulledCases, pulledLocations, pulledDolls] =
-    await Promise.all([
-      garmentRepo.findGarments({
-        drizzleDb,
-        userId,
-        filters: {},
-        logger,
-      }),
-      locationRepo.findCasesByUserId({ drizzleDb, userId }),
-      locationRepo.findLocationsByUserId({ drizzleDb, userId }),
-      dollRepo.findDolls({ drizzleDb, userId, filters: {}, logger }),
-    ]);
+  const [
+    pulledGarments,
+    pulledCases,
+    pulledLocations,
+    pulledDolls,
+    pulledCoordinates,
+  ] = await Promise.all([
+    garmentRepo.findGarments({
+      drizzleDb,
+      userId,
+      filters: {},
+      logger,
+    }),
+    locationRepo.findCasesByUserId({ drizzleDb, userId }),
+    locationRepo.findLocationsByUserId({ drizzleDb, userId }),
+    dollRepo.findDolls({ drizzleDb, userId, filters: {}, logger }),
+    coordinateRepo.findCoordinates({
+      drizzleDb,
+      userId,
+      filters: {},
+      logger,
+    }),
+  ]);
 
   logger.info("Sync pull completed", {
     garmentCount: pulledGarments.length,
     caseCount: pulledCases.length,
     locationCount: pulledLocations.length,
     dollCount: pulledDolls.length,
+    coordinateCount: pulledCoordinates.length,
   });
 
   return serviceOk({
@@ -178,5 +201,6 @@ export const pull = async ({
     storageCases: pulledCases,
     storageLocations: pulledLocations,
     dolls: pulledDolls,
+    coordinates: pulledCoordinates,
   });
 };

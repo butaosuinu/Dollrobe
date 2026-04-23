@@ -137,6 +137,11 @@ msgstr "「{0}」をアーカイブしますか？"
 msgid "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
 msgstr "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
 
+#. placeholder {0}: coordinate.name
+#: src/app/coordinates/[id]/page.tsx
+msgid "「{0}」を削除しますか？この操作は取り消せません。"
+msgstr "「{0}」を削除しますか？この操作は取り消せません。"
+
 #. placeholder {0}: doll.name
 #. placeholder {0}: garment.name
 #: src/components/doll/DollDetail.tsx
@@ -148,6 +153,10 @@ msgstr "「{0}」を完全に削除しますか？この操作は取り消せま
 #: src/components/dashboard/CheckedOutSection.tsx
 msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
 msgstr "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
+
+#: src/components/coordinate/OriginBadge.tsx
+msgid "AI"
+msgstr "AI"
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -350,6 +359,14 @@ msgstr "おかえりなさい"
 msgid "オレンジ"
 msgstr "オレンジ"
 
+#: src/components/coordinate/CoordinateBuilder.tsx
+msgid "お出かけコーデ"
+msgstr "お出かけコーデ"
+
+#: src/app/coordinates/page.tsx
+msgid "お気に入りの組み合わせを保存しておきましょう"
+msgstr "お気に入りの組み合わせを保存しておきましょう"
+
 #: src/app/dolls/page.tsx
 #: src/app/dolls/page.tsx
 #: src/components/doll/DollDetailInfoCard.tsx
@@ -381,6 +398,7 @@ msgid "カラー"
 msgstr "カラー"
 
 #: src/app/nfc-write/page.tsx
+#: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
@@ -424,6 +442,32 @@ msgstr "ケース名"
 msgid "ケース詳細"
 msgstr "ケース詳細"
 
+#: src/app/coordinates/page.tsx
+#: src/lib/nav-items.ts
+msgid "コーデ"
+msgstr "コーデ"
+
+#: src/app/coordinates/[id]/page.tsx
+msgid "コーデが見つかりません"
+msgstr "コーデが見つかりません"
+
+#: src/app/coordinates/new/page.tsx
+#: src/app/coordinates/page.tsx
+msgid "コーデを作る"
+msgstr "コーデを作る"
+
+#: src/app/coordinates/[id]/page.tsx
+msgid "コーデを削除"
+msgstr "コーデを削除"
+
+#: src/components/coordinate/CoordinateBuilder.tsx
+msgid "コーデ名"
+msgstr "コーデ名"
+
+#: src/app/coordinates/[id]/page.tsx
+msgid "コーデ詳細"
+msgstr "コーデ詳細"
+
 #: src/app/nfc-write/page.tsx
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
@@ -453,6 +497,10 @@ msgstr "サイズ"
 #: src/components/garment/csv/CsvDropZone.tsx
 msgid "サンプルCSVをダウンロード"
 msgstr "サンプルCSVをダウンロード"
+
+#: src/components/coordinate/CoordinateBuilder.tsx
+msgid "シーズン、シーン、組み合わせの理由など"
+msgstr "シーズン、シーン、組み合わせの理由など"
 
 #: src/lib/i18n-labels.ts
 msgid "シアン"
@@ -695,6 +743,10 @@ msgstr "ボディサイズ"
 msgid "ボトムス"
 msgstr "ボトムス"
 
+#: src/app/coordinates/page.tsx
+msgid "まだコーデがありません"
+msgstr "まだコーデがありません"
+
 #: src/app/dolls/page.tsx
 msgid "まだドールがいません"
 msgstr "まだドールがいません"
@@ -728,6 +780,8 @@ msgstr "まだ開けていません"
 msgid "メーカー"
 msgstr "メーカー"
 
+#: src/app/coordinates/[id]/page.tsx
+#: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentDetail.tsx
@@ -795,9 +849,11 @@ msgid "一致するドールが見つかりません"
 msgstr "一致するドールが見つかりません"
 
 #: src/app/garments/page.tsx
+#: src/components/coordinate/CoordinateBuilder.tsx
 msgid "一致する服が見つかりません"
 msgstr "一致する服が見つかりません"
 
+#: src/app/coordinates/[id]/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
 #: src/app/dolls/[id]/page.tsx
 #: src/app/garments/[id]/edit/page.tsx
@@ -805,6 +861,10 @@ msgstr "一致する服が見つかりません"
 #: src/app/locations/[caseId]/page.tsx
 msgid "一覧に戻る"
 msgstr "一覧に戻る"
+
+#: src/components/coordinate/CoordinateBuilder.tsx
+msgid "下のリストから服を選択してください"
+msgstr "下のリストから服を選択してください"
 
 #: src/components/digest/DigestCard.tsx
 #: src/lib/i18n-labels.ts
@@ -825,6 +885,10 @@ msgstr "今ここにいなくても確認"
 #: src/components/location/StorageCaseForm.tsx
 msgid "作成"
 msgstr "作成"
+
+#: src/app/coordinates/[id]/page.tsx
+msgid "使用する服"
+msgstr "使用する服"
 
 #: src/components/dashboard/CheckedOutSection.tsx
 msgid "使用中"
@@ -851,6 +915,10 @@ msgstr "例: 衣装ケース A"
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "保存"
 msgstr "保存"
+
+#: src/app/coordinates/new/page.tsx
+msgid "保存する"
+msgstr "保存する"
 
 #: src/app/garments/page.tsx
 msgid "信頼度"
@@ -906,7 +974,10 @@ msgstr "写真を追加"
 msgid "列数"
 msgstr "列数"
 
+#: src/app/coordinates/[id]/page.tsx
+#: src/app/coordinates/[id]/page.tsx
 #: src/app/locations/page.tsx
+#: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/location/StorageCaseCard.tsx
@@ -922,6 +993,7 @@ msgstr "前のページ"
 msgid "前の値を適用"
 msgstr "前の値を適用"
 
+#: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/ui/Pagination.tsx
 msgid "前へ"
@@ -1002,6 +1074,7 @@ msgid "名前やカスタマイザーで検索..."
 msgstr "名前やカスタマイザーで検索..."
 
 #: src/app/garments/page.tsx
+#: src/components/coordinate/CoordinateBuilder.tsx
 msgid "名前やタグで検索..."
 msgstr "名前やタグで検索..."
 
@@ -1061,6 +1134,10 @@ msgstr "復元"
 msgid "戻る"
 msgstr "戻る"
 
+#: src/components/coordinate/OriginBadge.tsx
+msgid "手動"
+msgstr "手動"
+
 #: src/components/digest/DigestBanner.tsx
 msgid "新しい週間レポートが届いています"
 msgstr "新しい週間レポートが届いています"
@@ -1070,6 +1147,10 @@ msgstr "新しい週間レポートが届いています"
 msgid "新しい順"
 msgstr "新しい順"
 
+#: src/app/coordinates/page.tsx
+msgid "新規作成"
+msgstr "新規作成"
+
 #: src/components/digest/DigestCard.tsx
 msgid "既読にする"
 msgstr "既読にする"
@@ -1078,6 +1159,7 @@ msgstr "既読にする"
 msgid "既読済み"
 msgstr "既読済み"
 
+#: src/app/coordinates/[id]/page.tsx
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "更新する"
@@ -1135,6 +1217,10 @@ msgstr "服を登録"
 msgid "服を編集"
 msgstr "服を編集"
 
+#: src/components/coordinate/CoordinateBuilder.tsx
+msgid "服を選ぶ"
+msgstr "服を選ぶ"
+
 #: src/components/dashboard/StaleLocationItem.tsx
 msgid "未確認 {uncertainItemCount}着"
 msgstr "未確認 {uncertainItemCount}着"
@@ -1161,6 +1247,7 @@ msgid "次のページ"
 msgstr "次のページ"
 
 #: src/app/nfc-write/page.tsx
+#: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
 #: src/components/ui/Pagination.tsx
@@ -1180,6 +1267,10 @@ msgstr "状態"
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "画像をアップロードしています ({0}/{1})"
 msgstr "画像をアップロードしています ({0}/{1})"
+
+#: src/components/coordinate/CoordinateBuilder.tsx
+msgid "登録された服がありません"
+msgstr "登録された服がありません"
 
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -1259,6 +1350,7 @@ msgstr "続けて撮影する"
 msgid "緑"
 msgstr "緑"
 
+#: src/app/coordinates/[id]/page.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/location/StorageCaseCard.tsx
@@ -1333,6 +1425,8 @@ msgid "説明"
 msgstr "説明"
 
 #: src/app/archive/page.tsx
+#: src/app/coordinates/[id]/page.tsx
+#: src/app/coordinates/page.tsx
 #: src/app/digest/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
 #: src/app/dolls/[id]/page.tsx
@@ -1368,6 +1462,14 @@ msgstr "週間レポート"
 #: src/app/nfc-write/page.tsx
 msgid "選択してください"
 msgstr "選択してください"
+
+#: src/components/coordinate/CoordinateBuilder.tsx
+msgid "選択中の服"
+msgstr "選択中の服"
+
+#: src/app/coordinates/[id]/page.tsx
+msgid "関連する服がありません（削除された可能性があります）"
+msgstr "関連する服がありません（削除された可能性があります）"
 
 #: src/lib/i18n-labels.ts
 msgid "青"
