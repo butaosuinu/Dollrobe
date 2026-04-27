@@ -2,18 +2,21 @@
 # dmux worktree_created hook
 # 1. 親リポの .claude/settings.local.json を新 worktree にマージし、
 #    Claude Code permissions を引き継ぐ
-# 2. pnpm 依存解決 + i18n コンパイルを背景で走らせ、Claude の Stop hook
-#    (precheck:full) が node_modules / messages.mjs 欠落で落ちないようにする
+# 2. pnpm 依存解決 + i18n コンパイル + ローカル D1 マイグレーションを
+#    背景で走らせ、Claude の Stop hook (precheck:full) や API 開発が
+#    node_modules / messages.mjs / 未適用マイグレーションで落ちないようにする
 
 set -uo pipefail
 
-# 依存解決と i18n コンパイルを background で開始（dmux を止めない）
+# 依存解決・i18n コンパイル・ローカル D1 マイグレーションを background で開始
+# （dmux を止めない）
 if [ -f "$DMUX_WORKTREE_PATH/pnpm-lock.yaml" ] && command -v pnpm >/dev/null 2>&1; then
-  echo "[Hook] installing deps & compiling i18n (background)"
+  echo "[Hook] installing deps & compiling i18n & applying local migrations (background)"
   (
     cd "$DMUX_WORKTREE_PATH" && \
     pnpm install --prefer-offline && \
-    (pnpm i18n:compile 2>/dev/null || true)
+    (pnpm i18n:compile 2>/dev/null || true) && \
+    (pnpm db:migrate:local 2>/dev/null || true)
   ) &
 fi
 
