@@ -4,6 +4,7 @@ import love from "eslint-config-love";
 import functional from "eslint-plugin-functional";
 import reactHooks from "eslint-plugin-react-hooks";
 import jsxA11y from "eslint-plugin-jsx-a11y";
+import lingui from "eslint-plugin-lingui";
 
 export default tseslint.config(
   {
@@ -49,8 +50,19 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "@typescript-eslint/consistent-type-imports": "error",
-      "@typescript-eslint/consistent-type-definitions": "off",
-      "@typescript-eslint/no-magic-numbers": "off",
+      "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+      "@typescript-eslint/no-magic-numbers": [
+        "warn",
+        {
+          ignore: [-1, 0, 1, 2, 100, 1000, 60_000, 86_400_000],
+          ignoreEnums: true,
+          ignoreNumericLiteralTypes: true,
+          ignoreReadonlyClassProperties: true,
+          ignoreTypeIndexes: true,
+          ignoreDefaultValues: true,
+          ignoreClassFieldInitialValues: true,
+        },
+      ],
       "@typescript-eslint/explicit-function-return-type": "off",
       "functional/prefer-immutable-types": "off",
       "functional/type-declaration-immutability": "off",
@@ -58,6 +70,7 @@ export default tseslint.config(
         "error",
         { enforceParameterCount: false },
       ],
+      eqeqeq: ["error", "always", { null: "ignore" }],
       "no-restricted-syntax": [
         "error",
         {
@@ -71,6 +84,16 @@ export default tseslint.config(
           message:
             ".then() is forbidden. Use the await/catch pattern: `const result = await expr.catch(handler)`",
         },
+        {
+          selector: "ExportAllDeclaration",
+          message:
+            "バレル再エクスポート（`export *`）禁止。直接 import パスを使用すること（CLAUDE.md TypeScript Guidelines）",
+        },
+        {
+          selector: "CallExpression[callee.name='useEffect'] AwaitExpression",
+          message:
+            "useEffect 内での非同期データ取得は禁止。Suspense + Jotai async atom を使用すること（CLAUDE.md React Suspense パターン）",
+        },
       ],
       "@typescript-eslint/max-params": ["error", { max: 3 }],
     },
@@ -79,6 +102,76 @@ export default tseslint.config(
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+  },
+  {
+    files: ["src/**/*.tsx"],
+    ignores: [
+      "**/*.test.tsx",
+      "src/test/**",
+      "src/components/error/ErrorBoundary.tsx",
+    ],
+    plugins: { lingui },
+    rules: {
+      "lingui/t-call-in-function": "error",
+      "lingui/no-trans-inside-trans": "error",
+      "lingui/no-unlocalized-strings": [
+        "warn",
+        {
+          ignore: [
+            "^use (client|server)$",
+            "^/",
+            "^[a-z][a-zA-Z0-9_-]*$",
+            "^[A-Z][a-zA-Z0-9_-]*$",
+            "^[A-Z0-9_]+$",
+            "^https?://",
+            "^#",
+            "^[a-z0-9][a-z0-9:/_-]*( +[a-z0-9][a-z0-9:/_-]*)+$",
+            "^image/[a-z]+$",
+            "^application/[a-z+-]+$",
+            "^text/[a-z]+$",
+          ],
+          ignoreNames: [
+            "className",
+            "displayName",
+            "id",
+            "key",
+            "data-testid",
+            "type",
+            "role",
+            "name",
+            "href",
+            "src",
+            "alt",
+            "viewBox",
+            "fill",
+            "stroke",
+            "strokeWidth",
+            "strokeLinecap",
+            "strokeLinejoin",
+            "xmlns",
+            "d",
+            "points",
+            "transform",
+            "fontFamily",
+            "rel",
+            "target",
+            "as",
+            "entityType",
+          ],
+          ignoreFunctions: [
+            "cn",
+            "clsx",
+            "twMerge",
+            "createId",
+            "console.*",
+            "logger.*",
+            "Sentry.*",
+            "router.push",
+            "router.replace",
+          ],
+        },
+      ],
     },
   },
   {
@@ -163,6 +256,31 @@ export default tseslint.config(
       "functional/no-conditional-statements": "off",
       "functional/no-throw-statements": "off",
       "functional/immutable-data": "off",
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "TryStatement",
+          message:
+            "try/catch is forbidden. Use the await/catch pattern: `const result = await expr.catch(handler)`",
+        },
+        {
+          selector:
+            "CallExpression > MemberExpression.callee[property.name='then']",
+          message:
+            ".then() is forbidden. Use the await/catch pattern: `const result = await expr.catch(handler)`",
+        },
+        {
+          selector: "ExportAllDeclaration",
+          message:
+            "バレル再エクスポート（`export *`）禁止。直接 import パスを使用すること（CLAUDE.md TypeScript Guidelines）",
+        },
+      ],
+    },
+  },
+  {
+    files: ["**/*.d.ts"],
+    rules: {
+      "@typescript-eslint/consistent-type-definitions": "off",
     },
   },
   {
@@ -199,6 +317,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-redundant-type-constituents": "off",
       "@typescript-eslint/array-type": "off",
+      "@typescript-eslint/consistent-type-definitions": "off",
     },
   },
   {
@@ -227,6 +346,7 @@ export default tseslint.config(
       "@typescript-eslint/strict-void-return": "off",
       "@typescript-eslint/naming-convention": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
+      "@typescript-eslint/no-magic-numbers": "off",
       "@eslint-community/eslint-comments/require-description": "off",
       "max-nested-callbacks": "off",
       complexity: "off",
@@ -244,7 +364,6 @@ export default tseslint.config(
       "functional/no-return-void": "off",
       "functional/no-throw-statements": "off",
       "functional/no-conditional-statements": "off",
-      eqeqeq: ["error", "always", { null: "ignore" }],
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/no-unsafe-call": "off",

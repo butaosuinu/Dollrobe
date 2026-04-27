@@ -26,4 +26,16 @@ case "$ext" in
     ;;
 esac
 
+case "$file_path" in
+  */src/app/sw.ts) tsconfig="tsconfig.sw.json" ;;
+  */workers/*.test.ts) tsconfig="tsconfig.workers-test.json" ;;
+  */workers/*.ts) tsconfig="tsconfig.workers.json" ;;
+  */src/*.ts|*/src/*.tsx) tsconfig="tsconfig.app.json" ;;
+  *) tsconfig="" ;;
+esac
+
+if [ -n "$tsconfig" ]; then
+  pnpm exec tsc-files --noEmit -p "$tsconfig" "$file_path" 2>&1
+fi
+
 exit 0
