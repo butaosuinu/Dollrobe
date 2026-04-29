@@ -1,10 +1,6 @@
-import type { Digest, DigestUnknownItem, DigestOrphanedItem } from "@/types";
-import {
-  CONFIDENCE_THRESHOLD,
-  GARMENT_STATUS,
-  ORPHAN_CHECKOUT_THRESHOLD_DAYS,
-} from "@shared/lib/constants";
-import { getConfidence, getOrphanedCheckouts } from "@/lib/confidence";
+import type { ConfidenceLabel, Digest, Garment } from "@/types";
+import { DIGEST_SKIP_THRESHOLD, GARMENT_STATUS } from "@shared/lib/constants";
+import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { createId } from "@paralleldrive/cuid2";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
@@ -12,6 +8,42 @@ import * as garmentRepo from "../repositories/garment-repository";
 import * as locationRepo from "../repositories/location-repository";
 import * as digestRepo from "../repositories/digest-repository";
 import { type ServiceResult, serviceError, serviceOk } from "./types";
+
+export type GenerateDigestResult = {
+  readonly digest: Digest | undefined;
+  readonly skipped: boolean;
+};
+
+type ZoneCounts = {
+  readonly confirmedCount: number;
+  readonly uncertainCount: number;
+  readonly unknownCount: number;
+};
+
+const countZones = (
+  garments: readonly Garment[],
+  visitedAtByLocationId: ReadonlyMap<string, number | undefined>,
+): ZoneCounts => {
+  const zeroed = { confirmedCount: 0, uncertainCount: 0, unknownCount: 0 };
+  return garments.reduce<ZoneCounts>((acc, g) => {
+    if (g.status !== GARMENT_STATUS.STORED) {
+      return acc;
+    }
+    const confidence = getConfidence({
+      ...g,
+      lastLocationVisitedAt:
+        g.locationId !== undefined
+          ? visitedAtByLocationId.get(g.locationId)
+          : undefined,
+    });
+    const label: ConfidenceLabel = getConfidenceLabel(confidence);
+    return label === "confirmed"
+      ? { ...acc, confirmedCount: acc.confirmedCount + 1 }
+      : label === "uncertain"
+        ? { ...acc, uncertainCount: acc.uncertainCount + 1 }
+        : { ...acc, unknownCount: acc.unknownCount + 1 };
+  }, zeroed);
+};
 
 export const generateDigestForUser = async ({
   drizzleDb,
@@ -21,7 +53,7 @@ export const generateDigestForUser = async ({
   readonly drizzleDb: DrizzleDB;
   readonly userId: string;
   readonly logger: Logger;
-}): Promise<ServiceResult<Digest>> => {
+}): Promise<ServiceResult<GenerateDigestResult>> => {
   const garments = await garmentRepo.findGarments({
     drizzleDb,
     userId,
@@ -36,61 +68,35 @@ export const generateDigestForUser = async ({
   const visitedAtByLocationId = new Map(
     locations.map((l) => [l.id, l.lastVisitedAt]),
   );
-  const getGarmentConfidence = (g: (typeof garments)[number]): number =>
-    getConfidence({
-      ...g,
-      lastLocationVisitedAt:
-        g.locationId !== undefined
-          ? visitedAtByLocationId.get(g.locationId)
-          : undefined,
-    });
 
-  const unknownItems: readonly DigestUnknownItem[] = garments
-    .filter((g) => {
-      if (g.status !== GARMENT_STATUS.STORED) {
-        return false;
-      }
-      return getGarmentConfidence(g) < CONFIDENCE_THRESHOLD.UNCERTAIN;
-    })
-    .map((g) => ({
-      garmentId: g.id,
-      garmentName: g.name,
-      confidence: getGarmentConfidence(g),
-    }));
-
-  const orphanedGarments = getOrphanedCheckouts(
+  const { confirmedCount, uncertainCount, unknownCount } = countZones(
     garments,
-    ORPHAN_CHECKOUT_THRESHOLD_DAYS,
+    visitedAtByLocationId,
   );
-  const orphanedItems: readonly DigestOrphanedItem[] = orphanedGarments.map(
-    (g) => ({
-      garmentId: g.id,
-      garmentName: g.name,
-      checkedOutAt: g.checkedOutAt ?? 0,
-    }),
-  );
+  const storedTotal = confirmedCount + uncertainCount + unknownCount;
+  const accuracyScore = storedTotal === 0 ? 1 : confirmedCount / storedTotal;
+  const shouldSkip =
+    storedTotal === 0 || accuracyScore >= DIGEST_SKIP_THRESHOLD;
 
   const now = Date.now();
-  const id = createId();
+  const digest: Digest | undefined = shouldSkip
+    ? undefined
+    : {
+        id: createId(),
+        userId,
+        accuracyScore,
+        confirmedCount,
+        uncertainCount,
+        unknownCount,
+        totalGarments: garments.length,
+        isRead: false,
+        generatedAt: now,
+        createdAt: now,
+      };
 
-  const digestData = {
-    id,
-    userId,
-    unknownItems,
-    orphanedItems,
-    unknownCount: unknownItems.length,
-    orphanedCount: orphanedItems.length,
-    totalGarments: garments.length,
-    isRead: false,
-    generatedAt: now,
-    createdAt: now,
-  };
-
-  await digestRepo.insertDigest({
-    drizzleDb,
-    digest: digestData,
-    logger,
-  });
+  if (digest !== undefined) {
+    await digestRepo.insertDigest({ drizzleDb, digest, logger });
+  }
 
   const decrementedCount = await garmentRepo.decrementAllRecentCheckoutCounts({
     drizzleDb,
@@ -98,15 +104,18 @@ export const generateDigestForUser = async ({
     logger,
   });
 
-  logger.info("digest generated", {
+  logger.info("digest generation finished", {
     userId,
-    unknownCount: unknownItems.length,
-    orphanedCount: orphanedItems.length,
+    skipped: shouldSkip,
+    accuracyScore,
+    confirmedCount,
+    uncertainCount,
+    unknownCount,
     totalGarments: garments.length,
     recentCheckoutCountDecremented: decrementedCount,
   });
 
-  return serviceOk(digestData);
+  return serviceOk({ digest, skipped: shouldSkip });
 };
 
 export const getLatestDigest = async ({

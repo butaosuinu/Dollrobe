@@ -49,6 +49,8 @@ export const CHECKOUT_ACTIVITY_THRESHOLD = Object.freeze({
 
 export const ORPHAN_CHECKOUT_THRESHOLD_DAYS = 3;
 
+export const DIGEST_SKIP_THRESHOLD = 0.95;
+
 export const LOCATION_VISIT_BOOST_MAX = 0.25;
 export const LOCATION_VISIT_DECAY_DAYS = 7;
 
@@ -90,6 +92,8 @@ export const GARMENT_DESCRIPTION_MAX_LENGTH = 500;
 export const GARMENT_SET_CONTENTS_MAX_LENGTH = 500;
 export const DOLL_NAME_MAX_LENGTH = 100;
 export const DOLL_MEMO_MAX_LENGTH = 500;
+export const COORDINATE_NAME_MAX_LENGTH = 100;
+export const COORDINATE_MEMO_MAX_LENGTH = 500;
 export const MAX_LABEL_LENGTH = 20;
 export const GRID_SIZE_MIN = 1;
 export const GRID_SIZE_MAX = 20;

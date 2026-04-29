@@ -51,10 +51,9 @@ msgstr "{0}件の登録に成功しました"
 msgid "{0}着"
 msgstr "{0}着"
 
-#. placeholder {0}: digest.orphanedCount
 #: src/components/digest/DigestCard.tsx
-msgid "{0}着が取り出されたままのようです"
-msgstr "{0}着が取り出されたままのようです"
+#~ msgid "{0}着が取り出されたままのようです"
+#~ msgstr "{0}着が取り出されたままのようです"
 
 #: src/components/dashboard/AlertPanel.tsx
 #~ msgid "{0}着の服が3日以上取り出し中です"
@@ -105,6 +104,10 @@ msgstr "{errorCount}件 エラー"
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount}着 要確認"
+
+#: src/components/digest/DigestCard.tsx
+msgid "{percent}% 正確"
+msgstr "{percent}% 正確"
 
 #: src/components/ui/Pagination.tsx
 msgid "{size}件表示"
@@ -315,6 +318,10 @@ msgstr "アクセサリー"
 msgid "アップロード中..."
 msgstr "アップロード中..."
 
+#: src/components/digest/DigestCard.tsx
+msgid "あなたの在庫状況"
+msgstr "あなたの在庫状況"
+
 #: src/components/scan/ReviewItemRow.tsx
 msgid "ある"
 msgstr "ある"
@@ -451,10 +458,9 @@ msgstr "サンプルCSVをダウンロード"
 msgid "シアン"
 msgstr "シアン"
 
-#. placeholder {0}: digest.unknownCount
 #: src/components/digest/DigestCard.tsx
-msgid "しばらく確認していない服が{0}着あります"
-msgstr "しばらく確認していない服が{0}着あります"
+#~ msgid "しばらく確認していない服が{0}着あります"
+#~ msgstr "しばらく確認していない服が{0}着あります"
 
 #: src/components/dashboard/StaleLocationsCard.tsx
 msgid "しばらく開けていない場所"
@@ -499,8 +505,8 @@ msgid "すべて"
 msgstr "すべて"
 
 #: src/components/digest/DigestCard.tsx
-msgid "すべて確認済みです！ワードローブは良い状態です"
-msgstr "すべて確認済みです！ワードローブは良い状態です"
+#~ msgid "すべて確認済みです！ワードローブは良い状態です"
+#~ msgstr "すべて確認済みです！ワードローブは良い状態です"
 
 #: src/components/dashboard/RecentItems.tsx
 msgid "すべて見る"
@@ -800,6 +806,7 @@ msgstr "一致する服が見つかりません"
 msgid "一覧に戻る"
 msgstr "一覧に戻る"
 
+#: src/components/digest/DigestCard.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "不明"
@@ -1144,6 +1151,10 @@ msgstr "未配置"
 msgid "未配置にする"
 msgstr "未配置にする"
 
+#: src/components/digest/DigestCard.tsx
+msgid "次に引き出しを開けたときに自動で確認されます"
+msgstr "次に引き出しを開けたときに自動で確認されます"
+
 #: src/components/ui/Pagination.tsx
 #: src/components/ui/Pagination.tsx
 msgid "次のページ"
@@ -1200,6 +1211,7 @@ msgid "着用可能な服がありません"
 msgstr "着用可能な服がありません"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/digest/DigestCard.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "確定"
@@ -1289,6 +1301,7 @@ msgid "表示件数"
 msgstr "表示件数"
 
 #: src/components/confidence/ConfidenceStats.tsx
+#: src/components/digest/DigestCard.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "要確認"

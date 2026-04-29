@@ -6,80 +6,142 @@ import { MS_PER_DAY } from "@shared/lib/constants";
 const db = getTestDb();
 const caller = createTestCaller();
 
+const insertConfirmedGarment = async (name: string) =>
+  await insertGarment({
+    db,
+    overrides: {
+      name,
+      lastScannedAt: Date.now(),
+      confidenceDecayDays: 30,
+      confidenceDecayDaysOverride: 30,
+    },
+  });
+
+const insertUnknownGarment = async (name: string) =>
+  await insertGarment({
+    db,
+    overrides: {
+      name,
+      lastScannedAt: Date.now() - MS_PER_DAY * 31,
+      confidenceDecayDays: 30,
+      confidenceDecayDaysOverride: 30,
+    },
+  });
+
+const insertUncertainGarment = async (name: string) =>
+  await insertGarment({
+    db,
+    overrides: {
+      name,
+      lastScannedAt: Date.now() - MS_PER_DAY * 20,
+      confidenceDecayDays: 30,
+      confidenceDecayDaysOverride: 30,
+    },
+  });
+
 beforeEach(async () => {
   await resetDatabase(db);
 });
 
 describe("digestRouter", () => {
   describe("generate", () => {
-    it("garment がない場合でもダイジェストを生成する", async () => {
+    it("stored 件数が 0 ならスキップする", async () => {
       const result = await caller.digest.generate();
-      expect(result.unknownCount).toBe(0);
-      expect(result.orphanedCount).toBe(0);
-      expect(result.totalGarments).toBe(0);
-      expect(result.isRead).toBe(false);
+      expect(result.skipped).toBe(true);
+      expect(result.digest).toBeUndefined();
+
+      const latest = await caller.digest.latest();
+      expect(latest).toBeUndefined();
     });
 
-    it("unknown ゾーンのアイテムを検出する", async () => {
-      const oldTimestamp = Date.now() - MS_PER_DAY * 31;
-      await insertGarment({
-        db,
-        overrides: {
-          name: "古い服",
-          lastScannedAt: oldTimestamp,
-          confidenceDecayDays: 30,
-          confidenceDecayDaysOverride: 30,
-        },
-      });
-      await insertGarment({
-        db,
-        overrides: {
-          name: "新しい服",
-          lastScannedAt: Date.now(),
-          confidenceDecayDays: 30,
-          confidenceDecayDaysOverride: 30,
-        },
-      });
+    it("精度 95% 以上ならスキップして latest を更新しない", async () => {
+      await insertConfirmedGarment("確定な服1");
+      await insertConfirmedGarment("確定な服2");
 
       const result = await caller.digest.generate();
-      expect(result.unknownCount).toBe(1);
-      expect(result.unknownItems).toHaveLength(1);
-      expect(result.unknownItems[0].garmentName).toBe("古い服");
-      expect(result.totalGarments).toBe(2);
+      expect(result.skipped).toBe(true);
+      expect(result.digest).toBeUndefined();
+
+      const latest = await caller.digest.latest();
+      expect(latest).toBeUndefined();
     });
 
-    it("孤立チェックアウトを検出する", async () => {
-      const fourDaysAgo = Date.now() - MS_PER_DAY * 4;
+    it("精度 95% 未満ならダイジェストを生成する", async () => {
+      await insertConfirmedGarment("確定な服");
+      await insertUnknownGarment("不明な服1");
+      await insertUnknownGarment("不明な服2");
+
+      const result = await caller.digest.generate();
+      expect(result.skipped).toBe(false);
+      expect(result.digest).toBeDefined();
+      expect(result.digest?.confirmedCount).toBe(1);
+      expect(result.digest?.unknownCount).toBe(2);
+      expect(result.digest?.uncertainCount).toBe(0);
+      expect(result.digest?.accuracyScore).toBeCloseTo(1 / 3, 5);
+      expect(result.digest?.totalGarments).toBe(3);
+    });
+
+    it("confirmed / uncertain / unknown の件数が正しく分類される", async () => {
+      await insertConfirmedGarment("確定");
+      await insertUncertainGarment("要確認");
+      await insertUnknownGarment("不明");
+
+      const result = await caller.digest.generate();
+      expect(result.skipped).toBe(false);
+      expect(result.digest?.confirmedCount).toBe(1);
+      expect(result.digest?.uncertainCount).toBe(1);
+      expect(result.digest?.unknownCount).toBe(1);
+    });
+
+    it("checked_out / lost の服はゾーン件数に含めない", async () => {
+      await insertConfirmedGarment("確定");
       await insertGarment({
         db,
         overrides: {
-          name: "取り出し中の服",
+          name: "取り出し中",
           status: "checked_out",
-          checkedOutAt: fourDaysAgo,
+          checkedOutAt: Date.now() - MS_PER_DAY,
         },
+      });
+      await insertGarment({
+        db,
+        overrides: { name: "紛失", status: "lost" },
       });
 
       const result = await caller.digest.generate();
-      expect(result.orphanedCount).toBe(1);
-      expect(result.orphanedItems).toHaveLength(1);
-      expect(result.orphanedItems[0].garmentName).toBe("取り出し中の服");
+      expect(result.skipped).toBe(true);
+      expect(result.digest).toBeUndefined();
     });
 
-    it("digest 生成時に recentCheckoutCount が 1 ずつデクリメントされる (下限 0)", async () => {
+    it("生成されたダイジェストに個別アイテムリストが含まれない", async () => {
+      await insertUnknownGarment("古い服1");
+      await insertUnknownGarment("古い服2");
+
+      const result = await caller.digest.generate();
+      expect(result.digest).toBeDefined();
+      if (result.digest === undefined) return;
+
+      expect(result.digest).not.toHaveProperty("unknownItems");
+      expect(result.digest).not.toHaveProperty("orphanedItems");
+      expect(result.digest).not.toHaveProperty("orphanedCount");
+    });
+
+    it("スキップしても recentCheckoutCount はデクリメントされる", async () => {
       const { id: g1 } = await insertGarment({
         db,
-        overrides: { name: "活動的な服", recentCheckoutCount: 3 },
+        overrides: { name: "確定+活動", recentCheckoutCount: 3 },
       });
       const { id: g2 } = await insertGarment({
         db,
-        overrides: { name: "ほぼ動かない服", recentCheckoutCount: 1 },
+        overrides: { name: "確定+低活動", recentCheckoutCount: 1 },
       });
       const { id: g3 } = await insertGarment({
         db,
-        overrides: { name: "止まっている服", recentCheckoutCount: 0 },
+        overrides: { name: "確定+非活動", recentCheckoutCount: 0 },
       });
 
-      await caller.digest.generate();
+      const result = await caller.digest.generate();
+      expect(result.skipped).toBe(true);
 
       const after1 = await caller.garment.get({ id: g1 });
       const after2 = await caller.garment.get({ id: g2 });
@@ -90,41 +152,23 @@ describe("digestRouter", () => {
       expect(after3.recentCheckoutCount).toBe(0);
     });
 
-    it("すべての問題を同時に検出する", async () => {
-      const oldTimestamp = Date.now() - MS_PER_DAY * 31;
-      const fourDaysAgo = Date.now() - MS_PER_DAY * 4;
-
-      await insertGarment({
+    it("生成時にも recentCheckoutCount はデクリメントされる", async () => {
+      const { id: g1 } = await insertGarment({
         db,
         overrides: {
-          name: "古い服",
-          lastScannedAt: oldTimestamp,
+          name: "古い+活動",
+          lastScannedAt: Date.now() - MS_PER_DAY * 31,
           confidenceDecayDays: 30,
           confidenceDecayDaysOverride: 30,
-        },
-      });
-      await insertGarment({
-        db,
-        overrides: {
-          name: "取り出し中",
-          status: "checked_out",
-          checkedOutAt: fourDaysAgo,
-        },
-      });
-      await insertGarment({
-        db,
-        overrides: {
-          name: "正常な服",
-          lastScannedAt: Date.now(),
-          confidenceDecayDays: 30,
-          confidenceDecayDaysOverride: 30,
+          recentCheckoutCount: 3,
         },
       });
 
       const result = await caller.digest.generate();
-      expect(result.unknownCount).toBe(1);
-      expect(result.orphanedCount).toBe(1);
-      expect(result.totalGarments).toBe(3);
+      expect(result.skipped).toBe(false);
+
+      const after = await caller.garment.get({ id: g1 });
+      expect(after.recentCheckoutCount).toBe(2);
     });
   });
 
@@ -138,16 +182,24 @@ describe("digestRouter", () => {
       const now = Date.now();
       await insertDigest({
         db,
-        overrides: { generatedAt: now - MS_PER_DAY },
+        overrides: { generatedAt: now - MS_PER_DAY, accuracyScore: 0.5 },
       });
       await insertDigest({
         db,
-        overrides: { generatedAt: now, totalGarments: 5 },
+        overrides: {
+          generatedAt: now,
+          totalGarments: 5,
+          accuracyScore: 0.8,
+          confirmedCount: 4,
+          unknownCount: 1,
+        },
       });
 
       const result = await caller.digest.latest();
       expect(result).toBeDefined();
       expect(result?.totalGarments).toBe(5);
+      expect(result?.accuracyScore).toBeCloseTo(0.8, 5);
+      expect(result?.confirmedCount).toBe(4);
     });
   });
 
@@ -231,23 +283,19 @@ describe("digestRouter", () => {
 
   describe("generate → latest の統合フロー", () => {
     it("generate で作成したダイジェストを latest で取得できる", async () => {
-      const oldTimestamp = Date.now() - MS_PER_DAY * 31;
-      await insertGarment({
-        db,
-        overrides: {
-          name: "古い服",
-          lastScannedAt: oldTimestamp,
-          confidenceDecayDays: 30,
-          confidenceDecayDaysOverride: 30,
-        },
-      });
+      await insertUnknownGarment("古い服1");
+      await insertUnknownGarment("古い服2");
+      await insertUnknownGarment("古い服3");
 
       const generated = await caller.digest.generate();
       const latest = await caller.digest.latest();
 
+      expect(generated.skipped).toBe(false);
+      expect(generated.digest).toBeDefined();
       expect(latest).toBeDefined();
-      expect(latest?.id).toBe(generated.id);
-      expect(latest?.unknownCount).toBe(1);
+      expect(latest?.id).toBe(generated.digest?.id);
+      expect(latest?.unknownCount).toBe(3);
+      expect(latest?.accuracyScore).toBeCloseTo(0, 5);
     });
   });
 });

@@ -1,5 +1,11 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  text,
+  integer,
+  real,
+  index,
+} from "drizzle-orm/sqlite-core";
 import { jsonArrayColumn } from "./helpers";
 
 export const garments = sqliteTable(
@@ -112,10 +118,10 @@ export const digests = sqliteTable(
   {
     id: text("id").primaryKey(),
     userId: text("user_id").notNull(),
-    unknownItems: text("unknown_items").notNull().default("[]"),
-    orphanedItems: text("orphaned_items").notNull().default("[]"),
+    accuracyScore: real("accuracy_score").notNull().default(1.0),
+    confirmedCount: integer("confirmed_count").notNull().default(0),
+    uncertainCount: integer("uncertain_count").notNull().default(0),
     unknownCount: integer("unknown_count").notNull().default(0),
-    orphanedCount: integer("orphaned_count").notNull().default(0),
     totalGarments: integer("total_garments").notNull().default(0),
     isRead: integer("is_read", { mode: "boolean" }).notNull().default(false),
     generatedAt: integer("generated_at").notNull(),
