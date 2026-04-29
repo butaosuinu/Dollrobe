@@ -180,7 +180,7 @@ export const pull = async ({
     locationRepo.findCasesByUserId({ drizzleDb, userId }),
     locationRepo.findLocationsByUserId({ drizzleDb, userId }),
     dollRepo.findDolls({ drizzleDb, userId, filters: {}, logger }),
-    coordinateRepo.listByUser({ drizzleDb, userId, logger }),
+    coordinateRepo.findCoordinates({ drizzleDb, userId, filters: {}, logger }),
   ]);
 
   logger.info("Sync pull completed", {
