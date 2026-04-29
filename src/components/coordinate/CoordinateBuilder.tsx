@@ -63,27 +63,20 @@ const SelectedGarmentsList = ({
   onMoveRight,
   onRemove,
 }: SelectedListProps) => {
-  if (selectedGarments.length === 0) {
-    return (
-      <p className="rounded-lg border border-dashed border-border-default bg-surface-overlay px-3 py-4 text-center text-xs text-text-tertiary">
-        <Trans>下のリストから服を選択してください</Trans>
-      </p>
-    );
-  }
   const lastIndex = selectedGarments.length - 1;
   return (
     <ul className="flex flex-col gap-2">
       {selectedGarments.map((garment, index) => (
         <li
           key={garment.id}
-          className="flex items-center gap-2 rounded-lg border border-border-default bg-surface-overlay p-2"
+          className="flex items-center gap-3 rounded-lg border border-primary-200 bg-primary-50/40 p-2 shadow-sm"
         >
-          <span className="w-5 shrink-0 text-center text-xs font-medium text-text-tertiary">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-500 text-xs font-semibold text-text-inverse">
             {index + 1}
           </span>
-          <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-primary-50">
+          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-overlay">
             {garment.imageUrl === undefined ? (
-              <Shirt className="size-4 text-primary-200" />
+              <Shirt className="size-5 text-primary-300" />
             ) : (
               <img
                 src={garment.imageUrl}
@@ -92,7 +85,7 @@ const SelectedGarmentsList = ({
               />
             )}
           </div>
-          <span className="min-w-0 flex-1 truncate text-sm">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">
             {garment.name}
           </span>
           <div className="flex items-center gap-1">
@@ -101,7 +94,7 @@ const SelectedGarmentsList = ({
               aria-label={t`前へ`}
               onClick={() => onMoveLeft(garment.id)}
               disabled={index === 0}
-              className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-50 disabled:opacity-30"
+              className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-100 disabled:opacity-30 disabled:hover:bg-transparent"
             >
               <ArrowLeft className="size-4" />
             </button>
@@ -110,7 +103,7 @@ const SelectedGarmentsList = ({
               aria-label={t`次へ`}
               onClick={() => onMoveRight(garment.id)}
               disabled={index === lastIndex}
-              className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-50 disabled:opacity-30"
+              className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-100 disabled:opacity-30 disabled:hover:bg-transparent"
             >
               <ArrowRight className="size-4" />
             </button>
@@ -354,23 +347,6 @@ const CoordinateBuilder = ({
         required
       />
 
-      <section className="flex flex-col gap-2">
-        <p className="text-sm font-medium text-text-secondary">
-          <Trans>選択中の服</Trans>
-          {s.selectedGarments.length > 0 && (
-            <span className="ml-1 text-xs text-text-tertiary">
-              ({s.selectedGarments.length})
-            </span>
-          )}
-        </p>
-        <SelectedGarmentsList
-          selectedGarments={s.selectedGarments}
-          onMoveLeft={s.moveLeft}
-          onMoveRight={s.moveRight}
-          onRemove={s.removeAt}
-        />
-      </section>
-
       <GarmentPicker
         allGarments={s.allGarments}
         filteredGarments={s.filteredGarments}
@@ -379,6 +355,25 @@ const CoordinateBuilder = ({
         onChangeSearch={s.setSearchQuery}
         onToggle={s.toggleGarment}
       />
+
+      {s.selectedGarments.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between">
+            <p className="text-sm font-medium text-text-secondary">
+              <Trans>選択中の服</Trans>
+            </p>
+            <span className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-semibold text-primary-700">
+              {s.selectedGarments.length}
+            </span>
+          </div>
+          <SelectedGarmentsList
+            selectedGarments={s.selectedGarments}
+            onMoveLeft={s.moveLeft}
+            onMoveRight={s.moveRight}
+            onRemove={s.removeAt}
+          />
+        </section>
+      )}
 
       <Textarea
         label={t`メモ`}
@@ -403,7 +398,7 @@ const CoordinateBuilder = ({
         {onCancel !== undefined && (
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
             size="lg"
             fullWidth
             onClick={onCancel}

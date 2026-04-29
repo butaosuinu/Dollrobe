@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
@@ -86,9 +86,12 @@ describe("CoordinateBuilder", () => {
     const secondMoveLeft = moveLeftButtons[1];
     expect(secondMoveLeft).toBeDefined();
     if (secondMoveLeft === undefined) return;
+    const selectedList = secondMoveLeft.closest("ul");
+    expect(selectedList).not.toBeNull();
+    if (selectedList === null) return;
     await user.click(secondMoveLeft);
 
-    const items = screen.getAllByRole("listitem");
+    const items = within(selectedList).getAllByRole("listitem");
     expect(items[0]).toHaveTextContent("服B");
     expect(items[1]).toHaveTextContent("服A");
   });
