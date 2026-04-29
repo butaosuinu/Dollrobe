@@ -268,7 +268,8 @@ const useCoordinateBuilder = ({
   );
 
   const trimmedName = name.trim();
-  const isValid = trimmedName !== "" && selectedIds.length > 0 && !isSubmitting;
+  const isValid =
+    trimmedName !== "" && selectedGarments.length > 0 && !isSubmitting;
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
