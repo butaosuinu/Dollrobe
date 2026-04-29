@@ -3,7 +3,14 @@ import { getDb } from "@/lib/db/dexie";
 import { trpcClient } from "@/lib/trpc";
 import { SYNC_STATUS, SYNC_ACTION_TYPE } from "@/lib/constants";
 import type { SyncStatusValue } from "@/lib/constants";
-import type { Doll, Garment, StorageCase, StorageLocation } from "@/types";
+import type {
+  Coordinate,
+  Doll,
+  Garment,
+  StorageCase,
+  StorageLocation,
+} from "@/types";
+import { refreshCoordinatesAtom } from "@/stores/coordinateAtoms";
 import { refreshDollsAtom } from "@/stores/dollAtoms";
 import { refreshGarmentsAtom } from "@/stores/garmentAtoms";
 import {
@@ -54,6 +61,7 @@ export const executeSyncAtom = atom(
       set(refreshGarmentsAtom);
       set(refreshStorageCasesAtom);
       set(refreshStorageLocationsAtom);
+      set(refreshCoordinatesAtom);
     }
   },
 );
@@ -179,6 +187,18 @@ const pullServerState = async (): Promise<SyncResult> => {
 
   const garments = serverState.garments.map(toClientGarment);
   const dolls = serverState.dolls.map(toClientDoll);
+  const coordinates: readonly Coordinate[] = serverState.coordinates.map(
+    (c) => ({
+      id: c.id,
+      userId: c.userId,
+      name: c.name,
+      garmentIds: c.garmentIds,
+      isAiGenerated: c.isAiGenerated,
+      memo: c.memo ?? undefined,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    }),
+  );
   const storageCases: readonly StorageCase[] = serverState.storageCases.map(
     (c) => ({
       id: c.id,
@@ -210,17 +230,19 @@ const pullServerState = async (): Promise<SyncResult> => {
   const d = getDb();
   await d.transaction(
     "rw",
-    [d.dolls, d.garments, d.storageCases, d.storageLocations],
+    [d.dolls, d.garments, d.storageCases, d.storageLocations, d.coordinates],
     async () => {
       await d.dolls.clear();
       await d.garments.clear();
       await d.storageCases.clear();
       await d.storageLocations.clear();
+      await d.coordinates.clear();
 
       await bulkAddIfNotEmpty(d.dolls, dolls);
       await bulkAddIfNotEmpty(d.garments, garments);
       await bulkAddIfNotEmpty(d.storageCases, storageCases);
       await bulkAddIfNotEmpty(d.storageLocations, storageLocations);
+      await bulkAddIfNotEmpty(d.coordinates, coordinates);
     },
   );
 
