@@ -2,15 +2,17 @@
 
 import { useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
-import { ArrowLeft, ArrowRight, Shirt, X as RemoveIcon } from "lucide-react";
+import { ArrowDown, ArrowUp, Shirt, X as RemoveIcon } from "lucide-react";
 import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { activeGarmentsAtom } from "@/stores/garmentAtoms";
 import {
   COORDINATE_NAME_MAX_LENGTH,
   COORDINATE_MEMO_MAX_LENGTH,
 } from "@/lib/constants";
+import { GARMENT_CATEGORY_LABEL } from "@/lib/i18n-labels";
 import type { Coordinate, Garment } from "@/types";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -52,60 +54,68 @@ const filterGarments = (
 
 type SelectedListProps = {
   readonly selectedGarments: readonly Garment[];
-  readonly onMoveLeft: (id: string) => void;
-  readonly onMoveRight: (id: string) => void;
+  readonly onMoveUp: (id: string) => void;
+  readonly onMoveDown: (id: string) => void;
   readonly onRemove: (id: string) => void;
 };
 
 const SelectedGarmentsList = ({
   selectedGarments,
-  onMoveLeft,
-  onMoveRight,
+  onMoveUp,
+  onMoveDown,
   onRemove,
 }: SelectedListProps) => {
+  const { i18n } = useLingui();
   const lastIndex = selectedGarments.length - 1;
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-2.5">
       {selectedGarments.map((garment, index) => (
         <li
           key={garment.id}
-          className="flex items-center gap-3 rounded-lg border border-primary-200 bg-primary-50/40 p-2 shadow-sm"
+          className="flex items-center gap-3 rounded-lg border border-primary-300 bg-surface-overlay p-2.5 shadow-sm"
         >
-          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-500 text-xs font-semibold text-text-inverse">
-            {index + 1}
-          </span>
-          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-overlay">
-            {garment.imageUrl === undefined ? (
-              <Shirt className="size-5 text-primary-300" />
-            ) : (
-              <img
-                src={garment.imageUrl}
-                alt={garment.name}
-                className="size-full object-cover"
-              />
-            )}
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-500 text-xs font-semibold text-text-inverse">
+              {index + 1}
+            </span>
+            <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-primary-50">
+              {garment.imageUrl === undefined ? (
+                <Shirt className="size-5 text-primary-300" />
+              ) : (
+                <img
+                  src={garment.imageUrl}
+                  alt={garment.name}
+                  className="size-full object-cover"
+                />
+              )}
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="truncate text-sm font-medium text-text-primary">
+                {garment.name}
+              </span>
+              <span className="truncate text-[11px] text-text-tertiary">
+                {i18n._(GARMENT_CATEGORY_LABEL[garment.category])}
+              </span>
+            </div>
           </div>
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">
-            {garment.name}
-          </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 border-l border-primary-200/60 pl-2">
             <button
               type="button"
-              aria-label={t`前へ`}
-              onClick={() => onMoveLeft(garment.id)}
+              aria-label={t`上へ`}
+              onClick={() => onMoveUp(garment.id)}
               disabled={index === 0}
               className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-100 disabled:opacity-30 disabled:hover:bg-transparent"
             >
-              <ArrowLeft className="size-4" />
+              <ArrowUp className="size-4" />
             </button>
             <button
               type="button"
-              aria-label={t`次へ`}
-              onClick={() => onMoveRight(garment.id)}
+              aria-label={t`下へ`}
+              onClick={() => onMoveDown(garment.id)}
               disabled={index === lastIndex}
               className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-100 disabled:opacity-30 disabled:hover:bg-transparent"
             >
-              <ArrowRight className="size-4" />
+              <ArrowDown className="size-4" />
             </button>
             <button
               type="button"
@@ -130,32 +140,38 @@ const GarmentTile = ({
   readonly garment: Garment;
   readonly selected: boolean;
   readonly onToggle: (id: string) => void;
-}) => (
-  <button
-    type="button"
-    onClick={() => onToggle(garment.id)}
-    aria-pressed={selected}
-    className={clsx(
-      "flex w-full flex-col items-center gap-1 rounded-lg border p-2 text-left transition-colors",
-      selected
-        ? "border-primary-500 bg-primary-50"
-        : "border-border-default bg-surface-overlay hover:bg-primary-50",
-    )}
-  >
-    <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-primary-50">
-      {garment.imageUrl === undefined ? (
-        <Shirt className="size-5 text-primary-200" />
-      ) : (
-        <img
-          src={garment.imageUrl}
-          alt={garment.name}
-          className="size-full object-cover"
-        />
+}) => {
+  const { i18n } = useLingui();
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(garment.id)}
+      aria-pressed={selected}
+      className={clsx(
+        "flex w-full flex-col items-stretch gap-1 rounded-lg border p-2 text-left transition-colors",
+        selected
+          ? "border-primary-500 bg-primary-50"
+          : "border-border-default bg-surface-overlay hover:bg-primary-50",
       )}
-    </div>
-    <span className="line-clamp-2 w-full text-xs">{garment.name}</span>
-  </button>
-);
+    >
+      <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-primary-50">
+        {garment.imageUrl === undefined ? (
+          <Shirt className="size-5 text-primary-200" />
+        ) : (
+          <img
+            src={garment.imageUrl}
+            alt={garment.name}
+            className="size-full object-cover"
+          />
+        )}
+      </div>
+      <span className="line-clamp-2 w-full text-xs">{garment.name}</span>
+      <span className="w-full truncate text-[10px] text-text-tertiary">
+        {i18n._(GARMENT_CATEGORY_LABEL[garment.category])}
+      </span>
+    </button>
+  );
+};
 
 type PickerProps = {
   readonly allGarments: readonly Garment[];
@@ -221,8 +237,8 @@ type BuilderState = {
   readonly setMemo: (value: string) => void;
   readonly setSearchQuery: (value: string) => void;
   readonly toggleGarment: (id: string) => void;
-  readonly moveLeft: (id: string) => void;
-  readonly moveRight: (id: string) => void;
+  readonly moveUp: (id: string) => void;
+  readonly moveDown: (id: string) => void;
   readonly removeAt: (id: string) => void;
   readonly handleSubmit: (e: React.SyntheticEvent) => Promise<void>;
 };
@@ -301,7 +317,7 @@ const useCoordinateBuilder = ({
       setSelectedIds((prev) =>
         prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id],
       ),
-    moveLeft: (id) =>
+    moveUp: (id) =>
       setSelectedIds((prev) => {
         const i = prev.indexOf(id);
         if (i === -1) return prev;
@@ -312,7 +328,7 @@ const useCoordinateBuilder = ({
         if (prevVisible === undefined) return prev;
         return swap(prev, i, prev.indexOf(prevVisible));
       }),
-    moveRight: (id) =>
+    moveDown: (id) =>
       setSelectedIds((prev) => {
         const i = prev.indexOf(id);
         if (i === -1) return prev;
@@ -368,8 +384,8 @@ const CoordinateBuilder = ({
           </div>
           <SelectedGarmentsList
             selectedGarments={s.selectedGarments}
-            onMoveLeft={s.moveLeft}
-            onMoveRight={s.moveRight}
+            onMoveUp={s.moveUp}
+            onMoveDown={s.moveDown}
             onRemove={s.removeAt}
           />
         </section>

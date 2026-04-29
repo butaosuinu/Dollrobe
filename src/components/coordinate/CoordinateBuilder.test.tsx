@@ -79,17 +79,17 @@ describe("CoordinateBuilder", () => {
     const user = userEvent.setup();
     await setup({ initialIds: ["g-1", "g-2"], initialName: "編集前" });
 
-    const moveLeftButtons = await screen.findAllByRole("button", {
-      name: "前へ",
+    const moveUpButtons = await screen.findAllByRole("button", {
+      name: "上へ",
     });
-    expect(moveLeftButtons[0]).toBeDisabled();
-    const secondMoveLeft = moveLeftButtons[1];
-    expect(secondMoveLeft).toBeDefined();
-    if (secondMoveLeft === undefined) return;
-    const selectedList = secondMoveLeft.closest("ul");
+    expect(moveUpButtons[0]).toBeDisabled();
+    const secondMoveUp = moveUpButtons[1];
+    expect(secondMoveUp).toBeDefined();
+    if (secondMoveUp === undefined) return;
+    const selectedList = secondMoveUp.closest("ul");
     expect(selectedList).not.toBeNull();
     if (selectedList === null) return;
-    await user.click(secondMoveLeft);
+    await user.click(secondMoveUp);
 
     const items = within(selectedList).getAllByRole("listitem");
     expect(items[0]).toHaveTextContent("服B");
