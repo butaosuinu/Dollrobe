@@ -382,42 +382,6 @@ const toCoordinateInsertValues = ({
   updatedAt: parsed.updatedAt,
 });
 
-const processCoordinateUpsert: ActionProcessor = async (ctx, payload) => {
-  const parsed = coordinatePayloadSchema.safeParse(payload);
-  if (!parsed.success) {
-    return serviceError(
-      "BAD_REQUEST",
-      `Invalid coordinate payload: ${parsed.error.message}`,
-    );
-  }
-  await syncRepo.upsertCoordinate({
-    drizzleDb: ctx.drizzleDb,
-    coordinateValues: toCoordinateInsertValues({
-      parsed: parsed.data,
-      authenticatedUserId: ctx.userId,
-    }),
-    logger: ctx.logger,
-  });
-  return serviceOk({ processed: true });
-};
-
-const processCoordinateDelete: ActionProcessor = async (ctx, payload) => {
-  const parsed = deletePayloadSchema.safeParse(payload);
-  if (!parsed.success) {
-    return serviceError(
-      "BAD_REQUEST",
-      `Invalid delete payload: ${parsed.error.message}`,
-    );
-  }
-  await syncRepo.deleteCoordinate({
-    drizzleDb: ctx.drizzleDb,
-    userId: ctx.userId,
-    coordinateId: parsed.data.id,
-    logger: ctx.logger,
-  });
-  return serviceOk({ processed: true });
-};
-
 const processDollUpsert: ActionProcessor = async (ctx, payload) => {
   const parsed = dollPayloadSchema.safeParse(payload);
   if (!parsed.success) {
@@ -449,6 +413,42 @@ const processDollDelete: ActionProcessor = async (ctx, payload) => {
     drizzleDb: ctx.drizzleDb,
     userId: ctx.userId,
     dollId: parsed.data.id,
+    logger: ctx.logger,
+  });
+  return serviceOk({ processed: true });
+};
+
+const processCoordinateUpsert: ActionProcessor = async (ctx, payload) => {
+  const parsed = coordinatePayloadSchema.safeParse(payload);
+  if (!parsed.success) {
+    return serviceError(
+      "BAD_REQUEST",
+      `Invalid coordinate payload: ${parsed.error.message}`,
+    );
+  }
+  await syncRepo.upsertCoordinate({
+    drizzleDb: ctx.drizzleDb,
+    coordinateValues: toCoordinateInsertValues({
+      parsed: parsed.data,
+      authenticatedUserId: ctx.userId,
+    }),
+    logger: ctx.logger,
+  });
+  return serviceOk({ processed: true });
+};
+
+const processCoordinateDelete: ActionProcessor = async (ctx, payload) => {
+  const parsed = deletePayloadSchema.safeParse(payload);
+  if (!parsed.success) {
+    return serviceError(
+      "BAD_REQUEST",
+      `Invalid delete payload: ${parsed.error.message}`,
+    );
+  }
+  await syncRepo.deleteCoordinate({
+    drizzleDb: ctx.drizzleDb,
+    userId: ctx.userId,
+    coordinateId: parsed.data.id,
     logger: ctx.logger,
   });
   return serviceOk({ processed: true });
