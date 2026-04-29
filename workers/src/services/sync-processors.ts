@@ -197,34 +197,6 @@ const toDollInsertValues = ({
   updatedAt: parsed.updatedAt,
 });
 
-const coordinatePayloadSchema = z.object({
-  id: z.string().min(1),
-  userId: z.string().min(1),
-  name: z.string().min(1),
-  garmentIds: z.array(z.string()),
-  isAiGenerated: z.boolean(),
-  memo: z.string().optional(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
-});
-
-const toCoordinateInsertValues = ({
-  parsed,
-  authenticatedUserId,
-}: {
-  readonly parsed: z.infer<typeof coordinatePayloadSchema>;
-  readonly authenticatedUserId: string;
-}) => ({
-  id: parsed.id,
-  userId: authenticatedUserId,
-  name: parsed.name,
-  garmentIds: parsed.garmentIds,
-  isAiGenerated: parsed.isAiGenerated,
-  memo: parsed.memo ?? null,
-  createdAt: parsed.createdAt,
-  updatedAt: parsed.updatedAt,
-});
-
 const processGarmentUpsert: ActionProcessor = async (ctx, payload) => {
   const parsed = garmentPayloadSchema.safeParse(payload);
   if (!parsed.success) {
@@ -381,6 +353,34 @@ const processStorageLocationUpdate: ActionProcessor = async (ctx, payload) => {
   });
   return serviceOk({ processed: true });
 };
+
+const coordinatePayloadSchema = z.object({
+  id: z.string().min(1),
+  userId: z.string().min(1),
+  name: z.string().min(1),
+  garmentIds: z.array(z.string()),
+  isAiGenerated: z.boolean(),
+  memo: z.string().optional(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
+const toCoordinateInsertValues = ({
+  parsed,
+  authenticatedUserId,
+}: {
+  readonly parsed: z.infer<typeof coordinatePayloadSchema>;
+  readonly authenticatedUserId: string;
+}) => ({
+  id: parsed.id,
+  userId: authenticatedUserId,
+  name: parsed.name,
+  garmentIds: parsed.garmentIds,
+  isAiGenerated: parsed.isAiGenerated,
+  memo: parsed.memo ?? null,
+  createdAt: parsed.createdAt,
+  updatedAt: parsed.updatedAt,
+});
 
 const processDollUpsert: ActionProcessor = async (ctx, payload) => {
   const parsed = dollPayloadSchema.safeParse(payload);

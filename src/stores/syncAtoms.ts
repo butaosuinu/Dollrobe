@@ -154,26 +154,6 @@ const toClientGarment = (g: {
   updatedAt: g.updatedAt,
 });
 
-const toClientCoordinate = (c: {
-  readonly id: string;
-  readonly userId: string;
-  readonly name: string;
-  readonly garmentIds: readonly string[];
-  readonly isAiGenerated: boolean;
-  readonly memo?: string | null;
-  readonly createdAt: number;
-  readonly updatedAt: number;
-}): Coordinate => ({
-  id: c.id,
-  userId: c.userId,
-  name: c.name,
-  garmentIds: c.garmentIds,
-  isAiGenerated: c.isAiGenerated,
-  memo: c.memo ?? undefined,
-  createdAt: c.createdAt,
-  updatedAt: c.updatedAt,
-});
-
 const toClientDoll = (d: {
   readonly id: string;
   readonly userId: string;
@@ -207,7 +187,18 @@ const pullServerState = async (): Promise<SyncResult> => {
 
   const garments = serverState.garments.map(toClientGarment);
   const dolls = serverState.dolls.map(toClientDoll);
-  const coordinates = serverState.coordinates.map(toClientCoordinate);
+  const coordinates: readonly Coordinate[] = serverState.coordinates.map(
+    (c) => ({
+      id: c.id,
+      userId: c.userId,
+      name: c.name,
+      garmentIds: c.garmentIds,
+      isAiGenerated: c.isAiGenerated,
+      memo: c.memo ?? undefined,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    }),
+  );
   const storageCases: readonly StorageCase[] = serverState.storageCases.map(
     (c) => ({
       id: c.id,

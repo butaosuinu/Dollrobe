@@ -14,6 +14,11 @@ const LinguiClientProvider = ({ children }: Props) => {
   const initLocale = useSetAtom(initLocaleAtom);
 
   useEffect(() => {
+    // i18n カタログのロードはアプリ全体の起動を遅延させたくないため、Suspense
+    // で待機させずに fire-and-forget で実行する。失敗時はデフォルトロケール
+    // （カタログ未ロード = msgid そのまま表示）にフォールバックさせる。
+    // データフェッチではなくクライアント側 i18n 初期化のため、本ルールの対象外。
+    // eslint-disable-next-line no-restricted-syntax -- i18n init fire-and-forget; not data fetching
     initLocale().catch(() => undefined);
   }, [initLocale]);
 

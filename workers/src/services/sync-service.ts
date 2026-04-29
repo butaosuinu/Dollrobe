@@ -37,8 +37,8 @@ const SYNC_TYPE_PRIORITY: ReadonlyMap<string, number> = new Map([
   ["garment:update", 7],
   ["coordinate:create", 8],
   ["coordinate:update", 9],
-  ["coordinate:delete", 10],
-  ["garment:delete", 11],
+  ["garment:delete", 10],
+  ["coordinate:delete", 11],
   ["doll:delete", 12],
   ["storageCase:delete", 13],
 ]);
@@ -180,7 +180,12 @@ export const pull = async ({
     locationRepo.findCasesByUserId({ drizzleDb, userId }),
     locationRepo.findLocationsByUserId({ drizzleDb, userId }),
     dollRepo.findDolls({ drizzleDb, userId, filters: {}, logger }),
-    coordinateRepo.findCoordinates({ drizzleDb, userId, filters: {}, logger }),
+    coordinateRepo.findCoordinates({
+      drizzleDb,
+      userId,
+      filters: {},
+      logger,
+    }),
   ]);
 
   logger.info("Sync pull completed", {
