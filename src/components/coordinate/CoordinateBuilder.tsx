@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { activeGarmentsAtom } from "@/stores/garmentAtoms";
+import { activeGarmentsAtom, garmentsAtom } from "@/stores/garmentAtoms";
 import {
   COORDINATE_NAME_MAX_LENGTH,
   COORDINATE_MEMO_MAX_LENGTH,
@@ -251,6 +251,7 @@ const useCoordinateBuilder = ({
   readonly onSubmit: (data: CoordinateBuilderSubmitData) => Promise<void>;
 }): BuilderState => {
   const allGarments = useAtomValue(activeGarmentsAtom);
+  const allKnownGarments = useAtomValue(garmentsAtom);
   const [selectedIds, setSelectedIds] = useState<readonly string[]>(
     initial?.garmentIds ?? [],
   );
@@ -263,6 +264,10 @@ const useCoordinateBuilder = ({
   const garmentById = useMemo(
     () => new Map(allGarments.map((g) => [g.id, g])),
     [allGarments],
+  );
+  const knownGarmentIds = useMemo(
+    () => new Set(allKnownGarments.map((g) => g.id)),
+    [allKnownGarments],
   );
   const selectedGarments = useMemo(
     () =>
@@ -288,7 +293,7 @@ const useCoordinateBuilder = ({
     const caughtError = await onSubmit({
       name: trimmedName,
       memo: memo.trim() === "" ? undefined : memo.trim(),
-      garmentIds: [...selectedIds],
+      garmentIds: selectedIds.filter((id) => knownGarmentIds.has(id)),
     }).catch((err: unknown) => err);
     setIsSubmitting(false);
     if (caughtError !== undefined) {
