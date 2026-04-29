@@ -25,12 +25,13 @@
 
 #### tsconfig 選択ルール（`-p` フラグ必須）
 
-| ファイルの場所                            | 使用する tsconfig               |
-| ----------------------------------------- | ------------------------------- |
-| `src/` 配下（`src/app/sw.ts` 除く）       | `-p tsconfig.app.json`          |
-| `workers/` 本体コード（`*.test.ts` 除く） | `-p tsconfig.workers.json`      |
-| `workers/` テストコード（`*.test.ts`）    | `-p tsconfig.workers-test.json` |
-| `src/app/sw.ts`                           | `-p tsconfig.sw.json`           |
+| ファイルの場所                                                                                                       | 使用する tsconfig               |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `src/` 配下（下記 Worker 専用ファイル・`src/app/sw.ts` 除く）                                                        | `-p tsconfig.app.json`          |
+| `workers/` 本体コード（`*.test.ts` 除く）                                                                            | `-p tsconfig.workers.json`      |
+| `workers/` テストコード（`*.test.ts`）                                                                               | `-p tsconfig.workers-test.json` |
+| `src/app/sw.ts`                                                                                                      | `-p tsconfig.sw.json`           |
+| `src/lib/image/extract-colors.worker.ts` / `extract-colors-core.ts` / `extract-colors-types.ts` / `opencv-loader.ts` | `-p tsconfig.worker.json`       |
 
 #### 禁止事項
 
