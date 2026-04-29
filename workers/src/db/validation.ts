@@ -18,6 +18,8 @@ import {
   CASE_DESCRIPTION_MAX_LENGTH,
   LOCATION_CUSTOM_NAME_MAX_LENGTH,
   LOCATION_DESCRIPTION_MAX_LENGTH,
+  COORDINATE_NAME_MAX_LENGTH,
+  COORDINATE_MEMO_MAX_LENGTH,
 } from "@shared/lib/constants";
 import {
   garments,
@@ -47,6 +49,36 @@ export const garmentSelectSchema = createSelectSchema(garments, {
 export const storageCaseSelectSchema = createSelectSchema(storageCases);
 export const storageLocationSelectSchema = createSelectSchema(storageLocations);
 export const coordinateSelectSchema = createSelectSchema(coordinates);
+
+export const coordinateInsertSchema = createInsertSchema(coordinates, {
+  name: z.string().min(1).max(COORDINATE_NAME_MAX_LENGTH),
+});
+
+export const createCoordinateInputSchema = coordinateInsertSchema
+  .omit({
+    id: true,
+    userId: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    garmentIds: z.array(cuidSchema).default([]),
+    isAiGenerated: z.boolean().default(false),
+    memo: z.string().max(COORDINATE_MEMO_MAX_LENGTH).optional(),
+  });
+export type CreateCoordinateInput = z.infer<typeof createCoordinateInputSchema>;
+
+export const updateCoordinateInputSchema = z.object({
+  id: cuidSchema,
+  name: z.string().min(1).max(COORDINATE_NAME_MAX_LENGTH).optional(),
+  garmentIds: z.array(cuidSchema).optional(),
+  memo: z.string().max(COORDINATE_MEMO_MAX_LENGTH).optional(),
+});
+export type UpdateCoordinateInput = z.infer<typeof updateCoordinateInputSchema>;
+
+export const listCoordinatesInputSchema = z.object({
+  isAiGenerated: z.boolean().optional(),
+});
 
 export const garmentInsertSchema = createInsertSchema(garments, {
   name: z.string().min(1).max(GARMENT_NAME_MAX_LENGTH),

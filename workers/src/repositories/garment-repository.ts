@@ -5,7 +5,7 @@ import type {
   GarmentStatus,
 } from "@/types";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
   GARMENT_CATEGORIES,
   DOLL_SIZES,
@@ -134,6 +134,30 @@ export const findGarments = async ({
     .where(and(...conditions))
     .orderBy(desc(garments.updatedAt))
     .catch(wrapDbError({ context: "fetch garments", logger }));
+
+  return rows.map(toGarment);
+};
+
+export const findGarmentsByIds = async ({
+  drizzleDb,
+  ids,
+  userId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly ids: readonly string[];
+  readonly userId: string;
+  readonly logger: Logger;
+}): Promise<readonly Garment[]> => {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const rows = await drizzleDb
+    .select()
+    .from(garments)
+    .where(and(eq(garments.userId, userId), inArray(garments.id, [...ids])))
+    .catch(wrapDbError({ context: "fetch garments by ids", logger }));
 
   return rows.map(toGarment);
 };

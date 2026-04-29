@@ -21,6 +21,9 @@ export {
   createDollInputSchema,
   updateDollInputSchema,
   listDollsInputSchema,
+  createCoordinateInputSchema,
+  updateCoordinateInputSchema,
+  listCoordinatesInputSchema,
 } from "../../db/validation";
 
 const MIN_GARMENT_IDS_LENGTH = 1;
