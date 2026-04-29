@@ -30,6 +30,7 @@ case "$file_path" in
   */src/app/sw.ts) tsconfig="tsconfig.sw.json" ;;
   */workers/*.test.ts) tsconfig="tsconfig.workers-test.json" ;;
   */workers/*.ts) tsconfig="tsconfig.workers.json" ;;
+  */src/lib/image/extract-colors.worker.ts|*/src/lib/image/extract-colors-core.ts) tsconfig="tsconfig.worker.json" ;;
   */src/*.ts|*/src/*.tsx) tsconfig="tsconfig.app.json" ;;
   *) tsconfig="" ;;
 esac

@@ -92,7 +92,31 @@ export default tseslint.config(
         {
           selector: "CallExpression[callee.name='useEffect'] AwaitExpression",
           message:
-            "useEffect 内での非同期データ取得は禁止。Suspense + Jotai async atom を使用すること（CLAUDE.md React Suspense パターン）",
+            "useEffect 内での非同期データ取得は禁止 (await)。Suspense + Jotai async atom を使用すること（CLAUDE.md React Suspense パターン）",
+        },
+        {
+          selector:
+            "CallExpression[callee.name='useEffect'] ArrowFunctionExpression[async=true]",
+          message:
+            "useEffect の引数を async 関数にすることは禁止。Suspense + Jotai async atom を使用すること（CLAUDE.md React Suspense パターン）",
+        },
+        {
+          selector:
+            "CallExpression[callee.name='useEffect'] FunctionExpression[async=true]",
+          message:
+            "useEffect の引数を async 関数にすることは禁止。Suspense + Jotai async atom を使用すること（CLAUDE.md React Suspense パターン）",
+        },
+        {
+          selector:
+            "CallExpression[callee.name='useEffect'] CallExpression[callee.type='MemberExpression'][callee.property.name='catch']",
+          message:
+            "useEffect 内での Promise チェーン (.catch) は禁止。fire-and-forget な非同期処理は Suspense + Jotai async atom に置き換えること（CLAUDE.md React Suspense パターン）",
+        },
+        {
+          selector:
+            "CallExpression[callee.name='useEffect'] CallExpression[callee.type='MemberExpression'][callee.property.name='finally']",
+          message:
+            "useEffect 内での Promise チェーン (.finally) は禁止。Suspense + Jotai async atom を使用すること（CLAUDE.md React Suspense パターン）",
         },
       ],
       "@typescript-eslint/max-params": ["error", { max: 3 }],
