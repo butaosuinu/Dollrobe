@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { fireEvent, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtils";
 import { createTestStorageLocation } from "@/test/factories";
@@ -55,12 +55,8 @@ describe("StorageLocationEditForm", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("カスタム名称"), {
-      target: { value: "   " },
-    });
-    fireEvent.change(screen.getByLabelText("説明"), {
-      target: { value: "   " },
-    });
+    await user.type(screen.getByLabelText("カスタム名称"), "   ");
+    await user.type(screen.getByLabelText("説明"), "   ");
     await user.click(screen.getByRole("button", { name: "保存" }));
 
     expect(onSubmit).toHaveBeenCalledWith({
@@ -82,12 +78,8 @@ describe("StorageLocationEditForm", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("カスタム名称"), {
-      target: { value: "  ドレス用  " },
-    });
-    fireEvent.change(screen.getByLabelText("説明"), {
-      target: { value: "  夏物  " },
-    });
+    await user.type(screen.getByLabelText("カスタム名称"), "  ドレス用  ");
+    await user.type(screen.getByLabelText("説明"), "  夏物  ");
     await user.click(screen.getByRole("button", { name: "保存" }));
 
     expect(onSubmit).toHaveBeenCalledWith({

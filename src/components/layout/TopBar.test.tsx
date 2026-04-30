@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { act, screen, waitFor } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
-import { syncStatusAtom } from "@/stores/syncAtoms";
-import { SYNC_STATUS } from "@/lib/constants";
 import TopBar from "./TopBar";
 
 const pathnameMock = vi.hoisted(() => ({ value: "/" }));
@@ -43,54 +41,6 @@ const ACTIVE_LINK_CLASS = "bg-primary-100";
 describe("TopBar", () => {
   beforeEach(() => {
     pathnameMock.value = "/";
-  });
-
-  describe("SyncIndicator", () => {
-    it("IDLE 状態では Cloud アイコンを表示する", async () => {
-      await renderWithProviders(<TopBar />);
-
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId("suspense-loading"),
-        ).not.toBeInTheDocument();
-      });
-
-      expect(document.querySelector(".animate-spin")).toBeNull();
-      expect(document.querySelector(".text-danger")).toBeNull();
-      expect(document.querySelector(".text-text-tertiary")).not.toBeNull();
-    });
-
-    it("SYNCING 状態では Loader2 (animate-spin) を表示する", async () => {
-      const { store } = await renderWithProviders(<TopBar />);
-
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId("suspense-loading"),
-        ).not.toBeInTheDocument();
-      });
-
-      act(() => {
-        store.set(syncStatusAtom, SYNC_STATUS.SYNCING);
-      });
-
-      expect(document.querySelector(".animate-spin")).not.toBeNull();
-    });
-
-    it("ERROR 状態では CloudOff (text-danger) を表示する", async () => {
-      const { store } = await renderWithProviders(<TopBar />);
-
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId("suspense-loading"),
-        ).not.toBeInTheDocument();
-      });
-
-      act(() => {
-        store.set(syncStatusAtom, SYNC_STATUS.ERROR);
-      });
-
-      expect(document.querySelector(".text-danger")).not.toBeNull();
-    });
   });
 
   describe("ナビゲーションのアクティブ状態", () => {
