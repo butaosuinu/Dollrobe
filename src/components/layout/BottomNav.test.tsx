@@ -40,10 +40,8 @@ const renderNav = async () => {
 const getNavLink = (href: string) => {
   const links = screen.getAllByRole("link");
   const link = links.find((el) => el.getAttribute("href") === href);
-  if (link === undefined) {
-    throw new Error(`Nav link not found for href: ${href}`);
-  }
-  return link;
+  expect(link, `Nav link not found for href: ${href}`).toBeDefined();
+  return link!;
 };
 
 describe("BottomNav", () => {
