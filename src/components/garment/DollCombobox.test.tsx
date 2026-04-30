@@ -6,7 +6,7 @@ import { renderWithProviders } from "@/test/testUtils";
 import type { Doll } from "@/types";
 import DollCombobox from "./DollCombobox";
 
-const BLUR_TIMEOUT_MS = 200;
+const BLUR_TIMEOUT_MS = 500;
 
 const buildDolls = (): readonly Doll[] => [
   createTestDoll({
