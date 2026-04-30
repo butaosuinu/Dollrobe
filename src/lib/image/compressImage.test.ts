@@ -8,6 +8,39 @@ const SMALL_FILE_BYTES = 1024;
 const OVERSIZED_FILE_BYTES = IMAGE_UPLOAD.MAX_UPLOAD_SIZE_BYTES + 1;
 const { MAX_DIMENSION: MAX_DIM } = IMAGE_COMPRESSION;
 
+const GET_CONTEXT_KEY = "getContext";
+const TO_BLOB_KEY = "toBlob";
+
+const originalGetContext = Object.getOwnPropertyDescriptor(
+  HTMLCanvasElement.prototype,
+  GET_CONTEXT_KEY,
+);
+const originalToBlob = Object.getOwnPropertyDescriptor(
+  HTMLCanvasElement.prototype,
+  TO_BLOB_KEY,
+);
+
+const restoreCanvasPrototype = (): void => {
+  if (originalGetContext === undefined) {
+    Reflect.deleteProperty(HTMLCanvasElement.prototype, GET_CONTEXT_KEY);
+  } else {
+    Object.defineProperty(
+      HTMLCanvasElement.prototype,
+      GET_CONTEXT_KEY,
+      originalGetContext,
+    );
+  }
+  if (originalToBlob === undefined) {
+    Reflect.deleteProperty(HTMLCanvasElement.prototype, TO_BLOB_KEY);
+  } else {
+    Object.defineProperty(
+      HTMLCanvasElement.prototype,
+      TO_BLOB_KEY,
+      originalToBlob,
+    );
+  }
+};
+
 const createFakeFile = ({
   size,
   type,
@@ -39,38 +72,56 @@ const stubCreateImageBitmap = ({
   return { close };
 };
 
+type GetContextSpy = {
+  readonly callCount: () => number;
+};
+
 const stubCanvas = ({
   ctxValue,
   blobValue,
 }: {
   readonly ctxValue: { readonly drawImage: ReturnType<typeof vi.fn> } | null;
   readonly blobValue: Blob | null;
-}): void => {
-  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
-    () => ctxValue,
-  );
-  vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation(
-    (callback) => {
-      callback(blobValue);
-    },
-  );
+}): GetContextSpy => {
+  const getContextMock = vi.fn(() => ctxValue);
+  const toBlobMock = vi.fn((callback: (blob: Blob | null) => void) => {
+    callback(blobValue);
+  });
+  Object.defineProperty(HTMLCanvasElement.prototype, GET_CONTEXT_KEY, {
+    configurable: true,
+    writable: true,
+    value: getContextMock,
+  });
+  Object.defineProperty(HTMLCanvasElement.prototype, TO_BLOB_KEY, {
+    configurable: true,
+    writable: true,
+    value: toBlobMock,
+  });
+  return {
+    callCount: () => getContextMock.mock.calls.length,
+  };
 };
 
 describe("compressImage", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    restoreCanvasPrototype();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    restoreCanvasPrototype();
   });
 
   describe("変換不要パス", () => {
     it("PNG かつ寸法・サイズが上限以下の場合は元のファイルをそのまま返す", async () => {
       const { close } = stubCreateImageBitmap({ width: 800, height: 600 });
-      const getContextSpy = vi.spyOn(HTMLCanvasElement.prototype, "getContext");
+      const getContextSpy = stubCanvas({
+        ctxValue: { drawImage: vi.fn() },
+        blobValue: null,
+      });
 
       const file = createFakeFile({
         size: SMALL_FILE_BYTES,
@@ -83,7 +134,7 @@ describe("compressImage", () => {
       expect(result.width).toBe(800);
       expect(result.height).toBe(600);
       expect(close).toHaveBeenCalledTimes(1);
-      expect(getContextSpy).not.toHaveBeenCalled();
+      expect(getContextSpy.callCount()).toBe(0);
     });
   });
 
