@@ -63,13 +63,10 @@ const refreshSpies = vi.hoisted(() => ({
 }));
 
 vi.mock("@/stores/toastAtoms", () => {
-  const addToastAtom = atom(
-    undefined,
-    (_get, _set, params: ToastAddParams) => {
-      toastSpies.add(params);
-      return TOAST_ID;
-    },
-  );
+  const addToastAtom = atom(undefined, (_get, _set, params: ToastAddParams) => {
+    toastSpies.add(params);
+    return TOAST_ID;
+  });
   const dismissToastAtom = atom(undefined, (_get, _set, id: string) => {
     toastSpies.dismiss(id);
   });
