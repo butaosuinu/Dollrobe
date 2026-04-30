@@ -12,7 +12,9 @@ import type {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-class DollWardrobeDB extends Dexie {
+const DEFAULT_DB_NAME = "DollWardrobe";
+
+export class DollWardrobeDB extends Dexie {
   readonly garments!: Dexie.Table<Garment, string>;
   readonly storageCases!: Dexie.Table<StorageCase, string>;
   readonly storageLocations!: Dexie.Table<StorageLocation, string>;
@@ -20,8 +22,8 @@ class DollWardrobeDB extends Dexie {
   readonly syncQueue!: Dexie.Table<SyncQueueItem, number>;
   readonly dolls!: Dexie.Table<Doll, string>;
 
-  constructor() {
-    super("DollWardrobe");
+  constructor(dbName: string = DEFAULT_DB_NAME) {
+    super(dbName);
     this.version(1).stores({
       garments: "id, userId, locationId, status, category",
       storageCases: "id, userId",
@@ -295,5 +297,3 @@ export const getDb = (): DollWardrobeDB => {
   return instance;
 };
 /* eslint-enable functional/no-conditional-statements, functional/immutable-data */
-
-export type { DollWardrobeDB };
