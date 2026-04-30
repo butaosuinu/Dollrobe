@@ -17,10 +17,16 @@ import { garments } from "./db/schema";
 type AuthSessionStub = { readonly user: { readonly id: string } };
 
 vi.mock("./auth", () => {
-  const handler = async (): Promise<Response> =>
-    await Promise.resolve(new Response("auth disabled", { status: 501 }));
-  const getSession = async (): Promise<AuthSessionStub | undefined> =>
-    await Promise.resolve(undefined);
+  const handler = async (): Promise<Response> => {
+    const response = new Response("auth disabled", { status: 501 });
+    return await Promise.resolve(response);
+  };
+  const getSession = async (): Promise<AuthSessionStub | undefined> => {
+    const session = await Promise.resolve<AuthSessionStub | undefined>(
+      undefined,
+    );
+    return session;
+  };
   return {
     createAuth: () => ({ handler, api: { getSession } }),
   };
@@ -40,7 +46,8 @@ const callWorker = async (
   envOverride?: Partial<typeof env>,
 ): Promise<Response> => {
   const ctx = createExecutionContext();
-  const mergedEnv = envOverride === undefined ? env : { ...env, ...envOverride };
+  const mergedEnv =
+    envOverride === undefined ? env : { ...env, ...envOverride };
   const response = await worker.fetch(request, mergedEnv, ctx);
   await waitOnExecutionContext(ctx);
   return response;
@@ -116,8 +123,8 @@ describe("Workers エントリ index.ts", () => {
     });
 
     it("R2 が内部エラーを投げると 500 を返す", async () => {
-      vi.spyOn(env.BUCKET, "get").mockImplementationOnce(async () =>
-        await Promise.reject(new Error("R2 boom")),
+      vi.spyOn(env.BUCKET, "get").mockImplementationOnce(
+        async () => await Promise.reject(new Error("R2 boom")),
       );
 
       const response = await callWorker(
@@ -332,9 +339,9 @@ describe("Workers エントリ index.ts", () => {
 
       const result = await getQueueResult(batch, ctx);
       expect(result.outcome).toBe("ok");
-      expect(consoleCallContains(consoleLog, "unknown queue message type")).toBe(
-        true,
-      );
+      expect(
+        consoleCallContains(consoleLog, "unknown queue message type"),
+      ).toBe(true);
     });
 
     it("正常な generate_digest メッセージを処理して digestService を呼ぶ", async () => {
@@ -388,7 +395,10 @@ describe("Workers エントリ index.ts", () => {
       await waitOnExecutionContext(ctx);
 
       const result = await getQueueResult(batch, ctx);
-      const retried = result.retryMessages.some((m) => m.msgId === "msg-fail");
+      type RetryMessage = (typeof result.retryMessages)[number];
+      const retried = result.retryMessages.some(
+        (m: RetryMessage) => m.msgId === "msg-fail",
+      );
       expect(retried).toBe(true);
     });
   });
