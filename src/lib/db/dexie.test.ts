@@ -214,9 +214,7 @@ describe("DollWardrobeDB migrations", () => {
       const cases = await readAllRaw(ctx.getDbName(), "storageCases");
 
       expect(findById(cases, "c-no-type")?.type).toBe(STORAGE_CASE_TYPE.GRID);
-      expect(findById(cases, "c-with-type")?.type).toBe(
-        STORAGE_CASE_TYPE.UNIT,
-      );
+      expect(findById(cases, "c-with-type")?.type).toBe(STORAGE_CASE_TYPE.UNIT);
     });
   });
 
@@ -378,10 +376,7 @@ describe("DollWardrobeDB migrations", () => {
         isRecord(noColorsPayload?.payload) &&
         isRecord(ignoredType?.payload)
       ) {
-        expect(created.payload.colors).toEqual([
-          NEW_BLUE,
-          "hsl(60, 50%, 50%)",
-        ]);
+        expect(created.payload.colors).toEqual([NEW_BLUE, "hsl(60, 50%, 50%)"]);
         // colors を持たない payload は変更なし
         expect(noColorsPayload.payload.colors).toBe(undefined);
         // 関係ないアクション type は変更なし
