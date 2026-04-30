@@ -10,7 +10,7 @@ import { useLingui } from "@lingui/react";
 import clsx from "clsx";
 import { Loader2 } from "lucide-react";
 import { addGarmentAtom, updateGarmentAtom } from "@/stores/garmentAtoms";
-import { authSessionAtom } from "@/stores/authAtoms";
+import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
 import type { DollSize, Garment, GarmentCategory } from "@/types";
 import {
   GARMENT_STATUS,
@@ -103,7 +103,7 @@ const GarmentForm = ({ garment }: Props) => {
   const brandSuggestions = useBrandSuggestions();
   const addGarment = useSetAtom(addGarmentAtom);
   const updateGarment = useSetAtom(updateGarmentAtom);
-  const authState = useAtomValue(authSessionAtom);
+  const authState = useAtomValue(authSessionUnwrappedAtom);
   const { uploadState, upload, reset: resetUpload } = useImageUpload();
   const { extractionState, extractColors } = useColorExtraction();
   const initial = getInitialValues(garment);
@@ -188,6 +188,7 @@ const GarmentForm = ({ garment }: Props) => {
           () => garment?.imageUrl ?? undefined,
         )
       : (garment?.imageUrl ?? undefined);
+  const userId = authState.user?.id ?? "local";
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -211,7 +212,7 @@ const GarmentForm = ({ garment }: Props) => {
       await addGarment({
         ...fields,
         id: garmentId,
-        userId: authState.user?.id ?? "local",
+        userId,
         imageUrl,
         locationId: undefined,
         status: GARMENT_STATUS.STORED,
