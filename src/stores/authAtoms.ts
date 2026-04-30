@@ -1,6 +1,7 @@
 "use client";
 
 import { atom } from "jotai";
+import { unwrap } from "jotai/utils";
 import { getSession, signOut as authSignOut } from "@/lib/auth";
 import type { SessionResponse } from "@/lib/auth";
 
@@ -38,6 +39,11 @@ export const authSessionAtom = atom(async (get): Promise<AuthState> => {
   const user = extractUser(session);
   return { user, isAuthenticated: user !== undefined };
 });
+
+export const authSessionUnwrappedAtom = unwrap(
+  authSessionAtom,
+  (prev): AuthState => prev ?? { user: undefined, isAuthenticated: false },
+);
 
 export const signOutAtom = atom(undefined, async (_get, set) => {
   await authSignOut().catch(() => undefined);

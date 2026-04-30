@@ -1,29 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { LogOut } from "lucide-react";
 import { t } from "@lingui/core/macro";
-import { authSessionAtom, signOutAtom } from "@/stores/authAtoms";
+import { authSessionUnwrappedAtom, signOutAtom } from "@/stores/authAtoms";
 
 const UserMenu = () => {
-  const authState = useAtomValue(authSessionAtom);
+  const authState = useAtomValue(authSessionUnwrappedAtom);
   const signOut = useSetAtom(signOutAtom);
+  const [isMounted, setIsMounted] = useState(false);
 
-  if (authState.user === undefined) {
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted || authState.user === undefined) {
     return undefined;
   }
 
+  const { user } = authState;
+
   return (
     <div className="flex items-center gap-2">
-      {authState.user.image !== undefined ? (
-        <img
-          src={authState.user.image}
-          alt={authState.user.name}
-          className="size-8 rounded-full"
-        />
+      {user.image !== undefined ? (
+        <img src={user.image} alt={user.name} className="size-8 rounded-full" />
       ) : (
         <div className="flex size-8 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">
-          {authState.user.name.charAt(0)}
+          {user.name.charAt(0)}
         </div>
       )}
       <button

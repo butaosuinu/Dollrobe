@@ -8,7 +8,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { addDollAtom, updateDollAtom } from "@/stores/dollAtoms";
-import { authSessionAtom } from "@/stores/authAtoms";
+import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
 import type { Doll, DollSize } from "@/types";
 import { DOLL_NAME_MAX_LENGTH, DOLL_MEMO_MAX_LENGTH } from "@/lib/constants";
 import { DOLL_SIZE_LABEL } from "@/lib/i18n-labels";
@@ -70,7 +70,7 @@ const DollForm = ({ doll }: Props) => {
 
   const addDoll = useSetAtom(addDollAtom);
   const updateDoll = useSetAtom(updateDollAtom);
-  const authState = useAtomValue(authSessionAtom);
+  const authState = useAtomValue(authSessionUnwrappedAtom);
   const { uploadState, upload, reset: resetUpload } = useImageUpload();
   const initial = getInitialValues(doll);
   const [name, setName] = useState(initial.name);
@@ -114,6 +114,7 @@ const DollForm = ({ doll }: Props) => {
           () => doll?.imageUrl ?? undefined,
         )
       : (doll?.imageUrl ?? undefined);
+  const userId = authState.user?.id ?? "local";
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -144,7 +145,7 @@ const DollForm = ({ doll }: Props) => {
       await addDoll({
         ...fields,
         id: dollId,
-        userId: authState.user?.id ?? "local",
+        userId,
         imageUrl,
         archivedAt: undefined,
         createdAt: now,
