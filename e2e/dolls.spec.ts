@@ -19,8 +19,8 @@ test.describe("ドール管理", () => {
     const submitBtn = authedPage.getByRole("button", { name: "登録する" });
     await expect(async () => {
       await nameInput.fill("テストドール花子");
-      await expect(submitBtn).toBeEnabled();
-    }).toPass({ timeout: 15_000 });
+      await expect(submitBtn).toBeEnabled({ timeout: 1_000 });
+    }).toPass({ timeout: 30_000 });
 
     await submitBtn.scrollIntoViewIfNeeded();
     await submitBtn.click();

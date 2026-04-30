@@ -84,7 +84,7 @@ jobs:
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -94,6 +94,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm i18n:compile
+      - run: pnpm build
       - run: npx playwright install --with-deps chromium
       - run: pnpm db:migrate:local
       - name: Run Playwright

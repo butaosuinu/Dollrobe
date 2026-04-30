@@ -20,8 +20,10 @@ test.describe("ワードローブ（服管理）", () => {
     await authedPage.goto("/garments");
     const ctaBtn = authedPage.getByRole("button", { name: "服を登録" });
     await ctaBtn.waitFor({ state: "visible", timeout: 15_000 });
-    await ctaBtn.click();
-    await authedPage.waitForURL(/\/garments\/new/);
+    await expect(async () => {
+      await ctaBtn.click();
+      await authedPage.waitForURL(/\/garments\/new/, { timeout: 5_000 });
+    }).toPass({ timeout: 30_000 });
 
     const nameInput = authedPage.getByPlaceholder("ドール服の名前");
     const submitBtn = authedPage.getByRole("button", { name: "登録する" });
