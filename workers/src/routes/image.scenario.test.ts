@@ -49,13 +49,10 @@ const buildMultipartRequest = ({
   if (file !== undefined) {
     form.append("file", file);
   }
-  return new Request(
-    `http://localhost/api/images/upload/${garmentId}`,
-    {
-      method: "POST",
-      body: form,
-    },
-  );
+  return new Request(`http://localhost/api/images/upload/${garmentId}`, {
+    method: "POST",
+    body: form,
+  });
 };
 
 describe("imageRoutes /upload/:garmentId", () => {
@@ -81,14 +78,11 @@ describe("imageRoutes /upload/:garmentId", () => {
   it("Content-Type が multipart/form-data でない場合 400 を返す", async () => {
     const app = buildApp();
     const garmentId = createId();
-    const req = new Request(
-      `http://localhost/api/images/upload/${garmentId}`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ foo: "bar" }),
-      },
-    );
+    const req = new Request(`http://localhost/api/images/upload/${garmentId}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ foo: "bar" }),
+    });
     const res = await app.fetch(req, env);
     expect(res.status).toBe(400);
     const message = await parseError(res);

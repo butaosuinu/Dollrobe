@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type {
+  Blob as WorkersBlob,
   R2Bucket,
   R2ObjectBody,
+  ReadableStream as WorkersReadableStream,
 } from "@cloudflare/workers-types";
 import { createLogger } from "../lib/logger";
 import { uploadImage, getImage, deleteImage } from "./image-service";
@@ -38,6 +40,10 @@ const buildStubBucket = (
   return { bucket, stub };
 };
 
+const notImplemented = (): never => {
+  throw new Error("not implemented in stub");
+};
+
 const buildR2ObjectBody = ({
   body,
   contentType,
@@ -49,6 +55,8 @@ const buildR2ObjectBody = ({
 }): R2ObjectBody => {
   const httpMetadata = contentType !== undefined ? { contentType } : {};
   // R2ObjectBody の必要メソッドだけ揃えた object を返す
+  // image-service が触るのは httpMetadata / arrayBuffer / httpEtag のみ。
+  // それ以外は呼ばれないため throw するスタブで型を満たす。
   const obj: R2ObjectBody = {
     key: "k",
     version: "v",
@@ -61,12 +69,16 @@ const buildR2ObjectBody = ({
     customMetadata: {},
     storageClass: "Standard",
     range: undefined,
-    body: undefined,
+    get body(): WorkersReadableStream {
+      return notImplemented();
+    },
     bodyUsed: false,
-    arrayBuffer: () => Promise.resolve(body),
-    text: () => Promise.resolve(""),
-    json: () => Promise.resolve({}),
-    blob: () => Promise.resolve(new Blob()),
+    arrayBuffer: async () => await Promise.resolve(body),
+    bytes: async () => await Promise.resolve(new Uint8Array(body)),
+    text: async () => await Promise.resolve(""),
+    json: async <T>(): Promise<T> => await Promise.resolve(notImplemented()),
+    blob: async (): Promise<WorkersBlob> =>
+      await Promise.resolve(notImplemented()),
     writeHttpMetadata: () => undefined,
   };
   return obj;

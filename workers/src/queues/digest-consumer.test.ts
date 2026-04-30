@@ -1,4 +1,5 @@
 import { env } from "cloudflare:test";
+import type { Message, MessageBatch } from "@cloudflare/workers-types";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createLogger } from "../lib/logger";
 import { handleDigestQueue } from "./digest-consumer";
@@ -6,9 +7,9 @@ import * as digestService from "../services/digest-service";
 import { serviceOk, serviceError } from "../services/types";
 
 vi.mock("../services/digest-service", async () => {
-  const actual = await vi.importActual<typeof import("../services/digest-service")>(
-    "../services/digest-service",
-  );
+  const actual = await vi.importActual<
+    typeof import("../services/digest-service")
+  >("../services/digest-service");
   return {
     ...actual,
     generateDigestForUser: vi.fn(),
