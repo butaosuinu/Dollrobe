@@ -197,10 +197,10 @@ describe("AutocompleteInput", () => {
     expect(label.tagName).toBe("LABEL");
   });
 
-  it("label が未指定なら label 要素はレンダーされない", () => {
-    const { container } = renderHarness();
+  it("label が未指定なら combobox に accessible name が付かない", () => {
+    renderHarness();
 
-    expect(container.querySelector("label")).toBeNull();
+    expect(screen.getByRole("combobox")).not.toHaveAccessibleName();
   });
 
   it("blur から 150ms 後に listbox が閉じる", async () => {
