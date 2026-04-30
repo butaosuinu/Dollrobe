@@ -65,7 +65,10 @@ const createPngFile = (name = "test.png"): File =>
 
 const fireFileSelect = (file: File): void => {
   const input = document.querySelector('input[type="file"]');
-  if (input === null) return;
+  if (input === null) {
+    // eslint-disable-next-line functional/no-throw-statements
+    throw new Error("file input not found");
+  }
   fireEvent.change(input, { target: { files: [file] } });
 };
 
