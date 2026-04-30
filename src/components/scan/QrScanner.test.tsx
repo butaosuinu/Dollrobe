@@ -131,7 +131,8 @@ describe("QrScanner", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     mockedJsQR.mockReset();
-    playMock.mockClear();
+    playMock.mockReset();
+    playMock.mockResolvedValue(undefined);
 
     Object.defineProperty(HTMLMediaElement.prototype, "play", {
       value: playMock,
