@@ -13,6 +13,9 @@ import { createDrizzle } from "./db/client";
 import * as digestService from "./services/digest-service";
 import * as digestRepo from "./repositories/digest-repository";
 import { garments } from "./db/schema";
+import type { Env } from "./types";
+
+const queueHandler: ExportedHandlerQueueHandler<Env> = worker.queue;
 
 type AuthSessionStub = { readonly user: { readonly id: string } };
 
@@ -334,7 +337,7 @@ describe("Workers エントリ index.ts", () => {
       ]);
 
       const ctx = createExecutionContext();
-      await worker.queue(batch, env);
+      await queueHandler(batch, env, ctx);
       await waitOnExecutionContext(ctx);
 
       const result = await getQueueResult(batch, ctx);
@@ -364,7 +367,7 @@ describe("Workers エントリ index.ts", () => {
       ]);
 
       const ctx = createExecutionContext();
-      await worker.queue(batch, env);
+      await queueHandler(batch, env, ctx);
       await waitOnExecutionContext(ctx);
 
       expect(generateSpy).toHaveBeenCalledWith(
@@ -391,7 +394,7 @@ describe("Workers エントリ index.ts", () => {
       ]);
 
       const ctx = createExecutionContext();
-      await worker.queue(batch, env);
+      await queueHandler(batch, env, ctx);
       await waitOnExecutionContext(ctx);
 
       const result = await getQueueResult(batch, ctx);
