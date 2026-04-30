@@ -42,18 +42,6 @@ const createJsonResponse = ({
     headers: { "Content-Type": "application/json" },
   });
 
-const createTextResponse = ({
-  status,
-  body,
-}: {
-  readonly status: number;
-  readonly body: string;
-}): Response =>
-  new Response(body, {
-    status,
-    headers: { "Content-Type": "text/plain" },
-  });
-
 describe("useImageUpload", () => {
   const compressImageMock = vi.mocked(compressImage);
 
@@ -113,40 +101,40 @@ describe("useImageUpload", () => {
   });
 
   it("圧縮 → アップロード → 成功で imageUrl を返し success 状態になる", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(
-        createJsonResponse({
-          status: 200,
-          body: JSON.stringify({ imageUrl: SUCCESS_IMAGE_URL }),
-        }),
-      );
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      createJsonResponse({
+        status: 200,
+        body: JSON.stringify({ imageUrl: SUCCESS_IMAGE_URL }),
+      }),
+    );
 
     const { result } = renderHook(() => useImageUpload());
     const file = createTestFile({ type: JPEG_MIME });
 
-    let returnedUrl = "";
+    const uploadResults: string[] = [];
     await act(async () => {
-      returnedUrl = await result.current.upload({
+      const url = await result.current.upload({
         file,
         garmentId: TEST_GARMENT_ID,
       });
+      uploadResults.push(url);
     });
 
-    expect(returnedUrl).toBe(SUCCESS_IMAGE_URL);
+    expect(uploadResults[0]).toBe(SUCCESS_IMAGE_URL);
     expect(result.current.uploadState).toEqual({
       status: "success",
       imageUrl: SUCCESS_IMAGE_URL,
     });
     expect(compressImageMock).toHaveBeenCalledWith({ file });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    const fetchCall = fetchSpy.mock.calls[0];
-    expect(fetchCall).toBeDefined();
-    expect(fetchCall?.[0]).toContain(`/api/images/upload/${TEST_GARMENT_ID}`);
-    const init = fetchCall?.[1];
-    expect(init?.method).toBe("POST");
-    expect(init?.credentials).toBe("include");
-    expect(init?.signal).toBeInstanceOf(AbortSignal);
+    const { mock } = fetchSpy;
+    const { lastCall } = mock;
+    expect(lastCall).toBeDefined();
+    const [fetchInput, fetchInit] = lastCall ?? [];
+    expect(fetchInput).toContain(`/api/images/upload/${TEST_GARMENT_ID}`);
+    expect(fetchInit?.method).toBe("POST");
+    expect(fetchInit?.credentials).toBe("include");
+    expect(fetchInit?.signal).toBeInstanceOf(AbortSignal);
   });
 
   it("fetch のネットワークエラー時に error 状態にして throw する", async () => {
@@ -238,17 +226,17 @@ describe("useImageUpload", () => {
   it("reset() は AbortController を abort して idle に戻す", async () => {
     const abortSpy = vi.spyOn(AbortController.prototype, "abort");
 
-    let capturedSignal: AbortSignal | undefined;
-    vi.spyOn(globalThis, "fetch").mockImplementation(
-      async (_input, init) => {
-        capturedSignal =
-          init?.signal instanceof AbortSignal ? init.signal : undefined;
-        return createJsonResponse({
-          status: 200,
-          body: JSON.stringify({ imageUrl: SUCCESS_IMAGE_URL }),
-        });
-      },
-    );
+    const capturedSignals: AbortSignal[] = [];
+    const successResponse = createJsonResponse({
+      status: 200,
+      body: JSON.stringify({ imageUrl: SUCCESS_IMAGE_URL }),
+    });
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (_input, init) => {
+      if (init?.signal instanceof AbortSignal) {
+        capturedSignals.push(init.signal);
+      }
+      return await Promise.resolve(successResponse);
+    });
 
     const { result } = renderHook(() => useImageUpload());
     const file = createTestFile({ type: JPEG_MIME });
@@ -257,6 +245,7 @@ describe("useImageUpload", () => {
       await result.current.upload({ file, garmentId: TEST_GARMENT_ID });
     });
 
+    const [capturedSignal] = capturedSignals;
     expect(capturedSignal).toBeInstanceOf(AbortSignal);
     expect(capturedSignal?.aborted).toBe(false);
 
