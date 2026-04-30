@@ -350,9 +350,21 @@ describe("DollForm (extra coverage)", () => {
     });
     expect(button).toBeDisabled();
 
+    // disabled ボタンを経由しない経路（Enter キー等）でも submit が抑止されることを
+    // 検証するため、フォームの submit イベントを直接発火させる。
+    const form = button.closest("form");
+    expect(form).not.toBeNull();
+    if (form == null) return;
+    fireEvent.submit(form);
+
+    // 一定時間待っても副作用が一切起きていないことを確認
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
     const { getDb } = await import("@/lib/db/dexie");
     const db = getDb();
-    const before = await db.dolls.toArray();
-    expect(before.length).toBe(0);
+    const after = await db.dolls.toArray();
+    expect(after.length).toBe(0);
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(mockUpload).not.toHaveBeenCalled();
   });
 });
