@@ -95,7 +95,11 @@ describe("GarmentForm istanbul coverage", () => {
     fireFileSelect(createPngFile());
     await user.type(screen.getByLabelText("名前"), "失敗ケース");
     await user.click(
-      await screen.findByRole("button", { name: "登録する" }, { timeout: TIMEOUT_MS }),
+      await screen.findByRole(
+        "button",
+        { name: "登録する" },
+        { timeout: TIMEOUT_MS },
+      ),
     );
 
     const { getDb } = await import("@/lib/db/dexie");
@@ -126,7 +130,11 @@ describe("GarmentForm istanbul coverage", () => {
 
     await user.type(screen.getByLabelText("名前"), "色抽出失敗");
     await user.click(
-      await screen.findByRole("button", { name: "登録する" }, { timeout: TIMEOUT_MS }),
+      await screen.findByRole(
+        "button",
+        { name: "登録する" },
+        { timeout: TIMEOUT_MS },
+      ),
     );
 
     const { getDb } = await import("@/lib/db/dexie");
@@ -154,7 +162,11 @@ describe("GarmentForm istanbul coverage", () => {
     await user.clear(nameInput);
     await user.type(nameInput, "場所なし更新");
     await user.click(
-      await screen.findByRole("button", { name: "更新する" }, { timeout: TIMEOUT_MS }),
+      await screen.findByRole(
+        "button",
+        { name: "更新する" },
+        { timeout: TIMEOUT_MS },
+      ),
     );
 
     const { getDb } = await import("@/lib/db/dexie");
@@ -193,7 +205,11 @@ describe("GarmentForm istanbul coverage", () => {
 
     await user.type(screen.getByLabelText("名前"), "タグ付け服");
     await user.click(
-      await screen.findByRole("button", { name: "登録する" }, { timeout: TIMEOUT_MS }),
+      await screen.findByRole(
+        "button",
+        { name: "登録する" },
+        { timeout: TIMEOUT_MS },
+      ),
     );
 
     const { getDb } = await import("@/lib/db/dexie");
@@ -217,7 +233,11 @@ describe("GarmentForm istanbul coverage", () => {
     await user.type(screen.getByLabelText("セット内容"), "ブラウス、スカート");
 
     await user.click(
-      await screen.findByRole("button", { name: "登録する" }, { timeout: TIMEOUT_MS }),
+      await screen.findByRole(
+        "button",
+        { name: "登録する" },
+        { timeout: TIMEOUT_MS },
+      ),
     );
 
     const { getDb } = await import("@/lib/db/dexie");
@@ -243,7 +263,11 @@ describe("GarmentForm istanbul coverage", () => {
     await user.type(screen.getByLabelText("セット内容"), "   ");
 
     await user.click(
-      await screen.findByRole("button", { name: "登録する" }, { timeout: TIMEOUT_MS }),
+      await screen.findByRole(
+        "button",
+        { name: "登録する" },
+        { timeout: TIMEOUT_MS },
+      ),
     );
 
     const { getDb } = await import("@/lib/db/dexie");
@@ -270,7 +294,9 @@ describe("GarmentForm istanbul coverage", () => {
     await renderWithProviders(<GarmentForm garment={existing} />);
 
     expect(
-      await screen.findByDisplayValue("アゾン", undefined, { timeout: TIMEOUT_MS }),
+      await screen.findByDisplayValue("アゾン", undefined, {
+        timeout: TIMEOUT_MS,
+      }),
     ).toBeInTheDocument();
     expect(screen.getByDisplayValue("厚手生地")).toBeInTheDocument();
     expect(screen.getByDisplayValue("トップス、ボトムス")).toBeInTheDocument();
@@ -289,7 +315,11 @@ describe("GarmentForm istanbul coverage", () => {
 
     await user.type(screen.getByLabelText("名前"), "サイズ複数");
     await user.click(
-      await screen.findByRole("button", { name: "登録する" }, { timeout: TIMEOUT_MS }),
+      await screen.findByRole(
+        "button",
+        { name: "登録する" },
+        { timeout: TIMEOUT_MS },
+      ),
     );
 
     const { getDb } = await import("@/lib/db/dexie");
@@ -333,10 +363,11 @@ describe("GarmentForm istanbul coverage", () => {
     );
 
     mockExtractColors.mockClear();
+    mockResetUpload.mockClear();
     fireFileSelect(createPngFile("test2.png"));
     await waitFor(
       () => {
-        expect(mockResetUpload).toHaveBeenCalled();
+        expect(mockResetUpload).toHaveBeenCalledTimes(1);
       },
       { timeout: TIMEOUT_MS },
     );
