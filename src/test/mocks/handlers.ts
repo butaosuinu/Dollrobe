@@ -1,4 +1,10 @@
 import { http, HttpResponse } from "msw";
+import {
+  registerDefaultTrpcHandlers,
+  trpcDispatcherHandlers,
+} from "./trpc/index";
+
+registerDefaultTrpcHandlers();
 
 export const handlers = [
   http.get("*/api/auth/get-session", () =>
@@ -14,7 +20,7 @@ export const handlers = [
       },
     }),
   ),
-  http.get("*/trpc/*", () => HttpResponse.json({ result: { data: [] } })),
+  ...trpcDispatcherHandlers,
 ];
 
 export const unauthenticatedHandler = http.get("*/api/auth/get-session", () =>

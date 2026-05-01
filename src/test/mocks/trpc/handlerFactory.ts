@@ -107,6 +107,29 @@ const parsePostInputs = async (
   return parseJsonOrEmpty(text);
 };
 
+type ResolverOutcome =
+  | { readonly kind: "ok"; readonly value: unknown }
+  | { readonly kind: "error"; readonly message: string };
+
+const runResolver = async (
+  resolver: WideResolver,
+  input: unknown,
+  request: Request,
+): Promise<ResolverOutcome> => {
+  const errorSentinel = Symbol("trpc-mock-error");
+  const value: unknown = await Promise.resolve(
+    resolver({ input, request }),
+  ).catch((error: unknown) => ({ [errorSentinel]: error }));
+  if (typeof value === "object" && value !== null && errorSentinel in value) {
+    const error: unknown = Reflect.get(value, errorSentinel);
+    return {
+      kind: "error",
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
+  return { kind: "ok", value };
+};
+
 const dispatch = async (
   paths: readonly string[],
   inputs: Record<string, unknown>,
@@ -120,8 +143,11 @@ const dispatch = async (
         return errorEntry(`No mock handler for tRPC ${kind} ${path}`);
       }
       const { [String(i)]: input } = inputs;
-      const result = await resolver({ input, request });
-      return successEntry(result);
+      const outcome = await runResolver(resolver, input, request);
+      if (outcome.kind === "error") {
+        return errorEntry(outcome.message);
+      }
+      return successEntry(outcome.value);
     }),
   );
 

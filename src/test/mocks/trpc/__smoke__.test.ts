@@ -1,23 +1,8 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { trpcClient } from "@/lib/trpc";
 import { server } from "@/test/mocks/server";
 import { testDb } from "@/test/mocks/db";
-import {
-  clearTrpcOverrides,
-  registerDefaultTrpcHandlers,
-  trpcDispatcherHandlers,
-  trpcMutation,
-  trpcQuery,
-} from "./index";
-
-beforeAll(() => {
-  registerDefaultTrpcHandlers();
-  server.use(...trpcDispatcherHandlers);
-});
-
-afterEach(() => {
-  clearTrpcOverrides();
-});
+import { trpcMutation, trpcQuery } from "./index";
 
 describe("trpc handler factory smoke test", () => {
   it("garment.list は testDb の内容を返す", async () => {
