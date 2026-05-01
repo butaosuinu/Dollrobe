@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createPngFile } from "@/test/helpers/files";
 import type { ExtractColorsResponse } from "./extract-colors-types";
 
 type MessageHandler = (event: { readonly data: ExtractColorsResponse }) => void;
@@ -42,7 +43,7 @@ describe("extractColorsFromFile", () => {
 
     const { extractColorsFromFile } = await import("./extract-colors");
     const result = await extractColorsFromFile({
-      file: new File(["dummy"], "test.png", { type: "image/png" }),
+      file: createPngFile(),
     });
 
     expect(result.presetColors).toEqual(["hsl(0, 70%, 55%)"]);
@@ -64,7 +65,7 @@ describe("extractColorsFromFile", () => {
 
     await expect(
       extractColorsFromFile({
-        file: new File(["dummy"], "test.png", { type: "image/png" }),
+        file: createPngFile(),
       }),
     ).rejects.toThrow("OpenCV.js failed to load");
   });
