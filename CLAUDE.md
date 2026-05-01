@@ -497,6 +497,11 @@ crons = ["0 9 * * 1"]  # 毎週月曜 9:00 UTC
    - ビジネスロジックのテスト（カスタム Hooks 等）
    - モック使用は最小限に抑制
    - 複雑な計算ロジックや独立した関数のみを対象
+   - **「純粋なビジネスロジック相当」の具体例**（DB・I/O・DOM 依存が無いもの）:
+     - `src/lib/confidence.ts` のような純粋関数（信頼度・分類・並び替え等の計算ロジック）
+     - バリデーション・データ変換ユーティリティ
+     - カスタム Hook 内の純粋ロジック（副作用を含まない部分）
+   - UI コンポーネント・サービス層・リポジトリ層は原則インテグレーションテストで扱う
 
 3. **Integration Tests（インテグレーションテスト）** - **最重要**
    - **React コンポーネントのテスト - これが最も価値が高い**
@@ -519,6 +524,18 @@ crons = ["0 9 * * 1"]  # 毎週月曜 9:00 UTC
 - デトロイト学派に従う
 - React コンポーネントに対してはインテグレーションテストを実施する
 - **実際のユーザー体験に近いテストを優先**し、過度なモックは避ける
+- カバレッジは目的ではなく**最低保証**である。数字を満たすためだけのテストは書かない
+- インテグレーションテストで自然に網羅される分岐はそちらを優先し、純粋関数の分岐はユニットテストで明示的に網羅する
+
+### カバレッジ要件（必須）
+
+- **分岐網羅（branch coverage）80% 以上を必達**とする
+- 計測コマンド: `pnpm test:coverage`
+- 計測対象は `vitest.config.ts` の `coverage.include` / `coverage.exclude` に従う
+  - 主な除外: `src/types/`, `src/locales/`, `src/app/**/{layout,loading,error,not-found}.tsx`, `src/app/sw.ts`, `src/lib/image/extract-colors*.ts`, `src/lib/image/opencv-loader.ts`, `workers/src/types.ts`, `workers/src/db/schema.ts`, `e2e/`, `scripts/`
+- **PR 作成前に `pnpm test:coverage` を実行し、branches が 80% を下回らないことを確認すること**
+- 80% を下回る場合は、不足分のテストを追加してから PR を作成する
+- 例外的に閾値未達のまま進める必要がある場合は、PR 説明にその理由を必ず明記する（自動的なスキップ・閾値の引き下げは禁止）
 
 ## Important Conventions
 
