@@ -7,28 +7,19 @@ import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import LocationsPage from "./page";
 
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => crypto.randomUUID(),
-}));
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+const cuidMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/cuid2"),
+);
+vi.mock("next/link", linkMod.nextLinkFactory);
+vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
 
 describe("LocationsPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
+    cuidMod.setupCuid2({ mode: "uuid" });
   });
 
   afterEach(() => {
@@ -204,6 +195,7 @@ describe("LocationsPage", () => {
 describe("LocationsPage CRUD操作", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
+    cuidMod.setupCuid2({ mode: "uuid" });
   });
 
   afterEach(() => {

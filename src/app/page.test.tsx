@@ -6,27 +6,18 @@ import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import DashboardPage from "./page";
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("next/link", linkMod.nextLinkFactory);
 
 describe("DashboardPage", () => {
   beforeEach(() => {
+    navMod.setupNextNavigation();
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
   });
 

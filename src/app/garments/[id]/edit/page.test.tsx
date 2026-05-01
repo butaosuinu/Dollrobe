@@ -6,19 +6,18 @@ import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentEditPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const cuidMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/cuid2"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
 
-const mockParams = vi.hoisted((): { value: Record<string, string> } => ({
-  value: { id: "garment-1" },
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useParams: () => mockParams.value,
-}));
+const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
+  current: navMod.setupNextNavigation(),
+};
 
 const mockUpload = vi.hoisted(() => vi.fn());
 const mockResetUpload = vi.hoisted(() => vi.fn());
@@ -39,19 +38,16 @@ vi.mock("@/hooks/useImageUpload", () => ({
   }),
 }));
 
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-cuid",
-}));
-
 describe("GarmentEditPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
-    mockRouter.back.mockClear();
+    navHandle.current = navMod.setupNextNavigation({
+      params: { id: "garment-1" },
+    });
+    cuidMod.setupCuid2();
     mockUpload.mockClear();
     mockResetUpload.mockClear();
     mockUploadState.value = { status: "idle" };
-    mockParams.value = { id: "garment-1" };
   });
 
   afterEach(() => {
@@ -101,7 +97,7 @@ describe("GarmentEditPage", () => {
   });
 
   it("存在しない服の場合にメッセージを表示する", async () => {
-    mockParams.value = { id: "non-existent" };
+    navHandle.current.setParams({ id: "non-existent" });
 
     await renderWithProviders(<GarmentEditPage />);
 
@@ -111,13 +107,13 @@ describe("GarmentEditPage", () => {
 
   it("「一覧に戻る」クリックで /garments にナビゲーションする", async () => {
     const user = userEvent.setup();
-    mockParams.value = { id: "non-existent" };
+    navHandle.current.setParams({ id: "non-existent" });
 
     await renderWithProviders(<GarmentEditPage />);
 
     await user.click(await screen.findByText("一覧に戻る"));
 
-    expect(mockRouter.push).toHaveBeenCalledWith("/garments");
+    expect(navHandle.current.router.push).toHaveBeenCalledWith("/garments");
   });
 
   it("戻るボタンで router.back() が呼ばれる", async () => {
@@ -129,7 +125,7 @@ describe("GarmentEditPage", () => {
 
     await user.click(screen.getByRole("button", { name: "戻る" }));
 
-    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    expect(navHandle.current.router.back).toHaveBeenCalledTimes(1);
   });
 
   it("名前を変更して送信するとDexieの服が更新される", async () => {
@@ -162,7 +158,9 @@ describe("GarmentEditPage", () => {
     await user.click(screen.getByRole("button", { name: "更新する" }));
 
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/garments/garment-1");
+      expect(navHandle.current.router.push).toHaveBeenCalledWith(
+        "/garments/garment-1",
+      );
     });
   });
 

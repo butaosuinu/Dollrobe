@@ -5,14 +5,16 @@ import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
 import DollForm from "./DollForm";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const cuidMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/cuid2"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
+const navHandle = navMod.setupNextNavigation();
 
 const mockUpload = vi.hoisted(() => vi.fn());
 const mockResetUpload = vi.hoisted(() => vi.fn());
@@ -33,14 +35,11 @@ vi.mock("@/hooks/useImageUpload", () => ({
   }),
 }));
 
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-cuid",
-}));
-
 describe("DollForm", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
+    navMod.setupNextNavigation();
+    cuidMod.setupCuid2({ id: "test-cuid" });
     mockUpload.mockClear();
     mockResetUpload.mockClear();
     mockUploadState.value = { status: "idle" };
@@ -95,7 +94,7 @@ describe("DollForm", () => {
       expect(dolls[0]?.bodySize).toBe("SD");
     });
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/dolls");
+      expect(navHandle.router.push).toHaveBeenCalledWith("/dolls");
     });
   });
 

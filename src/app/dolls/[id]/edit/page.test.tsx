@@ -6,19 +6,18 @@ import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import DollEditPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const cuidMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/cuid2"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
 
-const mockParams = vi.hoisted((): { value: Record<string, string> } => ({
-  value: { id: "doll-1" },
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useParams: () => mockParams.value,
-}));
+const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
+  current: navMod.setupNextNavigation(),
+};
 
 const mockUpload = vi.hoisted(() => vi.fn());
 const mockResetUpload = vi.hoisted(() => vi.fn());
@@ -39,19 +38,16 @@ vi.mock("@/hooks/useImageUpload", () => ({
   }),
 }));
 
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-cuid",
-}));
-
 describe("DollEditPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
-    mockRouter.back.mockClear();
+    navHandle.current = navMod.setupNextNavigation({
+      params: { id: "doll-1" },
+    });
+    cuidMod.setupCuid2();
     mockUpload.mockClear();
     mockResetUpload.mockClear();
     mockUploadState.value = { status: "idle" };
-    mockParams.value = { id: "doll-1" };
   });
 
   afterEach(() => {
@@ -91,12 +87,14 @@ describe("DollEditPage", () => {
       expect(doll?.name).toBe("ミユ");
     });
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/dolls/doll-1");
+      expect(navHandle.current.router.push).toHaveBeenCalledWith(
+        "/dolls/doll-1",
+      );
     });
   });
 
   it("存在しないドールの場合にメッセージを表示する", async () => {
-    mockParams.value = { id: "non-existent" };
+    navHandle.current.setParams({ id: "non-existent" });
 
     await renderWithProviders(<DollEditPage />);
 

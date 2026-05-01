@@ -7,16 +7,17 @@ import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import CheckedOutSection from "./CheckedOutSection";
 
-const mockPush = vi.fn();
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush }),
-}));
+const navHandle = navMod.setupNextNavigation();
 
 describe("CheckedOutSection", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockPush.mockClear();
+    navMod.setupNextNavigation();
   });
 
   afterEach(() => {
@@ -145,7 +146,7 @@ describe("CheckedOutSection", () => {
     const button = await screen.findByRole("button", { name: /しまった/ });
     await user.click(button);
 
-    expect(mockPush).toHaveBeenCalledWith("/scan");
+    expect(navHandle.router.push).toHaveBeenCalledWith("/scan");
   });
 
   it("「使用中」をクリックすると checkedOutAt が更新され、ボタンが非表示になる", async () => {

@@ -5,14 +5,14 @@ import { FIXED_NOW, createTestGarment } from "@/test/factories";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentForm from "./GarmentForm";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const cuidMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/cuid2"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
 
 const mockUpload = vi.hoisted(() => vi.fn());
 const mockResetUpload = vi.hoisted(() => vi.fn());
@@ -31,10 +31,6 @@ vi.mock("@/hooks/useImageUpload", () => ({
     upload: mockUpload,
     reset: mockResetUpload,
   }),
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-cuid",
 }));
 
 vi.mock("@/hooks/useBrandSuggestions", () => ({
@@ -75,7 +71,8 @@ const fireFileSelect = (file: File): void => {
 describe("GarmentForm istanbul coverage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
+    navMod.setupNextNavigation();
+    cuidMod.setupCuid2({ id: "test-cuid" });
     mockUpload.mockClear();
     mockResetUpload.mockClear();
     mockUploadState.value = { status: "idle" };

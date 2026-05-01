@@ -3,29 +3,14 @@ import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import CsvImportPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("next/link", linkMod.nextLinkFactory);
 
 const mockMutate = vi.hoisted(() => vi.fn());
 
@@ -52,7 +37,7 @@ const uploadCsvFile = async (csvText: string) => {
 
 describe("CsvImportPage", () => {
   beforeEach(() => {
-    mockRouter.push.mockClear();
+    navMod.setupNextNavigation();
     mockMutate.mockClear();
     mockMutate.mockResolvedValue({ count: 0 });
   });

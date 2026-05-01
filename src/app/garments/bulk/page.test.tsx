@@ -6,29 +6,22 @@ import { server } from "@/test/mocks/server";
 import { renderWithProviders } from "@/test/testUtils";
 import BulkCapturePage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+const cuidMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/cuid2"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("next/link", linkMod.nextLinkFactory);
+vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
+  current: navMod.setupNextNavigation(),
+};
 
 const mockCaptureFrame = vi.hoisted(() => vi.fn());
 const mockStart = vi.hoisted(() => vi.fn());
@@ -51,29 +44,15 @@ vi.mock("@/lib/image/compressImage", () => ({
     await Promise.resolve({ file, width: 100, height: 100 }),
 }));
 
-const testCuidValues = vi.hoisted(() => ({
-  index: 0,
-  values: ["cuid-1", "cuid-2", "cuid-3", "cuid-4", "cuid-5"],
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => {
-    const value =
-      testCuidValues.values[testCuidValues.index] ?? "cuid-fallback";
-    testCuidValues.index += 1;
-    return value;
-  },
-}));
-
 const createTestBlob = () => new Blob(["test-image"], { type: "image/png" });
 
 describe("BulkCapturePage", () => {
   beforeEach(() => {
-    mockRouter.push.mockClear();
+    navHandle.current = navMod.setupNextNavigation();
+    cuidMod.setupCuid2({ id: "cuid", mode: "sequential" });
     mockCaptureFrame.mockClear();
     mockStart.mockClear();
     mockStop.mockClear();
-    testCuidValues.index = 0;
     mockCaptureFrame.mockReturnValue(createTestBlob());
 
     server.use(

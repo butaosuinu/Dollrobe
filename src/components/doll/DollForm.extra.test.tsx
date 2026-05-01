@@ -6,14 +6,16 @@ import { renderWithProviders } from "@/test/testUtils";
 import { createTestDoll } from "@/test/factories";
 import DollForm from "./DollForm";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const cuidMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/cuid2"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
+const navHandle = navMod.setupNextNavigation();
 
 const mockUpload = vi.hoisted(() => vi.fn());
 const mockResetUpload = vi.hoisted(() => vi.fn());
@@ -34,10 +36,6 @@ vi.mock("@/hooks/useImageUpload", () => ({
   }),
 }));
 
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-cuid",
-}));
-
 const EXISTING_IMAGE_URL = "https://cdn.example.com/existing.png";
 const UPLOADED_IMAGE_URL = "https://cdn.example.com/uploaded.png";
 
@@ -54,7 +52,8 @@ const createPngFile = (name = "new.png"): File =>
 describe("DollForm (extra coverage)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
+    navMod.setupNextNavigation();
+    cuidMod.setupCuid2({ id: "test-cuid" });
     mockUpload.mockClear();
     mockResetUpload.mockClear();
     mockUploadState.value = { status: "idle" };
@@ -195,7 +194,7 @@ describe("DollForm (extra coverage)", () => {
       expect(updated?.updatedAt).toBe(FIXED_NOW);
     });
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/dolls/doll-edit-2");
+      expect(navHandle.router.push).toHaveBeenCalledWith("/dolls/doll-edit-2");
     });
   });
 
@@ -364,7 +363,7 @@ describe("DollForm (extra coverage)", () => {
     const db = getDb();
     const after = await db.dolls.toArray();
     expect(after.length).toBe(0);
-    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(navHandle.router.push).not.toHaveBeenCalled();
     expect(mockUpload).not.toHaveBeenCalled();
   });
 });

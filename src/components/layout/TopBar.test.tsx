@@ -3,26 +3,14 @@ import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import TopBar from "./TopBar";
 
-const pathnameMock = vi.hoisted(() => ({ value: "/" }));
-
-vi.mock("next/navigation", () => ({
-  usePathname: () => pathnameMock.value,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("next/link", linkMod.nextLinkFactory);
 
 vi.mock("@/hooks/useOnlineSync", () => ({
   useOnlineSync: () => undefined,
@@ -40,7 +28,7 @@ const ACTIVE_LINK_CLASS = "bg-primary-100";
 
 describe("TopBar", () => {
   beforeEach(() => {
-    pathnameMock.value = "/";
+    navMod.setupNextNavigation({ pathname: "/" });
   });
 
   describe("ナビゲーションのアクティブ状態", () => {
@@ -55,7 +43,7 @@ describe("TopBar", () => {
     });
 
     it("pathname が '/garments' で始まるとき ワードローブリンクがアクティブになる", async () => {
-      pathnameMock.value = "/garments/123";
+      navMod.setupNextNavigation({ pathname: "/garments/123" });
       await renderWithProviders(<TopBar />);
 
       const homeLink = screen.getByRole("link", { name: /ホーム/ });
@@ -66,7 +54,7 @@ describe("TopBar", () => {
     });
 
     it("pathname が他のパスのとき '/' は startsWith ではなく完全一致でのみアクティブになる", async () => {
-      pathnameMock.value = "/scan";
+      navMod.setupNextNavigation({ pathname: "/scan" });
       await renderWithProviders(<TopBar />);
 
       const homeLink = screen.getByRole("link", { name: /ホーム/ });

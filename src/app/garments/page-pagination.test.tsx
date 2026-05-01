@@ -7,34 +7,19 @@ import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentsPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useSearchParams: () => new URLSearchParams(),
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("next/link", linkMod.nextLinkFactory);
 
 describe("GarmentsPage ページネーション", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
+    navMod.setupNextNavigation();
   });
 
   afterEach(() => {

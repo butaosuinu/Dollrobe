@@ -5,14 +5,16 @@ import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentForm from "./GarmentForm";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const cuidMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/cuid2"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
+const navHandle = navMod.setupNextNavigation();
 
 const mockUpload = vi.hoisted(() => vi.fn());
 const mockResetUpload = vi.hoisted(() => vi.fn());
@@ -31,10 +33,6 @@ vi.mock("@/hooks/useImageUpload", () => ({
     upload: mockUpload,
     reset: mockResetUpload,
   }),
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-cuid",
 }));
 
 vi.mock("@/hooks/useBrandSuggestions", () => ({
@@ -61,7 +59,8 @@ vi.mock("@/hooks/useColorExtraction", () => ({
 describe("GarmentForm", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
+    navMod.setupNextNavigation();
+    cuidMod.setupCuid2({ id: "test-cuid" });
     mockUpload.mockClear();
     mockResetUpload.mockClear();
     mockUploadState.value = { status: "idle" };
@@ -122,7 +121,7 @@ describe("GarmentForm", () => {
       expect(garments[0]?.dollSizes).toEqual(["SD"]);
       expect(garments[0]?.status).toBe("stored");
     });
-    expect(mockRouter.push).toHaveBeenCalledWith("/garments");
+    expect(navHandle.router.push).toHaveBeenCalledWith("/garments");
   });
 
   it("カテゴリを変更して登録すると反映される", async () => {

@@ -8,39 +8,19 @@ import { MS_PER_DAY } from "@/lib/constants";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import CaseDetailPage from "./page";
 
-const mockRouterBack = vi.fn();
-const mockRouterPush = vi.fn();
-const searchParamsRef = vi.hoisted(() => ({
-  current: new URLSearchParams(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useParams: () => ({ caseId: "case-1" }),
-  useRouter: () => ({ back: mockRouterBack, push: mockRouterPush }),
-  useSearchParams: () => searchParamsRef.current,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("next/link", linkMod.nextLinkFactory);
 
 describe("CaseDetailPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouterBack.mockClear();
-    mockRouterPush.mockClear();
-    searchParamsRef.current = new URLSearchParams();
+    navMod.setupNextNavigation({ params: { caseId: "case-1" } });
   });
 
   afterEach(() => {
@@ -153,7 +133,10 @@ describe("CaseDetailPage", () => {
       lastScannedAt: FIXED_NOW - 20 * MS_PER_DAY,
     });
     await seedDbFromTestDb();
-    searchParamsRef.current = new URLSearchParams("location=loc-target");
+    navMod.setupNextNavigation({
+      params: { caseId: "case-1" },
+      searchParams: new URLSearchParams("location=loc-target"),
+    });
 
     await renderWithProviders(<CaseDetailPage />);
 
@@ -181,7 +164,10 @@ describe("CaseDetailPage", () => {
       confidenceDecayDaysOverride: 30,
     });
     await seedDbFromTestDb();
-    searchParamsRef.current = new URLSearchParams("location=loc-target");
+    navMod.setupNextNavigation({
+      params: { caseId: "case-1" },
+      searchParams: new URLSearchParams("location=loc-target"),
+    });
 
     await renderWithProviders(<CaseDetailPage />);
 

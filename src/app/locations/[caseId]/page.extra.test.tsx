@@ -7,39 +7,21 @@ import { getDb } from "@/lib/db/dexie";
 import { MS_PER_DAY } from "@/lib/constants";
 import CaseDetailPage from "./page";
 
-const mockRouterBack = vi.fn();
-const mockRouterPush = vi.fn();
-const searchParamsRef = vi.hoisted(() => ({
-  current: new URLSearchParams(),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("next/link", linkMod.nextLinkFactory);
 
-vi.mock("next/navigation", () => ({
-  useParams: () => ({ caseId: "case-1" }),
-  useRouter: () => ({ back: mockRouterBack, push: mockRouterPush }),
-  useSearchParams: () => searchParamsRef.current,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navHandle = navMod.setupNextNavigation();
 
 describe("CaseDetailPage (extra)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouterBack.mockClear();
-    mockRouterPush.mockClear();
-    searchParamsRef.current = new URLSearchParams();
+    navMod.setupNextNavigation({ params: { caseId: "case-1" } });
   });
 
   afterEach(() => {
@@ -52,7 +34,7 @@ describe("CaseDetailPage (extra)", () => {
     const link = await screen.findByRole("button", { name: "一覧に戻る" });
     fireEvent.click(link);
 
-    expect(mockRouterPush).toHaveBeenCalledWith("/locations");
+    expect(navHandle.router.push).toHaveBeenCalledWith("/locations");
   });
 
   it("PageHeader の戻るボタンで router.back が呼ばれる", async () => {
@@ -65,7 +47,7 @@ describe("CaseDetailPage (extra)", () => {
       fireEvent.click(backButton);
     }
 
-    expect(mockRouterBack).toHaveBeenCalled();
+    expect(navHandle.router.back).toHaveBeenCalled();
   });
 
   it("description がある場合に表示される", async () => {

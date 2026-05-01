@@ -7,31 +7,18 @@ import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import CoordinateDetailPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-const mockParams = vi.hoisted(() => ({ id: "c-1" }));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("next/link", linkMod.nextLinkFactory);
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useParams: () => mockParams,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
+  current: navMod.setupNextNavigation(),
+};
 
 const seedSampleCoordinate = async () => {
   testDb.garment.create({
@@ -52,8 +39,7 @@ const seedSampleCoordinate = async () => {
 describe("CoordinateDetailPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
-    mockRouter.back.mockClear();
+    navHandle.current = navMod.setupNextNavigation({ params: { id: "c-1" } });
   });
 
   afterEach(() => {
@@ -118,6 +104,6 @@ describe("CoordinateDetailPage", () => {
     await waitFor(async () => {
       expect(await getDb().coordinates.get("c-1")).toBeUndefined();
     });
-    expect(mockRouter.push).toHaveBeenCalledWith("/coordinates");
+    expect(navHandle.current.router.push).toHaveBeenCalledWith("/coordinates");
   });
 });

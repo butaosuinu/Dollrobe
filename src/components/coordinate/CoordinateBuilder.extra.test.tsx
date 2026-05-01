@@ -11,9 +11,10 @@ import {
 import type { Coordinate } from "@/types";
 import CoordinateBuilder from "./CoordinateBuilder";
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
 
 type SetupParams = {
   readonly seedGarments?: boolean;
@@ -77,6 +78,7 @@ const setup = async ({
 describe("CoordinateBuilder extra", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
+    navMod.setupNextNavigation();
   });
 
   afterEach(() => {

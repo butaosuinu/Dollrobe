@@ -6,35 +6,23 @@ import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import CoordinatesPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextNavigation"),
+);
+const linkMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/nextLink"),
+);
+vi.mock("next/navigation", navMod.nextNavigationFactory);
+vi.mock("next/link", linkMod.nextLinkFactory);
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useSearchParams: () => new URLSearchParams(),
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
+  current: navMod.setupNextNavigation(),
+};
 
 describe("CoordinatesPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
+    navHandle.current = navMod.setupNextNavigation();
   });
 
   afterEach(() => {
@@ -59,7 +47,9 @@ describe("CoordinatesPage", () => {
     await user.click(
       await screen.findByRole("button", { name: "コーデを作る" }),
     );
-    expect(mockRouter.push).toHaveBeenCalledWith("/coordinates/new");
+    expect(navHandle.current.router.push).toHaveBeenCalledWith(
+      "/coordinates/new",
+    );
   });
 
   it("コーデ一覧を新しい順で表示する", async () => {
