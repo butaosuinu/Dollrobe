@@ -12,31 +12,22 @@ const navMod = await vi.hoisted(
 const cuidMod = await vi.hoisted(
   async () => await import("@/test/mocks/modules/cuid2"),
 );
+const uploadMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useImageUpload"),
+);
 vi.mock("next/navigation", navMod.nextNavigationFactory);
 vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
+vi.mock("@/hooks/useImageUpload", uploadMod.useImageUploadFactory);
 
 const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
   current: navMod.setupNextNavigation(),
 };
 
-const mockUpload = vi.hoisted(() => vi.fn());
-const mockResetUpload = vi.hoisted(() => vi.fn());
-const mockUploadState = vi.hoisted(() => ({
-  value: { status: "idle" } as
-    | { status: "idle" }
-    | { status: "compressing" }
-    | { status: "uploading" }
-    | { status: "success"; imageUrl: string }
-    | { status: "error"; message: string },
-}));
-
-vi.mock("@/hooks/useImageUpload", () => ({
-  useImageUpload: () => ({
-    uploadState: mockUploadState.value,
-    upload: mockUpload,
-    reset: mockResetUpload,
-  }),
-}));
+const uploadHandle: {
+  current: ReturnType<typeof uploadMod.setupUseImageUpload>;
+} = {
+  current: uploadMod.setupUseImageUpload(),
+};
 
 describe("DollEditPage", () => {
   beforeEach(() => {
@@ -45,9 +36,7 @@ describe("DollEditPage", () => {
       params: { id: "doll-1" },
     });
     cuidMod.setupCuid2();
-    mockUpload.mockClear();
-    mockResetUpload.mockClear();
-    mockUploadState.value = { status: "idle" };
+    uploadHandle.current = uploadMod.setupUseImageUpload();
   });
 
   afterEach(() => {

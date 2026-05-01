@@ -1,28 +1,37 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import NfcCapabilityBadge from "./NfcCapabilityBadge";
 
-const mockNfcSupported = vi.hoisted(() => ({ value: false }));
+const nfcSupMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useNfcSupported"),
+);
+vi.mock("@/hooks/useNfcSupported", nfcSupMod.useNfcSupportedFactory);
 
-vi.mock("@/hooks/useNfcSupported", () => ({
-  useNfcSupported: () => mockNfcSupported.value,
-}));
+const nfcSupHandle: {
+  current: ReturnType<typeof nfcSupMod.setupUseNfcSupported>;
+} = {
+  current: nfcSupMod.setupUseNfcSupported(),
+};
 
 describe("NfcCapabilityBadge", () => {
+  beforeEach(() => {
+    nfcSupHandle.current = nfcSupMod.setupUseNfcSupported(false);
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
   it("NFC 対応時に「NFC 対応」と表示される", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     await renderWithProviders(<NfcCapabilityBadge />);
 
     expect(screen.getByText("NFC 対応")).toBeInTheDocument();
   });
 
   it("NFC 非対応時に「NFC 非対応」と表示される", async () => {
-    mockNfcSupported.value = false;
+    nfcSupHandle.current.setSupported(false);
     await renderWithProviders(<NfcCapabilityBadge />);
 
     expect(screen.getByText("NFC 非対応")).toBeInTheDocument();

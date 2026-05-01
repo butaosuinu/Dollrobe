@@ -11,62 +11,44 @@ const navMod = await vi.hoisted(
 const cuidMod = await vi.hoisted(
   async () => await import("@/test/mocks/modules/cuid2"),
 );
+const uploadMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useImageUpload"),
+);
+const brandMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useBrandSuggestions"),
+);
+const colorMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useColorExtraction"),
+);
 vi.mock("next/navigation", navMod.nextNavigationFactory);
 vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
+vi.mock("@/hooks/useImageUpload", uploadMod.useImageUploadFactory);
+vi.mock("@/hooks/useBrandSuggestions", brandMod.useBrandSuggestionsFactory);
+vi.mock("@/hooks/useColorExtraction", colorMod.useColorExtractionFactory);
 
 const navHandle = navMod.setupNextNavigation();
 
-const mockUpload = vi.hoisted(() => vi.fn());
-const mockResetUpload = vi.hoisted(() => vi.fn());
-const mockUploadState = vi.hoisted(() => ({
-  value: { status: "idle" } as
-    | { status: "idle" }
-    | { status: "compressing" }
-    | { status: "uploading" }
-    | { status: "success"; imageUrl: string }
-    | { status: "error"; message: string },
-}));
+const uploadHandle: {
+  current: ReturnType<typeof uploadMod.setupUseImageUpload>;
+} = {
+  current: uploadMod.setupUseImageUpload(),
+};
 
-vi.mock("@/hooks/useImageUpload", () => ({
-  useImageUpload: () => ({
-    uploadState: mockUploadState.value,
-    upload: mockUpload,
-    reset: mockResetUpload,
-  }),
-}));
-
-vi.mock("@/hooks/useBrandSuggestions", () => ({
-  useBrandSuggestions: () => [],
-}));
-
-const mockExtractColors = vi.hoisted(() => vi.fn());
-const mockExtractionState = vi.hoisted(() => ({
-  value: { status: "idle" } as
-    | { status: "idle" }
-    | { status: "loading" }
-    | { status: "done"; colors: readonly string[] }
-    | { status: "error" },
-}));
-
-vi.mock("@/hooks/useColorExtraction", () => ({
-  useColorExtraction: () => ({
-    extractionState: mockExtractionState.value,
-    extractColors: mockExtractColors,
-    reset: vi.fn(),
-  }),
-}));
+const colorHandle: {
+  current: ReturnType<typeof colorMod.setupUseColorExtraction>;
+} = {
+  current: colorMod.setupUseColorExtraction(),
+};
 
 describe("GarmentForm", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     navMod.setupNextNavigation();
     cuidMod.setupCuid2({ id: "test-cuid" });
-    mockUpload.mockClear();
-    mockResetUpload.mockClear();
-    mockUploadState.value = { status: "idle" };
-    mockExtractColors.mockClear();
-    mockExtractionState.value = { status: "idle" };
-    mockExtractColors.mockResolvedValue({ presetColors: [] });
+    uploadHandle.current = uploadMod.setupUseImageUpload();
+    brandMod.setupUseBrandSuggestions([]);
+    colorHandle.current = colorMod.setupUseColorExtraction();
+    colorHandle.current.extractColors.mockResolvedValue({ presetColors: [] });
   });
 
   afterEach(() => {
@@ -156,7 +138,7 @@ describe("GarmentForm", () => {
   });
 
   it("アップロード中はボタンが disabled + テキスト変更", async () => {
-    mockUploadState.value = { status: "uploading" };
+    uploadHandle.current.setUploadState({ status: "uploading" });
     await renderWithProviders(<GarmentForm />);
 
     expect(
@@ -165,7 +147,7 @@ describe("GarmentForm", () => {
   });
 
   it("圧縮中はボタンが disabled + テキスト変更", async () => {
-    mockUploadState.value = { status: "compressing" };
+    uploadHandle.current.setUploadState({ status: "compressing" });
     await renderWithProviders(<GarmentForm />);
 
     expect(
@@ -174,24 +156,24 @@ describe("GarmentForm", () => {
   });
 
   it("色分析中はローディング表示される", async () => {
-    mockExtractionState.value = { status: "loading" };
+    colorHandle.current.setExtractionState({ status: "loading" });
     await renderWithProviders(<GarmentForm />);
 
     expect(screen.getByText("色を分析中...")).toBeInTheDocument();
   });
 
   it("色分析が完了するとローディングが消える", async () => {
-    mockExtractionState.value = {
+    colorHandle.current.setExtractionState({
       status: "done",
       colors: ["hsl(0, 70%, 55%)"],
-    };
+    });
     await renderWithProviders(<GarmentForm />);
 
     expect(screen.queryByText("色を分析中...")).not.toBeInTheDocument();
   });
 
   it("画像選択時に色が空なら色抽出が呼ばれる", async () => {
-    mockExtractColors.mockResolvedValue({
+    colorHandle.current.extractColors.mockResolvedValue({
       presetColors: ["hsl(0, 70%, 55%)"],
     });
     await renderWithProviders(<GarmentForm />);
@@ -201,12 +183,12 @@ describe("GarmentForm", () => {
     if (input === null) return;
     fireEvent.change(input, { target: { files: [file] } });
 
-    expect(mockExtractColors).toHaveBeenCalledWith({ file });
+    expect(colorHandle.current.extractColors).toHaveBeenCalledWith({ file });
   });
 
   it("色抽出失敗時もフォームは正常に動作する", async () => {
     const user = userEvent.setup();
-    mockExtractColors.mockResolvedValue({ presetColors: [] });
+    colorHandle.current.extractColors.mockResolvedValue({ presetColors: [] });
     await renderWithProviders(<GarmentForm />);
 
     const file = new File(["dummy"], "test.png", { type: "image/png" });

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "@testing-library/react";
-import jsQR, { type QRCode } from "jsqr";
 import { renderWithProviders } from "@/test/testUtils";
 import QrScanner from "./QrScanner";
 
-vi.mock("jsqr", () => ({
-  default: vi.fn(),
-}));
+const jsqrMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/jsqr"),
+);
+vi.mock("jsqr", jsqrMod.jsqrFactory);
 
 const SCAN_INTERVAL_MS = 250;
 const SCAN_COOLDOWN_MS = 2000;
@@ -45,25 +45,6 @@ const createMockContext = (): MockContext => ({
     height: 1,
   })),
 });
-
-const createMockQRCode = (data: string): QRCode => {
-  const point = { x: 0, y: 0 };
-  return {
-    binaryData: [],
-    data,
-    chunks: [],
-    version: 1,
-    location: {
-      topRightCorner: point,
-      topLeftCorner: point,
-      bottomRightCorner: point,
-      bottomLeftCorner: point,
-      topRightFinderPattern: point,
-      topLeftFinderPattern: point,
-      bottomLeftFinderPattern: point,
-    },
-  };
-};
 
 type SetupGetUserMediaOptions = {
   readonly resolveStream: MockStream | undefined;
@@ -125,12 +106,14 @@ const setupActiveScanner = () => {
 };
 
 describe("QrScanner", () => {
-  const mockedJsQR = vi.mocked(jsQR);
+  const jsqrHandle: { current: ReturnType<typeof jsqrMod.setupJsqr> } = {
+    current: jsqrMod.setupJsqr(),
+  };
   const playMock = vi.fn<() => Promise<undefined>>();
 
   beforeEach(() => {
     vi.useFakeTimers();
-    mockedJsQR.mockReset();
+    jsqrHandle.current = jsqrMod.setupJsqr();
     playMock.mockReset();
     playMock.mockResolvedValue(undefined);
 
@@ -232,7 +215,7 @@ describe("QrScanner", () => {
     });
 
     expect(ctx.drawImage).not.toHaveBeenCalled();
-    expect(mockedJsQR).not.toHaveBeenCalled();
+    expect(jsqrHandle.current).not.toHaveBeenCalled();
   });
 
   it("getContext が null を返す場合は jsQR を呼ばない", async () => {
@@ -249,12 +232,12 @@ describe("QrScanner", () => {
       await vi.advanceTimersByTimeAsync(SCAN_INTERVAL_MS);
     });
 
-    expect(mockedJsQR).not.toHaveBeenCalled();
+    expect(jsqrHandle.current).not.toHaveBeenCalled();
   });
 
   it("jsQR が null を返す場合は onScan を呼ばない", async () => {
     setupActiveScanner();
-    mockedJsQR.mockReturnValue(null);
+    jsqrHandle.current.mockReturnValue(null);
 
     const onScan = vi.fn();
     await renderWithProviders(<QrScanner onScan={onScan} isActive={true} />);
@@ -264,13 +247,13 @@ describe("QrScanner", () => {
       await vi.advanceTimersByTimeAsync(SCAN_INTERVAL_MS);
     });
 
-    expect(mockedJsQR).toHaveBeenCalled();
+    expect(jsqrHandle.current).toHaveBeenCalled();
     expect(onScan).not.toHaveBeenCalled();
   });
 
   it("jsQR が空文字を返す場合は onScan を呼ばない", async () => {
     setupActiveScanner();
-    mockedJsQR.mockReturnValue(createMockQRCode(""));
+    jsqrHandle.current.mockReturnValue(jsqrMod.createMockQRCode(""));
 
     const onScan = vi.fn();
     await renderWithProviders(<QrScanner onScan={onScan} isActive={true} />);
@@ -285,7 +268,7 @@ describe("QrScanner", () => {
 
   it("QR コード検出時に onScan を呼ぶ", async () => {
     setupActiveScanner();
-    mockedJsQR.mockReturnValue(createMockQRCode("dwg://g/abc"));
+    jsqrHandle.current.mockReturnValue(jsqrMod.createMockQRCode("dwg://g/abc"));
 
     const onScan = vi.fn();
     await renderWithProviders(<QrScanner onScan={onScan} isActive={true} />);
@@ -300,7 +283,7 @@ describe("QrScanner", () => {
 
   it("SCAN_COOLDOWN_MS 内の同一データ重複検出は無視する", async () => {
     setupActiveScanner();
-    mockedJsQR.mockReturnValue(createMockQRCode("dwg://g/abc"));
+    jsqrHandle.current.mockReturnValue(jsqrMod.createMockQRCode("dwg://g/abc"));
 
     const onScan = vi.fn();
     await renderWithProviders(<QrScanner onScan={onScan} isActive={true} />);
@@ -319,7 +302,7 @@ describe("QrScanner", () => {
 
   it("SCAN_COOLDOWN_MS 経過後は同一データでも onScan を呼ぶ", async () => {
     setupActiveScanner();
-    mockedJsQR.mockReturnValue(createMockQRCode("dwg://g/abc"));
+    jsqrHandle.current.mockReturnValue(jsqrMod.createMockQRCode("dwg://g/abc"));
 
     const onScan = vi.fn();
     await renderWithProviders(<QrScanner onScan={onScan} isActive={true} />);
@@ -338,7 +321,7 @@ describe("QrScanner", () => {
 
   it("検出時に navigator.vibrate が呼ばれる（vibrate あり）", async () => {
     setupActiveScanner();
-    mockedJsQR.mockReturnValue(createMockQRCode("dwg://g/abc"));
+    jsqrHandle.current.mockReturnValue(jsqrMod.createMockQRCode("dwg://g/abc"));
 
     const vibrateMock = vi.fn();
     Object.defineProperty(navigator, "vibrate", {
@@ -360,7 +343,7 @@ describe("QrScanner", () => {
 
   it("vibrate が undefined の場合でもエラーにならない", async () => {
     setupActiveScanner();
-    mockedJsQR.mockReturnValue(createMockQRCode("dwg://g/abc"));
+    jsqrHandle.current.mockReturnValue(jsqrMod.createMockQRCode("dwg://g/abc"));
 
     Object.defineProperty(navigator, "vibrate", {
       value: undefined,

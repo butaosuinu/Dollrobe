@@ -11,48 +11,32 @@ const navMod = await vi.hoisted(
 const cuidMod = await vi.hoisted(
   async () => await import("@/test/mocks/modules/cuid2"),
 );
+const uploadMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useImageUpload"),
+);
+const brandMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useBrandSuggestions"),
+);
+const colorMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useColorExtraction"),
+);
 vi.mock("next/navigation", navMod.nextNavigationFactory);
 vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
+vi.mock("@/hooks/useImageUpload", uploadMod.useImageUploadFactory);
+vi.mock("@/hooks/useBrandSuggestions", brandMod.useBrandSuggestionsFactory);
+vi.mock("@/hooks/useColorExtraction", colorMod.useColorExtractionFactory);
 
-const mockUpload = vi.hoisted(() => vi.fn());
-const mockResetUpload = vi.hoisted(() => vi.fn());
-const mockUploadState = vi.hoisted(() => ({
-  value: { status: "idle" } as
-    | { status: "idle" }
-    | { status: "compressing" }
-    | { status: "uploading" }
-    | { status: "success"; imageUrl: string }
-    | { status: "error"; message: string },
-}));
+const uploadHandle: {
+  current: ReturnType<typeof uploadMod.setupUseImageUpload>;
+} = {
+  current: uploadMod.setupUseImageUpload(),
+};
 
-vi.mock("@/hooks/useImageUpload", () => ({
-  useImageUpload: () => ({
-    uploadState: mockUploadState.value,
-    upload: mockUpload,
-    reset: mockResetUpload,
-  }),
-}));
-
-vi.mock("@/hooks/useBrandSuggestions", () => ({
-  useBrandSuggestions: () => [],
-}));
-
-const mockExtractColors = vi.hoisted(() => vi.fn());
-const mockExtractionState = vi.hoisted(() => ({
-  value: { status: "idle" } as
-    | { status: "idle" }
-    | { status: "loading" }
-    | { status: "done"; colors: readonly string[] }
-    | { status: "error" },
-}));
-
-vi.mock("@/hooks/useColorExtraction", () => ({
-  useColorExtraction: () => ({
-    extractionState: mockExtractionState.value,
-    extractColors: mockExtractColors,
-    reset: vi.fn(),
-  }),
-}));
+const colorHandle: {
+  current: ReturnType<typeof colorMod.setupUseColorExtraction>;
+} = {
+  current: colorMod.setupUseColorExtraction(),
+};
 
 const TIMEOUT_MS = 3000;
 
@@ -73,13 +57,13 @@ describe("GarmentForm istanbul coverage", () => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     navMod.setupNextNavigation();
     cuidMod.setupCuid2({ id: "test-cuid" });
-    mockUpload.mockClear();
-    mockResetUpload.mockClear();
-    mockUploadState.value = { status: "idle" };
-    mockExtractColors.mockClear();
-    mockExtractionState.value = { status: "idle" };
-    mockExtractColors.mockResolvedValue({ presetColors: [] });
-    mockUpload.mockResolvedValue("https://example.com/uploaded.png");
+    uploadHandle.current = uploadMod.setupUseImageUpload();
+    brandMod.setupUseBrandSuggestions([]);
+    colorHandle.current = colorMod.setupUseColorExtraction();
+    colorHandle.current.extractColors.mockResolvedValue({ presetColors: [] });
+    uploadHandle.current.upload.mockResolvedValue(
+      "https://example.com/uploaded.png",
+    );
   });
 
   afterEach(() => {
@@ -88,7 +72,7 @@ describe("GarmentForm istanbul coverage", () => {
 
   it("新規作成で画像アップロード失敗時は imageUrl が undefined になる", async () => {
     const user = userEvent.setup();
-    mockUpload.mockRejectedValue(new Error("upload failed"));
+    uploadHandle.current.upload.mockRejectedValue(new Error("upload failed"));
 
     await renderWithProviders(<GarmentForm />);
 
@@ -115,7 +99,9 @@ describe("GarmentForm istanbul coverage", () => {
   });
 
   it("色抽出失敗時に colors が空のままになる", async () => {
-    mockExtractColors.mockRejectedValue(new Error("extract failed"));
+    colorHandle.current.extractColors.mockRejectedValue(
+      new Error("extract failed"),
+    );
     const user = userEvent.setup();
     await renderWithProviders(<GarmentForm />);
 
@@ -123,7 +109,7 @@ describe("GarmentForm istanbul coverage", () => {
 
     await waitFor(
       () => {
-        expect(mockExtractColors).toHaveBeenCalled();
+        expect(colorHandle.current.extractColors).toHaveBeenCalled();
       },
       { timeout: TIMEOUT_MS },
     );
@@ -345,7 +331,7 @@ describe("GarmentForm istanbul coverage", () => {
 
     await waitFor(
       () => {
-        expect(mockExtractColors).not.toHaveBeenCalled();
+        expect(colorHandle.current.extractColors).not.toHaveBeenCalled();
       },
       { timeout: TIMEOUT_MS },
     );
@@ -357,17 +343,17 @@ describe("GarmentForm istanbul coverage", () => {
     fireFileSelect(createPngFile());
     await waitFor(
       () => {
-        expect(mockExtractColors).toHaveBeenCalledTimes(1);
+        expect(colorHandle.current.extractColors).toHaveBeenCalledTimes(1);
       },
       { timeout: TIMEOUT_MS },
     );
 
-    mockExtractColors.mockClear();
-    mockResetUpload.mockClear();
+    colorHandle.current.extractColors.mockClear();
+    uploadHandle.current.reset.mockClear();
     fireFileSelect(createPngFile("test2.png"));
     await waitFor(
       () => {
-        expect(mockResetUpload).toHaveBeenCalledTimes(1);
+        expect(uploadHandle.current.reset).toHaveBeenCalledTimes(1);
       },
       { timeout: TIMEOUT_MS },
     );

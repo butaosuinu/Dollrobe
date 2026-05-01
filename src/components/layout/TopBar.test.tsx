@@ -9,12 +9,12 @@ const navMod = await vi.hoisted(
 const linkMod = await vi.hoisted(
   async () => await import("@/test/mocks/modules/nextLink"),
 );
+const onlineMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useOnlineSync"),
+);
 vi.mock("next/navigation", navMod.nextNavigationFactory);
 vi.mock("next/link", linkMod.nextLinkFactory);
-
-vi.mock("@/hooks/useOnlineSync", () => ({
-  useOnlineSync: () => undefined,
-}));
+vi.mock("@/hooks/useOnlineSync", onlineMod.useOnlineSyncFactory);
 
 vi.mock("@/components/settings/LocaleSelector", () => ({
   default: () => <div data-testid="locale-selector" />,

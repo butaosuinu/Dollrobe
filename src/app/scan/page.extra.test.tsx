@@ -12,13 +12,12 @@ const scanTrigger = vi.hoisted(
   }),
 );
 
-const nfcScanTrigger = vi.hoisted(
-  (): { onScan: ((data: string) => void) | undefined } => ({
-    onScan: undefined,
-  }),
+const nfcSupMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useNfcSupported"),
 );
-
-const mockNfcSupported = vi.hoisted(() => ({ value: false }));
+const nfcRdrMod = await vi.hoisted(
+  async () => await import("@/test/mocks/modules/useNfcReader"),
+);
 
 vi.mock("@/components/scan/QrScanner", () => ({
   default: ({
@@ -32,21 +31,8 @@ vi.mock("@/components/scan/QrScanner", () => ({
   },
 }));
 
-vi.mock("@/hooks/useNfcSupported", () => ({
-  useNfcSupported: () => mockNfcSupported.value,
-}));
-
-vi.mock("@/hooks/useNfcReader", () => ({
-  useNfcReader: ({
-    onScan,
-  }: {
-    readonly onScan: (data: string) => void;
-    readonly isActive: boolean;
-  }) => {
-    nfcScanTrigger.onScan = onScan;
-    return { nfcState: { status: "scanning" } };
-  },
-}));
+vi.mock("@/hooks/useNfcSupported", nfcSupMod.useNfcSupportedFactory);
+vi.mock("@/hooks/useNfcReader", nfcRdrMod.useNfcReaderFactory);
 
 vi.mock("@/components/scan/NfcReader", () => ({
   default: ({
@@ -60,6 +46,18 @@ vi.mock("@/components/scan/NfcCapabilityBadge", () => ({
   default: () => <span data-testid="nfc-badge" />,
 }));
 
+const nfcSupHandle: {
+  current: ReturnType<typeof nfcSupMod.setupUseNfcSupported>;
+} = {
+  current: nfcSupMod.setupUseNfcSupported(),
+};
+
+const nfcRdrHandle: {
+  current: ReturnType<typeof nfcRdrMod.setupUseNfcReader>;
+} = {
+  current: nfcRdrMod.setupUseNfcReader({ status: "scanning" }),
+};
+
 const simulateScan = (data: string) => {
   act(() => {
     scanTrigger.onScan?.(data);
@@ -70,8 +68,8 @@ describe("ScanPage (extra)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     scanTrigger.onScan = undefined;
-    nfcScanTrigger.onScan = undefined;
-    mockNfcSupported.value = false;
+    nfcSupHandle.current = nfcSupMod.setupUseNfcSupported(false);
+    nfcRdrHandle.current = nfcRdrMod.setupUseNfcReader({ status: "scanning" });
   });
 
   afterEach(() => {
@@ -200,7 +198,7 @@ describe("ScanPage (extra)", () => {
   });
 
   it("信頼度低のアイテムでダイアログ表示中も QrScanner / NfcReader 自体は描画される", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     testDb.storageLocation.create({ id: "loc-1", label: "A-1" });
     testDb.garment.create({
       id: "g-1",
