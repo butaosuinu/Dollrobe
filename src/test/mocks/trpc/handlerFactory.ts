@@ -75,10 +75,11 @@ const resolveByPath = (
 
 const errorEntry = (message: string) => ({
   error: {
-    json: {
-      message,
-      code: -32603,
-      data: { code: "INTERNAL_SERVER_ERROR" },
+    message,
+    code: -32603,
+    data: {
+      code: "INTERNAL_SERVER_ERROR",
+      httpStatus: 500,
     },
   },
 });
@@ -151,33 +152,60 @@ const dispatch = async (
     }),
   );
 
-const getDispatcher = http.get("*/trpc/:paths", async ({ request, params }) => {
-  const { paths: pathsParam } = params;
-  const paths = String(pathsParam).split(",");
-  const inputs = parseGetInputs(new URL(request.url));
-  const results = await dispatch(paths, inputs, "queries", request);
-  return HttpResponse.json(results);
-});
+const responseCache = new Map<string, readonly unknown[]>();
+
+const cacheCleanup = (requestId: string) => {
+  setTimeout(() => {
+    responseCache.delete(requestId);
+  }, 1000);
+};
+
+const getDispatcher = http.get(
+  "*/trpc/:paths",
+  async ({ request, params, requestId }) => {
+    const cached = responseCache.get(requestId);
+    if (cached !== undefined) {
+      return HttpResponse.json(cached);
+    }
+    const { paths: pathsParam } = params;
+    const paths = String(pathsParam).split(",");
+    const inputs = parseGetInputs(new URL(request.url));
+    const results = await dispatch(paths, inputs, "queries", request);
+    responseCache.set(requestId, results);
+    cacheCleanup(requestId);
+    return HttpResponse.json(results);
+  },
+);
 
 const postDispatcher = http.post(
   "*/trpc/:paths",
-  async ({ request, params }) => {
+  async ({ request, params, requestId }) => {
+    const cached = responseCache.get(requestId);
+    if (cached !== undefined) {
+      return HttpResponse.json(cached);
+    }
     const { paths: pathsParam } = params;
     const paths = String(pathsParam).split(",");
     const inputs = await parsePostInputs(request);
     const results = await dispatch(paths, inputs, "mutations", request);
+    responseCache.set(requestId, results);
+    cacheCleanup(requestId);
     return HttpResponse.json(results);
   },
 );
 
 export const trpcDispatcherHandlers = [getDispatcher, postDispatcher];
 
+const noopHandler = http.get("__never_matches_trpc_override__", () =>
+  HttpResponse.error(),
+);
+
 export const trpcQuery = <P extends ProcedurePath>(
   path: P,
   resolver: Resolver<P>,
 ) => {
   overrideRegistry.queries.set(path, resolver);
-  return getDispatcher;
+  return noopHandler;
 };
 
 export const trpcMutation = <P extends ProcedurePath>(
@@ -185,5 +213,5 @@ export const trpcMutation = <P extends ProcedurePath>(
   resolver: Resolver<P>,
 ) => {
   overrideRegistry.mutations.set(path, resolver);
-  return postDispatcher;
+  return noopHandler;
 };

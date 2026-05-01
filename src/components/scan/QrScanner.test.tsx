@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
+import {
+  installCanvas2DContext,
+  installCanvas2DContextNull,
+  installVideoReadyState,
+} from "@/test/helpers/canvas";
+import {
+  createMockMediaStream,
+  createMockTrack,
+  installMediaDevices,
+} from "@/test/helpers/mediaDevices";
 import QrScanner from "./QrScanner";
 
 const jsqrMod = await vi.hoisted(
@@ -16,78 +26,6 @@ const VIBRATE_MS = 100;
 const VIDEO_WIDTH = 640;
 const VIDEO_HEIGHT = 480;
 
-type MockTrack = {
-  readonly stop: ReturnType<typeof vi.fn>;
-};
-
-type MockStream = {
-  readonly getTracks: () => readonly MockTrack[];
-};
-
-type MockContext = {
-  readonly drawImage: ReturnType<typeof vi.fn>;
-  readonly getImageData: ReturnType<typeof vi.fn>;
-};
-
-const createMockTrack = (): MockTrack => ({
-  stop: vi.fn(),
-});
-
-const createMockStream = (track: MockTrack): MockStream => ({
-  getTracks: () => [track],
-});
-
-const createMockContext = (): MockContext => ({
-  drawImage: vi.fn(),
-  getImageData: vi.fn(() => ({
-    data: new Uint8ClampedArray(4),
-    width: 1,
-    height: 1,
-  })),
-});
-
-type SetupGetUserMediaOptions = {
-  readonly resolveStream: MockStream | undefined;
-};
-
-const setupGetUserMedia = ({ resolveStream }: SetupGetUserMediaOptions) => {
-  const getUserMedia = vi.fn<() => Promise<MockStream>>();
-  if (resolveStream === undefined) {
-    getUserMedia.mockRejectedValue(new Error("denied"));
-  } else {
-    getUserMedia.mockResolvedValue(resolveStream);
-  }
-
-  Object.defineProperty(navigator, "mediaDevices", {
-    value: { getUserMedia },
-    writable: true,
-    configurable: true,
-  });
-
-  return getUserMedia;
-};
-
-const installCanvasContext = (ctx: MockContext | undefined) => {
-  Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
-    value: () => ctx ?? null,
-    writable: true,
-    configurable: true,
-  });
-};
-
-const setVideoReadyState = (state: number) => {
-  Object.defineProperty(HTMLVideoElement.prototype, "readyState", {
-    value: state,
-    writable: true,
-    configurable: true,
-  });
-  Object.defineProperty(HTMLVideoElement.prototype, "HAVE_ENOUGH_DATA", {
-    value: HAVE_ENOUGH_DATA,
-    writable: true,
-    configurable: true,
-  });
-};
-
 const flushPromises = async () => {
   await act(async () => {
     await Promise.resolve();
@@ -97,11 +35,9 @@ const flushPromises = async () => {
 
 const setupActiveScanner = () => {
   const track = createMockTrack();
-  const stream = createMockStream(track);
-  const getUserMedia = setupGetUserMedia({ resolveStream: stream });
-  const ctx = createMockContext();
-  installCanvasContext(ctx);
-
+  const stream = createMockMediaStream(track);
+  const { getUserMedia } = installMediaDevices({ resolveStream: stream });
+  const { ctx } = installCanvas2DContext();
   return { track, stream, getUserMedia, ctx };
 };
 
@@ -141,7 +77,7 @@ describe("QrScanner", () => {
       configurable: true,
     });
 
-    setVideoReadyState(HAVE_ENOUGH_DATA);
+    installVideoReadyState(HAVE_ENOUGH_DATA, HAVE_ENOUGH_DATA);
   });
 
   afterEach(() => {
@@ -167,7 +103,9 @@ describe("QrScanner", () => {
   });
 
   it("isActive=false のときは getUserMedia を呼ばない", async () => {
-    const getUserMedia = setupGetUserMedia({ resolveStream: undefined });
+    const { getUserMedia } = installMediaDevices({
+      rejectError: new Error("denied"),
+    });
 
     const onScan = vi.fn();
     await renderWithProviders(<QrScanner onScan={onScan} isActive={false} />);
@@ -193,7 +131,7 @@ describe("QrScanner", () => {
   });
 
   it("getUserMedia が拒否された場合でもエラーが伝搬しない", async () => {
-    setupGetUserMedia({ resolveStream: undefined });
+    installMediaDevices({ rejectError: new Error("denied") });
 
     const onScan = vi.fn();
     await renderWithProviders(<QrScanner onScan={onScan} isActive={true} />);
@@ -204,7 +142,7 @@ describe("QrScanner", () => {
 
   it("readyState が HAVE_ENOUGH_DATA でない場合は jsQR を呼ばない", async () => {
     const { ctx } = setupActiveScanner();
-    setVideoReadyState(NOT_ENOUGH_DATA);
+    installVideoReadyState(NOT_ENOUGH_DATA, HAVE_ENOUGH_DATA);
 
     const onScan = vi.fn();
     await renderWithProviders(<QrScanner onScan={onScan} isActive={true} />);
@@ -220,9 +158,9 @@ describe("QrScanner", () => {
 
   it("getContext が null を返す場合は jsQR を呼ばない", async () => {
     const track = createMockTrack();
-    const stream = createMockStream(track);
-    setupGetUserMedia({ resolveStream: stream });
-    installCanvasContext(undefined);
+    const stream = createMockMediaStream(track);
+    installMediaDevices({ resolveStream: stream });
+    installCanvas2DContextNull();
 
     const onScan = vi.fn();
     await renderWithProviders(<QrScanner onScan={onScan} isActive={true} />);

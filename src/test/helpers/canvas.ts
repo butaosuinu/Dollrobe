@@ -11,7 +11,6 @@ type InstallCanvas2DContextOptions = {
     readonly width: number;
     readonly height: number;
   };
-  readonly returnNull?: boolean;
 };
 
 const restoreOrDelete = (
@@ -28,27 +27,14 @@ const restoreOrDelete = (
 export const installCanvas2DContext = (
   options: InstallCanvas2DContextOptions = {},
 ): {
-  readonly ctx: Canvas2DContextLike | undefined;
+  readonly ctx: Canvas2DContextLike;
+  readonly getContext: ReturnType<typeof vi.fn>;
   readonly restore: () => void;
 } => {
   const originalGetContext = Object.getOwnPropertyDescriptor(
     HTMLCanvasElement.prototype,
     "getContext",
   );
-
-  if (options.returnNull === true) {
-    Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
-      value: () => null,
-      writable: true,
-      configurable: true,
-    });
-    return {
-      ctx: undefined,
-      restore: () => {
-        restoreOrDelete("getContext", originalGetContext);
-      },
-    };
-  }
 
   const imageData = options.imageData ?? {
     data: new Uint8ClampedArray(4),
@@ -61,14 +47,38 @@ export const installCanvas2DContext = (
     getImageData: vi.fn(() => imageData),
   };
 
+  const getContext = vi.fn(() => ctx);
   Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
-    value: () => ctx,
+    value: getContext,
     writable: true,
     configurable: true,
   });
 
   return {
     ctx,
+    getContext,
+    restore: () => {
+      restoreOrDelete("getContext", originalGetContext);
+    },
+  };
+};
+
+export const installCanvas2DContextNull = (): {
+  readonly getContext: ReturnType<typeof vi.fn>;
+  readonly restore: () => void;
+} => {
+  const originalGetContext = Object.getOwnPropertyDescriptor(
+    HTMLCanvasElement.prototype,
+    "getContext",
+  );
+  const getContext = vi.fn(() => null);
+  Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+    value: getContext,
+    writable: true,
+    configurable: true,
+  });
+  return {
+    getContext,
     restore: () => {
       restoreOrDelete("getContext", originalGetContext);
     },
