@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { wrapDbError } from "./d1-helpers";
-import { createLogger } from "../../lib/logger";
+import { createTestLogger } from "../../test/helpers";
 
-const testLogger = createLogger({ minLevel: "error" });
+const testLogger = createTestLogger();
 
 describe("wrapDbError", () => {
   it("Error インスタンスの場合は err.message を使用する", () => {
