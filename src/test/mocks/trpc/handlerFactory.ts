@@ -119,9 +119,11 @@ const runResolver = async (
   request: Request,
 ): Promise<ResolverOutcome> => {
   const errorSentinel = Symbol("trpc-mock-error");
-  const value: unknown = await Promise.resolve(
-    resolver({ input, request }),
-  ).catch((error: unknown) => ({ [errorSentinel]: error }));
+  const invoke = async (): Promise<unknown> =>
+    await resolver({ input, request });
+  const value: unknown = await invoke().catch((error: unknown) => ({
+    [errorSentinel]: error,
+  }));
   if (typeof value === "object" && value !== null && errorSentinel in value) {
     const error: unknown = Reflect.get(value, errorSentinel);
     return {

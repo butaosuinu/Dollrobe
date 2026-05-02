@@ -63,4 +63,17 @@ describe("trpc handler factory smoke test", () => {
     expect(result).toEqual({ success: true, processedCount: 42 });
     expect(spy).toHaveBeenCalledWith({ items: [] });
   });
+
+  it("resolver が同期 throw した場合も TRPCClientError として伝搬する", async () => {
+    server.use(
+      trpcMutation("sync.push", () => {
+        // eslint-disable-next-line functional/no-throw-statements -- 同期 throw 経路の回帰テスト
+        throw new Error("sync boom");
+      }),
+    );
+
+    await expect(trpcClient.sync.push.mutate({ items: [] })).rejects.toThrow(
+      "sync boom",
+    );
+  });
 });
