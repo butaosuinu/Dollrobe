@@ -1,5 +1,6 @@
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { http, HttpResponse } from "msw";
+import { isRecord } from "@/lib/typeGuards";
 import type { AppRouter } from "../../../../workers/src/trpc/router";
 
 type RouterInputsRaw = inferRouterInputs<AppRouter>;
@@ -65,6 +66,7 @@ export const registerDefaultMutation = <P extends ProcedurePath>(
 export const clearTrpcOverrides = (): void => {
   overrideRegistry.queries.clear();
   overrideRegistry.mutations.clear();
+  responseCache.clear();
 };
 
 const resolveByPath = (
@@ -88,13 +90,10 @@ const successEntry = (output: unknown) => ({
   result: { data: output },
 });
 
-const isJsonObject = (v: unknown): v is Record<string, unknown> =>
-  v !== null && typeof v === "object";
-
 const parseJsonOrEmpty = (text: string): Record<string, unknown> => {
   if (text === "") return {};
   const parsed: unknown = JSON.parse(text);
-  return isJsonObject(parsed) ? parsed : {};
+  return isRecord(parsed) ? parsed : {};
 };
 
 const parseGetInputs = (url: URL): Record<string, unknown> => {
@@ -155,11 +154,13 @@ const dispatch = async (
   );
 
 const responseCache = new Map<string, readonly unknown[]>();
+const RESPONSE_CACHE_TTL_MS = 1000;
 
 const cacheCleanup = (requestId: string) => {
-  setTimeout(() => {
+  const timer = setTimeout(() => {
     responseCache.delete(requestId);
-  }, 1000);
+  }, RESPONSE_CACHE_TTL_MS);
+  timer.unref?.();
 };
 
 const getDispatcher = http.get(
