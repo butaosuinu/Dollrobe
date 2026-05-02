@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll } from "vitest";
 import { server } from "./mocks/server";
 import { resetTestDb } from "./mocks/db";
 import { clearTrpcOverrides } from "./mocks/trpc/handlerFactory";
+import { restoreCanvasMocks } from "./helpers/canvas";
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: "error" });
@@ -14,6 +15,7 @@ afterEach(async () => {
   cleanup();
   server.resetHandlers();
   clearTrpcOverrides();
+  restoreCanvasMocks();
 
   resetTestDb();
 

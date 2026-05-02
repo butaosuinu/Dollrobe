@@ -13,15 +13,33 @@ type InstallCanvas2DContextOptions = {
   };
 };
 
-const restoreOrDelete = (
+const restoreHandles = new Set<() => void>();
+
+const installPrototypeProperty = (
+  proto: object,
   key: string,
-  original: PropertyDescriptor | undefined,
+  value: unknown,
 ): void => {
-  if (original === undefined) {
-    Reflect.deleteProperty(HTMLCanvasElement.prototype, key);
-    return;
-  }
-  Object.defineProperty(HTMLCanvasElement.prototype, key, original);
+  const original = Object.getOwnPropertyDescriptor(proto, key);
+  Object.defineProperty(proto, key, {
+    value,
+    writable: true,
+    configurable: true,
+  });
+  restoreHandles.add(() => {
+    if (original === undefined) {
+      Reflect.deleteProperty(proto, key);
+      return;
+    }
+    Object.defineProperty(proto, key, original);
+  });
+};
+
+export const restoreCanvasMocks = (): void => {
+  restoreHandles.forEach((restore) => {
+    restore();
+  });
+  restoreHandles.clear();
 };
 
 export const installCanvas2DContext = (
@@ -29,13 +47,7 @@ export const installCanvas2DContext = (
 ): {
   readonly ctx: Canvas2DContextLike;
   readonly getContext: ReturnType<typeof vi.fn>;
-  readonly restore: () => void;
 } => {
-  const originalGetContext = Object.getOwnPropertyDescriptor(
-    HTMLCanvasElement.prototype,
-    "getContext",
-  );
-
   const imageData = options.imageData ?? {
     data: new Uint8ClampedArray(4),
     width: 1,
@@ -48,137 +60,52 @@ export const installCanvas2DContext = (
   };
 
   const getContext = vi.fn(() => ctx);
-  Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
-    value: getContext,
-    writable: true,
-    configurable: true,
-  });
-
-  return {
-    ctx,
+  installPrototypeProperty(
+    HTMLCanvasElement.prototype,
+    "getContext",
     getContext,
-    restore: () => {
-      restoreOrDelete("getContext", originalGetContext);
-    },
-  };
+  );
+  return { ctx, getContext };
 };
 
 export const installCanvas2DContextNull = (): {
   readonly getContext: ReturnType<typeof vi.fn>;
-  readonly restore: () => void;
 } => {
-  const originalGetContext = Object.getOwnPropertyDescriptor(
+  const getContext = vi.fn(() => null);
+  installPrototypeProperty(
     HTMLCanvasElement.prototype,
     "getContext",
-  );
-  const getContext = vi.fn(() => null);
-  Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
-    value: getContext,
-    writable: true,
-    configurable: true,
-  });
-  return {
     getContext,
-    restore: () => {
-      restoreOrDelete("getContext", originalGetContext);
-    },
-  };
+  );
+  return { getContext };
 };
 
 export const installCanvasToBlob = (
   blob: Blob | null,
-): {
-  readonly toBlob: ReturnType<typeof vi.fn>;
-  readonly restore: () => void;
-} => {
-  const original = Object.getOwnPropertyDescriptor(
-    HTMLCanvasElement.prototype,
-    "toBlob",
-  );
+): { readonly toBlob: ReturnType<typeof vi.fn> } => {
   const toBlob = vi.fn((callback: (b: Blob | null) => void) => {
     callback(blob);
   });
-  Object.defineProperty(HTMLCanvasElement.prototype, "toBlob", {
-    value: toBlob,
-    writable: true,
-    configurable: true,
-  });
-  return {
-    toBlob,
-    restore: () => {
-      restoreOrDelete("toBlob", original);
-    },
-  };
+  installPrototypeProperty(HTMLCanvasElement.prototype, "toBlob", toBlob);
+  return { toBlob };
 };
 
 export const installCanvasToDataURL = (
   dataUrl: string,
-): {
-  readonly toDataURL: ReturnType<typeof vi.fn>;
-  readonly restore: () => void;
-} => {
-  const original = Object.getOwnPropertyDescriptor(
-    HTMLCanvasElement.prototype,
-    "toDataURL",
-  );
+): { readonly toDataURL: ReturnType<typeof vi.fn> } => {
   const toDataURL = vi.fn(() => dataUrl);
-  Object.defineProperty(HTMLCanvasElement.prototype, "toDataURL", {
-    value: toDataURL,
-    writable: true,
-    configurable: true,
-  });
-  return {
-    toDataURL,
-    restore: () => {
-      restoreOrDelete("toDataURL", original);
-    },
-  };
+  installPrototypeProperty(HTMLCanvasElement.prototype, "toDataURL", toDataURL);
+  return { toDataURL };
 };
 
 export const installVideoReadyState = (
   state: number,
   haveEnoughData = 4,
-): { readonly restore: () => void } => {
-  const originalReadyState = Object.getOwnPropertyDescriptor(
-    HTMLVideoElement.prototype,
-    "readyState",
-  );
-  const originalHaveEnoughData = Object.getOwnPropertyDescriptor(
+): void => {
+  installPrototypeProperty(HTMLVideoElement.prototype, "readyState", state);
+  installPrototypeProperty(
     HTMLVideoElement.prototype,
     "HAVE_ENOUGH_DATA",
+    haveEnoughData,
   );
-
-  Object.defineProperty(HTMLVideoElement.prototype, "readyState", {
-    value: state,
-    writable: true,
-    configurable: true,
-  });
-  Object.defineProperty(HTMLVideoElement.prototype, "HAVE_ENOUGH_DATA", {
-    value: haveEnoughData,
-    writable: true,
-    configurable: true,
-  });
-
-  return {
-    restore: () => {
-      if (originalReadyState === undefined) {
-        Reflect.deleteProperty(HTMLVideoElement.prototype, "readyState");
-      } else {
-        Object.defineProperty(
-          HTMLVideoElement.prototype,
-          "readyState",
-          originalReadyState,
-        );
-      }
-      if (originalHaveEnoughData === undefined) {
-        Reflect.deleteProperty(HTMLVideoElement.prototype, "HAVE_ENOUGH_DATA");
-      } else {
-        Object.defineProperty(
-          HTMLVideoElement.prototype,
-          "HAVE_ENOUGH_DATA",
-          originalHaveEnoughData,
-        );
-      }
-    },
-  };
 };

@@ -1,29 +1,49 @@
 import { vi } from "vitest";
 import type { ColorExtractionState } from "@/hooks/useColorExtraction";
 
-const state = {
-  extractionState: { status: "idle" } as ColorExtractionState,
-  extractColors: vi.fn(),
-  reset: vi.fn(),
+type Spies = {
+  readonly extractColors: ReturnType<typeof vi.fn>;
+  readonly reset: ReturnType<typeof vi.fn>;
+};
+
+type State = {
+  readonly extractionState: ColorExtractionState;
+  readonly spies: Spies;
+};
+
+const createInitial = (): State => ({
+  extractionState: { status: "idle" },
+  spies: { extractColors: vi.fn(), reset: vi.fn() },
+});
+
+const initialState = createInitial();
+const stateMap = new Map<"v", State>([["v", initialState]]);
+const getState = (): State => stateMap.get("v") ?? initialState;
+const setState = (next: State): void => {
+  stateMap.set("v", next);
 };
 
 export const useColorExtractionFactory = () => ({
-  useColorExtraction: () => ({
-    extractionState: state.extractionState,
-    extractColors: state.extractColors,
-    reset: state.reset,
-  }),
+  useColorExtraction: () => {
+    const s = getState();
+    return {
+      extractionState: s.extractionState,
+      extractColors: s.spies.extractColors,
+      reset: s.spies.reset,
+    };
+  },
 });
 
 export const setupUseColorExtraction = () => {
-  state.extractColors.mockReset();
-  state.reset.mockReset();
-  state.extractionState = { status: "idle" };
+  const current = getState();
+  current.spies.extractColors.mockReset();
+  current.spies.reset.mockReset();
+  setState({ ...current, extractionState: { status: "idle" } });
   return {
-    extractColors: state.extractColors,
-    reset: state.reset,
+    extractColors: current.spies.extractColors,
+    reset: current.spies.reset,
     setExtractionState: (s: ColorExtractionState) => {
-      state.extractionState = s;
+      setState({ ...getState(), extractionState: s });
     },
   };
 };

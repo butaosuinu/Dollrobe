@@ -1,23 +1,31 @@
 type Cuid2State = {
-  id: string;
-  counter: number;
-  mode: "fixed" | "uuid" | "sequential";
+  readonly id: string;
+  readonly counter: number;
+  readonly mode: "fixed" | "uuid" | "sequential";
 };
 
-const state: Cuid2State = {
+const initialState: Cuid2State = {
   id: "test-cuid",
   counter: 0,
   mode: "fixed",
 };
 
+const stateMap = new Map<"v", Cuid2State>([["v", initialState]]);
+const getState = (): Cuid2State => stateMap.get("v") ?? initialState;
+const setState = (next: Cuid2State): void => {
+  stateMap.set("v", next);
+};
+
 export const cuid2Factory = () => ({
   createId: () => {
-    if (state.mode === "uuid") return crypto.randomUUID();
-    if (state.mode === "sequential") {
-      state.counter += 1;
-      return `${state.id}-${state.counter}`;
+    const s = getState();
+    if (s.mode === "uuid") return crypto.randomUUID();
+    if (s.mode === "sequential") {
+      const next = s.counter + 1;
+      setState({ ...s, counter: next });
+      return `${s.id}-${next}`;
     }
-    return state.id;
+    return s.id;
   },
 });
 
@@ -27,15 +35,17 @@ type Cuid2Options = {
 };
 
 export const setupCuid2 = (options: Cuid2Options = {}) => {
-  state.id = options.id ?? "test-cuid";
-  state.mode = options.mode ?? "fixed";
-  state.counter = 0;
+  setState({
+    id: options.id ?? "test-cuid",
+    counter: 0,
+    mode: options.mode ?? "fixed",
+  });
   return {
     setId: (id: string) => {
-      state.id = id;
+      setState({ ...getState(), id });
     },
     setMode: (mode: "fixed" | "uuid" | "sequential") => {
-      state.mode = mode;
+      setState({ ...getState(), mode });
     },
   };
 };

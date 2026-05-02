@@ -1,8 +1,22 @@
 import type { NfcReaderState } from "@/hooks/useNfcReader";
 
-const state = {
-  nfcState: { status: "idle" } as NfcReaderState,
-  trigger: { onScan: undefined as ((data: string) => void) | undefined },
+type Trigger = { readonly onScan: ((data: string) => void) | undefined };
+
+type State = {
+  readonly nfcState: NfcReaderState;
+  readonly trigger: Trigger;
+};
+
+const createInitial = (): State => ({
+  nfcState: { status: "idle" },
+  trigger: { onScan: undefined },
+});
+
+const initialState = createInitial();
+const stateMap = new Map<"v", State>([["v", initialState]]);
+const getState = (): State => stateMap.get("v") ?? initialState;
+const setState = (next: State): void => {
+  stateMap.set("v", next);
 };
 
 export const useNfcReaderFactory = () => ({
@@ -12,25 +26,24 @@ export const useNfcReaderFactory = () => ({
     readonly onScan: (data: string) => void;
     readonly isActive: boolean;
   }) => {
-    state.trigger.onScan = onScan;
-    return { nfcState: state.nfcState };
+    setState({ ...getState(), trigger: { onScan } });
+    return { nfcState: getState().nfcState };
   },
 });
 
 export const setupUseNfcReader = (
-  initialState: NfcReaderState = { status: "idle" },
+  initial: NfcReaderState = { status: "idle" },
 ) => {
-  state.nfcState = initialState;
-  state.trigger.onScan = undefined;
+  setState({ nfcState: initial, trigger: { onScan: undefined } });
   return {
     setNfcState: (s: NfcReaderState) => {
-      state.nfcState = s;
+      setState({ ...getState(), nfcState: s });
     },
     triggerScan: (data: string) => {
-      state.trigger.onScan?.(data);
+      getState().trigger.onScan?.(data);
     },
     get onScan(): ((data: string) => void) | undefined {
-      return state.trigger.onScan;
+      return getState().trigger.onScan;
     },
   };
 };

@@ -1,38 +1,49 @@
 import { vi } from "vitest";
 
-type NextNavigationState = {
-  router: {
-    push: ReturnType<typeof vi.fn>;
-    replace: ReturnType<typeof vi.fn>;
-    back: ReturnType<typeof vi.fn>;
-    forward: ReturnType<typeof vi.fn>;
-    refresh: ReturnType<typeof vi.fn>;
-    prefetch: ReturnType<typeof vi.fn>;
-  };
-  params: Record<string, string | readonly string[]>;
-  searchParams: URLSearchParams;
-  pathname: string;
+type Router = {
+  readonly push: ReturnType<typeof vi.fn>;
+  readonly replace: ReturnType<typeof vi.fn>;
+  readonly back: ReturnType<typeof vi.fn>;
+  readonly forward: ReturnType<typeof vi.fn>;
+  readonly refresh: ReturnType<typeof vi.fn>;
+  readonly prefetch: ReturnType<typeof vi.fn>;
 };
 
-const state: NextNavigationState = {
-  router: {
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-    refresh: vi.fn(),
-    prefetch: vi.fn(),
-  },
+type NextNavigationState = {
+  readonly router: Router;
+  readonly params: Record<string, string | readonly string[]>;
+  readonly searchParams: URLSearchParams;
+  readonly pathname: string;
+};
+
+const createRouter = (): Router => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+  back: vi.fn(),
+  forward: vi.fn(),
+  refresh: vi.fn(),
+  prefetch: vi.fn(),
+});
+
+const initialRouter = createRouter();
+const initialState: NextNavigationState = {
+  router: initialRouter,
   params: {},
   searchParams: new URLSearchParams(),
   pathname: "/",
 };
 
+const stateMap = new Map<"v", NextNavigationState>([["v", initialState]]);
+const getState = (): NextNavigationState => stateMap.get("v") ?? initialState;
+const setState = (next: NextNavigationState): void => {
+  stateMap.set("v", next);
+};
+
 export const nextNavigationFactory = () => ({
-  useRouter: () => state.router,
-  useParams: () => state.params,
-  useSearchParams: () => state.searchParams,
-  usePathname: () => state.pathname,
+  useRouter: () => getState().router,
+  useParams: () => getState().params,
+  useSearchParams: () => getState().searchParams,
+  usePathname: () => getState().pathname,
   redirect: vi.fn(),
   notFound: vi.fn(),
 });
@@ -44,27 +55,31 @@ type SetupOverrides = {
 };
 
 export const setupNextNavigation = (overrides: SetupOverrides = {}) => {
-  state.router.push.mockClear();
-  state.router.replace.mockClear();
-  state.router.back.mockClear();
-  state.router.forward.mockClear();
-  state.router.refresh.mockClear();
-  state.router.prefetch.mockClear();
+  const current = getState();
+  current.router.push.mockClear();
+  current.router.replace.mockClear();
+  current.router.back.mockClear();
+  current.router.forward.mockClear();
+  current.router.refresh.mockClear();
+  current.router.prefetch.mockClear();
 
-  state.params = overrides.params ?? {};
-  state.searchParams = overrides.searchParams ?? new URLSearchParams();
-  state.pathname = overrides.pathname ?? "/";
+  setState({
+    router: current.router,
+    params: overrides.params ?? {},
+    searchParams: overrides.searchParams ?? new URLSearchParams(),
+    pathname: overrides.pathname ?? "/",
+  });
 
   return {
-    router: state.router,
+    router: current.router,
     setParams: (params: Record<string, string | readonly string[]>) => {
-      state.params = params;
+      setState({ ...getState(), params });
     },
     setSearchParams: (sp: URLSearchParams) => {
-      state.searchParams = sp;
+      setState({ ...getState(), searchParams: sp });
     },
     setPathname: (pathname: string) => {
-      state.pathname = pathname;
+      setState({ ...getState(), pathname });
     },
   };
 };

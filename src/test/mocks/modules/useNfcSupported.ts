@@ -1,16 +1,21 @@
-const state = {
-  supported: false,
+type State = { readonly supported: boolean };
+
+const initialState: State = { supported: false };
+const stateMap = new Map<"v", State>([["v", initialState]]);
+const getState = (): State => stateMap.get("v") ?? initialState;
+const setState = (next: State): void => {
+  stateMap.set("v", next);
 };
 
 export const useNfcSupportedFactory = () => ({
-  useNfcSupported: () => state.supported,
+  useNfcSupported: () => getState().supported,
 });
 
 export const setupUseNfcSupported = (supported = false) => {
-  state.supported = supported;
+  setState({ supported });
   return {
     setSupported: (s: boolean) => {
-      state.supported = s;
+      setState({ supported: s });
     },
   };
 };

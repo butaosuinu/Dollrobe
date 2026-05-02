@@ -1,29 +1,49 @@
 import { vi } from "vitest";
 import type { UploadState } from "@/hooks/useImageUpload";
 
-const state = {
-  uploadState: { status: "idle" } as UploadState,
-  upload: vi.fn(),
-  reset: vi.fn(),
+type Spies = {
+  readonly upload: ReturnType<typeof vi.fn>;
+  readonly reset: ReturnType<typeof vi.fn>;
+};
+
+type State = {
+  readonly uploadState: UploadState;
+  readonly spies: Spies;
+};
+
+const createInitial = (): State => ({
+  uploadState: { status: "idle" },
+  spies: { upload: vi.fn(), reset: vi.fn() },
+});
+
+const initialState = createInitial();
+const stateMap = new Map<"v", State>([["v", initialState]]);
+const getState = (): State => stateMap.get("v") ?? initialState;
+const setState = (next: State): void => {
+  stateMap.set("v", next);
 };
 
 export const useImageUploadFactory = () => ({
-  useImageUpload: () => ({
-    uploadState: state.uploadState,
-    upload: state.upload,
-    reset: state.reset,
-  }),
+  useImageUpload: () => {
+    const s = getState();
+    return {
+      uploadState: s.uploadState,
+      upload: s.spies.upload,
+      reset: s.spies.reset,
+    };
+  },
 });
 
 export const setupUseImageUpload = () => {
-  state.upload.mockReset();
-  state.reset.mockReset();
-  state.uploadState = { status: "idle" };
+  const current = getState();
+  current.spies.upload.mockReset();
+  current.spies.reset.mockReset();
+  setState({ ...current, uploadState: { status: "idle" } });
   return {
-    upload: state.upload,
-    reset: state.reset,
+    upload: current.spies.upload,
+    reset: current.spies.reset,
     setUploadState: (s: UploadState) => {
-      state.uploadState = s;
+      setState({ ...getState(), uploadState: s });
     },
   };
 };

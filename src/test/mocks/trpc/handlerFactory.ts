@@ -66,7 +66,7 @@ export const registerDefaultMutation = <P extends ProcedurePath>(
 export const clearTrpcOverrides = (): void => {
   overrideRegistry.queries.clear();
   overrideRegistry.mutations.clear();
-  responseCache.clear();
+  inFlightDispatches.clear();
 };
 
 const resolveByPath = (
@@ -155,29 +155,38 @@ const dispatch = async (
     }),
   );
 
-const responseCache = new Map<string, readonly unknown[]>();
+const inFlightDispatches = new Map<string, Promise<readonly unknown[]>>();
 const RESPONSE_CACHE_TTL_MS = 1000;
 
 const cacheCleanup = (requestId: string) => {
   const timer = setTimeout(() => {
-    responseCache.delete(requestId);
+    inFlightDispatches.delete(requestId);
   }, RESPONSE_CACHE_TTL_MS);
   timer.unref?.();
+};
+
+const dedupedDispatch = async (
+  requestId: string,
+  produce: () => Promise<readonly unknown[]>,
+): Promise<readonly unknown[]> => {
+  const existing = inFlightDispatches.get(requestId);
+  if (existing !== undefined) return await existing;
+  const promise = produce();
+  inFlightDispatches.set(requestId, promise);
+  cacheCleanup(requestId);
+  return await promise;
 };
 
 const getDispatcher = http.get(
   "*/trpc/:paths",
   async ({ request, params, requestId }) => {
-    const cached = responseCache.get(requestId);
-    if (cached !== undefined) {
-      return HttpResponse.json(cached);
-    }
     const { paths: pathsParam } = params;
     const paths = String(pathsParam).split(",");
     const inputs = parseGetInputs(new URL(request.url));
-    const results = await dispatch(paths, inputs, "queries", request);
-    responseCache.set(requestId, results);
-    cacheCleanup(requestId);
+    const results = await dedupedDispatch(
+      requestId,
+      async () => await dispatch(paths, inputs, "queries", request),
+    );
     return HttpResponse.json(results);
   },
 );
@@ -185,16 +194,13 @@ const getDispatcher = http.get(
 const postDispatcher = http.post(
   "*/trpc/:paths",
   async ({ request, params, requestId }) => {
-    const cached = responseCache.get(requestId);
-    if (cached !== undefined) {
-      return HttpResponse.json(cached);
-    }
     const { paths: pathsParam } = params;
     const paths = String(pathsParam).split(",");
     const inputs = await parsePostInputs(request);
-    const results = await dispatch(paths, inputs, "mutations", request);
-    responseCache.set(requestId, results);
-    cacheCleanup(requestId);
+    const results = await dedupedDispatch(
+      requestId,
+      async () => await dispatch(paths, inputs, "mutations", request),
+    );
     return HttpResponse.json(results);
   },
 );
