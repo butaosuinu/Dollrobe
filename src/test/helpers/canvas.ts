@@ -13,33 +13,48 @@ type InstallCanvas2DContextOptions = {
   };
 };
 
-const restoreHandles = new Set<() => void>();
+const originalDescriptors = new WeakMap<
+  object,
+  Map<string, PropertyDescriptor | undefined>
+>();
+const touchedPrototypes = new Set<object>();
 
 const installPrototypeProperty = (
   proto: object,
   key: string,
   value: unknown,
 ): void => {
-  const original = Object.getOwnPropertyDescriptor(proto, key);
+  const existing = originalDescriptors.get(proto);
+  const perProto =
+    existing ?? new Map<string, PropertyDescriptor | undefined>();
+  if (existing === undefined) {
+    originalDescriptors.set(proto, perProto);
+    touchedPrototypes.add(proto);
+  }
+  if (!perProto.has(key)) {
+    perProto.set(key, Object.getOwnPropertyDescriptor(proto, key));
+  }
   Object.defineProperty(proto, key, {
     value,
     writable: true,
     configurable: true,
   });
-  restoreHandles.add(() => {
-    if (original === undefined) {
-      Reflect.deleteProperty(proto, key);
-      return;
-    }
-    Object.defineProperty(proto, key, original);
-  });
 };
 
 export const restoreCanvasMocks = (): void => {
-  restoreHandles.forEach((restore) => {
-    restore();
+  touchedPrototypes.forEach((proto) => {
+    const perProto = originalDescriptors.get(proto);
+    if (perProto === undefined) return;
+    perProto.forEach((original, key) => {
+      if (original === undefined) {
+        Reflect.deleteProperty(proto, key);
+        return;
+      }
+      Object.defineProperty(proto, key, original);
+    });
+    originalDescriptors.delete(proto);
   });
-  restoreHandles.clear();
+  touchedPrototypes.clear();
 };
 
 export const installCanvas2DContext = (
