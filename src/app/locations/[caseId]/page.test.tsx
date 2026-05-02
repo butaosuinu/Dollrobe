@@ -2,25 +2,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import { getDb } from "@/lib/db/dexie";
 import { MS_PER_DAY } from "@/lib/constants";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import CaseDetailPage from "./page";
 
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
-
 describe("CaseDetailPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navMod.setupNextNavigation({ params: { caseId: "case-1" } });
+    setupNextNavigation({ params: { caseId: "case-1" } });
   });
 
   afterEach(() => {
@@ -133,7 +125,7 @@ describe("CaseDetailPage", () => {
       lastScannedAt: FIXED_NOW - 20 * MS_PER_DAY,
     });
     await seedDbFromTestDb();
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       params: { caseId: "case-1" },
       searchParams: new URLSearchParams("location=loc-target"),
     });
@@ -164,7 +156,7 @@ describe("CaseDetailPage", () => {
       confidenceDecayDaysOverride: 30,
     });
     await seedDbFromTestDb();
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       params: { caseId: "case-1" },
       searchParams: new URLSearchParams("location=loc-target"),
     });

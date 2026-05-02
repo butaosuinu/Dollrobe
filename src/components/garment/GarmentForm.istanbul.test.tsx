@@ -3,39 +3,23 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FIXED_NOW, createTestGarment } from "@/test/factories";
 import { renderWithProviders } from "@/test/testUtils";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
+import { setupUseBrandSuggestions } from "@/test/mocks/modules/useBrandSuggestions";
+import { setupUseColorExtraction } from "@/test/mocks/modules/useColorExtraction";
 import GarmentForm from "./GarmentForm";
 
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const cuidMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/cuid2"),
-);
-const uploadMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useImageUpload"),
-);
-const brandMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useBrandSuggestions"),
-);
-const colorMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useColorExtraction"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
-vi.mock("@/hooks/useImageUpload", uploadMod.useImageUploadFactory);
-vi.mock("@/hooks/useBrandSuggestions", brandMod.useBrandSuggestionsFactory);
-vi.mock("@/hooks/useColorExtraction", colorMod.useColorExtractionFactory);
-
 const uploadHandle: {
-  current: ReturnType<typeof uploadMod.setupUseImageUpload>;
+  current: ReturnType<typeof setupUseImageUpload>;
 } = {
-  current: uploadMod.setupUseImageUpload(),
+  current: setupUseImageUpload(),
 };
 
 const colorHandle: {
-  current: ReturnType<typeof colorMod.setupUseColorExtraction>;
+  current: ReturnType<typeof setupUseColorExtraction>;
 } = {
-  current: colorMod.setupUseColorExtraction(),
+  current: setupUseColorExtraction(),
 };
 
 const TIMEOUT_MS = 3000;
@@ -55,11 +39,11 @@ const fireFileSelect = (file: File): void => {
 describe("GarmentForm istanbul coverage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navMod.setupNextNavigation();
-    cuidMod.setupCuid2({ id: "test-cuid" });
-    uploadHandle.current = uploadMod.setupUseImageUpload();
-    brandMod.setupUseBrandSuggestions([]);
-    colorHandle.current = colorMod.setupUseColorExtraction();
+    setupNextNavigation();
+    setupCuid2({ id: "test-cuid" });
+    uploadHandle.current = setupUseImageUpload();
+    setupUseBrandSuggestions([]);
+    colorHandle.current = setupUseColorExtraction();
     colorHandle.current.extractColors.mockResolvedValue({ presetColors: [] });
     uploadHandle.current.upload.mockResolvedValue(
       "https://example.com/uploaded.png",

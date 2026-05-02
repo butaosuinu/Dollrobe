@@ -4,20 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { getDb } from "@/lib/db/dexie";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import CoordinateDetailPage from "./page";
 
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
-
-const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
-  current: navMod.setupNextNavigation(),
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
 };
 
 const seedSampleCoordinate = async () => {
@@ -39,7 +31,7 @@ const seedSampleCoordinate = async () => {
 describe("CoordinateDetailPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navHandle.current = navMod.setupNextNavigation({ params: { id: "c-1" } });
+    navHandle.current = setupNextNavigation({ params: { id: "c-1" } });
   });
 
   afterEach(() => {

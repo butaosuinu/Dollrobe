@@ -1,11 +1,7 @@
 /* eslint-disable import/first -- vi.mock must be called before importing the module under test */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 
 vi.mock("@/components/qr/QrLabel", () => ({
   default: ({
@@ -22,7 +18,7 @@ import PrintPage from "./page";
 
 describe("PrintPage", () => {
   beforeEach(() => {
-    navMod.setupNextNavigation();
+    setupNextNavigation();
   });
 
   it("パラメータなしで「選択されていません」メッセージが表示される", () => {
@@ -33,7 +29,7 @@ describe("PrintPage", () => {
   });
 
   it("type と ids が指定されたら QR ラベルが表示される", () => {
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       searchParams: new URLSearchParams(
         "type=garment&ids=g1&ids=g2&names=ドレスA&names=ドレスB",
       ),
@@ -45,7 +41,7 @@ describe("PrintPage", () => {
   });
 
   it("印刷ボタンが存在する", () => {
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       searchParams: new URLSearchParams("type=garment&ids=g1&names=テスト"),
     });
     render(<PrintPage />, { wrapper: I18nTestWrapper });
@@ -53,7 +49,7 @@ describe("PrintPage", () => {
   });
 
   it("names が指定されていない場合は id がラベルに使われる", () => {
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       searchParams: new URLSearchParams("type=location&ids=loc-1"),
     });
     render(<PrintPage />, { wrapper: I18nTestWrapper });
@@ -61,7 +57,7 @@ describe("PrintPage", () => {
   });
 
   it("無効な type の場合は「選択されていません」が表示される", () => {
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       searchParams: new URLSearchParams("type=invalid&ids=g1"),
     });
     render(<PrintPage />, { wrapper: I18nTestWrapper });

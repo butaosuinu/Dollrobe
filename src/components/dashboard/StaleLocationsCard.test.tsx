@@ -6,12 +6,8 @@ import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import StaleLocationsCard from "./StaleLocationsCard";
-
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
 
 const renderCard = async () =>
   await renderWithProviders(
@@ -25,7 +21,7 @@ const renderCard = async () =>
 describe("StaleLocationsCard", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navMod.setupNextNavigation();
+    setupNextNavigation();
   });
 
   afterEach(() => {

@@ -3,24 +3,13 @@ import { screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import BulkCapturePage from "./page";
 
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-const cuidMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/cuid2"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
-vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
-
-const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
-  current: navMod.setupNextNavigation(),
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
 };
 
 const mockCaptureFrame = vi.hoisted(() => vi.fn());
@@ -48,8 +37,8 @@ const createTestBlob = () => new Blob(["test-image"], { type: "image/png" });
 
 describe("BulkCapturePage", () => {
   beforeEach(() => {
-    navHandle.current = navMod.setupNextNavigation();
-    cuidMod.setupCuid2({ id: "cuid", mode: "sequential" });
+    navHandle.current = setupNextNavigation();
+    setupCuid2({ id: "cuid", mode: "sequential" });
     mockCaptureFrame.mockClear();
     mockStart.mockClear();
     mockStop.mockClear();

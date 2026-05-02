@@ -2,26 +2,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import DollDetailPage from "./page";
 
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
-
-const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
-  current: navMod.setupNextNavigation(),
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
 };
 
 describe("DollDetailPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navHandle.current = navMod.setupNextNavigation({
+    navHandle.current = setupNextNavigation({
       params: { id: "doll-1" },
     });
   });

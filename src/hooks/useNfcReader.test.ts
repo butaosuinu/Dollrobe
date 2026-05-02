@@ -3,6 +3,8 @@ import { renderHook, act } from "@testing-library/react";
 import { useNfcReader } from "./useNfcReader";
 import { NFC_SCAN_COOLDOWN_MS, VIBRATION_DURATION_MS } from "@/lib/constants";
 
+vi.unmock("@/hooks/useNfcReader");
+
 type MockListenerData = {
   readonly type: string;
 };

@@ -5,19 +5,15 @@ import { MS_PER_DAY } from "@/lib/constants";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import CheckedOutSection from "./CheckedOutSection";
 
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-
-const navHandle = navMod.setupNextNavigation();
+const navHandle = setupNextNavigation();
 
 describe("CheckedOutSection", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navMod.setupNextNavigation();
+    setupNextNavigation();
   });
 
   afterEach(() => {

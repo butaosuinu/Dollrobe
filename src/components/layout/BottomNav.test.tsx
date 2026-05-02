@@ -1,16 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import BottomNav from "./BottomNav";
-
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
 
 const ACTIVE_CLASS = "text-primary-500";
 const INACTIVE_CLASS = "text-text-tertiary";
@@ -18,7 +10,7 @@ const SCAN_ACTIVE_BG = "bg-primary-500";
 const SCAN_INACTIVE_BG = "bg-primary-100";
 
 const setPathname = (path: string) => {
-  navMod.setupNextNavigation({ pathname: path });
+  setupNextNavigation({ pathname: path });
 };
 
 const renderNav = async () => {
@@ -34,7 +26,7 @@ const getNavLink = (href: string) => {
 
 describe("BottomNav", () => {
   beforeEach(() => {
-    navMod.setupNextNavigation();
+    setupNextNavigation();
   });
 
   it("全てのナビゲーション項目を表示する", async () => {

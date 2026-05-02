@@ -4,31 +4,20 @@ import userEvent from "@testing-library/user-event";
 import { getDb } from "@/lib/db/dexie";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import NewCoordinatePage from "./page";
 
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-const cuidMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/cuid2"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
-vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
-
-const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
-  current: navMod.setupNextNavigation(),
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
 };
 
 describe("NewCoordinatePage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navHandle.current = navMod.setupNextNavigation();
-    cuidMod.setupCuid2({ id: "test-coordinate-id" });
+    navHandle.current = setupNextNavigation();
+    setupCuid2({ id: "test-coordinate-id" });
   });
 
   afterEach(() => {

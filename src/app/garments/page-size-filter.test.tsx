@@ -3,17 +3,9 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentsPage from "./page";
-
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
 
 const openFilterPanel = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole("button", { name: /フィルター/ }));
@@ -22,7 +14,7 @@ const openFilterPanel = async (user: ReturnType<typeof userEvent.setup>) => {
 describe("GarmentsPage サイズフィルター", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navMod.setupNextNavigation();
+    setupNextNavigation();
   });
 
   afterEach(() => {

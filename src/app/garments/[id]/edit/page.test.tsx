@@ -3,40 +3,30 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentEditPage from "./page";
 
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const cuidMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/cuid2"),
-);
-const uploadMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useImageUpload"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
-vi.mock("@/hooks/useImageUpload", uploadMod.useImageUploadFactory);
-
-const navHandle: { current: ReturnType<typeof navMod.setupNextNavigation> } = {
-  current: navMod.setupNextNavigation(),
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
 };
 
 const uploadHandle: {
-  current: ReturnType<typeof uploadMod.setupUseImageUpload>;
+  current: ReturnType<typeof setupUseImageUpload>;
 } = {
-  current: uploadMod.setupUseImageUpload(),
+  current: setupUseImageUpload(),
 };
 
 describe("GarmentEditPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navHandle.current = navMod.setupNextNavigation({
+    navHandle.current = setupNextNavigation({
       params: { id: "garment-1" },
     });
-    cuidMod.setupCuid2();
-    uploadHandle.current = uploadMod.setupUseImageUpload();
+    setupCuid2();
+    uploadHandle.current = setupUseImageUpload();
   });
 
   afterEach(() => {

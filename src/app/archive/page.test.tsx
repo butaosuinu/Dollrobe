@@ -3,22 +3,14 @@ import { screen } from "@testing-library/react";
 import { MS_PER_DAY } from "@/lib/constants";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import ArchivePage from "./page";
-
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
 
 describe("ArchivePage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navMod.setupNextNavigation();
+    setupNextNavigation();
   });
 
   afterEach(() => {
@@ -48,7 +40,7 @@ describe("ArchivePage", () => {
   });
 
   it("アーカイブ済みドールがない場合に空状態を表示する", async () => {
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       searchParams: new URLSearchParams("tab=doll"),
     });
     await renderWithProviders(<ArchivePage />);
@@ -78,7 +70,7 @@ describe("ArchivePage", () => {
   });
 
   it("アーカイブ済みのドールがグリッドに表示される", async () => {
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       searchParams: new URLSearchParams("tab=doll"),
     });
     testDb.doll.create({
@@ -140,7 +132,7 @@ describe("ArchivePage", () => {
   });
 
   it("ドールタブではドールのみ表示され服は表示されない", async () => {
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       searchParams: new URLSearchParams("tab=doll"),
     });
     testDb.garment.create({
@@ -191,7 +183,7 @@ describe("ArchivePage", () => {
   });
 
   it("無効なタブパラメータの場合は服タブがデフォルトになる", async () => {
-    navMod.setupNextNavigation({
+    setupNextNavigation({
       searchParams: new URLSearchParams("tab=invalid"),
     });
     testDb.garment.create({

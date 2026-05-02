@@ -1,22 +1,18 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
+import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
 import NfcCapabilityBadge from "./NfcCapabilityBadge";
 
-const nfcSupMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useNfcSupported"),
-);
-vi.mock("@/hooks/useNfcSupported", nfcSupMod.useNfcSupportedFactory);
-
 const nfcSupHandle: {
-  current: ReturnType<typeof nfcSupMod.setupUseNfcSupported>;
+  current: ReturnType<typeof setupUseNfcSupported>;
 } = {
-  current: nfcSupMod.setupUseNfcSupported(),
+  current: setupUseNfcSupported(),
 };
 
 describe("NfcCapabilityBadge", () => {
   beforeEach(() => {
-    nfcSupHandle.current = nfcSupMod.setupUseNfcSupported(false);
+    nfcSupHandle.current = setupUseNfcSupported(false);
   });
 
   afterEach(() => {

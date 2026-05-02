@@ -2,17 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import { server } from "@/test/mocks/server";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { trpcMutation } from "@/test/mocks/trpc/handlerFactory";
 import CsvImportPage from "./page";
-
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
 
 const bulkCreateState = { count: 0 };
 const bulkCreateSpy = vi.fn();
@@ -31,7 +23,7 @@ const uploadCsvFile = async (csvText: string) => {
 
 describe("CsvImportPage", () => {
   beforeEach(() => {
-    navMod.setupNextNavigation();
+    setupNextNavigation();
     bulkCreateSpy.mockClear();
     bulkCreateState.count = 0;
     server.use(

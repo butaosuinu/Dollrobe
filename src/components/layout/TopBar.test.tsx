@@ -1,20 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import TopBar from "./TopBar";
-
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const linkMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextLink"),
-);
-const onlineMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useOnlineSync"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
-vi.mock("@/hooks/useOnlineSync", onlineMod.useOnlineSyncFactory);
 
 vi.mock("@/components/settings/LocaleSelector", () => ({
   default: () => <div data-testid="locale-selector" />,
@@ -28,7 +16,7 @@ const ACTIVE_LINK_CLASS = "bg-primary-100";
 
 describe("TopBar", () => {
   beforeEach(() => {
-    navMod.setupNextNavigation({ pathname: "/" });
+    setupNextNavigation({ pathname: "/" });
   });
 
   describe("ナビゲーションのアクティブ状態", () => {
@@ -43,7 +31,7 @@ describe("TopBar", () => {
     });
 
     it("pathname が '/garments' で始まるとき ワードローブリンクがアクティブになる", async () => {
-      navMod.setupNextNavigation({ pathname: "/garments/123" });
+      setupNextNavigation({ pathname: "/garments/123" });
       await renderWithProviders(<TopBar />);
 
       const homeLink = screen.getByRole("link", { name: /ホーム/ });
@@ -54,7 +42,7 @@ describe("TopBar", () => {
     });
 
     it("pathname が他のパスのとき '/' は startsWith ではなく完全一致でのみアクティブになる", async () => {
-      navMod.setupNextNavigation({ pathname: "/scan" });
+      setupNextNavigation({ pathname: "/scan" });
       await renderWithProviders(<TopBar />);
 
       const homeLink = screen.getByRole("link", { name: /ホーム/ });

@@ -10,36 +10,18 @@ import { useColorExtraction } from "@/hooks/useColorExtraction";
 import { useBrandSuggestions } from "@/hooks/useBrandSuggestions";
 import { useOnlineSync } from "@/hooks/useOnlineSync";
 import jsQR from "jsqr";
-
-const navMod = await vi.hoisted(async () => await import("./nextNavigation"));
-const linkMod = await vi.hoisted(async () => await import("./nextLink"));
-const cuid2 = await vi.hoisted(async () => await import("./cuid2"));
-const upload = await vi.hoisted(async () => await import("./useImageUpload"));
-const nfcSup = await vi.hoisted(async () => await import("./useNfcSupported"));
-const nfcRdr = await vi.hoisted(async () => await import("./useNfcReader"));
-const color = await vi.hoisted(
-  async () => await import("./useColorExtraction"),
-);
-const brand = await vi.hoisted(
-  async () => await import("./useBrandSuggestions"),
-);
-const online = await vi.hoisted(async () => await import("./useOnlineSync"));
-const jsqrMod = await vi.hoisted(async () => await import("./jsqr"));
-
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("next/link", linkMod.nextLinkFactory);
-vi.mock("@paralleldrive/cuid2", cuid2.cuid2Factory);
-vi.mock("@/hooks/useImageUpload", upload.useImageUploadFactory);
-vi.mock("@/hooks/useNfcSupported", nfcSup.useNfcSupportedFactory);
-vi.mock("@/hooks/useNfcReader", nfcRdr.useNfcReaderFactory);
-vi.mock("@/hooks/useColorExtraction", color.useColorExtractionFactory);
-vi.mock("@/hooks/useBrandSuggestions", brand.useBrandSuggestionsFactory);
-vi.mock("@/hooks/useOnlineSync", online.useOnlineSyncFactory);
-vi.mock("jsqr", jsqrMod.jsqrFactory);
+import { setupNextNavigation } from "./nextNavigation";
+import { setupCuid2 } from "./cuid2";
+import { setupUseImageUpload } from "./useImageUpload";
+import { setupUseNfcSupported } from "./useNfcSupported";
+import { setupUseNfcReader } from "./useNfcReader";
+import { setupUseColorExtraction } from "./useColorExtraction";
+import { setupUseBrandSuggestions } from "./useBrandSuggestions";
+import { setupJsqr, createMockQRCode } from "./jsqr";
 
 describe("modules wrapper smoke test", () => {
   it("nextNavigation 経由で useRouter / useSearchParams / useParams が差し替わる", () => {
-    const handle = navMod.setupNextNavigation({
+    const handle = setupNextNavigation({
       searchParams: new URLSearchParams("foo=bar"),
       params: { id: "garment-1" },
     });
@@ -59,16 +41,16 @@ describe("modules wrapper smoke test", () => {
   });
 
   it("cuid2 setupCuid2 で createId が固定値を返す", () => {
-    cuid2.setupCuid2({ id: "fixed-id" });
+    setupCuid2({ id: "fixed-id" });
     expect(createId()).toBe("fixed-id");
 
-    cuid2.setupCuid2({ mode: "sequential", id: "seq" });
+    setupCuid2({ mode: "sequential", id: "seq" });
     expect(createId()).toBe("seq-1");
     expect(createId()).toBe("seq-2");
   });
 
   it("useImageUpload setup で state と spy が制御できる", () => {
-    const handle = upload.setupUseImageUpload();
+    const handle = setupUseImageUpload();
     handle.setUploadState({
       status: "success",
       imageUrl: "https://example.com/x.png",
@@ -85,15 +67,15 @@ describe("modules wrapper smoke test", () => {
   });
 
   it("useNfcSupported setup で boolean が切り替わる", () => {
-    nfcSup.setupUseNfcSupported(true);
+    setupUseNfcSupported(true);
     expect(useNfcSupported()).toBe(true);
 
-    nfcSup.setupUseNfcSupported(false);
+    setupUseNfcSupported(false);
     expect(useNfcSupported()).toBe(false);
   });
 
   it("useNfcReader setup で onScan を外部から呼べる", () => {
-    const handle = nfcRdr.setupUseNfcReader({ status: "scanning" });
+    const handle = setupUseNfcReader({ status: "scanning" });
     const onScan = vi.fn();
     const result = useNfcReader({ onScan, isActive: true });
 
@@ -103,7 +85,7 @@ describe("modules wrapper smoke test", () => {
   });
 
   it("useColorExtraction setup で extractionState と spy が制御できる", () => {
-    const handle = color.setupUseColorExtraction();
+    const handle = setupUseColorExtraction();
     handle.setExtractionState({ status: "done", colors: ["hsl(0,100%,50%)"] });
 
     const result = useColorExtraction();
@@ -116,7 +98,7 @@ describe("modules wrapper smoke test", () => {
   });
 
   it("useBrandSuggestions setup で配列が切り替わる", () => {
-    brand.setupUseBrandSuggestions(["A社", "B社"]);
+    setupUseBrandSuggestions(["A社", "B社"]);
     expect(useBrandSuggestions()).toEqual(["A社", "B社"]);
   });
 
@@ -127,8 +109,8 @@ describe("modules wrapper smoke test", () => {
   });
 
   it("jsqr setupJsqr で mock を制御できる", () => {
-    const mock = jsqrMod.setupJsqr();
-    const fakeQr = jsqrMod.createMockQRCode("dwg://g/abc");
+    const mock = setupJsqr();
+    const fakeQr = createMockQRCode("dwg://g/abc");
     mock.mockReturnValue(fakeQr);
 
     const result = jsQR(new Uint8ClampedArray(4), 1, 1);

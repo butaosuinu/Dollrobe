@@ -4,27 +4,17 @@ import userEvent from "@testing-library/user-event";
 import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
 import { createTestDoll } from "@/test/factories";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
 import DollForm from "./DollForm";
 
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-const cuidMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/cuid2"),
-);
-const uploadMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useImageUpload"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
-vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
-vi.mock("@/hooks/useImageUpload", uploadMod.useImageUploadFactory);
-
-const navHandle = navMod.setupNextNavigation();
+const navHandle = setupNextNavigation();
 
 const uploadHandle: {
-  current: ReturnType<typeof uploadMod.setupUseImageUpload>;
+  current: ReturnType<typeof setupUseImageUpload>;
 } = {
-  current: uploadMod.setupUseImageUpload(),
+  current: setupUseImageUpload(),
 };
 
 const EXISTING_IMAGE_URL = "https://cdn.example.com/existing.png";
@@ -43,9 +33,9 @@ const createPngFile = (name = "new.png"): File =>
 describe("DollForm (extra coverage)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navMod.setupNextNavigation();
-    cuidMod.setupCuid2({ id: "test-cuid" });
-    uploadHandle.current = uploadMod.setupUseImageUpload();
+    setupNextNavigation();
+    setupCuid2({ id: "test-cuid" });
+    uploadHandle.current = setupUseImageUpload();
   });
 
   afterEach(() => {

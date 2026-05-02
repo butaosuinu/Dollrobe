@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
+import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
@@ -10,13 +12,6 @@ const scanTrigger = vi.hoisted(
   (): { onScan: ((data: string) => void) | undefined } => ({
     onScan: undefined,
   }),
-);
-
-const nfcSupMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useNfcSupported"),
-);
-const nfcRdrMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useNfcReader"),
 );
 
 vi.mock("@/components/scan/QrScanner", () => ({
@@ -31,9 +26,6 @@ vi.mock("@/components/scan/QrScanner", () => ({
   },
 }));
 
-vi.mock("@/hooks/useNfcSupported", nfcSupMod.useNfcSupportedFactory);
-vi.mock("@/hooks/useNfcReader", nfcRdrMod.useNfcReaderFactory);
-
 vi.mock("@/components/scan/NfcReader", () => ({
   default: ({
     nfcState,
@@ -47,15 +39,15 @@ vi.mock("@/components/scan/NfcCapabilityBadge", () => ({
 }));
 
 const nfcSupHandle: {
-  current: ReturnType<typeof nfcSupMod.setupUseNfcSupported>;
+  current: ReturnType<typeof setupUseNfcSupported>;
 } = {
-  current: nfcSupMod.setupUseNfcSupported(),
+  current: setupUseNfcSupported(),
 };
 
 const nfcRdrHandle: {
-  current: ReturnType<typeof nfcRdrMod.setupUseNfcReader>;
+  current: ReturnType<typeof setupUseNfcReader>;
 } = {
-  current: nfcRdrMod.setupUseNfcReader({ status: "scanning" }),
+  current: setupUseNfcReader({ status: "scanning" }),
 };
 
 const simulateScan = (data: string) => {
@@ -68,8 +60,8 @@ describe("ScanPage (extra)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     scanTrigger.onScan = undefined;
-    nfcSupHandle.current = nfcSupMod.setupUseNfcSupported(false);
-    nfcRdrHandle.current = nfcRdrMod.setupUseNfcReader({ status: "scanning" });
+    nfcSupHandle.current = setupUseNfcSupported(false);
+    nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
   });
 
   afterEach(() => {

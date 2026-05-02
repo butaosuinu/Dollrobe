@@ -4,12 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import CoordinateBuilder from "./CoordinateBuilder";
-
-const navMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/nextNavigation"),
-);
-vi.mock("next/navigation", navMod.nextNavigationFactory);
 
 const setup = async (props?: {
   readonly initialIds?: readonly string[];
@@ -54,7 +50,7 @@ const setup = async (props?: {
 describe("CoordinateBuilder", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    navMod.setupNextNavigation();
+    setupNextNavigation();
   });
 
   afterEach(() => {

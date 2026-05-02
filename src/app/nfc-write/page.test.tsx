@@ -3,14 +3,11 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
 import { renderWithProviders } from "@/test/testUtils";
 import NfcWritePage from "./page";
 
 const mockWriteNfcTag = vi.hoisted(() => vi.fn());
-
-const nfcSupMod = await vi.hoisted(
-  async () => await import("@/test/mocks/modules/useNfcSupported"),
-);
 
 vi.mock("@/lib/nfc/writer", async () => {
   const actual =
@@ -23,18 +20,16 @@ vi.mock("@/lib/nfc/writer", async () => {
   };
 });
 
-vi.mock("@/hooks/useNfcSupported", nfcSupMod.useNfcSupportedFactory);
-
 const nfcSupHandle: {
-  current: ReturnType<typeof nfcSupMod.setupUseNfcSupported>;
+  current: ReturnType<typeof setupUseNfcSupported>;
 } = {
-  current: nfcSupMod.setupUseNfcSupported(),
+  current: setupUseNfcSupported(),
 };
 
 describe("NfcWritePage", () => {
   beforeEach(() => {
     mockWriteNfcTag.mockReset();
-    nfcSupHandle.current = nfcSupMod.setupUseNfcSupported(false);
+    nfcSupHandle.current = setupUseNfcSupported(false);
   });
 
   afterEach(() => {
