@@ -1,8 +1,6 @@
 import { http, HttpResponse } from "msw";
-import {
-  registerDefaultTrpcHandlers,
-  trpcDispatcherHandlers,
-} from "./trpc/index";
+import { registerDefaultTrpcHandlers } from "./trpc/defaults";
+import { trpcDispatcherHandlers } from "./trpc/handlerFactory";
 
 registerDefaultTrpcHandlers();
 

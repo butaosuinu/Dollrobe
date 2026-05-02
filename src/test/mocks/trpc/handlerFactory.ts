@@ -88,11 +88,13 @@ const successEntry = (output: unknown) => ({
   result: { data: output },
 });
 
+const isJsonObject = (v: unknown): v is Record<string, unknown> =>
+  v !== null && typeof v === "object";
+
 const parseJsonOrEmpty = (text: string): Record<string, unknown> => {
   if (text === "") return {};
   const parsed: unknown = JSON.parse(text);
-  if (parsed === null || typeof parsed !== "object") return {};
-  return parsed as Record<string, unknown>;
+  return isJsonObject(parsed) ? parsed : {};
 };
 
 const parseGetInputs = (url: URL): Record<string, unknown> => {

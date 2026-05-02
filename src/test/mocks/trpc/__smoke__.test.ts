@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { trpcClient } from "@/lib/trpc";
 import { server } from "@/test/mocks/server";
 import { testDb } from "@/test/mocks/db";
-import { trpcMutation, trpcQuery } from "./index";
+import { trpcMutation, trpcQuery } from "./handlerFactory";
 
 describe("trpc handler factory smoke test", () => {
   it("garment.list は testDb の内容を返す", async () => {

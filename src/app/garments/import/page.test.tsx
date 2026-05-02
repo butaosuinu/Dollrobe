@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import { server } from "@/test/mocks/server";
-import { trpcMutation } from "@/test/mocks/trpc/index";
+import { trpcMutation } from "@/test/mocks/trpc/handlerFactory";
 import CsvImportPage from "./page";
 
 const navMod = await vi.hoisted(

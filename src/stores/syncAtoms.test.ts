@@ -14,7 +14,7 @@ import {
   trpcMutation,
   trpcQuery,
   type RouterOutputs,
-} from "@/test/mocks/trpc/index";
+} from "@/test/mocks/trpc/handlerFactory";
 
 const pushSpy = vi.fn();
 const pullSpy = vi.fn();

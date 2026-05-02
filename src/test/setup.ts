@@ -4,7 +4,7 @@ import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
 import { server } from "./mocks/server";
 import { resetTestDb } from "./mocks/db";
-import { clearTrpcOverrides } from "./mocks/trpc/index";
+import { clearTrpcOverrides } from "./mocks/trpc/handlerFactory";
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: "error" });
