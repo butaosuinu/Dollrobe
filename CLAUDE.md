@@ -537,6 +537,54 @@ crons = ["0 9 * * 1"]  # 毎週月曜 9:00 UTC
 - 80% を下回る場合は、不足分のテストを追加してから PR を作成する
 - 例外的に閾値未達のまま進める必要がある場合は、PR 説明にその理由を必ず明記する（自動的なスキップ・閾値の引き下げは禁止）
 
+### テストモック基盤（必須ルール）
+
+#### vi.mock の集約（`src/test/setup.ts`）
+
+以下のモジュールは `setup.ts` で `vi.mock` 済みのため、**各テストファイルでの再 `vi.mock` 禁止**。状態の制御は対応する `setupXxx` ヘルパー（`src/test/mocks/modules/`）で行うこと。
+
+- `next/navigation` → `setupNextNavigation`
+- `next/link` → 自動（`<a>` タグへ展開）
+- `@paralleldrive/cuid2` → `setupCuid2`
+- `jsqr` → `setupJsqr` / `createMockQRCode`
+- `@/hooks/useImageUpload` → `setupUseImageUpload`
+- `@/hooks/useNfcSupported` → `setupUseNfcSupported`
+- `@/hooks/useNfcReader` → `setupUseNfcReader`
+- `@/hooks/useColorExtraction` → `setupUseColorExtraction`
+- `@/hooks/useBrandSuggestions` → `setupUseBrandSuggestions`
+- `@/hooks/useOnlineSync` → 自動（noop）
+
+新規に集約モックを追加する場合は `src/test/mocks/modules/` に factory + setup を作り、`setup.ts` に `vi.mock` 登録する。**個別テストファイルでの `vi.mock` は、そのテスト固有のローカル component をスタブ化する場合に限定する。**
+
+#### tRPC モック（dispatcher 方式）
+
+- MSW の wildcard handler（`http.all("*/trpc/*", ...)`）の使用は**禁止**
+- 全テスト共通のデフォルト resolver は `src/test/mocks/trpc/defaults.ts` の `registerDefaultQuery` / `registerDefaultMutation` に登録する
+- 個別テストでオーバーライドする場合は `server.use(trpcQuery(path, resolver))` / `server.use(trpcMutation(path, resolver))` を使う（`src/test/mocks/trpc/handlerFactory.ts`）
+- `clearTrpcOverrides()` は `setup.ts` の `afterEach` で自動実行されるため明示呼び出し不要
+
+#### 共通テストヘルパー（優先利用）
+
+以下のユーティリティを各テストで再実装することは**禁止**。必ず既存ヘルパーを利用する:
+
+- `src/test/helpers/canvas.ts` — `installCanvas2DContext` / `installCanvas2DContextNull` / `installCanvasToBlob` / `installCanvasToDataURL` / `installVideoReadyState`（`afterEach` での復元は `restoreCanvasMocks` が `setup.ts` で自動実行）
+- `src/test/helpers/mediaDevices.ts` — `installMediaDevices` / `createMockMediaStream` / `createMockTrack`
+- `src/test/helpers/files.ts` — `createTestFile` / `createPngFile` / `createJpegFile` / `createCsvFile` / `createJsonFile`
+- `src/test/helpers/fileInput.ts` — `fireFileSelect` / `fireSingleFileSelect`
+- `src/test/helpers/responses.ts` — `createJsonResponse` / `createTextResponse` / `createErrorResponse`
+- `src/test/helpers/seedDb.ts` — `seedDbFromTestDb`（`testDb` の内容を IndexedDB に投入）
+
+`Object.defineProperty(HTMLCanvasElement.prototype, ...)` 等を**直接書く**のは禁止。必ず `installXxx` 系ヘルパー経由で行うこと（プロトタイプ復元が `setup.ts` の `afterEach` で一元管理されるため）。
+
+#### Workers 側のテストロガー
+
+- workers 側のテストでは `createLogger({ minLevel: "error" })` を直接書かず、`workers/src/test/helpers.ts` の `createTestLogger()` を使うこと
+
+#### モック state のイミュータブル更新
+
+- `src/test/mocks/modules/` の各 setup ヘルパーが返す state オブジェクトのプロパティを**直接書き換えてはならない**
+- 状態を変更する場合は、再度 `setupXxx({...})` を呼び出すか、ヘルパーが提供する setter（例: `setupNextNavigation` の `setSearchParams` / `setParams` / `setPathname`）を使うこと
+
 ## Important Conventions
 
 ### TypeScript Guidelines
