@@ -1,4 +1,8 @@
 import { vi } from "vitest";
+import {
+  installObjectProperty,
+  restoreInstalledProperties,
+} from "@/test/helpers/propertyMock";
 
 type Canvas2DContextLike = {
   readonly drawImage: ReturnType<typeof vi.fn>;
@@ -13,49 +17,7 @@ type InstallCanvas2DContextOptions = {
   };
 };
 
-const originalDescriptors = new WeakMap<
-  object,
-  Map<string, PropertyDescriptor | undefined>
->();
-const touchedPrototypes = new Set<object>();
-
-const installPrototypeProperty = (
-  proto: object,
-  key: string,
-  value: unknown,
-): void => {
-  const existing = originalDescriptors.get(proto);
-  const perProto =
-    existing ?? new Map<string, PropertyDescriptor | undefined>();
-  if (existing === undefined) {
-    originalDescriptors.set(proto, perProto);
-    touchedPrototypes.add(proto);
-  }
-  if (!perProto.has(key)) {
-    perProto.set(key, Object.getOwnPropertyDescriptor(proto, key));
-  }
-  Object.defineProperty(proto, key, {
-    value,
-    writable: true,
-    configurable: true,
-  });
-};
-
-export const restoreCanvasMocks = (): void => {
-  touchedPrototypes.forEach((proto) => {
-    const perProto = originalDescriptors.get(proto);
-    if (perProto === undefined) return;
-    perProto.forEach((original, key) => {
-      if (original === undefined) {
-        Reflect.deleteProperty(proto, key);
-        return;
-      }
-      Object.defineProperty(proto, key, original);
-    });
-    originalDescriptors.delete(proto);
-  });
-  touchedPrototypes.clear();
-};
+export const restoreCanvasMocks = restoreInstalledProperties;
 
 export const installCanvas2DContext = (
   options: InstallCanvas2DContextOptions = {},
@@ -75,11 +37,7 @@ export const installCanvas2DContext = (
   };
 
   const getContext = vi.fn(() => ctx);
-  installPrototypeProperty(
-    HTMLCanvasElement.prototype,
-    "getContext",
-    getContext,
-  );
+  installObjectProperty(HTMLCanvasElement.prototype, "getContext", getContext);
   return { ctx, getContext };
 };
 
@@ -87,11 +45,7 @@ export const installCanvas2DContextNull = (): {
   readonly getContext: ReturnType<typeof vi.fn>;
 } => {
   const getContext = vi.fn(() => null);
-  installPrototypeProperty(
-    HTMLCanvasElement.prototype,
-    "getContext",
-    getContext,
-  );
+  installObjectProperty(HTMLCanvasElement.prototype, "getContext", getContext);
   return { getContext };
 };
 
@@ -101,7 +55,7 @@ export const installCanvasToBlob = (
   const toBlob = vi.fn((callback: (b: Blob | null) => void) => {
     callback(blob);
   });
-  installPrototypeProperty(HTMLCanvasElement.prototype, "toBlob", toBlob);
+  installObjectProperty(HTMLCanvasElement.prototype, "toBlob", toBlob);
   return { toBlob };
 };
 
@@ -109,7 +63,7 @@ export const installCanvasToDataURL = (
   dataUrl: string,
 ): { readonly toDataURL: ReturnType<typeof vi.fn> } => {
   const toDataURL = vi.fn(() => dataUrl);
-  installPrototypeProperty(HTMLCanvasElement.prototype, "toDataURL", toDataURL);
+  installObjectProperty(HTMLCanvasElement.prototype, "toDataURL", toDataURL);
   return { toDataURL };
 };
 
@@ -117,8 +71,8 @@ export const installVideoReadyState = (
   state: number,
   haveEnoughData = 4,
 ): void => {
-  installPrototypeProperty(HTMLVideoElement.prototype, "readyState", state);
-  installPrototypeProperty(
+  installObjectProperty(HTMLVideoElement.prototype, "readyState", state);
+  installObjectProperty(
     HTMLVideoElement.prototype,
     "HAVE_ENOUGH_DATA",
     haveEnoughData,

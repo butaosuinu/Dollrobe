@@ -55,7 +55,7 @@ export const getSession = async (): Promise<SessionResponse> => {
 export const API_KEY_SCOPE = Object.freeze({
   READ_ONLY: "read-only",
   READ_WRITE: "read-write",
-});
+} as const);
 
 export type ApiKeyScope = (typeof API_KEY_SCOPE)[keyof typeof API_KEY_SCOPE];
 

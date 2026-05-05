@@ -108,13 +108,5 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
     spies: current.spies,
   });
 
-  return {
-    spies: current.spies,
-    setApiKeys: (apiKeys: readonly ApiKeySummary[]) => {
-      setState({ ...getState(), apiKeys });
-    },
-    setNextCreated: (created: CreatedApiKey) => {
-      setState({ ...getState(), nextCreated: created });
-    },
-  };
+  return { spies: current.spies };
 };

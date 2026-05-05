@@ -48,6 +48,11 @@ const ApiKeyCreateSheet = ({ isOpen, onClose, onCreated }: Props) => {
   const trimmedName = name.trim();
   const isDisabled = trimmedName === "" || isSubmitting;
 
+  const resetForm = () => {
+    setName("");
+    setScope(API_KEY_SCOPE.READ_ONLY);
+  };
+
   const handleSubmit = async () => {
     if (isDisabled) return;
     setIsSubmitting(true);
@@ -59,15 +64,13 @@ const ApiKeyCreateSheet = ({ isOpen, onClose, onCreated }: Props) => {
       addToast({ message: t`API キーの発行に失敗しました` });
       return;
     }
-    setName("");
-    setScope(API_KEY_SCOPE.READ_ONLY);
+    resetForm();
     onCreated(created);
   };
 
   const handleClose = () => {
     if (isSubmitting) return;
-    setName("");
-    setScope(API_KEY_SCOPE.READ_ONLY);
+    resetForm();
     onClose();
   };
 

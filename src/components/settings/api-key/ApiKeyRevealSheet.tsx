@@ -19,10 +19,10 @@ const copyToClipboard = async (text: string): Promise<boolean> => {
   if (typeof navigator === "undefined" || navigator.clipboard === undefined) {
     return false;
   }
-  const failed = await navigator.clipboard
+  const result = await navigator.clipboard
     .writeText(text)
-    .catch(() => "failed" as const);
-  return failed !== "failed";
+    .catch((e: unknown) => e);
+  return !(result instanceof Error);
 };
 
 const ApiKeyRevealSheet = ({ createdKey, onClose }: Props) => {

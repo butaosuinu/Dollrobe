@@ -1,7 +1,6 @@
 "use client";
 
 import { atom } from "jotai";
-import { unwrap } from "jotai/utils";
 import {
   createApiKey,
   listApiKeys,
@@ -19,15 +18,6 @@ export const apiKeysAtom = atom(
     return await listApiKeys();
   },
 );
-
-export const apiKeysUnwrappedAtom = unwrap(
-  apiKeysAtom,
-  (prev): readonly ApiKeySummary[] => prev ?? [],
-);
-
-export const refreshApiKeysAtom = atom(undefined, (_get, set) => {
-  set(apiKeysRefreshTriggerAtom, (prev) => prev + 1);
-});
 
 export const createApiKeyAtom = atom(
   undefined,

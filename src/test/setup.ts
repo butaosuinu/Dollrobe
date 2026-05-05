@@ -5,8 +5,7 @@ import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { server } from "./mocks/server";
 import { resetTestDb } from "./mocks/db";
 import { clearTrpcOverrides } from "./mocks/trpc/handlerFactory";
-import { restoreCanvasMocks } from "./helpers/canvas";
-import { restoreClipboard } from "./helpers/clipboard";
+import { restoreInstalledProperties } from "./helpers/propertyMock";
 
 const navMod = await vi.hoisted(
   async () => await import("./mocks/modules/nextNavigation"),
@@ -62,8 +61,7 @@ afterEach(async () => {
   cleanup();
   server.resetHandlers();
   clearTrpcOverrides();
-  restoreCanvasMocks();
-  restoreClipboard();
+  restoreInstalledProperties();
 
   resetTestDb();
 
