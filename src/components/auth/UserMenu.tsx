@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useAtomValue, useSetAtom } from "jotai";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { t } from "@lingui/core/macro";
 import { authSessionUnwrappedAtom, signOutAtom } from "@/stores/authAtoms";
 
@@ -30,6 +31,13 @@ const UserMenu = () => {
           {user.name.charAt(0)}
         </div>
       )}
+      <Link
+        href="/settings/api-keys"
+        className="p-1 text-text-tertiary hover:text-text-primary"
+        aria-label={t`設定`}
+      >
+        <Settings className="size-4" />
+      </Link>
       <button
         type="button"
         onClick={() => {
