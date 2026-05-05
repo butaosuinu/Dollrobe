@@ -110,23 +110,15 @@ describe("/api/mcp Hono handler", () => {
       createTestGarmentInput({ name: "Alice's secret dress" }),
     );
 
-    // Auth stub that resolves the Bearer to TEST_USER_ID AND the cookie
-    // session to "alice". Without preAuthenticatedUserId in the tRPC ctx,
-    // resolveAuthenticatedUserId would prefer getSession → "alice".
-    const stub = {
-      api: {
-        verifyApiKey: vi.fn().mockResolvedValue({
-          valid: true,
-          key: { referenceId: TEST_USER_ID, permissions: { mcp: ["read"] } },
-        }),
-        getSession: vi.fn().mockResolvedValue({
-          user: { id: "alice" },
-          session: { id: "alice-session", userId: "alice" },
-        }),
-      },
-    };
-    const auth = stub as unknown as Auth;
-    const app = buildApp(auth);
+    const verifyApiKey = vi.fn().mockResolvedValue({
+      valid: true,
+      key: { referenceId: TEST_USER_ID, permissions: { mcp: ["read"] } },
+    });
+    const getSession = vi.fn().mockResolvedValue({
+      user: { id: "alice" },
+      session: { id: "alice-session", userId: "alice" },
+    });
+    const app = buildApp(createApiKeyAuthStub(verifyApiKey, getSession));
 
     const res = await app.request(
       "/api/mcp",
@@ -142,20 +134,52 @@ describe("/api/mcp Hono handler", () => {
           jsonrpc: "2.0",
           id: 1,
           method: "tools/call",
-          params: {
-            name: "list_garments",
-            arguments: {},
-          },
+          params: { name: "list_garments", arguments: {} },
         }),
       },
       env,
     );
     expect(res.status).toBe(200);
 
-    // The MCP path must not consult getSession: it should never run since
-    // preAuthenticatedUserId short-circuits the auth middleware entirely.
-    expect(stub.api.getSession).not.toHaveBeenCalled();
-    expect(stub.api.verifyApiKey).toHaveBeenCalledTimes(1);
+    // Implementation-level guarantee: preAuthenticatedUserId short-circuits
+    // the auth middleware so getSession is never consulted.
+    expect(getSession).not.toHaveBeenCalled();
+    expect(verifyApiKey).toHaveBeenCalledTimes(1);
+
+    // Observable guarantee: alice's data must be absent from the response.
+    // (TEST_USER_ID has no garments; alice has one named "Alice's secret dress".)
+    const body = (await res.json()) as {
+      result?: { content?: Array<{ text?: string }> };
+    };
+    const text = body.result?.content?.[0]?.text ?? "";
+    expect(text).not.toContain("Alice's secret dress");
+    expect(JSON.parse(text)).toEqual([]);
+  });
+
+  it("rejects cookie-only requests with 401 (MCP requires API key, not session)", async () => {
+    const verifyApiKey = vi.fn();
+    const getSession = vi.fn().mockResolvedValue({
+      user: { id: "alice" },
+      session: { id: "alice-session", userId: "alice" },
+    });
+    const app = buildApp(createApiKeyAuthStub(verifyApiKey, getSession));
+
+    const res = await app.request(
+      "/api/mcp",
+      {
+        method: "POST",
+        headers: {
+          Cookie: "better-auth.session_token=alice-session",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
+      env,
+    );
+
+    expect(res.status).toBe(401);
+    expect(verifyApiKey).not.toHaveBeenCalled();
+    expect(getSession).not.toHaveBeenCalled();
   });
 
   it("lists all 7 MCP tools for an authorized read API key", async () => {

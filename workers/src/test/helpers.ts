@@ -37,11 +37,6 @@ export const createStubAuth = (userId: string | undefined): Auth => {
   return stub as unknown as Auth;
 };
 
-const createStubHonoContext = () => {
-  const headers = new Headers();
-  return { req: { raw: { headers } } } as unknown as TRPCContext["honoContext"];
-};
-
 export const createTestCaller = ({
   userId = TEST_USER_ID,
   logger = createTestLogger(),
@@ -52,8 +47,7 @@ export const createTestCaller = ({
   const mockCtx: TRPCContext = {
     env,
     logger,
-    auth: createStubAuth(userId),
-    honoContext: createStubHonoContext(),
+    preAuthenticatedUserId: userId,
   };
   return createCaller(mockCtx);
 };

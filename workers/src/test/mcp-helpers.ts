@@ -1,21 +1,23 @@
 import { env } from "cloudflare:test";
-import type { Context as HonoContext } from "hono";
 import type { Auth } from "../auth";
 import { createMcpCaller } from "../mcp/adapter";
 import type { McpScope } from "../mcp/scopes";
 import { createTestLogger, TEST_USER_ID } from "./helpers";
 
-export const createStubHonoContext = (): HonoContext => {
-  const headers = new Headers();
-  const stub = { req: { raw: { headers } } };
-  return stub as unknown as HonoContext;
-};
-
 type VerifyFn = (args: { body: { key: string } }) => Promise<unknown>;
+type GetSessionFn = (args: { headers: Headers }) => Promise<unknown>;
 
-export const createApiKeyAuthStub = (verifyApiKey: VerifyFn): Auth => {
-  const stub = { api: { verifyApiKey } };
-  return stub as unknown as Auth;
+export const createApiKeyAuthStub = (
+  verifyApiKey: VerifyFn,
+  getSession?: GetSessionFn,
+): Auth => {
+  const api: { verifyApiKey: VerifyFn; getSession?: GetSessionFn } = {
+    verifyApiKey,
+  };
+  if (getSession !== undefined) {
+    api.getSession = getSession;
+  }
+  return { api } as unknown as Auth;
 };
 
 export const buildMcpToolCtx = (
