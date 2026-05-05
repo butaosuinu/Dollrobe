@@ -1,6 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
-
-export const TEST_USER_ID = "test-user-001";
+import { TEST_USER_ID } from "../../src/test/helpers";
 
 type InsertGarmentParams = {
   readonly db: D1Database;

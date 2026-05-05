@@ -5,7 +5,11 @@ import { z } from "zod";
 import type { Env } from "../types";
 import type { Auth } from "../auth";
 import type { Logger } from "../lib/logger";
-import { createTestLogger, TEST_USER_ID } from "../test/helpers";
+import {
+  createStubAuth,
+  createTestLogger,
+  TEST_USER_ID,
+} from "../test/helpers";
 import { imageRoutes } from "./image";
 import { createId } from "@paralleldrive/cuid2";
 
@@ -14,21 +18,6 @@ type Variables = {
   requestId: string;
   logger: Logger;
 };
-
-const createStubAuth = (userId: string | undefined): Auth =>
-  ({
-    api: {
-      getSession: async (_args: { headers: Headers }) =>
-        await Promise.resolve(
-          userId === undefined
-            ? null
-            : {
-                user: { id: userId },
-                session: { id: "stub-session", userId },
-              },
-        ),
-    },
-  }) as unknown as Auth;
 
 const errorSchema = z.object({ error: z.string() });
 const imageUrlSchema = z.object({ imageUrl: z.string() });

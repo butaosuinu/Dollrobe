@@ -39,13 +39,19 @@ export const resolveAuthenticatedUserId = async ({
   readonly auth: Auth;
   readonly headers: Headers;
 }): Promise<string | undefined> => {
+  const bearer = extractBearerKey(headers);
+  const hasCookie = headers.get("cookie") !== null;
+
+  if (bearer !== undefined && !hasCookie) {
+    return await verifyBearer({ auth, key: bearer });
+  }
+
   const session = await auth.api.getSession({ headers }).catch(() => undefined);
   const sessionUserId = session?.user.id;
   if (sessionUserId !== undefined && sessionUserId !== "") {
     return sessionUserId;
   }
 
-  const bearer = extractBearerKey(headers);
   if (bearer === undefined) {
     return undefined;
   }

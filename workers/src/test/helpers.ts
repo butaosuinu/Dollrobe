@@ -20,14 +20,18 @@ export const getTestDb = () => env.DB;
 export const createTestLogger = (): Logger =>
   createLogger({ minLevel: "error" });
 
-const createStubAuth = (userId: string): Auth => {
+export const createStubAuth = (userId: string | undefined): Auth => {
   const stub = {
     api: {
       getSession: async (_args: { headers: Headers }) =>
-        await Promise.resolve({
-          user: { id: userId },
-          session: { id: "stub-session", userId },
-        }),
+        await Promise.resolve(
+          userId === undefined
+            ? null
+            : {
+                user: { id: userId },
+                session: { id: "stub-session", userId },
+              },
+        ),
     },
   };
   return stub as unknown as Auth;
