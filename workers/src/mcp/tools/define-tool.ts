@@ -50,7 +50,9 @@ export const defineTool = <S extends ZodObjectAny>(spec: {
       log.warn("scope denied", { required });
       return forbiddenResult(required);
     }
-    const parsed = spec.inputSchema.safeParse(input);
+    // MCP allows clients to omit `params.arguments`; normalize to {} so that
+    // tools with no arguments or only optional fields don't fail validation.
+    const parsed = spec.inputSchema.safeParse(input ?? {});
     if (!parsed.success) {
       log.warn("invalid input", { issues: parsed.error.issues });
       return toErrorResult(parsed.error);

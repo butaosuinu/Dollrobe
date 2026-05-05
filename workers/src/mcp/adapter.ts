@@ -35,8 +35,13 @@ export type CallToolResult = {
 const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
+// JSON.stringify(undefined) returns undefined (not a string), which would
+// violate MCP TextContent's `text: string` contract; coerce to "null".
+const safeStringify = (data: unknown): string =>
+  data === undefined ? "null" : JSON.stringify(data);
+
 export const okResult = (data: unknown): CallToolResult => ({
-  content: [{ type: "text", text: JSON.stringify(data) }],
+  content: [{ type: "text", text: safeStringify(data) }],
   ...(isPlainRecord(data) && { structuredContent: data }),
 });
 

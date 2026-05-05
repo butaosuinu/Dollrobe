@@ -79,6 +79,18 @@ describe("okResult", () => {
     expect(okResult(null).structuredContent).toBeUndefined();
     expect(okResult(undefined).structuredContent).toBeUndefined();
   });
+
+  it("emits a string text field even when data is undefined (MCP TextContent contract)", () => {
+    // JSON.stringify(undefined) returns the value undefined (not a string),
+    // which would violate MCP TextContent.text: string. Must coerce.
+    const result = okResult(undefined);
+    expect(typeof result.content[0]?.text).toBe("string");
+    expect(result.content[0]?.text).toBe("null");
+  });
+
+  it("emits the JSON literal for null", () => {
+    expect(okResult(null).content[0]?.text).toBe("null");
+  });
 });
 
 describe("errorResult / forbiddenResult", () => {

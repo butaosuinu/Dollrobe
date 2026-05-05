@@ -56,4 +56,18 @@ describe("listGarmentsTool", () => {
     expect(result.isError).toBeUndefined();
     expect(JSON.parse(result.content[0]!.text)).toEqual([]);
   });
+
+  it("treats omitted arguments as no-filter (MCP allows undefined params.arguments)", async () => {
+    const ctx = buildMcpToolCtx("read");
+    await ctx.caller.garment.create(
+      createTestGarmentInput({ name: "no-args" }),
+    );
+
+    const result = await listGarmentsTool.handle(undefined, ctx);
+
+    expect(result.isError).toBeUndefined();
+    const list = JSON.parse(result.content[0]!.text) as Array<{ name: string }>;
+    expect(list).toHaveLength(1);
+    expect(list[0]?.name).toBe("no-args");
+  });
 });

@@ -14,5 +14,15 @@ describe("getOrganizationDigestTool", () => {
 
     expect(result.isError).toBeUndefined();
     expect(result.structuredContent).toBeUndefined();
+    // text must remain a string ("null") even though the underlying value is undefined.
+    expect(typeof result.content[0]?.text).toBe("string");
+    expect(result.content[0]?.text).toBe("null");
+  });
+
+  it("accepts omitted arguments (MCP allows undefined params.arguments)", async () => {
+    const ctx = buildMcpToolCtx("read");
+    const result = await getOrganizationDigestTool.handle(undefined, ctx);
+
+    expect(result.isError).toBeUndefined();
   });
 });
