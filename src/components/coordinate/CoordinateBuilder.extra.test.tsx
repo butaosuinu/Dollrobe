@@ -9,11 +9,8 @@ import {
   COORDINATE_MEMO_MAX_LENGTH,
 } from "@/lib/constants";
 import type { Coordinate } from "@/types";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import CoordinateBuilder from "./CoordinateBuilder";
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
-}));
 
 type SetupParams = {
   readonly seedGarments?: boolean;
@@ -77,6 +74,7 @@ const setup = async ({
 describe("CoordinateBuilder extra", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
+    setupNextNavigation();
   });
 
   afterEach(() => {

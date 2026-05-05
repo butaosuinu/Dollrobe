@@ -3,11 +3,11 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
 import { renderWithProviders } from "@/test/testUtils";
 import NfcWritePage from "./page";
 
 const mockWriteNfcTag = vi.hoisted(() => vi.fn());
-const mockNfcSupported = vi.hoisted(() => ({ value: false }));
 
 vi.mock("@/lib/nfc/writer", async () => {
   const actual =
@@ -20,14 +20,16 @@ vi.mock("@/lib/nfc/writer", async () => {
   };
 });
 
-vi.mock("@/hooks/useNfcSupported", () => ({
-  useNfcSupported: () => mockNfcSupported.value,
-}));
+const nfcSupHandle: {
+  current: ReturnType<typeof setupUseNfcSupported>;
+} = {
+  current: setupUseNfcSupported(),
+};
 
 describe("NfcWritePage", () => {
   beforeEach(() => {
     mockWriteNfcTag.mockReset();
-    mockNfcSupported.value = false;
+    nfcSupHandle.current = setupUseNfcSupported(false);
   });
 
   afterEach(() => {
@@ -35,7 +37,7 @@ describe("NfcWritePage", () => {
   });
 
   it("NFC非対応デバイスで非対応メッセージを表示する", async () => {
-    mockNfcSupported.value = false;
+    nfcSupHandle.current.setSupported(false);
     await renderWithProviders(<NfcWritePage />);
 
     expect(
@@ -46,7 +48,7 @@ describe("NfcWritePage", () => {
   });
 
   it("NFC対応デバイスでタイプ選択画面を表示する", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     await renderWithProviders(<NfcWritePage />);
 
     expect(
@@ -57,7 +59,7 @@ describe("NfcWritePage", () => {
   });
 
   it("「服」を選択するとアイテム選択画面に進む", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();
     const user = userEvent.setup();
@@ -69,7 +71,7 @@ describe("NfcWritePage", () => {
   });
 
   it("「収納場所」を選択するとアイテム選択画面に進む", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     testDb.storageCase.create({ id: "case-1", name: "ケースA" });
     testDb.storageLocation.create({
       id: "loc-1",
@@ -86,7 +88,7 @@ describe("NfcWritePage", () => {
   });
 
   it("アイテムを選択して「次へ」で書き込み準備画面に進む", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();
     const user = userEvent.setup();
@@ -102,7 +104,7 @@ describe("NfcWritePage", () => {
   });
 
   it("「戻る」で前の画面に戻る", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();
     const user = userEvent.setup();
@@ -118,7 +120,7 @@ describe("NfcWritePage", () => {
   });
 
   it("書き込み成功時にフィードバックを表示する", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     mockWriteNfcTag.mockResolvedValueOnce({ ok: true });
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();
@@ -138,7 +140,7 @@ describe("NfcWritePage", () => {
   });
 
   it("権限拒否時にエラーメッセージを表示する", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     mockWriteNfcTag.mockResolvedValueOnce({
       ok: false,
       errorKind: "permission_denied",
@@ -162,7 +164,7 @@ describe("NfcWritePage", () => {
   });
 
   it("書き込み失敗時にエラーメッセージを表示する", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     mockWriteNfcTag.mockResolvedValueOnce({
       ok: false,
       errorKind: "write_failed",
@@ -184,7 +186,7 @@ describe("NfcWritePage", () => {
   });
 
   it("「もう1枚書き込む」でタイプ選択に戻る", async () => {
-    mockNfcSupported.value = true;
+    nfcSupHandle.current.setSupported(true);
     mockWriteNfcTag.mockResolvedValueOnce({ ok: true });
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();

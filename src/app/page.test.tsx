@@ -3,30 +3,13 @@ import { screen, within } from "@testing-library/react";
 import { MS_PER_DAY } from "@/lib/constants";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import DashboardPage from "./page";
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
 describe("DashboardPage", () => {
   beforeEach(() => {
+    setupNextNavigation();
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
   });
 

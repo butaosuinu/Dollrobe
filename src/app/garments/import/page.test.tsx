@@ -1,42 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
+import { server } from "@/test/mocks/server";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import { trpcMutation } from "@/test/mocks/trpc/handlerFactory";
 import CsvImportPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
-const mockMutate = vi.hoisted(() => vi.fn());
-
-vi.mock("@/lib/trpc", () => ({
-  trpcClient: {
-    garment: {
-      bulkCreate: { mutate: mockMutate },
-    },
-  },
-  trpc: {},
-}));
+const bulkCreateState = { count: 0 };
+const bulkCreateSpy = vi.fn();
 
 const uploadCsvFile = async (csvText: string) => {
   const file = new File([csvText], "test.csv", { type: "text/csv" });
@@ -52,9 +23,15 @@ const uploadCsvFile = async (csvText: string) => {
 
 describe("CsvImportPage", () => {
   beforeEach(() => {
-    mockRouter.push.mockClear();
-    mockMutate.mockClear();
-    mockMutate.mockResolvedValue({ count: 0 });
+    setupNextNavigation();
+    bulkCreateSpy.mockClear();
+    bulkCreateState.count = 0;
+    server.use(
+      trpcMutation("garment.bulkCreate", ({ input }) => {
+        bulkCreateSpy(input);
+        return { count: bulkCreateState.count };
+      }),
+    );
   });
 
   afterEach(() => {
@@ -125,7 +102,7 @@ describe("CsvImportPage", () => {
   });
 
   it("インポート実行でtRPC bulkCreateが呼ばれ完了画面が表示される", async () => {
-    mockMutate.mockResolvedValue({ count: 2 });
+    bulkCreateState.count = 2;
     await renderWithProviders(<CsvImportPage />);
 
     await uploadCsvFile(
@@ -135,7 +112,7 @@ describe("CsvImportPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "2件をインポート" }));
 
     await waitFor(() => {
-      expect(mockMutate).toHaveBeenCalled();
+      expect(bulkCreateSpy).toHaveBeenCalled();
     });
 
     await waitFor(() => {
@@ -145,7 +122,7 @@ describe("CsvImportPage", () => {
   });
 
   it("完了画面で「続けてインポート」クリックでリセットされる", async () => {
-    mockMutate.mockResolvedValue({ count: 1 });
+    bulkCreateState.count = 1;
     await renderWithProviders(<CsvImportPage />);
 
     await uploadCsvFile("name,category,dollSize\nドレスA,dress,MSD");

@@ -3,32 +3,15 @@ import { screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import LocationsPage from "./page";
 
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => crypto.randomUUID(),
-}));
-
 describe("LocationsPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
+    setupCuid2({ mode: "uuid" });
   });
 
   afterEach(() => {
@@ -204,6 +187,7 @@ describe("LocationsPage", () => {
 describe("LocationsPage CRUD操作", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
+    setupCuid2({ mode: "uuid" });
   });
 
   afterEach(() => {

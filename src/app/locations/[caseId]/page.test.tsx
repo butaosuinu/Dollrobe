@@ -2,45 +2,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import { getDb } from "@/lib/db/dexie";
 import { MS_PER_DAY } from "@/lib/constants";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import CaseDetailPage from "./page";
 
-const mockRouterBack = vi.fn();
-const mockRouterPush = vi.fn();
-const searchParamsRef = vi.hoisted(() => ({
-  current: new URLSearchParams(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useParams: () => ({ caseId: "case-1" }),
-  useRouter: () => ({ back: mockRouterBack, push: mockRouterPush }),
-  useSearchParams: () => searchParamsRef.current,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
 describe("CaseDetailPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouterBack.mockClear();
-    mockRouterPush.mockClear();
-    searchParamsRef.current = new URLSearchParams();
+    setupNextNavigation({ params: { caseId: "case-1" } });
   });
 
   afterEach(() => {
@@ -153,7 +125,10 @@ describe("CaseDetailPage", () => {
       lastScannedAt: FIXED_NOW - 20 * MS_PER_DAY,
     });
     await seedDbFromTestDb();
-    searchParamsRef.current = new URLSearchParams("location=loc-target");
+    setupNextNavigation({
+      params: { caseId: "case-1" },
+      searchParams: new URLSearchParams("location=loc-target"),
+    });
 
     await renderWithProviders(<CaseDetailPage />);
 
@@ -181,7 +156,10 @@ describe("CaseDetailPage", () => {
       confidenceDecayDaysOverride: 30,
     });
     await seedDbFromTestDb();
-    searchParamsRef.current = new URLSearchParams("location=loc-target");
+    setupNextNavigation({
+      params: { caseId: "case-1" },
+      searchParams: new URLSearchParams("location=loc-target"),
+    });
 
     await renderWithProviders(<CaseDetailPage />);
 

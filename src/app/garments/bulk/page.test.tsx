@@ -3,32 +3,14 @@ import { screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import BulkCapturePage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
+};
 
 const mockCaptureFrame = vi.hoisted(() => vi.fn());
 const mockStart = vi.hoisted(() => vi.fn());
@@ -51,29 +33,15 @@ vi.mock("@/lib/image/compressImage", () => ({
     await Promise.resolve({ file, width: 100, height: 100 }),
 }));
 
-const testCuidValues = vi.hoisted(() => ({
-  index: 0,
-  values: ["cuid-1", "cuid-2", "cuid-3", "cuid-4", "cuid-5"],
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => {
-    const value =
-      testCuidValues.values[testCuidValues.index] ?? "cuid-fallback";
-    testCuidValues.index += 1;
-    return value;
-  },
-}));
-
 const createTestBlob = () => new Blob(["test-image"], { type: "image/png" });
 
 describe("BulkCapturePage", () => {
   beforeEach(() => {
-    mockRouter.push.mockClear();
+    navHandle.current = setupNextNavigation();
+    setupCuid2({ id: "cuid", mode: "sequential" });
     mockCaptureFrame.mockClear();
     mockStart.mockClear();
     mockStop.mockClear();
-    testCuidValues.index = 0;
     mockCaptureFrame.mockReturnValue(createTestBlob());
 
     server.use(

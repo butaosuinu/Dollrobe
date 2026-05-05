@@ -9,21 +9,48 @@ import {
   createTestStorageLocation,
   FIXED_NOW,
 } from "@/test/factories";
+import { server } from "@/test/mocks/server";
+import {
+  trpcMutation,
+  trpcQuery,
+  type RouterOutputs,
+} from "@/test/mocks/trpc/handlerFactory";
 
-const trpcMocks = vi.hoisted(() => ({
-  pushMutate: vi.fn(),
-  pullQuery: vi.fn(),
-}));
+const pushSpy = vi.fn();
+const pullSpy = vi.fn();
 
-vi.mock("@/lib/trpc", () => ({
-  trpcClient: {
-    sync: {
-      push: { mutate: trpcMocks.pushMutate },
-      pull: { query: trpcMocks.pullQuery },
-    },
-  },
-  trpc: {},
-}));
+type PullPayload = RouterOutputs["sync.pull"];
+
+const installSync = ({
+  push,
+  pull,
+}: {
+  readonly push?:
+    | { readonly resolve: { success: true; processedCount: number } }
+    | { readonly throwError: unknown };
+  readonly pull?:
+    | { readonly resolve: PullPayload }
+    | { readonly throwError: unknown };
+}) => {
+  server.use(
+    trpcMutation("sync.push", async ({ input }) => {
+      pushSpy(input);
+      if (push !== undefined && "throwError" in push) {
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- intentional non-Error rejection passthrough
+        return await Promise.reject(push.throwError);
+      }
+      return push?.resolve ?? { success: true as const, processedCount: 0 };
+    }),
+    trpcQuery("sync.pull", async () => {
+      pullSpy();
+      if (pull !== undefined && "throwError" in pull) {
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- intentional non-Error rejection passthrough
+        return await Promise.reject(pull.throwError);
+      }
+      return pull?.resolve ?? emptyServerState();
+    }),
+  );
+};
 
 const refreshSpies = vi.hoisted(() => ({
   coordinates: vi.fn(),
@@ -97,8 +124,8 @@ const emptyServerState = () => ({
 
 describe("syncAtoms", () => {
   beforeEach(() => {
-    trpcMocks.pushMutate.mockReset();
-    trpcMocks.pullQuery.mockReset();
+    pushSpy.mockReset();
+    pullSpy.mockReset();
     refreshSpies.coordinates.mockReset();
     refreshSpies.dolls.mockReset();
     refreshSpies.garments.mockReset();
@@ -115,8 +142,7 @@ describe("syncAtoms", () => {
       "push と pull が成功すると refresh atom がすべて呼ばれ、状態が IDLE に戻る",
       { timeout: 15_000 },
       async () => {
-        trpcMocks.pushMutate.mockResolvedValue(undefined);
-        trpcMocks.pullQuery.mockResolvedValue(emptyServerState());
+        installSync({});
 
         await getDb().syncQueue.bulkAdd([
           {
@@ -132,8 +158,8 @@ describe("syncAtoms", () => {
 
         await store.set(executeSyncAtom);
 
-        expect(trpcMocks.pushMutate).toHaveBeenCalledTimes(1);
-        expect(trpcMocks.pullQuery).toHaveBeenCalledTimes(1);
+        expect(pushSpy).toHaveBeenCalledTimes(1);
+        expect(pullSpy).toHaveBeenCalledTimes(1);
         expect(refreshSpies.coordinates).toHaveBeenCalledTimes(1);
         expect(refreshSpies.dolls).toHaveBeenCalledTimes(1);
         expect(refreshSpies.garments).toHaveBeenCalledTimes(1);
@@ -147,8 +173,7 @@ describe("syncAtoms", () => {
     );
 
     it("無効な type の queue 項目は push リクエストから除外される", async () => {
-      trpcMocks.pushMutate.mockResolvedValue(undefined);
-      trpcMocks.pullQuery.mockResolvedValue(emptyServerState());
+      installSync({});
 
       await getDb().syncQueue.bulkAdd([
         {
@@ -162,27 +187,25 @@ describe("syncAtoms", () => {
       const { executeSyncAtom } = await importSyncAtoms();
       await store.set(executeSyncAtom);
 
-      expect(trpcMocks.pushMutate).not.toHaveBeenCalled();
+      expect(pushSpy).not.toHaveBeenCalled();
       // 無効 type であってもキュー削除は実行される
       expect(await getDb().syncQueue.count()).toBe(0);
     });
 
     it("queue が空のときは push を呼ばずに pull に進む", async () => {
-      trpcMocks.pushMutate.mockResolvedValue(undefined);
-      trpcMocks.pullQuery.mockResolvedValue(emptyServerState());
+      installSync({});
 
       const store = createStore();
       const { executeSyncAtom, syncStatusAtom } = await importSyncAtoms();
       await store.set(executeSyncAtom);
 
-      expect(trpcMocks.pushMutate).not.toHaveBeenCalled();
-      expect(trpcMocks.pullQuery).toHaveBeenCalledTimes(1);
+      expect(pushSpy).not.toHaveBeenCalled();
+      expect(pullSpy).toHaveBeenCalledTimes(1);
       expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.IDLE);
     });
 
     it("push 失敗時は ERROR 状態と lastSyncError がセットされ、refresh は呼ばれない", async () => {
-      trpcMocks.pushMutate.mockRejectedValue(new Error("push exploded"));
-      trpcMocks.pullQuery.mockResolvedValue(emptyServerState());
+      installSync({ push: { throwError: new Error("push exploded") } });
 
       await getDb().syncQueue.bulkAdd([
         {
@@ -198,7 +221,7 @@ describe("syncAtoms", () => {
 
       await store.set(executeSyncAtom);
 
-      expect(trpcMocks.pullQuery).not.toHaveBeenCalled();
+      expect(pullSpy).not.toHaveBeenCalled();
       expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.ERROR);
       expect(store.get(lastSyncErrorAtom)).toBe("push exploded");
       expect(refreshSpies.dolls).not.toHaveBeenCalled();
@@ -208,8 +231,8 @@ describe("syncAtoms", () => {
       expect(refreshSpies.coordinates).not.toHaveBeenCalled();
     });
 
-    it("push が Error 以外でリジェクトされた場合は既定メッセージが lastSyncError に入る", async () => {
-      trpcMocks.pushMutate.mockRejectedValue("boom");
+    it("push が string をスローした場合は server からの message が lastSyncError に入る", async () => {
+      installSync({ push: { throwError: "boom" } });
 
       const store = createStore();
       const { executeSyncAtom, lastSyncErrorAtom, syncStatusAtom } =
@@ -226,12 +249,11 @@ describe("syncAtoms", () => {
       await store.set(executeSyncAtom);
 
       expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.ERROR);
-      expect(store.get(lastSyncErrorAtom)).toBe("同期に失敗しました");
+      expect(store.get(lastSyncErrorAtom)).toBe("boom");
     });
 
     it("pull 失敗時も ERROR 状態と lastSyncError がセットされる", async () => {
-      trpcMocks.pushMutate.mockResolvedValue(undefined);
-      trpcMocks.pullQuery.mockRejectedValue(new Error("pull broken"));
+      installSync({ pull: { throwError: new Error("pull broken") } });
 
       const store = createStore();
       const { executeSyncAtom, syncStatusAtom, lastSyncErrorAtom } =
@@ -245,67 +267,35 @@ describe("syncAtoms", () => {
     });
 
     it("pull で得たエンティティが Dexie に書き戻される", async () => {
-      trpcMocks.pushMutate.mockResolvedValue(undefined);
-      trpcMocks.pullQuery.mockResolvedValue({
-        garments: [
-          {
-            ...createTestGarment({ id: "g-pull" }),
-            imageUrl: null,
-            locationId: null,
-            confidenceDecayDaysOverride: null,
-            brand: null,
-            description: null,
-            setContents: null,
-            checkedOutAt: null,
-            archivedAt: null,
+      installSync({
+        pull: {
+          resolve: {
+            garments: [createTestGarment({ id: "g-pull" })],
+            dolls: [createTestDoll({ id: "d-pull" })],
+            coordinates: [
+              {
+                id: "c-pull",
+                userId: "user-1",
+                name: "コーデ",
+                garmentIds: ["g-pull"],
+                isAiGenerated: false,
+                memo: undefined,
+                createdAt: FIXED_NOW,
+                updatedAt: FIXED_NOW,
+              },
+            ],
+            storageCases: [
+              { ...createTestStorageCase({ id: "case-pull" }), type: "unit" },
+              { ...createTestStorageCase({ id: "case-grid" }), type: "grid" },
+            ],
+            storageLocations: [
+              createTestStorageLocation({
+                id: "loc-pull",
+                caseId: "case-pull",
+              }),
+            ],
           },
-        ],
-        dolls: [
-          {
-            ...createTestDoll({ id: "d-pull" }),
-            headModel: null,
-            maker: null,
-            customizer: null,
-            imageUrl: null,
-            memo: null,
-            archivedAt: null,
-          },
-        ],
-        coordinates: [
-          {
-            id: "c-pull",
-            userId: "user-1",
-            name: "コーデ",
-            garmentIds: ["g-pull"],
-            isAiGenerated: false,
-            memo: null,
-            createdAt: FIXED_NOW,
-            updatedAt: FIXED_NOW,
-          },
-        ],
-        storageCases: [
-          {
-            ...createTestStorageCase({ id: "case-pull" }),
-            type: "unit",
-            description: null,
-          },
-          {
-            ...createTestStorageCase({ id: "case-grid" }),
-            type: "grid",
-            description: null,
-          },
-        ],
-        storageLocations: [
-          {
-            ...createTestStorageLocation({
-              id: "loc-pull",
-              caseId: "case-pull",
-            }),
-            customName: null,
-            description: null,
-            lastVisitedAt: null,
-          },
-        ],
+        },
       });
 
       // 同期前にローカルに残るはずのレコードを入れる（クリアされる確認）
@@ -331,8 +321,7 @@ describe("syncAtoms", () => {
     });
 
     it("実行開始時に lastSyncError が一旦クリアされる", async () => {
-      trpcMocks.pushMutate.mockResolvedValue(undefined);
-      trpcMocks.pullQuery.mockResolvedValue(emptyServerState());
+      installSync({});
 
       const store = createStore();
       const { executeSyncAtom, lastSyncErrorAtom } = await importSyncAtoms();

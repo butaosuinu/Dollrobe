@@ -2,43 +2,20 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import DollDetailPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-
-const mockParams = vi.hoisted((): { value: Record<string, string> } => ({
-  value: { id: "doll-1" },
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useParams: () => mockParams.value,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
+};
 
 describe("DollDetailPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
-    mockParams.value = { id: "doll-1" };
+    navHandle.current = setupNextNavigation({
+      params: { id: "doll-1" },
+    });
   });
 
   afterEach(() => {
@@ -86,7 +63,7 @@ describe("DollDetailPage", () => {
   });
 
   it("存在しないドールの場合にメッセージを表示する", async () => {
-    mockParams.value = { id: "non-existent" };
+    navHandle.current.setParams({ id: "non-existent" });
 
     await renderWithProviders(<DollDetailPage />);
 
@@ -111,7 +88,7 @@ describe("DollDetailPage", () => {
     fireEvent.click(confirmButton);
 
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/dolls");
+      expect(navHandle.current.router.push).toHaveBeenCalledWith("/dolls");
     });
   });
 
@@ -123,7 +100,9 @@ describe("DollDetailPage", () => {
 
     fireEvent.click(screen.getByText("編集"));
 
-    expect(mockRouter.push).toHaveBeenCalledWith("/dolls/doll-1/edit");
+    expect(navHandle.current.router.push).toHaveBeenCalledWith(
+      "/dolls/doll-1/edit",
+    );
   });
 
   it("着用可能な服を表示する", async () => {

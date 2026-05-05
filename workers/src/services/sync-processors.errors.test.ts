@@ -1,7 +1,7 @@
 import { env } from "cloudflare:test";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createDrizzle } from "../db/client";
-import { createLogger } from "../lib/logger";
+import { createTestLogger } from "../test/helpers";
 import * as syncRepo from "../repositories/sync-repository";
 import { ACTION_PROCESSORS } from "./sync-processors";
 
@@ -19,7 +19,7 @@ vi.mock("../repositories/sync-repository", () => ({
 
 const mockedRepo = vi.mocked(syncRepo);
 
-const logger = createLogger({ minLevel: "error" });
+const logger = createTestLogger();
 // 実際のリポジトリ呼び出しは vi.mock で差し替え済み。型を満たすために実 DB を渡す
 const drizzleDb = createDrizzle(env.DB);
 const ctx = { drizzleDb, userId: "user-1", logger } as const;

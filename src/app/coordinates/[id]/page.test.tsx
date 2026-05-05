@@ -4,34 +4,13 @@ import userEvent from "@testing-library/user-event";
 import { getDb } from "@/lib/db/dexie";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import CoordinateDetailPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-const mockParams = vi.hoisted(() => ({ id: "c-1" }));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useParams: () => mockParams,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
+};
 
 const seedSampleCoordinate = async () => {
   testDb.garment.create({
@@ -52,8 +31,7 @@ const seedSampleCoordinate = async () => {
 describe("CoordinateDetailPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
-    mockRouter.back.mockClear();
+    navHandle.current = setupNextNavigation({ params: { id: "c-1" } });
   });
 
   afterEach(() => {
@@ -118,6 +96,6 @@ describe("CoordinateDetailPage", () => {
     await waitFor(async () => {
       expect(await getDb().coordinates.get("c-1")).toBeUndefined();
     });
-    expect(mockRouter.push).toHaveBeenCalledWith("/coordinates");
+    expect(navHandle.current.router.push).toHaveBeenCalledWith("/coordinates");
   });
 });

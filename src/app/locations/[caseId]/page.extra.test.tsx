@@ -2,44 +2,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import { getDb } from "@/lib/db/dexie";
 import { MS_PER_DAY } from "@/lib/constants";
 import CaseDetailPage from "./page";
 
-const mockRouterBack = vi.fn();
-const mockRouterPush = vi.fn();
-const searchParamsRef = vi.hoisted(() => ({
-  current: new URLSearchParams(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useParams: () => ({ caseId: "case-1" }),
-  useRouter: () => ({ back: mockRouterBack, push: mockRouterPush }),
-  useSearchParams: () => searchParamsRef.current,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navHandle = setupNextNavigation();
 
 describe("CaseDetailPage (extra)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouterBack.mockClear();
-    mockRouterPush.mockClear();
-    searchParamsRef.current = new URLSearchParams();
+    setupNextNavigation({ params: { caseId: "case-1" } });
   });
 
   afterEach(() => {
@@ -52,7 +26,7 @@ describe("CaseDetailPage (extra)", () => {
     const link = await screen.findByRole("button", { name: "一覧に戻る" });
     fireEvent.click(link);
 
-    expect(mockRouterPush).toHaveBeenCalledWith("/locations");
+    expect(navHandle.router.push).toHaveBeenCalledWith("/locations");
   });
 
   it("PageHeader の戻るボタンで router.back が呼ばれる", async () => {
@@ -65,7 +39,7 @@ describe("CaseDetailPage (extra)", () => {
       fireEvent.click(backButton);
     }
 
-    expect(mockRouterBack).toHaveBeenCalled();
+    expect(navHandle.router.back).toHaveBeenCalled();
   });
 
   it("description がある場合に表示される", async () => {

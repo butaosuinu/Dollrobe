@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
+import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
@@ -12,14 +14,6 @@ const scanTrigger = vi.hoisted(
   }),
 );
 
-const nfcScanTrigger = vi.hoisted(
-  (): { onScan: ((data: string) => void) | undefined } => ({
-    onScan: undefined,
-  }),
-);
-
-const mockNfcSupported = vi.hoisted(() => ({ value: false }));
-
 vi.mock("@/components/scan/QrScanner", () => ({
   default: ({
     onScan,
@@ -29,22 +23,6 @@ vi.mock("@/components/scan/QrScanner", () => ({
   }) => {
     scanTrigger.onScan = onScan;
     return <div data-testid="qr-scanner" />;
-  },
-}));
-
-vi.mock("@/hooks/useNfcSupported", () => ({
-  useNfcSupported: () => mockNfcSupported.value,
-}));
-
-vi.mock("@/hooks/useNfcReader", () => ({
-  useNfcReader: ({
-    onScan,
-  }: {
-    readonly onScan: (data: string) => void;
-    readonly isActive: boolean;
-  }) => {
-    nfcScanTrigger.onScan = onScan;
-    return { nfcState: { status: "scanning" } };
   },
 }));
 
@@ -60,6 +38,18 @@ vi.mock("@/components/scan/NfcCapabilityBadge", () => ({
   default: () => <span data-testid="nfc-badge" />,
 }));
 
+const nfcSupHandle: {
+  current: ReturnType<typeof setupUseNfcSupported>;
+} = {
+  current: setupUseNfcSupported(),
+};
+
+const nfcRdrHandle: {
+  current: ReturnType<typeof setupUseNfcReader>;
+} = {
+  current: setupUseNfcReader({ status: "scanning" }),
+};
+
 const simulateScan = (data: string) => {
   act(() => {
     scanTrigger.onScan?.(data);
@@ -70,8 +60,8 @@ describe("ScanPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     scanTrigger.onScan = undefined;
-    nfcScanTrigger.onScan = undefined;
-    mockNfcSupported.value = false;
+    nfcSupHandle.current = setupUseNfcSupported(false);
+    nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
   });
 
   afterEach(() => {
@@ -289,7 +279,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 対応デバイスで NfcReader が表示される", async () => {
-      mockNfcSupported.value = true;
+      nfcSupHandle.current.setSupported(true);
       await renderWithProviders(<ScanPage />);
 
       expect(screen.getByTestId("qr-scanner")).toBeInTheDocument();
@@ -297,7 +287,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 非対応デバイスで NfcReader が非表示になる", async () => {
-      mockNfcSupported.value = false;
+      nfcSupHandle.current.setSupported(false);
       await renderWithProviders(<ScanPage />);
 
       expect(screen.getByTestId("qr-scanner")).toBeInTheDocument();
@@ -305,7 +295,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 経由で服スキャンが動作する", async () => {
-      mockNfcSupported.value = true;
+      nfcSupHandle.current.setSupported(true);
       testDb.storageLocation.create({ id: "loc-1", label: "A-1" });
       testDb.garment.create({ id: "g-1", name: "赤いワンピース" });
       await seedDbFromTestDb();
@@ -313,10 +303,10 @@ describe("ScanPage", () => {
       await renderWithProviders(<ScanPage />);
 
       act(() => {
-        nfcScanTrigger.onScan?.("dwg://l/loc-1");
+        nfcRdrHandle.current.triggerScan("dwg://l/loc-1");
       });
       act(() => {
-        nfcScanTrigger.onScan?.("dwg://g/g-1");
+        nfcRdrHandle.current.triggerScan("dwg://g/g-1");
       });
 
       expect(screen.getByText("赤いワンピース")).toBeInTheDocument();
@@ -324,14 +314,14 @@ describe("ScanPage", () => {
     });
 
     it("NFC 経由で場所スキャンが動作する", async () => {
-      mockNfcSupported.value = true;
+      nfcSupHandle.current.setSupported(true);
       testDb.storageLocation.create({ id: "loc-1", label: "B-2" });
       await seedDbFromTestDb();
 
       await renderWithProviders(<ScanPage />);
 
       act(() => {
-        nfcScanTrigger.onScan?.("dwg://l/loc-1");
+        nfcRdrHandle.current.triggerScan("dwg://l/loc-1");
       });
 
       expect(screen.getByText("場所を設定しました")).toBeInTheDocument();

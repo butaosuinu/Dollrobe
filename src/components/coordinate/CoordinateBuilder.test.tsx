@@ -4,11 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { renderWithProviders } from "@/test/testUtils";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import CoordinateBuilder from "./CoordinateBuilder";
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
-}));
 
 const setup = async (props?: {
   readonly initialIds?: readonly string[];
@@ -53,6 +50,7 @@ const setup = async (props?: {
 describe("CoordinateBuilder", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
+    setupNextNavigation();
   });
 
   afterEach(() => {

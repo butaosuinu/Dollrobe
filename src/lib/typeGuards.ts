@@ -6,3 +6,6 @@ export const isGarmentCategory = (value: string): value is GarmentCategory =>
 
 export const isDollSize = (value: string): value is DollSize =>
   DOLL_SIZES.some((s) => s === value);
+
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object";

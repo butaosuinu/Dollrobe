@@ -3,36 +3,14 @@ import { screen } from "@testing-library/react";
 import { MS_PER_DAY } from "@/lib/constants";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import ArchivePage from "./page";
-
-const mockSearchParams = vi.hoisted(() => ({
-  value: new URLSearchParams(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useSearchParams: () => mockSearchParams.value,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
 
 describe("ArchivePage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockSearchParams.value = new URLSearchParams();
+    setupNextNavigation();
   });
 
   afterEach(() => {
@@ -62,7 +40,9 @@ describe("ArchivePage", () => {
   });
 
   it("アーカイブ済みドールがない場合に空状態を表示する", async () => {
-    mockSearchParams.value = new URLSearchParams("tab=doll");
+    setupNextNavigation({
+      searchParams: new URLSearchParams("tab=doll"),
+    });
     await renderWithProviders(<ArchivePage />);
     expect(await screen.findByText("アーカイブは空です")).toBeInTheDocument();
     expect(
@@ -90,7 +70,9 @@ describe("ArchivePage", () => {
   });
 
   it("アーカイブ済みのドールがグリッドに表示される", async () => {
-    mockSearchParams.value = new URLSearchParams("tab=doll");
+    setupNextNavigation({
+      searchParams: new URLSearchParams("tab=doll"),
+    });
     testDb.doll.create({
       id: "d-1",
       name: "リナ",
@@ -150,7 +132,9 @@ describe("ArchivePage", () => {
   });
 
   it("ドールタブではドールのみ表示され服は表示されない", async () => {
-    mockSearchParams.value = new URLSearchParams("tab=doll");
+    setupNextNavigation({
+      searchParams: new URLSearchParams("tab=doll"),
+    });
     testDb.garment.create({
       id: "g-1",
       name: "白いドレス",
@@ -199,7 +183,9 @@ describe("ArchivePage", () => {
   });
 
   it("無効なタブパラメータの場合は服タブがデフォルトになる", async () => {
-    mockSearchParams.value = new URLSearchParams("tab=invalid");
+    setupNextNavigation({
+      searchParams: new URLSearchParams("tab=invalid"),
+    });
     testDb.garment.create({
       id: "g-1",
       name: "白いドレス",

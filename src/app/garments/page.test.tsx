@@ -4,33 +4,13 @@ import userEvent from "@testing-library/user-event";
 import { MS_PER_DAY } from "@/lib/constants";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentsPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useSearchParams: () => new URLSearchParams(),
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
+};
 
 const openFilterPanel = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole("button", { name: /フィルター/ }));
@@ -48,7 +28,7 @@ const selectDollFromCombobox = async (
 describe("GarmentsPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
+    navHandle.current = setupNextNavigation();
   });
 
   afterEach(() => {
@@ -69,7 +49,7 @@ describe("GarmentsPage", () => {
     await renderWithProviders(<GarmentsPage />);
 
     await user.click(await screen.findByRole("button", { name: "服を登録" }));
-    expect(mockRouter.push).toHaveBeenCalledWith("/garments/new");
+    expect(navHandle.current.router.push).toHaveBeenCalledWith("/garments/new");
   });
 
   it("服一覧を表示する", async () => {

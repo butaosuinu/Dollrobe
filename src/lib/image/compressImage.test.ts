@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { IMAGE_COMPRESSION, IMAGE_UPLOAD } from "@/lib/constants";
+import {
+  installCanvas2DContext,
+  installCanvas2DContextNull,
+  installCanvasToBlob,
+} from "@/test/helpers/canvas";
 import { compressImage } from "./compressImage";
 
 const PNG_MIME = "image/png";
@@ -7,39 +12,6 @@ const JPEG_MIME = "image/jpeg";
 const SMALL_FILE_BYTES = 1024;
 const OVERSIZED_FILE_BYTES = IMAGE_UPLOAD.MAX_UPLOAD_SIZE_BYTES + 1;
 const { MAX_DIMENSION: MAX_DIM } = IMAGE_COMPRESSION;
-
-const GET_CONTEXT_KEY = "getContext";
-const TO_BLOB_KEY = "toBlob";
-
-const originalGetContext = Object.getOwnPropertyDescriptor(
-  HTMLCanvasElement.prototype,
-  GET_CONTEXT_KEY,
-);
-const originalToBlob = Object.getOwnPropertyDescriptor(
-  HTMLCanvasElement.prototype,
-  TO_BLOB_KEY,
-);
-
-const restoreCanvasPrototype = (): void => {
-  if (originalGetContext === undefined) {
-    Reflect.deleteProperty(HTMLCanvasElement.prototype, GET_CONTEXT_KEY);
-  } else {
-    Object.defineProperty(
-      HTMLCanvasElement.prototype,
-      GET_CONTEXT_KEY,
-      originalGetContext,
-    );
-  }
-  if (originalToBlob === undefined) {
-    Reflect.deleteProperty(HTMLCanvasElement.prototype, TO_BLOB_KEY);
-  } else {
-    Object.defineProperty(
-      HTMLCanvasElement.prototype,
-      TO_BLOB_KEY,
-      originalToBlob,
-    );
-  }
-};
 
 const createFakeFile = ({
   size,
@@ -72,54 +44,38 @@ const stubCreateImageBitmap = ({
   return { close };
 };
 
-type GetContextSpy = {
-  readonly callCount: () => number;
-};
-
 const stubCanvas = ({
   ctxValue,
   blobValue,
 }: {
-  readonly ctxValue: { readonly drawImage: ReturnType<typeof vi.fn> } | null;
+  readonly ctxValue: "null" | "with-drawImage";
   readonly blobValue: Blob | null;
-}): GetContextSpy => {
-  const getContextMock = vi.fn(() => ctxValue);
-  const toBlobMock = vi.fn((callback: (blob: Blob | null) => void) => {
-    callback(blobValue);
-  });
-  Object.defineProperty(HTMLCanvasElement.prototype, GET_CONTEXT_KEY, {
-    configurable: true,
-    writable: true,
-    value: getContextMock,
-  });
-  Object.defineProperty(HTMLCanvasElement.prototype, TO_BLOB_KEY, {
-    configurable: true,
-    writable: true,
-    value: toBlobMock,
-  });
-  return {
-    callCount: () => getContextMock.mock.calls.length,
-  };
+}) => {
+  installCanvasToBlob(blobValue);
+  if (ctxValue === "null") {
+    const { getContext } = installCanvas2DContextNull();
+    return { drawImage: undefined, getContext } as const;
+  }
+  const { ctx, getContext } = installCanvas2DContext();
+  return { drawImage: ctx.drawImage, getContext } as const;
 };
 
 describe("compressImage", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
-    restoreCanvasPrototype();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
-    restoreCanvasPrototype();
   });
 
   describe("変換不要パス", () => {
     it("PNG かつ寸法・サイズが上限以下の場合は元のファイルをそのまま返す", async () => {
       const { close } = stubCreateImageBitmap({ width: 800, height: 600 });
-      const getContextSpy = stubCanvas({
-        ctxValue: { drawImage: vi.fn() },
+      const { getContext } = stubCanvas({
+        ctxValue: "with-drawImage",
         blobValue: null,
       });
 
@@ -134,16 +90,18 @@ describe("compressImage", () => {
       expect(result.width).toBe(800);
       expect(result.height).toBe(600);
       expect(close).toHaveBeenCalledTimes(1);
-      expect(getContextSpy.callCount()).toBe(0);
+      expect(getContext).not.toHaveBeenCalled();
     });
   });
 
   describe("変換が必要なパス", () => {
     it("MIME が PNG 以外なら変換して PNG ファイルを返す", async () => {
       const { close } = stubCreateImageBitmap({ width: 800, height: 600 });
-      const drawImage = vi.fn();
       const blob = new Blob(["compressed"], { type: PNG_MIME });
-      stubCanvas({ ctxValue: { drawImage }, blobValue: blob });
+      const { drawImage } = stubCanvas({
+        ctxValue: "with-drawImage",
+        blobValue: blob,
+      });
 
       const file = createFakeFile({
         size: SMALL_FILE_BYTES,
@@ -169,9 +127,8 @@ describe("compressImage", () => {
 
     it("幅が maxDimension を超える場合はアスペクト比を維持して縮小する", async () => {
       stubCreateImageBitmap({ width: 4000, height: 2000 });
-      const drawImage = vi.fn();
       const blob = new Blob(["compressed"], { type: PNG_MIME });
-      stubCanvas({ ctxValue: { drawImage }, blobValue: blob });
+      stubCanvas({ ctxValue: "with-drawImage", blobValue: blob });
 
       const file = createFakeFile({
         size: SMALL_FILE_BYTES,
@@ -186,9 +143,8 @@ describe("compressImage", () => {
 
     it("高さが maxDimension を超える場合もアスペクト比を維持して縮小する", async () => {
       stubCreateImageBitmap({ width: 2000, height: 4000 });
-      const drawImage = vi.fn();
       const blob = new Blob(["compressed"], { type: PNG_MIME });
-      stubCanvas({ ctxValue: { drawImage }, blobValue: blob });
+      stubCanvas({ ctxValue: "with-drawImage", blobValue: blob });
 
       const file = createFakeFile({
         size: SMALL_FILE_BYTES,
@@ -203,9 +159,11 @@ describe("compressImage", () => {
 
     it("ファイルサイズが MAX_UPLOAD_SIZE_BYTES を超える場合は変換する", async () => {
       stubCreateImageBitmap({ width: 800, height: 600 });
-      const drawImage = vi.fn();
       const blob = new Blob(["compressed"], { type: PNG_MIME });
-      stubCanvas({ ctxValue: { drawImage }, blobValue: blob });
+      const { drawImage } = stubCanvas({
+        ctxValue: "with-drawImage",
+        blobValue: blob,
+      });
 
       const file = createFakeFile({
         size: OVERSIZED_FILE_BYTES,
@@ -221,9 +179,8 @@ describe("compressImage", () => {
 
     it("カスタム maxDimension を指定した場合はそれに従う", async () => {
       stubCreateImageBitmap({ width: 1000, height: 500 });
-      const drawImage = vi.fn();
       const blob = new Blob(["compressed"], { type: PNG_MIME });
-      stubCanvas({ ctxValue: { drawImage }, blobValue: blob });
+      stubCanvas({ ctxValue: "with-drawImage", blobValue: blob });
 
       const file = createFakeFile({
         size: SMALL_FILE_BYTES,
@@ -240,7 +197,7 @@ describe("compressImage", () => {
   describe("エラーパス", () => {
     it("getContext が null を返した場合はエラーをスローし bitmap を閉じる", async () => {
       const { close } = stubCreateImageBitmap({ width: 4000, height: 2000 });
-      stubCanvas({ ctxValue: null, blobValue: null });
+      stubCanvas({ ctxValue: "null", blobValue: null });
 
       const file = createFakeFile({
         size: SMALL_FILE_BYTES,
@@ -255,8 +212,7 @@ describe("compressImage", () => {
 
     it("canvas.toBlob が null を返した場合は reject される", async () => {
       stubCreateImageBitmap({ width: 4000, height: 2000 });
-      const drawImage = vi.fn();
-      stubCanvas({ ctxValue: { drawImage }, blobValue: null });
+      stubCanvas({ ctxValue: "with-drawImage", blobValue: null });
 
       const file = createFakeFile({
         size: SMALL_FILE_BYTES,

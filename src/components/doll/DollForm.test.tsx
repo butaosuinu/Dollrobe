@@ -3,47 +3,25 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
 import DollForm from "./DollForm";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navHandle = setupNextNavigation();
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
-
-const mockUpload = vi.hoisted(() => vi.fn());
-const mockResetUpload = vi.hoisted(() => vi.fn());
-const mockUploadState = vi.hoisted(() => ({
-  value: { status: "idle" } as
-    | { status: "idle" }
-    | { status: "compressing" }
-    | { status: "uploading" }
-    | { status: "success"; imageUrl: string }
-    | { status: "error"; message: string },
-}));
-
-vi.mock("@/hooks/useImageUpload", () => ({
-  useImageUpload: () => ({
-    uploadState: mockUploadState.value,
-    upload: mockUpload,
-    reset: mockResetUpload,
-  }),
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-cuid",
-}));
+const uploadHandle: {
+  current: ReturnType<typeof setupUseImageUpload>;
+} = {
+  current: setupUseImageUpload(),
+};
 
 describe("DollForm", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
-    mockUpload.mockClear();
-    mockResetUpload.mockClear();
-    mockUploadState.value = { status: "idle" };
+    setupNextNavigation();
+    setupCuid2({ id: "test-cuid" });
+    uploadHandle.current = setupUseImageUpload();
   });
 
   afterEach(() => {
@@ -95,12 +73,12 @@ describe("DollForm", () => {
       expect(dolls[0]?.bodySize).toBe("SD");
     });
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/dolls");
+      expect(navHandle.router.push).toHaveBeenCalledWith("/dolls");
     });
   });
 
   it("アップロード中はボタンが disabled + テキスト変更", async () => {
-    mockUploadState.value = { status: "uploading" };
+    uploadHandle.current.setUploadState({ status: "uploading" });
     await renderWithProviders(<DollForm />);
 
     expect(

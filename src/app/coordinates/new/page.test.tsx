@@ -4,41 +4,20 @@ import userEvent from "@testing-library/user-event";
 import { getDb } from "@/lib/db/dexie";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import NewCoordinatePage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-  } & Record<string, unknown>) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-coordinate-id",
-}));
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
+};
 
 describe("NewCoordinatePage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
+    navHandle.current = setupNextNavigation();
+    setupCuid2({ id: "test-coordinate-id" });
   });
 
   afterEach(() => {
@@ -74,7 +53,9 @@ describe("NewCoordinatePage", () => {
     await user.click(screen.getByRole("button", { name: "保存する" }));
 
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/coordinates");
+      expect(navHandle.current.router.push).toHaveBeenCalledWith(
+        "/coordinates",
+      );
     });
     const saved = await getDb().coordinates.toArray();
     expect(saved).toHaveLength(1);
@@ -109,7 +90,9 @@ describe("NewCoordinatePage", () => {
     await user.click(screen.getByRole("button", { name: "保存する" }));
 
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/coordinates");
+      expect(navHandle.current.router.push).toHaveBeenCalledWith(
+        "/coordinates",
+      );
     });
     const saved = await getDb().coordinates.toArray();
     expect(saved[0]?.garmentIds).toEqual(["g-2", "g-1", "g-3"]);
@@ -130,7 +113,9 @@ describe("NewCoordinatePage", () => {
     await user.click(screen.getByRole("button", { name: "保存する" }));
 
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/coordinates");
+      expect(navHandle.current.router.push).toHaveBeenCalledWith(
+        "/coordinates",
+      );
     });
     const saved = await getDb().coordinates.toArray();
     expect(saved[0]?.memo).toBe("桜のシーズン用");

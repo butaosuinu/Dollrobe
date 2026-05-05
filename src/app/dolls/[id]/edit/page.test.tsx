@@ -3,55 +3,30 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
 import { renderWithProviders } from "@/test/testUtils";
 import DollEditPage from "./page";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
+  current: setupNextNavigation(),
+};
 
-const mockParams = vi.hoisted((): { value: Record<string, string> } => ({
-  value: { id: "doll-1" },
-}));
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-  useParams: () => mockParams.value,
-}));
-
-const mockUpload = vi.hoisted(() => vi.fn());
-const mockResetUpload = vi.hoisted(() => vi.fn());
-const mockUploadState = vi.hoisted(() => ({
-  value: { status: "idle" } as
-    | { status: "idle" }
-    | { status: "compressing" }
-    | { status: "uploading" }
-    | { status: "success"; imageUrl: string }
-    | { status: "error"; message: string },
-}));
-
-vi.mock("@/hooks/useImageUpload", () => ({
-  useImageUpload: () => ({
-    uploadState: mockUploadState.value,
-    upload: mockUpload,
-    reset: mockResetUpload,
-  }),
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-cuid",
-}));
+const uploadHandle: {
+  current: ReturnType<typeof setupUseImageUpload>;
+} = {
+  current: setupUseImageUpload(),
+};
 
 describe("DollEditPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
-    mockRouter.back.mockClear();
-    mockUpload.mockClear();
-    mockResetUpload.mockClear();
-    mockUploadState.value = { status: "idle" };
-    mockParams.value = { id: "doll-1" };
+    navHandle.current = setupNextNavigation({
+      params: { id: "doll-1" },
+    });
+    setupCuid2();
+    uploadHandle.current = setupUseImageUpload();
   });
 
   afterEach(() => {
@@ -91,12 +66,14 @@ describe("DollEditPage", () => {
       expect(doll?.name).toBe("ミユ");
     });
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/dolls/doll-1");
+      expect(navHandle.current.router.push).toHaveBeenCalledWith(
+        "/dolls/doll-1",
+      );
     });
   });
 
   it("存在しないドールの場合にメッセージを表示する", async () => {
-    mockParams.value = { id: "non-existent" };
+    navHandle.current.setParams({ id: "non-existent" });
 
     await renderWithProviders(<DollEditPage />);
 

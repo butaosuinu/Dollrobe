@@ -5,10 +5,10 @@ import type {
   R2ObjectBody,
   ReadableStream as WorkersReadableStream,
 } from "@cloudflare/workers-types";
-import { createLogger } from "../lib/logger";
+import { createTestLogger } from "../test/helpers";
 import { uploadImage, getImage, deleteImage } from "./image-service";
 
-const logger = createLogger({ minLevel: "error" });
+const logger = createTestLogger();
 
 type StubBucket = {
   readonly put: ReturnType<typeof vi.fn>;

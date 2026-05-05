@@ -8,15 +8,19 @@ import type {
   CreateCoordinateInput,
 } from "../db/validation";
 import { createLogger } from "../lib/logger";
+import type { Logger } from "../lib/logger";
 
 const createCaller = createCallerFactory(appRouter);
 
 export const getTestDb = () => env.DB;
 
-export const createTestCaller = () => {
+export const createTestLogger = (): Logger =>
+  createLogger({ minLevel: "error" });
+
+export const createTestCaller = (logger: Logger = createTestLogger()) => {
   const mockCtx: TRPCContext = {
     env,
-    logger: createLogger({ minLevel: "error" }),
+    logger,
   };
   return createCaller(mockCtx);
 };

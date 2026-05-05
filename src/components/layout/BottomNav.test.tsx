@@ -1,28 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
-import { usePathname } from "next/navigation";
 import { renderWithProviders } from "@/test/testUtils";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import BottomNav from "./BottomNav";
-
-vi.mock("next/navigation", () => ({
-  usePathname: vi.fn(),
-}));
-
-vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    className,
-  }: {
-    readonly href: string;
-    readonly children: React.ReactNode;
-    readonly className?: string;
-  }) => (
-    <a href={href} className={className}>
-      {children}
-    </a>
-  ),
-}));
 
 const ACTIVE_CLASS = "text-primary-500";
 const INACTIVE_CLASS = "text-text-tertiary";
@@ -30,7 +10,7 @@ const SCAN_ACTIVE_BG = "bg-primary-500";
 const SCAN_INACTIVE_BG = "bg-primary-100";
 
 const setPathname = (path: string) => {
-  vi.mocked(usePathname).mockReturnValue(path);
+  setupNextNavigation({ pathname: path });
 };
 
 const renderNav = async () => {
@@ -46,7 +26,7 @@ const getNavLink = (href: string) => {
 
 describe("BottomNav", () => {
   beforeEach(() => {
-    vi.mocked(usePathname).mockReset();
+    setupNextNavigation();
   });
 
   it("全てのナビゲーション項目を表示する", async () => {

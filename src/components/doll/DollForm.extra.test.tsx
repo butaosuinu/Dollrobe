@@ -4,39 +4,18 @@ import userEvent from "@testing-library/user-event";
 import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
 import { createTestDoll } from "@/test/factories";
+import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import { setupCuid2 } from "@/test/mocks/modules/cuid2";
+import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
 import DollForm from "./DollForm";
 
-const mockRouter = vi.hoisted(() => ({
-  push: vi.fn(),
-  back: vi.fn(),
-}));
+const navHandle = setupNextNavigation();
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}));
-
-const mockUpload = vi.hoisted(() => vi.fn());
-const mockResetUpload = vi.hoisted(() => vi.fn());
-const mockUploadState = vi.hoisted(() => ({
-  value: { status: "idle" } as
-    | { status: "idle" }
-    | { status: "compressing" }
-    | { status: "uploading" }
-    | { status: "success"; imageUrl: string }
-    | { status: "error"; message: string },
-}));
-
-vi.mock("@/hooks/useImageUpload", () => ({
-  useImageUpload: () => ({
-    uploadState: mockUploadState.value,
-    upload: mockUpload,
-    reset: mockResetUpload,
-  }),
-}));
-
-vi.mock("@paralleldrive/cuid2", () => ({
-  createId: () => "test-cuid",
-}));
+const uploadHandle: {
+  current: ReturnType<typeof setupUseImageUpload>;
+} = {
+  current: setupUseImageUpload(),
+};
 
 const EXISTING_IMAGE_URL = "https://cdn.example.com/existing.png";
 const UPLOADED_IMAGE_URL = "https://cdn.example.com/uploaded.png";
@@ -54,10 +33,9 @@ const createPngFile = (name = "new.png"): File =>
 describe("DollForm (extra coverage)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    mockRouter.push.mockClear();
-    mockUpload.mockClear();
-    mockResetUpload.mockClear();
-    mockUploadState.value = { status: "idle" };
+    setupNextNavigation();
+    setupCuid2({ id: "test-cuid" });
+    uploadHandle.current = setupUseImageUpload();
   });
 
   afterEach(() => {
@@ -195,7 +173,7 @@ describe("DollForm (extra coverage)", () => {
       expect(updated?.updatedAt).toBe(FIXED_NOW);
     });
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/dolls/doll-edit-2");
+      expect(navHandle.router.push).toHaveBeenCalledWith("/dolls/doll-edit-2");
     });
   });
 
@@ -219,11 +197,11 @@ describe("DollForm (extra coverage)", () => {
       const updated = await db.dolls.get("doll-edit-3");
       expect(updated?.imageUrl).toBe(EXISTING_IMAGE_URL);
     });
-    expect(mockUpload).not.toHaveBeenCalled();
+    expect(uploadHandle.current.upload).not.toHaveBeenCalled();
   });
 
   it("画像を新規選択するとプレビューが切り替わり upload が呼ばれる", async () => {
-    mockUpload.mockResolvedValue(UPLOADED_IMAGE_URL);
+    uploadHandle.current.upload.mockResolvedValue(UPLOADED_IMAGE_URL);
     const doll = createTestDoll({
       id: "doll-edit-4",
       name: "リナ",
@@ -250,12 +228,12 @@ describe("DollForm (extra coverage)", () => {
         "blob:",
       );
     });
-    expect(mockResetUpload).toHaveBeenCalled();
+    expect(uploadHandle.current.reset).toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "更新する" }));
 
     await waitFor(() => {
-      expect(mockUpload).toHaveBeenCalledWith({
+      expect(uploadHandle.current.upload).toHaveBeenCalledWith({
         file,
         garmentId: "doll-edit-4",
       });
@@ -267,7 +245,7 @@ describe("DollForm (extra coverage)", () => {
   });
 
   it("画像アップロードが失敗した場合は元の imageUrl が維持される", async () => {
-    mockUpload.mockRejectedValue(new Error("upload failed"));
+    uploadHandle.current.upload.mockRejectedValue(new Error("upload failed"));
     const doll = createTestDoll({
       id: "doll-edit-5",
       name: "リナ",
@@ -293,7 +271,7 @@ describe("DollForm (extra coverage)", () => {
   });
 
   it("新規登録時に画像を選択するとアップロード結果が保存される", async () => {
-    mockUpload.mockResolvedValue(UPLOADED_IMAGE_URL);
+    uploadHandle.current.upload.mockResolvedValue(UPLOADED_IMAGE_URL);
     const user = userEvent.setup();
     await renderWithProviders(<DollForm />);
 
@@ -305,7 +283,7 @@ describe("DollForm (extra coverage)", () => {
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
     await waitFor(() => {
-      expect(mockUpload).toHaveBeenCalledWith({
+      expect(uploadHandle.current.upload).toHaveBeenCalledWith({
         file,
         garmentId: "test-cuid",
       });
@@ -319,7 +297,7 @@ describe("DollForm (extra coverage)", () => {
   });
 
   it("新規登録 + 画像アップロード失敗時は imageUrl が undefined で保存される", async () => {
-    mockUpload.mockRejectedValue(new Error("upload failed"));
+    uploadHandle.current.upload.mockRejectedValue(new Error("upload failed"));
     const user = userEvent.setup();
     await renderWithProviders(<DollForm />);
 
@@ -340,7 +318,7 @@ describe("DollForm (extra coverage)", () => {
   });
 
   it("圧縮中は送信が抑止される (handleSubmit 早期 return)", async () => {
-    mockUploadState.value = { status: "compressing" };
+    uploadHandle.current.setUploadState({ status: "compressing" });
     const user = userEvent.setup();
     await renderWithProviders(<DollForm />);
 
@@ -364,7 +342,7 @@ describe("DollForm (extra coverage)", () => {
     const db = getDb();
     const after = await db.dolls.toArray();
     expect(after.length).toBe(0);
-    expect(mockRouter.push).not.toHaveBeenCalled();
-    expect(mockUpload).not.toHaveBeenCalled();
+    expect(navHandle.router.push).not.toHaveBeenCalled();
+    expect(uploadHandle.current.upload).not.toHaveBeenCalled();
   });
 });

@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { Env } from "../types";
 import type { Auth } from "../auth";
 import type { Logger } from "../lib/logger";
-import { createLogger } from "../lib/logger";
+import { createTestLogger } from "../test/helpers";
 import { imageRoutes } from "./image";
 import { createId } from "@paralleldrive/cuid2";
 
@@ -31,7 +31,7 @@ const parseImageUrl = async (res: Response): Promise<string> => {
 const buildApp = () => {
   const app = new Hono<{ Bindings: Env; Variables: Variables }>();
   app.use("*", async (c, next) => {
-    c.set("logger", createLogger({ minLevel: "error" }));
+    c.set("logger", createTestLogger());
     await next();
   });
   app.route("/api/images", imageRoutes);
