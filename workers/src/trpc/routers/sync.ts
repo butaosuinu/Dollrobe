@@ -1,29 +1,28 @@
 import { createDrizzle } from "../../db/client";
 import * as syncService from "../../services/sync-service";
 import { throwIfError } from "../../services/types";
-import { TEMP_USER_ID } from "../lib/d1-helpers";
 import { syncPushInputSchema } from "../lib/schemas";
-import { router, publicProcedure } from "../index";
+import { router, protectedProcedure } from "../index";
 
 export const syncRouter = router({
-  push: publicProcedure
+  push: protectedProcedure
     .input(syncPushInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await syncService.push({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           items: input.items,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  pull: publicProcedure.query(async ({ ctx }) =>
+  pull: protectedProcedure.query(async ({ ctx }) =>
     throwIfError(
       await syncService.pull({
         drizzleDb: createDrizzle(ctx.env.DB),
-        userId: TEMP_USER_ID,
+        userId: ctx.userId,
         logger: ctx.logger,
       }),
     ),

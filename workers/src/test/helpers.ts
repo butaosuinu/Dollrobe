@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { createCallerFactory } from "../trpc/index";
 import { appRouter } from "../trpc/router";
 import type { TRPCContext } from "../trpc/index";
+import type { Auth } from "../auth";
 import type {
   CreateGarmentInput,
   CreateCoordinateInput,
@@ -12,15 +13,43 @@ import type { Logger } from "../lib/logger";
 
 const createCaller = createCallerFactory(appRouter);
 
+export const TEST_USER_ID = "test-user-001";
+
 export const getTestDb = () => env.DB;
 
 export const createTestLogger = (): Logger =>
   createLogger({ minLevel: "error" });
 
-export const createTestCaller = (logger: Logger = createTestLogger()) => {
+const createStubAuth = (userId: string): Auth => {
+  const stub = {
+    api: {
+      getSession: async (_args: { headers: Headers }) =>
+        await Promise.resolve({
+          user: { id: userId },
+          session: { id: "stub-session", userId },
+        }),
+    },
+  };
+  return stub as unknown as Auth;
+};
+
+const createStubHonoContext = () => {
+  const headers = new Headers();
+  return { req: { raw: { headers } } } as unknown as TRPCContext["honoContext"];
+};
+
+export const createTestCaller = ({
+  userId = TEST_USER_ID,
+  logger = createTestLogger(),
+}: {
+  readonly userId?: string;
+  readonly logger?: Logger;
+} = {}) => {
   const mockCtx: TRPCContext = {
     env,
     logger,
+    auth: createStubAuth(userId),
+    honoContext: createStubHonoContext(),
   };
   return createCaller(mockCtx);
 };

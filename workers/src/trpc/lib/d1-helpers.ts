@@ -1,8 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import type { Logger } from "../../lib/logger";
 
-export const TEMP_USER_ID = "temp-user-001";
-
 export const wrapDbError =
   ({
     context,

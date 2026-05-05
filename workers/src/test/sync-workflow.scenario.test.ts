@@ -1,10 +1,10 @@
 import { createId } from "@paralleldrive/cuid2";
-import { TEMP_USER_ID } from "../trpc/lib/d1-helpers";
 import {
   createTestCaller,
   resetDatabase,
   getTestDb,
   expectTRPCError,
+  TEST_USER_ID,
 } from "./helpers";
 import { insertGarment } from "../../test/helpers/factories";
 
@@ -12,7 +12,7 @@ const createGarmentPayload = (overrides: Record<string, unknown> = {}) => {
   const now = Date.now();
   return {
     id: createId(),
-    userId: TEMP_USER_ID,
+    userId: TEST_USER_ID,
     name: "テスト服",
     category: "dress",
     dollSizes: ["MSD"],
@@ -31,7 +31,7 @@ const createCasePayload = (overrides: Record<string, unknown> = {}) => {
   const now = Date.now();
   return {
     id: createId(),
-    userId: TEMP_USER_ID,
+    userId: TEST_USER_ID,
     name: "テストケース",
     rows: 3,
     cols: 2,
@@ -44,7 +44,7 @@ const createDollPayload = (overrides: Record<string, unknown> = {}) => {
   const now = Date.now();
   return {
     id: createId(),
-    userId: TEMP_USER_ID,
+    userId: TEST_USER_ID,
     name: "テストドール",
     bodySize: "MSD",
     createdAt: now,
@@ -58,7 +58,7 @@ const createLocationPayload = (
   overrides: Record<string, unknown> = {},
 ) => ({
   id: createId(),
-  userId: TEMP_USER_ID,
+  userId: TEST_USER_ID,
   caseId,
   label: "A-1",
   row: 0,

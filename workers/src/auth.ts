@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { apiKey } from "@better-auth/api-key";
 import type { Env } from "./types";
 
 export const createAuth = ({ env }: { readonly env: Env }) =>
@@ -17,6 +18,7 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
         clientSecret: env.GOOGLE_CLIENT_SECRET,
       },
     },
+    plugins: [apiKey()],
     trustedOrigins: env.TRUSTED_ORIGINS.split(","),
   });
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createDrizzle } from "../../db/client";
-import { router, publicProcedure } from "../index";
+import { router, protectedProcedure } from "../index";
 import {
   listCoordinatesInputSchema,
   createCoordinateInputSchema,
@@ -9,69 +9,68 @@ import {
 } from "../lib/schemas";
 import * as coordinateService from "../../services/coordinate-service";
 import { throwIfError } from "../../services/types";
-import { TEMP_USER_ID } from "../lib/d1-helpers";
 
 export const coordinateRouter = router({
-  list: publicProcedure
+  list: protectedProcedure
     .input(listCoordinatesInputSchema)
     .query(async ({ ctx, input }) =>
       throwIfError(
         await coordinateService.listCoordinates({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           filters: input,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  get: publicProcedure
+  get: protectedProcedure
     .input(z.object({ id: cuidSchema }))
     .query(async ({ ctx, input }) =>
       throwIfError(
         await coordinateService.getCoordinate({
           drizzleDb: createDrizzle(ctx.env.DB),
           id: input.id,
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  create: publicProcedure
+  create: protectedProcedure
     .input(createCoordinateInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await coordinateService.createCoordinate({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           input,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(updateCoordinateInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await coordinateService.updateCoordinate({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           input,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: cuidSchema }))
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await coordinateService.deleteCoordinate({
           drizzleDb: createDrizzle(ctx.env.DB),
           id: input.id,
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           logger: ctx.logger,
         }),
       ),

@@ -105,11 +105,13 @@ export const findLocationsByCaseId = async ({
 export const findLocationByPosition = async ({
   drizzleDb,
   caseId,
+  userId,
   row,
   col,
 }: {
   readonly drizzleDb: DrizzleDB;
   readonly caseId: string;
+  readonly userId: string;
   readonly row: number;
   readonly col: number;
 }): Promise<StorageLocation | undefined> => {
@@ -119,6 +121,7 @@ export const findLocationByPosition = async ({
     .where(
       and(
         eq(storageLocations.caseId, caseId),
+        eq(storageLocations.userId, userId),
         eq(storageLocations.row, row),
         eq(storageLocations.col, col),
       ),

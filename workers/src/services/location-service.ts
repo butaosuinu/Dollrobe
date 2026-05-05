@@ -165,6 +165,7 @@ export const createLocation = async ({
   const duplicate = await locationRepo.findLocationByPosition({
     drizzleDb,
     caseId: input.caseId,
+    userId,
     row: input.row,
     col: input.col,
   });

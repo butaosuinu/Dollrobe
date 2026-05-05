@@ -3,7 +3,7 @@ import type { Env } from "../types";
 import type { Logger } from "../lib/logger";
 import type { Auth } from "../auth";
 import * as imageService from "../services/image-service";
-import { TEMP_USER_ID } from "../trpc/lib/d1-helpers";
+import { resolveAuthenticatedUserId } from "../lib/auth-resolver";
 import { cuidSchema } from "../db/validation";
 
 type Variables = {
@@ -16,6 +16,15 @@ const imageRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 imageRoutes.post("/upload/:garmentId", async (c) => {
   const logger = c.get("logger").child({ route: "image/upload" });
+
+  const userId = await resolveAuthenticatedUserId({
+    auth: c.get("auth"),
+    headers: c.req.raw.headers,
+  });
+  if (userId === undefined) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
   const garmentId = c.req.param("garmentId");
 
   const parseResult = cuidSchema.safeParse(garmentId);
@@ -45,7 +54,7 @@ imageRoutes.post("/upload/:garmentId", async (c) => {
   }
 
   const key = imageService.buildR2Key({
-    userId: TEMP_USER_ID,
+    userId,
     garmentId,
     mimeType: validation.data.validMimeType,
   });

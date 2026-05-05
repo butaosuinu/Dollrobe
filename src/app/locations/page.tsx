@@ -13,6 +13,7 @@ import {
   deleteStorageCaseAtom,
 } from "@/stores/locationAtoms";
 import { garmentsAtom } from "@/stores/garmentAtoms";
+import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
 import type { StorageCase, StorageCaseType } from "@/types";
 import { STORAGE_CASE_TYPE } from "@/lib/constants";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
@@ -25,12 +26,11 @@ import EmptyState from "@/components/ui/EmptyState";
 import FAB from "@/components/ui/FAB";
 import Skeleton from "@/components/ui/Skeleton";
 
-const TEMP_USER_ID = "user-1";
-
 const LocationsContent = () => {
   const cases = useAtomValue(storageCasesAtom);
   const locations = useAtomValue(storageLocationsAtom);
   const garments = useAtomValue(garmentsAtom);
+  const session = useAtomValue(authSessionUnwrappedAtom);
   const addCase = useSetAtom(addStorageCaseWithLocationsAtom);
   const updateCase = useSetAtom(updateStorageCaseAtom);
   const deleteCase = useSetAtom(deleteStorageCaseAtom);
@@ -65,7 +65,8 @@ const LocationsContent = () => {
           readonly description: string | undefined;
         },
   ) => {
-    await addCase({ ...input, userId: TEMP_USER_ID });
+    const userId = session.user?.id ?? "local";
+    await addCase({ ...input, userId });
     setIsCreateOpen(false);
   };
 
