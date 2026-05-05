@@ -18,8 +18,7 @@ import Skeleton from "@/components/ui/Skeleton";
 
 const ApiKeysPage = () => {
   const router = useRouter();
-  const authState = useAtomValue(authSessionUnwrappedAtom);
-  const isAuthenticated = authState.user !== undefined;
+  const { isAuthenticated } = useAtomValue(authSessionUnwrappedAtom);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createdKey, setCreatedKey] = useState<CreatedApiKey | undefined>(
     undefined,

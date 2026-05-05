@@ -11,8 +11,7 @@ import PageHeader from "@/components/ui/PageHeader";
 
 const SignInPage = () => {
   const router = useRouter();
-  const authState = useAtomValue(authSessionUnwrappedAtom);
-  const isAuthenticated = authState.user !== undefined;
+  const { isAuthenticated } = useAtomValue(authSessionUnwrappedAtom);
 
   useEffect(() => {
     if (isAuthenticated) {
