@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
+import { server } from "@/test/mocks/server";
+import { unauthenticatedHandler } from "@/test/mocks/handlers";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupAuthClient } from "@/test/mocks/modules/authClient";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
@@ -87,6 +89,17 @@ describe("ApiKeysPage", () => {
     expect(spies.revokeApiKey).toHaveBeenCalledWith("key-new");
     await waitFor(() => {
       expect(screen.queryByText("agent-new")).toBeNull();
+    });
+  });
+
+  it("未認証時は /signin へリダイレクトされる", async () => {
+    server.use(unauthenticatedHandler);
+    const { router } = setupNextNavigation();
+
+    await renderWithProviders(<ApiKeysPage />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith("/signin");
     });
   });
 });

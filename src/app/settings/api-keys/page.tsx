@@ -1,10 +1,13 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAtomValue } from "jotai";
 import { Plus } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import type { CreatedApiKey } from "@/lib/auth";
+import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import ApiKeyList from "@/components/settings/api-key/ApiKeyList";
 import ApiKeyCreateSheet from "@/components/settings/api-key/ApiKeyCreateSheet";
@@ -14,10 +17,23 @@ import PageHeader from "@/components/ui/PageHeader";
 import Skeleton from "@/components/ui/Skeleton";
 
 const ApiKeysPage = () => {
+  const router = useRouter();
+  const authState = useAtomValue(authSessionUnwrappedAtom);
+  const isAuthenticated = authState.user !== undefined;
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createdKey, setCreatedKey] = useState<CreatedApiKey | undefined>(
     undefined,
   );
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/signin");
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return undefined;
+  }
 
   return (
     <div className="flex flex-col gap-6 p-4">

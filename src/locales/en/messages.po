@@ -652,6 +652,10 @@ msgstr "Set"
 msgid "セット内容"
 msgstr "Set Contents"
 
+#: src/app/signin/page.tsx
+msgid "ソーシャルアカウントでログインすると、QR/NFC スキャンの記録や API キーの発行など、すべての機能を利用できます。"
+msgstr "Sign in with a social account to access all features, including QR/NFC scan tracking and API key issuance."
+
 #: src/lib/i18n-labels.ts
 msgid "ソックス/タイツ"
 msgstr "Socks/Tights"
@@ -900,6 +904,11 @@ msgstr "Reset"
 #: src/components/auth/UserMenu.tsx
 msgid "ログアウト"
 msgstr "Sign out"
+
+#: src/app/signin/page.tsx
+#: src/components/auth/UserMenu.tsx
+msgid "ログイン"
+msgstr "Sign in"
 
 #: src/app/garments/page.tsx
 #: src/lib/nav-items.ts
@@ -1253,6 +1262,7 @@ msgstr "Restore"
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
 #: src/app/settings/api-keys/page.tsx
+#: src/app/signin/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx

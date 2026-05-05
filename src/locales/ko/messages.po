@@ -652,6 +652,10 @@ msgstr "세트"
 msgid "セット内容"
 msgstr "세트 구성"
 
+#: src/app/signin/page.tsx
+msgid "ソーシャルアカウントでログインすると、QR/NFC スキャンの記録や API キーの発行など、すべての機能を利用できます。"
+msgstr "소셜 계정으로 로그인하면 QR/NFC 스캔 기록과 API 키 발급을 비롯한 모든 기능을 이용할 수 있습니다."
+
 #: src/lib/i18n-labels.ts
 msgid "ソックス/タイツ"
 msgstr "양말/타이츠"
@@ -900,6 +904,11 @@ msgstr "초기화"
 #: src/components/auth/UserMenu.tsx
 msgid "ログアウト"
 msgstr "로그아웃"
+
+#: src/app/signin/page.tsx
+#: src/components/auth/UserMenu.tsx
+msgid "ログイン"
+msgstr "로그인"
 
 #: src/app/garments/page.tsx
 #: src/lib/nav-items.ts
@@ -1253,6 +1262,7 @@ msgstr "복원"
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
 #: src/app/settings/api-keys/page.tsx
+#: src/app/signin/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx

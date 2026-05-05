@@ -652,6 +652,10 @@ msgstr "套装"
 msgid "セット内容"
 msgstr "套装内容"
 
+#: src/app/signin/page.tsx
+msgid "ソーシャルアカウントでログインすると、QR/NFC スキャンの記録や API キーの発行など、すべての機能を利用できます。"
+msgstr "使用社交账号登录后，即可使用 QR/NFC 扫描记录和 API 密钥发行等全部功能。"
+
 #: src/lib/i18n-labels.ts
 msgid "ソックス/タイツ"
 msgstr "袜子/连裤袜"
@@ -900,6 +904,11 @@ msgstr "重置"
 #: src/components/auth/UserMenu.tsx
 msgid "ログアウト"
 msgstr "退出登录"
+
+#: src/app/signin/page.tsx
+#: src/components/auth/UserMenu.tsx
+msgid "ログイン"
+msgstr "登录"
 
 #: src/app/garments/page.tsx
 #: src/lib/nav-items.ts
@@ -1253,6 +1262,7 @@ msgstr "恢复"
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
 #: src/app/settings/api-keys/page.tsx
+#: src/app/signin/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
