@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createDrizzle } from "../../db/client";
-import { router, publicProcedure } from "../index";
+import { router, protectedProcedure } from "../index";
 import {
   listGarmentsInputSchema,
   createGarmentInputSchema,
@@ -10,82 +10,81 @@ import {
 } from "../lib/schemas";
 import * as garmentService from "../../services/garment-service";
 import { throwIfError } from "../../services/types";
-import { TEMP_USER_ID } from "../lib/d1-helpers";
 
 export const garmentRouter = router({
-  list: publicProcedure
+  list: protectedProcedure
     .input(listGarmentsInputSchema)
     .query(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.listGarments({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           filters: input,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  get: publicProcedure
+  get: protectedProcedure
     .input(z.object({ id: cuidSchema }))
     .query(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.getGarment({
           drizzleDb: createDrizzle(ctx.env.DB),
           id: input.id,
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  create: publicProcedure
+  create: protectedProcedure
     .input(createGarmentInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.createGarment({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           input,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  bulkCreate: publicProcedure
+  bulkCreate: protectedProcedure
     .input(bulkCreateGarmentInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.bulkCreateGarments({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           items: input.items,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(updateGarmentInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.updateGarment({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           input,
           logger: ctx.logger,
         }),
       ),
     ),
 
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: cuidSchema }))
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await garmentService.deleteGarment({
           drizzleDb: createDrizzle(ctx.env.DB),
           id: input.id,
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           bucket: ctx.env.BUCKET,
           r2PublicUrl: ctx.env.R2_PUBLIC_URL,
           logger: ctx.logger,

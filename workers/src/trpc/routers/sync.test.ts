@@ -1,10 +1,10 @@
 import { createId } from "@paralleldrive/cuid2";
-import { TEMP_USER_ID } from "../lib/d1-helpers";
 import {
   createTestCaller,
   resetDatabase,
   getTestDb,
   expectTRPCError,
+  TEST_USER_ID,
 } from "../../test/helpers";
 import {
   insertCoordinate,
@@ -32,7 +32,7 @@ describe("sync router", () => {
             type: "garment:create",
             payload: {
               id: createId(),
-              userId: TEMP_USER_ID,
+              userId: TEST_USER_ID,
               name: "テスト",
               category: "dress",
               dollSizes: ["MSD"],
@@ -88,7 +88,7 @@ describe("sync router", () => {
             type: "storageLocation:update",
             payload: {
               id: locationId,
-              userId: TEMP_USER_ID,
+              userId: TEST_USER_ID,
               caseId,
               label: "A-1",
               row: 0,
@@ -121,7 +121,7 @@ describe("sync router", () => {
             type: "coordinate:create",
             payload: {
               id,
-              userId: TEMP_USER_ID,
+              userId: TEST_USER_ID,
               name: "春コーデ",
               garmentIds: ["g1", "g2"],
               isAiGenerated: false,
@@ -160,7 +160,7 @@ describe("sync router", () => {
             type: "coordinate:update",
             payload: {
               id,
-              userId: TEMP_USER_ID,
+              userId: TEST_USER_ID,
               name: "古い更新",
               garmentIds: [],
               isAiGenerated: false,
@@ -182,7 +182,7 @@ describe("sync router", () => {
             type: "coordinate:update",
             payload: {
               id,
-              userId: TEMP_USER_ID,
+              userId: TEST_USER_ID,
               name: "新しい更新",
               garmentIds: ["g1"],
               isAiGenerated: true,
@@ -240,7 +240,7 @@ describe("sync router", () => {
             type: "storageLocation:update",
             payload: {
               id: locationId,
-              userId: TEMP_USER_ID,
+              userId: TEST_USER_ID,
               caseId,
               label: "A-1",
               row: 0,
@@ -262,7 +262,7 @@ describe("sync router", () => {
             type: "storageLocation:update",
             payload: {
               id: locationId,
-              userId: TEMP_USER_ID,
+              userId: TEST_USER_ID,
               caseId,
               label: "A-1",
               customName: "新しい名前",

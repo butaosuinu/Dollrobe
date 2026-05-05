@@ -1,6 +1,10 @@
 import { createId } from "@paralleldrive/cuid2";
-import { TEMP_USER_ID } from "../trpc/lib/d1-helpers";
-import { createTestCaller, resetDatabase, getTestDb } from "./helpers";
+import {
+  createTestCaller,
+  resetDatabase,
+  getTestDb,
+  TEST_USER_ID,
+} from "./helpers";
 
 describe("sync で confidenceDecayDaysOverride を伝搬", () => {
   const caller = createTestCaller();
@@ -14,7 +18,7 @@ describe("sync で confidenceDecayDaysOverride を伝搬", () => {
     const id = createId();
     const basePayload = {
       id,
-      userId: TEMP_USER_ID,
+      userId: TEST_USER_ID,
       name: "テスト服",
       category: "dress",
       dollSizes: ["MSD"],

@@ -1,8 +1,7 @@
 import { createDrizzle } from "../../db/client";
 import * as locationService from "../../services/location-service";
 import { throwIfError } from "../../services/types";
-import { router, publicProcedure } from "../index";
-import { TEMP_USER_ID } from "../lib/d1-helpers";
+import { router, protectedProcedure } from "../index";
 import {
   cuidSchema,
   createCaseInputSchema,
@@ -12,93 +11,95 @@ import {
 } from "../lib/schemas";
 
 export const locationRouter = router({
-  listCases: publicProcedure.query(async ({ ctx }) =>
+  listCases: protectedProcedure.query(async ({ ctx }) =>
     throwIfError(
       await locationService.listCases({
         drizzleDb: createDrizzle(ctx.env.DB),
-        userId: TEMP_USER_ID,
+        userId: ctx.userId,
       }),
     ),
   ),
 
-  getCase: publicProcedure.input(cuidSchema).query(async ({ ctx, input: id }) =>
-    throwIfError(
-      await locationService.getCase({
-        drizzleDb: createDrizzle(ctx.env.DB),
-        id,
-        userId: TEMP_USER_ID,
-      }),
+  getCase: protectedProcedure
+    .input(cuidSchema)
+    .query(async ({ ctx, input: id }) =>
+      throwIfError(
+        await locationService.getCase({
+          drizzleDb: createDrizzle(ctx.env.DB),
+          id,
+          userId: ctx.userId,
+        }),
+      ),
     ),
-  ),
 
-  createCase: publicProcedure
+  createCase: protectedProcedure
     .input(createCaseInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await locationService.createCase({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           input,
         }),
       ),
     ),
 
-  updateCase: publicProcedure
+  updateCase: protectedProcedure
     .input(updateCaseInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await locationService.updateCase({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           input,
         }),
       ),
     ),
 
-  deleteCase: publicProcedure
+  deleteCase: protectedProcedure
     .input(cuidSchema)
     .mutation(async ({ ctx, input: id }) =>
       throwIfError(
         await locationService.deleteCase({
           drizzleDb: createDrizzle(ctx.env.DB),
           id,
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
         }),
       ),
     ),
 
-  updateLocation: publicProcedure
+  updateLocation: protectedProcedure
     .input(updateLocationInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await locationService.updateLocation({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           input,
         }),
       ),
     ),
 
-  createLocation: publicProcedure
+  createLocation: protectedProcedure
     .input(createLocationInputSchema)
     .mutation(async ({ ctx, input }) =>
       throwIfError(
         await locationService.createLocation({
           drizzleDb: createDrizzle(ctx.env.DB),
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
           input,
         }),
       ),
     ),
 
-  deleteLocation: publicProcedure
+  deleteLocation: protectedProcedure
     .input(cuidSchema)
     .mutation(async ({ ctx, input: id }) =>
       throwIfError(
         await locationService.deleteLocation({
           drizzleDb: createDrizzle(ctx.env.DB),
           id,
-          userId: TEMP_USER_ID,
+          userId: ctx.userId,
         }),
       ),
     ),

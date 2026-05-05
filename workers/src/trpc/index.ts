@@ -3,6 +3,7 @@ import type { Context as HonoContext } from "hono";
 import type { Env } from "../types";
 import type { Auth } from "../auth";
 import type { Logger } from "../lib/logger";
+import { resolveAuthenticatedUserId } from "../lib/auth-resolver";
 
 export type TRPCContext = {
   readonly env: Env;
@@ -36,24 +37,22 @@ const authMiddleware = t.middleware(async ({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const session = await ctx.auth.api
-    .getSession({
-      headers: ctx.honoContext.req.raw.headers,
-    })
-    .catch(() => undefined);
+  const userId = await resolveAuthenticatedUserId({
+    auth: ctx.auth,
+    headers: ctx.honoContext.req.raw.headers,
+  });
 
-  if (session == null) {
+  if (userId === undefined) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   return await next({
-    ctx: { ...ctx, userId: session.user.id },
+    ctx: { ...ctx, userId },
   });
 });
 
 export const { router } = t;
 export const createCallerFactory = t.createCallerFactory;
-export const publicProcedure = t.procedure.use(loggingMiddleware);
 export const protectedProcedure = t.procedure
   .use(loggingMiddleware)
   .use(authMiddleware);

@@ -5,12 +5,12 @@ import type {
   StorageLocation,
 } from "../../src/types/index";
 
-const TEMP_USER_ID = "temp-user-001";
+const E2E_TEST_USER_ID = "test-user-001";
 const FIXED_NOW = new Date("2025-06-15T00:00:00Z").getTime();
 
 export const createGarment = (overrides: Partial<Garment> = {}): Garment => ({
   id: "garment-1",
-  userId: TEMP_USER_ID,
+  userId: E2E_TEST_USER_ID,
   name: "テストドレス",
   category: "dress",
   dollSizes: ["SD"],
@@ -35,7 +35,7 @@ export const createGarment = (overrides: Partial<Garment> = {}): Garment => ({
 
 export const createDoll = (overrides: Partial<Doll> = {}): Doll => ({
   id: "doll-1",
-  userId: TEMP_USER_ID,
+  userId: E2E_TEST_USER_ID,
   name: "テストドール",
   headModel: undefined,
   bodySize: "SD",
@@ -53,7 +53,7 @@ export const createStorageCase = (
   overrides: Partial<StorageCase> = {},
 ): StorageCase => ({
   id: "case-1",
-  userId: TEMP_USER_ID,
+  userId: E2E_TEST_USER_ID,
   name: "衣装ケース A",
   type: "grid",
   description: undefined,
@@ -67,7 +67,7 @@ export const createStorageLocation = (
   overrides: Partial<StorageLocation> = {},
 ): StorageLocation => ({
   id: "loc-1",
-  userId: TEMP_USER_ID,
+  userId: E2E_TEST_USER_ID,
   caseId: "case-1",
   label: "A-1",
   customName: undefined,
@@ -81,4 +81,4 @@ export const createStorageLocation = (
   ...overrides,
 });
 
-export { TEMP_USER_ID, FIXED_NOW };
+export { E2E_TEST_USER_ID, FIXED_NOW };

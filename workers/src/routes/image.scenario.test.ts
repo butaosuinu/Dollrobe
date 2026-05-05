@@ -5,7 +5,11 @@ import { z } from "zod";
 import type { Env } from "../types";
 import type { Auth } from "../auth";
 import type { Logger } from "../lib/logger";
-import { createTestLogger } from "../test/helpers";
+import {
+  createStubAuth,
+  createTestLogger,
+  TEST_USER_ID,
+} from "../test/helpers";
 import { imageRoutes } from "./image";
 import { createId } from "@paralleldrive/cuid2";
 
@@ -28,10 +32,13 @@ const parseImageUrl = async (res: Response): Promise<string> => {
   return imageUrlSchema.parse(data).imageUrl;
 };
 
-const buildApp = () => {
+const buildApp = ({
+  authenticated = true,
+}: { readonly authenticated?: boolean } = {}) => {
   const app = new Hono<{ Bindings: Env; Variables: Variables }>();
   app.use("*", async (c, next) => {
     c.set("logger", createTestLogger());
+    c.set("auth", createStubAuth(authenticated ? TEST_USER_ID : undefined));
     await next();
   });
   app.route("/api/images", imageRoutes);
@@ -62,6 +69,20 @@ describe("imageRoutes /upload/:garmentId", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("認証なしの場合 401 を返す", async () => {
+    const app = buildApp({ authenticated: false });
+    const garmentId = createId();
+    const file = new File([new Uint8Array([10, 20, 30])], "x.png", {
+      type: "image/png",
+    });
+    const req = buildMultipartRequest({ garmentId, file });
+    const res = await app.fetch(req, env);
+
+    expect(res.status).toBe(401);
+    const message = await parseError(res);
+    expect(message).toBe("Unauthorized");
   });
 
   it("garmentId が空文字の場合 (ルート不一致) 404 を返す", async () => {
@@ -150,13 +171,13 @@ describe("imageRoutes /upload/:garmentId", () => {
     expect(res.status).toBe(200);
     const url = await parseImageUrl(res);
     expect(url).toBe(
-      `${env.R2_PUBLIC_URL}/garments/temp-user-001/${garmentId}/1700000000000.png`,
+      `${env.R2_PUBLIC_URL}/garments/test-user-001/${garmentId}/1700000000000.png`,
     );
     expect(putSpy).toHaveBeenCalledTimes(1);
     const firstCall = putSpy.mock.calls[0];
     expect(firstCall).toBeDefined();
     expect(firstCall?.[0]).toBe(
-      `garments/temp-user-001/${garmentId}/1700000000000.png`,
+      `garments/test-user-001/${garmentId}/1700000000000.png`,
     );
     expect(firstCall?.[2]).toEqual({
       httpMetadata: { contentType: "image/png" },

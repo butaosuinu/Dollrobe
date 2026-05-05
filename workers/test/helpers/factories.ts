@@ -1,5 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
-import { TEMP_USER_ID } from "../../src/trpc/lib/d1-helpers";
+import { TEST_USER_ID } from "../../src/test/helpers";
 
 type InsertGarmentParams = {
   readonly db: D1Database;
@@ -36,7 +36,7 @@ export const insertGarment = async ({
     )
     .bind(
       id,
-      TEMP_USER_ID,
+      TEST_USER_ID,
       overrides.name ?? "テストドレス",
       overrides.category ?? "dress",
       JSON.stringify(overrides.dollSizes ?? ["MSD"]),
@@ -83,7 +83,7 @@ export const insertStorageCase = async ({
     )
     .bind(
       id,
-      TEMP_USER_ID,
+      TEST_USER_ID,
       overrides.name ?? "テストケース",
       overrides.rows ?? 3,
       overrides.cols ?? 2,
@@ -119,7 +119,7 @@ export const insertStorageLocation = async ({
     )
     .bind(
       id,
-      TEMP_USER_ID,
+      TEST_USER_ID,
       caseId,
       overrides.label ?? "A-1",
       overrides.row ?? 0,
@@ -154,7 +154,7 @@ export const insertDoll = async ({ db, overrides = {} }: InsertDollParams) => {
     )
     .bind(
       id,
-      TEMP_USER_ID,
+      TEST_USER_ID,
       overrides.name ?? "テストドール",
       overrides.headModel ?? null,
       overrides.bodySize ?? "MSD",
@@ -193,7 +193,7 @@ export const insertCoordinate = async ({
     )
     .bind(
       id,
-      TEMP_USER_ID,
+      TEST_USER_ID,
       overrides.name ?? "テストコーデ",
       JSON.stringify(overrides.garmentIds ?? []),
       overrides.isAiGenerated === true ? 1 : 0,
@@ -234,7 +234,7 @@ export const insertDigest = async ({
     )
     .bind(
       id,
-      TEMP_USER_ID,
+      TEST_USER_ID,
       overrides.accuracyScore ?? 1,
       overrides.confirmedCount ?? 0,
       overrides.uncertainCount ?? 0,
