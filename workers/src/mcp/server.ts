@@ -73,8 +73,7 @@ export const mcpHandler = async (c: McpHonoContext): Promise<Response> => {
 
   const caller = createMcpCaller({
     env: c.env,
-    auth,
-    honoContext: c,
+    userId: mcpAuth.userId,
     logger: requestLogger,
   });
 

@@ -3,11 +3,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Hono } from "hono";
 import { mcpHandler, mcpMethodNotAllowed } from "./server";
 import type { Auth } from "../auth";
-import { createLogger } from "../lib/logger";
 import type { Logger } from "../lib/logger";
 import type { Env } from "../types";
-import { resetDatabase, getTestDb } from "../test/helpers";
+import {
+  createTestGarmentInput,
+  createTestLogger,
+  getTestDb,
+  resetDatabase,
+  TEST_USER_ID,
+} from "../test/helpers";
 import { createApiKeyAuthStub } from "../test/mcp-helpers";
+import { createMcpCaller } from "./adapter";
 
 type TestVariables = {
   auth: Auth;
@@ -19,7 +25,7 @@ const buildApp = (auth: Auth) => {
   const app = new Hono<{ Bindings: Env; Variables: TestVariables }>();
   app.use("*", async (c, next) => {
     c.set("requestId", "test-req-id");
-    c.set("logger", createLogger({ minLevel: "error" }));
+    c.set("logger", createTestLogger());
     c.set("auth", auth);
     await next();
   });
@@ -88,6 +94,68 @@ describe("/api/mcp Hono handler", () => {
     const app = buildApp(auth);
     const res = await app.request("/api/mcp", { method: "DELETE" }, env);
     expect(res.status).toBe(405);
+  });
+
+  it("uses the API key's userId even when a valid session cookie names a different user", async () => {
+    // Cross-account regression: a request that carries Authorization (userA's
+    // API key) AND a Cookie (userB's session) must run as userA — the holder
+    // of the API key whose scope was just verified. Pre-fix, tRPC's
+    // resolveAuthenticatedUserId preferred the cookie session.
+    const aliceCaller = createMcpCaller({
+      env,
+      userId: "alice",
+      logger: createTestLogger(),
+    });
+    await aliceCaller.garment.create(
+      createTestGarmentInput({ name: "Alice's secret dress" }),
+    );
+
+    // Auth stub that resolves the Bearer to TEST_USER_ID AND the cookie
+    // session to "alice". Without preAuthenticatedUserId in the tRPC ctx,
+    // resolveAuthenticatedUserId would prefer getSession → "alice".
+    const stub = {
+      api: {
+        verifyApiKey: vi.fn().mockResolvedValue({
+          valid: true,
+          key: { referenceId: TEST_USER_ID, permissions: { mcp: ["read"] } },
+        }),
+        getSession: vi.fn().mockResolvedValue({
+          user: { id: "alice" },
+          session: { id: "alice-session", userId: "alice" },
+        }),
+      },
+    };
+    const auth = stub as unknown as Auth;
+    const app = buildApp(auth);
+
+    const res = await app.request(
+      "/api/mcp",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer test-key",
+          Cookie: "better-auth.session_token=alice-forged",
+          "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "list_garments",
+            arguments: {},
+          },
+        }),
+      },
+      env,
+    );
+    expect(res.status).toBe(200);
+
+    // The MCP path must not consult getSession: it should never run since
+    // preAuthenticatedUserId short-circuits the auth middleware entirely.
+    expect(stub.api.getSession).not.toHaveBeenCalled();
+    expect(stub.api.verifyApiKey).toHaveBeenCalledTimes(1);
   });
 
   it("lists all 7 MCP tools for an authorized read API key", async () => {

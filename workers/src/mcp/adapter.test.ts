@@ -9,13 +9,11 @@ import {
   forbiddenResult,
 } from "./adapter";
 import {
-  createStubAuth,
   createTestGarmentInput,
   createTestLogger,
   getTestDb,
   resetDatabase,
 } from "../test/helpers";
-import { createStubHonoContext } from "../test/mcp-helpers";
 
 describe("createMcpCaller", () => {
   beforeEach(async () => {
@@ -25,8 +23,7 @@ describe("createMcpCaller", () => {
   it("calls tRPC procedures with the provided userId", async () => {
     const caller = createMcpCaller({
       env,
-      auth: createStubAuth("mcp-user-001"),
-      honoContext: createStubHonoContext(),
+      userId: "mcp-user-001",
       logger: createTestLogger(),
     });
 
@@ -42,14 +39,12 @@ describe("createMcpCaller", () => {
   it("does not leak data between users", async () => {
     const aliceCaller = createMcpCaller({
       env,
-      auth: createStubAuth("alice"),
-      honoContext: createStubHonoContext(),
+      userId: "alice",
       logger: createTestLogger(),
     });
     const bobCaller = createMcpCaller({
       env,
-      auth: createStubAuth("bob"),
-      honoContext: createStubHonoContext(),
+      userId: "bob",
       logger: createTestLogger(),
     });
 

@@ -1,10 +1,8 @@
-import type { Context as HonoContext } from "hono";
 import { TRPCError } from "@trpc/server";
 import { createCallerFactory } from "../trpc/index";
 import type { TRPCContext } from "../trpc/index";
 import { appRouter } from "../trpc/router";
 import type { Env } from "../types";
-import type { Auth } from "../auth";
 import type { Logger } from "../lib/logger";
 
 const createCaller = createCallerFactory(appRouter);
@@ -13,19 +11,16 @@ export type McpCaller = ReturnType<typeof createCaller>;
 
 export const createMcpCaller = ({
   env,
-  auth,
-  honoContext,
+  userId,
   logger,
 }: {
   readonly env: Env;
-  readonly auth: Auth;
-  readonly honoContext: HonoContext;
+  readonly userId: string;
   readonly logger: Logger;
 }): McpCaller => {
   const ctx: TRPCContext = {
     env,
-    auth,
-    honoContext,
+    preAuthenticatedUserId: userId,
     logger: logger.child({ source: "mcp" }),
   };
   return createCaller(ctx);

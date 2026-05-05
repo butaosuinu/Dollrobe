@@ -3,7 +3,7 @@ import type { Context as HonoContext } from "hono";
 import type { Auth } from "../auth";
 import { createMcpCaller } from "../mcp/adapter";
 import type { McpScope } from "../mcp/scopes";
-import { createStubAuth, createTestLogger, TEST_USER_ID } from "./helpers";
+import { createTestLogger, TEST_USER_ID } from "./helpers";
 
 export const createStubHonoContext = (): HonoContext => {
   const headers = new Headers();
@@ -24,8 +24,7 @@ export const buildMcpToolCtx = (
 ) => ({
   caller: createMcpCaller({
     env,
-    auth: createStubAuth(options.userId ?? TEST_USER_ID),
-    honoContext: createStubHonoContext(),
+    userId: options.userId ?? TEST_USER_ID,
     logger: createTestLogger(),
   }),
   scope,
