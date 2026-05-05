@@ -18,19 +18,19 @@ import Skeleton from "@/components/ui/Skeleton";
 
 const ApiKeysPage = () => {
   const router = useRouter();
-  const { isAuthenticated } = useAtomValue(authSessionUnwrappedAtom);
+  const { isAuthenticated, isLoading } = useAtomValue(authSessionUnwrappedAtom);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createdKey, setCreatedKey] = useState<CreatedApiKey | undefined>(
     undefined,
   );
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       router.replace("/signin");
     }
-  }, [isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, router]);
 
-  if (!isAuthenticated) {
+  if (isLoading || !isAuthenticated) {
     return undefined;
   }
 

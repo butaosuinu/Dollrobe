@@ -11,15 +11,15 @@ import PageHeader from "@/components/ui/PageHeader";
 
 const SignInPage = () => {
   const router = useRouter();
-  const { isAuthenticated } = useAtomValue(authSessionUnwrappedAtom);
+  const { isAuthenticated, isLoading } = useAtomValue(authSessionUnwrappedAtom);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!isLoading && isAuthenticated) {
       router.replace("/");
     }
-  }, [isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, router]);
 
-  if (isAuthenticated) {
+  if (isLoading || isAuthenticated) {
     return undefined;
   }
 

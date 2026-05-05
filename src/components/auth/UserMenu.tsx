@@ -17,7 +17,7 @@ const UserMenu = () => {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) {
+  if (!isMounted || authState.isLoading) {
     return undefined;
   }
 
