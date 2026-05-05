@@ -1,0 +1,98 @@
+import type { Context as HonoContext } from "hono";
+import { TRPCError } from "@trpc/server";
+import { createCallerFactory } from "../trpc/index";
+import type { TRPCContext } from "../trpc/index";
+import { appRouter } from "../trpc/router";
+import type { Env } from "../types";
+import type { Auth } from "../auth";
+import type { Logger } from "../lib/logger";
+
+const createCaller = createCallerFactory(appRouter);
+
+export type McpCaller = ReturnType<typeof createCaller>;
+
+export const createMcpCaller = ({
+  env,
+  auth,
+  honoContext,
+  logger,
+}: {
+  readonly env: Env;
+  readonly auth: Auth;
+  readonly honoContext: HonoContext;
+  readonly logger: Logger;
+}): McpCaller => {
+  const ctx: TRPCContext = {
+    env,
+    auth,
+    honoContext,
+    logger: logger.child({ source: "mcp" }),
+  };
+  return createCaller(ctx);
+};
+
+export type CallToolResult = {
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent?: Record<string, unknown>;
+  isError?: boolean;
+};
+
+const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+export const okResult = (data: unknown): CallToolResult => ({
+  content: [{ type: "text", text: JSON.stringify(data) }],
+  ...(isPlainRecord(data) && { structuredContent: data }),
+});
+
+export const errorResult = (
+  message: string,
+  code?: string,
+): CallToolResult => ({
+  content: [{ type: "text", text: JSON.stringify({ error: message, code }) }],
+  isError: true,
+});
+
+export const toErrorResult = (err: unknown): CallToolResult => {
+  if (err instanceof TRPCError) {
+    return errorResult(err.message, err.code);
+  }
+  if (err instanceof Error) {
+    return errorResult(err.message);
+  }
+  return errorResult("Unknown error");
+};
+
+export type SafeCallResult<T> =
+  | { readonly ok: true; readonly value: T }
+  | { readonly ok: false; readonly error: unknown };
+
+const SAFE_CALL_FAILURE_KEY = "__mcpSafeCallFailure" as const;
+type FailureBox = {
+  readonly [SAFE_CALL_FAILURE_KEY]: true;
+  readonly error: unknown;
+};
+
+export const safeCall = async <T>(
+  promise: Promise<T>,
+): Promise<SafeCallResult<T>> => {
+  const value: T | FailureBox = await promise.catch(
+    (error: unknown): FailureBox => ({
+      [SAFE_CALL_FAILURE_KEY]: true,
+      error,
+    }),
+  );
+  if (
+    value !== null &&
+    typeof value === "object" &&
+    SAFE_CALL_FAILURE_KEY in value
+  ) {
+    return { ok: false, error: value.error };
+  }
+  return { ok: true, value };
+};
+
+export type McpToolHandlerContext = {
+  readonly caller: McpCaller;
+  readonly logger: Logger;
+};
