@@ -1,15 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import type { Auth } from "../auth";
 import { resolveMcpAuth } from "./auth";
-
-type VerifyFn = (args: { body: { key: string } }) => Promise<unknown>;
-
-const createMockAuth = (verifyApiKey: VerifyFn): Auth => {
-  const stub = {
-    api: { verifyApiKey },
-  };
-  return stub as unknown as Auth;
-};
+import { createApiKeyAuthStub } from "../test/mcp-helpers";
 
 const headersWith = (auth: string | undefined): Headers => {
   const headers = new Headers();
@@ -23,7 +14,7 @@ describe("resolveMcpAuth", () => {
   it("returns undefined when Authorization header is missing", async () => {
     const verify = vi.fn();
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith(undefined),
     });
     expect(result).toBeUndefined();
@@ -33,7 +24,7 @@ describe("resolveMcpAuth", () => {
   it("returns undefined for non-Bearer authorization scheme", async () => {
     const verify = vi.fn();
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith("Basic dXNlcjpwYXNz"),
     });
     expect(result).toBeUndefined();
@@ -43,7 +34,7 @@ describe("resolveMcpAuth", () => {
   it("returns undefined when Bearer key is empty", async () => {
     const verify = vi.fn();
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith("Bearer "),
     });
     expect(result).toBeUndefined();
@@ -53,7 +44,7 @@ describe("resolveMcpAuth", () => {
   it("returns undefined when verifyApiKey reports invalid", async () => {
     const verify = vi.fn().mockResolvedValue({ valid: false });
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith("Bearer abc123"),
     });
     expect(result).toBeUndefined();
@@ -63,7 +54,7 @@ describe("resolveMcpAuth", () => {
   it("returns undefined when verifyApiKey throws", async () => {
     const verify = vi.fn().mockRejectedValue(new Error("DB error"));
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith("Bearer abc123"),
     });
     expect(result).toBeUndefined();
@@ -75,7 +66,7 @@ describe("resolveMcpAuth", () => {
       key: { permissions: { mcp: ["read"] } },
     });
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith("Bearer abc123"),
     });
     expect(result).toBeUndefined();
@@ -87,7 +78,7 @@ describe("resolveMcpAuth", () => {
       key: { referenceId: "user-1", permissions: {} },
     });
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith("Bearer abc123"),
     });
     expect(result).toBeUndefined();
@@ -99,7 +90,7 @@ describe("resolveMcpAuth", () => {
       key: { referenceId: "user-1", permissions: { mcp: ["read"] } },
     });
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith("Bearer key-read"),
     });
     expect(result).toEqual({ userId: "user-1", scope: "read" });
@@ -114,7 +105,7 @@ describe("resolveMcpAuth", () => {
       },
     });
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith("Bearer key-write"),
     });
     expect(result).toEqual({ userId: "user-2", scope: "write" });
@@ -126,7 +117,7 @@ describe("resolveMcpAuth", () => {
       key: { referenceId: "user-3", permissions: { mcp: ["read"] } },
     });
     const result = await resolveMcpAuth({
-      auth: createMockAuth(verify),
+      auth: createApiKeyAuthStub(verify),
       headers: headersWith("bearer xyz"),
     });
     expect(result).toEqual({ userId: "user-3", scope: "read" });

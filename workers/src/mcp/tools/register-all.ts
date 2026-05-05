@@ -1,28 +1,25 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { Logger } from "../../lib/logger";
-import type { McpCaller } from "../adapter";
-import type { McpScope } from "../scopes";
-import { registerListGarments } from "./list-garments";
-import { registerGetGarment } from "./get-garment";
-import { registerListDolls } from "./list-dolls";
-import { registerListStorageCases } from "./list-storage-cases";
-import { registerGetStorageCase } from "./get-storage-case";
-import { registerGetOrganizationDigest } from "./get-organization-digest";
-import { registerAddGarmentTags } from "./add-garment-tags";
+import { addGarmentTagsTool } from "./add-garment-tags";
+import type { DefinedTool, ToolContext } from "./define-tool";
+import { getGarmentTool } from "./get-garment";
+import { getOrganizationDigestTool } from "./get-organization-digest";
+import { getStorageCaseTool } from "./get-storage-case";
+import { listDollsTool } from "./list-dolls";
+import { listGarmentsTool } from "./list-garments";
+import { listStorageCasesTool } from "./list-storage-cases";
 
-export const registerAllTools = (
-  server: McpServer,
-  ctx: {
-    readonly caller: McpCaller;
-    readonly scope: McpScope;
-    readonly logger: Logger;
-  },
-): void => {
-  registerListGarments(server, ctx);
-  registerGetGarment(server, ctx);
-  registerListDolls(server, ctx);
-  registerListStorageCases(server, ctx);
-  registerGetStorageCase(server, ctx);
-  registerGetOrganizationDigest(server, ctx);
-  registerAddGarmentTags(server, ctx);
+export const ALL_TOOLS: readonly DefinedTool[] = [
+  listGarmentsTool,
+  getGarmentTool,
+  listDollsTool,
+  listStorageCasesTool,
+  getStorageCaseTool,
+  getOrganizationDigestTool,
+  addGarmentTagsTool,
+];
+
+export const registerAllTools = (server: McpServer, ctx: ToolContext): void => {
+  ALL_TOOLS.forEach((tool) => {
+    tool.register(server, ctx);
+  });
 };

@@ -1,12 +1,12 @@
 import { env } from "cloudflare:test";
 import { describe, it, expect, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
-import type { Context as HonoContext } from "hono";
 import {
   createMcpCaller,
   okResult,
   errorResult,
   toErrorResult,
+  forbiddenResult,
 } from "./adapter";
 import {
   createStubAuth,
@@ -15,12 +15,7 @@ import {
   getTestDb,
   resetDatabase,
 } from "../test/helpers";
-
-const createStubHonoContext = (): HonoContext => {
-  const headers = new Headers();
-  const stub = { req: { raw: { headers } } };
-  return stub as unknown as HonoContext;
-};
+import { createStubHonoContext } from "../test/mcp-helpers";
 
 describe("createMcpCaller", () => {
   beforeEach(async () => {
@@ -91,7 +86,7 @@ describe("okResult", () => {
   });
 });
 
-describe("errorResult", () => {
+describe("errorResult / forbiddenResult", () => {
   it("returns isError true with serialized message", () => {
     const result = errorResult("Forbidden", "FORBIDDEN");
     expect(result.isError).toBe(true);
@@ -105,6 +100,13 @@ describe("errorResult", () => {
     expect(result.content[0]?.text).toBe(
       JSON.stringify({ error: "Internal error" }),
     );
+  });
+
+  it("forbiddenResult interpolates the required scope", () => {
+    const result = forbiddenResult("write");
+    expect(result.isError).toBe(true);
+    expect(result.content[0]?.text).toContain("write scope required");
+    expect(result.content[0]?.text).toContain("FORBIDDEN");
   });
 });
 

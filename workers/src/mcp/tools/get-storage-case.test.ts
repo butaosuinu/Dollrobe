@@ -1,43 +1,22 @@
-import { env } from "cloudflare:test";
 import { describe, it, expect, beforeEach } from "vitest";
-import type { Context as HonoContext } from "hono";
-import { handleGetStorageCase } from "./get-storage-case";
-import { createMcpCaller } from "../adapter";
+import { getStorageCaseTool } from "./get-storage-case";
 import {
-  createStubAuth,
   createTestCaseInput,
-  createTestLogger,
   getTestDb,
   resetDatabase,
 } from "../../test/helpers";
+import { buildMcpToolCtx } from "../../test/mcp-helpers";
 
-const createStubHonoContext = (): HonoContext => {
-  const headers = new Headers();
-  const stub = { req: { raw: { headers } } };
-  return stub as unknown as HonoContext;
-};
-
-const buildCtx = (scope: "read" | "write") => ({
-  caller: createMcpCaller({
-    env,
-    auth: createStubAuth("mcp-user"),
-    honoContext: createStubHonoContext(),
-    logger: createTestLogger(),
-  }),
-  scope,
-  logger: createTestLogger(),
-});
-
-describe("handleGetStorageCase", () => {
+describe("getStorageCaseTool", () => {
   beforeEach(async () => {
     await resetDatabase(getTestDb());
   });
 
   it("returns the storage case with its locations", async () => {
-    const ctx = buildCtx("read");
+    const ctx = buildMcpToolCtx("read");
     const created = await ctx.caller.location.createCase(createTestCaseInput());
 
-    const result = await handleGetStorageCase({ id: created.id }, ctx);
+    const result = await getStorageCaseTool.handle({ id: created.id }, ctx);
 
     expect(result.isError).toBeUndefined();
     const detail = result.structuredContent as {

@@ -1,45 +1,24 @@
-import { env } from "cloudflare:test";
 import { describe, it, expect, beforeEach } from "vitest";
-import type { Context as HonoContext } from "hono";
-import { handleAddGarmentTags } from "./add-garment-tags";
-import { createMcpCaller } from "../adapter";
+import { addGarmentTagsTool } from "./add-garment-tags";
 import {
-  createStubAuth,
   createTestGarmentInput,
-  createTestLogger,
   getTestDb,
   resetDatabase,
 } from "../../test/helpers";
+import { buildMcpToolCtx } from "../../test/mcp-helpers";
 
-const createStubHonoContext = (): HonoContext => {
-  const headers = new Headers();
-  const stub = { req: { raw: { headers } } };
-  return stub as unknown as HonoContext;
-};
-
-const buildCtx = (scope: "read" | "write") => ({
-  caller: createMcpCaller({
-    env,
-    auth: createStubAuth("mcp-user"),
-    honoContext: createStubHonoContext(),
-    logger: createTestLogger(),
-  }),
-  scope,
-  logger: createTestLogger(),
-});
-
-describe("handleAddGarmentTags", () => {
+describe("addGarmentTagsTool", () => {
   beforeEach(async () => {
     await resetDatabase(getTestDb());
   });
 
   it("rejects with FORBIDDEN when scope is read-only", async () => {
-    const ctx = buildCtx("read");
+    const ctx = buildMcpToolCtx("read");
     const created = await ctx.caller.garment.create(
       createTestGarmentInput({ tags: ["a"] }),
     );
 
-    const result = await handleAddGarmentTags(
+    const result = await addGarmentTagsTool.handle(
       { id: created.id, tags: ["b"] },
       ctx,
     );
@@ -53,12 +32,12 @@ describe("handleAddGarmentTags", () => {
   });
 
   it("merges new tags with existing tags and deduplicates", async () => {
-    const ctx = buildCtx("write");
+    const ctx = buildMcpToolCtx("write");
     const created = await ctx.caller.garment.create(
       createTestGarmentInput({ tags: ["red", "summer"] }),
     );
 
-    const result = await handleAddGarmentTags(
+    const result = await addGarmentTagsTool.handle(
       { id: created.id, tags: ["summer", "floral"] },
       ctx,
     );
@@ -69,7 +48,7 @@ describe("handleAddGarmentTags", () => {
   });
 
   it("preserves non-tag fields (whitelist behaviour)", async () => {
-    const ctx = buildCtx("write");
+    const ctx = buildMcpToolCtx("write");
     const created = await ctx.caller.garment.create(
       createTestGarmentInput({
         name: "保護対象ドレス",
@@ -77,7 +56,7 @@ describe("handleAddGarmentTags", () => {
       }),
     );
 
-    await handleAddGarmentTags({ id: created.id, tags: ["new"] }, ctx);
+    await addGarmentTagsTool.handle({ id: created.id, tags: ["new"] }, ctx);
 
     const reread = await ctx.caller.garment.get({ id: created.id });
     expect(reread.name).toBe("保護対象ドレス");
@@ -86,8 +65,8 @@ describe("handleAddGarmentTags", () => {
   });
 
   it("returns isError when garment does not exist", async () => {
-    const ctx = buildCtx("write");
-    const result = await handleAddGarmentTags(
+    const ctx = buildMcpToolCtx("write");
+    const result = await addGarmentTagsTool.handle(
       { id: "nonexistent-id-12345", tags: ["x"] },
       ctx,
     );

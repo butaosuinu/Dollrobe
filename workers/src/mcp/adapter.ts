@@ -53,6 +53,9 @@ export const errorResult = (
   isError: true,
 });
 
+export const forbiddenResult = (requiredScope: string): CallToolResult =>
+  errorResult(`Forbidden: ${requiredScope} scope required`, "FORBIDDEN");
+
 export const toErrorResult = (err: unknown): CallToolResult => {
   if (err instanceof TRPCError) {
     return errorResult(err.message, err.code);
@@ -90,9 +93,4 @@ export const safeCall = async <T>(
     return { ok: false, error: value.error };
   }
   return { ok: true, value };
-};
-
-export type McpToolHandlerContext = {
-  readonly caller: McpCaller;
-  readonly logger: Logger;
 };

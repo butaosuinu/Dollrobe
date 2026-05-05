@@ -7,6 +7,7 @@ import { createLogger } from "../lib/logger";
 import type { Logger } from "../lib/logger";
 import type { Env } from "../types";
 import { resetDatabase, getTestDb } from "../test/helpers";
+import { createApiKeyAuthStub } from "../test/mcp-helpers";
 
 type TestVariables = {
   auth: Auth;
@@ -28,20 +29,13 @@ const buildApp = (auth: Auth) => {
   return app;
 };
 
-const buildAuth = (
-  verifyApiKey: (args: { body: { key: string } }) => Promise<unknown>,
-): Auth => {
-  const stub = { api: { verifyApiKey } };
-  return stub as unknown as Auth;
-};
-
 describe("/api/mcp Hono handler", () => {
   beforeEach(async () => {
     await resetDatabase(getTestDb());
   });
 
   it("rejects requests without Bearer token with 401 + JSON-RPC error", async () => {
-    const auth = buildAuth(vi.fn());
+    const auth = createApiKeyAuthStub(vi.fn());
     const app = buildApp(auth);
     const res = await app.request(
       "/api/mcp",
@@ -58,7 +52,7 @@ describe("/api/mcp Hono handler", () => {
   });
 
   it("rejects API keys without mcp scope with 401", async () => {
-    const auth = buildAuth(
+    const auth = createApiKeyAuthStub(
       vi.fn().mockResolvedValue({
         valid: true,
         key: { referenceId: "user-1", permissions: {} },
@@ -78,7 +72,7 @@ describe("/api/mcp Hono handler", () => {
   });
 
   it("returns 405 with JSON-RPC error for GET requests", async () => {
-    const auth = buildAuth(vi.fn());
+    const auth = createApiKeyAuthStub(vi.fn());
     const app = buildApp(auth);
     const res = await app.request("/api/mcp", { method: "GET" }, env);
     expect(res.status).toBe(405);
@@ -90,14 +84,14 @@ describe("/api/mcp Hono handler", () => {
   });
 
   it("returns 405 for DELETE requests", async () => {
-    const auth = buildAuth(vi.fn());
+    const auth = createApiKeyAuthStub(vi.fn());
     const app = buildApp(auth);
     const res = await app.request("/api/mcp", { method: "DELETE" }, env);
     expect(res.status).toBe(405);
   });
 
   it("lists all 7 MCP tools for an authorized read API key", async () => {
-    const auth = buildAuth(
+    const auth = createApiKeyAuthStub(
       vi.fn().mockResolvedValue({
         valid: true,
         key: {

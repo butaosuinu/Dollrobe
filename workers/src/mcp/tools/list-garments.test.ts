@@ -1,40 +1,19 @@
-import { env } from "cloudflare:test";
 import { describe, it, expect, beforeEach } from "vitest";
-import { handleListGarments } from "./list-garments";
-import { createMcpCaller } from "../adapter";
+import { listGarmentsTool } from "./list-garments";
 import {
-  createStubAuth,
   createTestGarmentInput,
-  createTestLogger,
   getTestDb,
   resetDatabase,
 } from "../../test/helpers";
-import type { Context as HonoContext } from "hono";
+import { buildMcpToolCtx } from "../../test/mcp-helpers";
 
-const createStubHonoContext = (): HonoContext => {
-  const headers = new Headers();
-  const stub = { req: { raw: { headers } } };
-  return stub as unknown as HonoContext;
-};
-
-const buildCtx = (scope: "read" | "write") => ({
-  caller: createMcpCaller({
-    env,
-    auth: createStubAuth("mcp-user"),
-    honoContext: createStubHonoContext(),
-    logger: createTestLogger(),
-  }),
-  scope,
-  logger: createTestLogger(),
-});
-
-describe("handleListGarments", () => {
+describe("listGarmentsTool", () => {
   beforeEach(async () => {
     await resetDatabase(getTestDb());
   });
 
-  it("returns the user's garments as structured content", async () => {
-    const ctx = buildCtx("read");
+  it("returns the user's garments as text content (parseable JSON)", async () => {
+    const ctx = buildMcpToolCtx("read");
     await ctx.caller.garment.create(
       createTestGarmentInput({ name: "ドレス A" }),
     );
@@ -42,7 +21,7 @@ describe("handleListGarments", () => {
       createTestGarmentInput({ name: "ドレス B" }),
     );
 
-    const result = await handleListGarments({}, ctx);
+    const result = await listGarmentsTool.handle({}, ctx);
 
     expect(result.isError).toBeUndefined();
     const list = JSON.parse(result.content[0]!.text) as Array<{
@@ -52,7 +31,7 @@ describe("handleListGarments", () => {
   });
 
   it("filters garments by category", async () => {
-    const ctx = buildCtx("read");
+    const ctx = buildMcpToolCtx("read");
     await ctx.caller.garment.create(
       createTestGarmentInput({ name: "ドレス", category: "dress" }),
     );
@@ -60,7 +39,7 @@ describe("handleListGarments", () => {
       createTestGarmentInput({ name: "シャツ", category: "tops" }),
     );
 
-    const result = await handleListGarments({ category: "dress" }, ctx);
+    const result = await listGarmentsTool.handle({ category: "dress" }, ctx);
 
     const list = JSON.parse(result.content[0]!.text) as Array<{
       name: string;
@@ -71,8 +50,8 @@ describe("handleListGarments", () => {
   });
 
   it("returns empty list when no garments exist", async () => {
-    const ctx = buildCtx("read");
-    const result = await handleListGarments({}, ctx);
+    const ctx = buildMcpToolCtx("read");
+    const result = await listGarmentsTool.handle({}, ctx);
 
     expect(result.isError).toBeUndefined();
     expect(JSON.parse(result.content[0]!.text)).toEqual([]);

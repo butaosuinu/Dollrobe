@@ -111,9 +111,8 @@ export const mcpHandler = async (c: McpHonoContext): Promise<Response> => {
       return internalError(c);
     });
 
-  // Cleanup transport / server in the background. Hono's executionCtx getter
-  // throws when no Workers ExecutionContext is attached (e.g. tests using
-  // app.request without a vexed context), so guard with a tolerant accessor.
+  // Hono's executionCtx getter throws when no Workers ExecutionContext is attached
+  // (e.g. tests using app.request); fall back to fire-and-forget in that case.
   const cleanup = Promise.allSettled([transport.close(), server.close()]);
   const execCtx = await readExecutionCtx(c);
   if (execCtx !== undefined) {
