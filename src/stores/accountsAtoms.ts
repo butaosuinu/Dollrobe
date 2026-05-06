@@ -18,9 +18,12 @@ const accountsAtom = atom(async (get): Promise<AccountsState> => {
     : [];
 });
 
+// 初回ロード中 (prev 未確定) も "error" 扱いにすることで fail-closed を効かせる。
+// [] フォールバックにすると credential ありユーザーがロード完了前に setPassword
+// 分岐へ流れて誤送信する race を防ぐ。
 export const accountsUnwrappedAtom = unwrap(
   accountsAtom,
-  (prev): AccountsState => prev ?? [],
+  (prev): AccountsState => prev ?? "error",
 );
 
 export const hasPasswordAtom = atom((get) => {
