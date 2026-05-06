@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { Trans } from "@lingui/react/macro";
+import { hasPasswordAtom } from "@/stores/accountsAtoms";
 import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
 import DeleteAccountSection from "@/components/settings/account/DeleteAccountSection";
 import EmailChangeForm from "@/components/settings/account/EmailChangeForm";
@@ -16,6 +17,7 @@ const AccountSettingsPage = () => {
   const { user, isAuthenticated, isLoading } = useAtomValue(
     authSessionUnwrappedAtom,
   );
+  const hasPassword = useAtomValue(hasPasswordAtom);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -26,10 +28,6 @@ const AccountSettingsPage = () => {
   if (isLoading || !isAuthenticated || user === undefined) {
     return undefined;
   }
-
-  // OAuth-only ユーザーの password 列の有無はクライアントから判定できないため、
-  // 入力は常に表示し、不正な値は better-auth 側で弾いて失敗トーストで案内する。
-  const hasPassword = true;
 
   return (
     <div className="flex flex-col gap-4">

@@ -25,6 +25,11 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
       minPasswordLength: 8,
       maxPasswordLength: 128,
     },
+    // 退会・メール変更でセッションの freshAge 制約を無効化
+    // (UI 側でメール再入力 / 現在のパスワード入力で本人性を担保)
+    session: {
+      freshAge: 0,
+    },
     socialProviders: {
       twitter: {
         clientId: env.TWITTER_CLIENT_ID,

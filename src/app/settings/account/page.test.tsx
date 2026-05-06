@@ -101,6 +101,36 @@ describe("AccountSettingsPage", () => {
     });
   });
 
+  it("OAuth-only ユーザーはパスワード設定モードで現在のパスワード入力が出ない", async () => {
+    const { spies } = setupAuthClient({
+      accounts: [{ providerId: "google" }],
+    });
+    const user = userEvent.setup();
+    await renderWithProviders(<AccountSettingsPage />);
+
+    await screen.findByRole("heading", { name: "パスワード" });
+
+    expect(screen.queryByLabelText("現在のパスワード")).toBeNull();
+    expect(
+      await screen.findByRole("button", { name: "パスワードを設定" }),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("パスワード"), "newpass12");
+    await user.type(
+      screen.getByLabelText("新しいパスワード（確認）"),
+      "newpass12",
+    );
+    await user.click(screen.getByRole("button", { name: "パスワードを設定" }));
+
+    await waitFor(() => {
+      expect(spies.changePassword).toHaveBeenCalledWith({
+        currentPassword: undefined,
+        newPassword: "newpass12",
+        newPasswordConfirm: "newpass12",
+      });
+    });
+  });
+
   it("退会フローでメール一致時のみ削除ボタンが有効", async () => {
     const { spies } = setupAuthClient();
     const { router } = setupNextNavigation();

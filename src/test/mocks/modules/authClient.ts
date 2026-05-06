@@ -6,6 +6,7 @@ import type {
   ChangePasswordInput,
   CreatedApiKey,
   DeleteAccountInput,
+  LinkedAccount,
   SignInEmailInput,
   UpdateProfileInput,
 } from "@/lib/auth";
@@ -20,11 +21,13 @@ type Spies = {
   readonly changeEmail: ReturnType<typeof vi.fn>;
   readonly changePassword: ReturnType<typeof vi.fn>;
   readonly deleteAccount: ReturnType<typeof vi.fn>;
+  readonly listAccounts: ReturnType<typeof vi.fn>;
 };
 
 type State = {
   readonly apiKeys: readonly ApiKeySummary[];
   readonly nextCreated: CreatedApiKey | undefined;
+  readonly accounts: readonly LinkedAccount[];
   readonly createShouldFail: boolean;
   readonly listShouldFail: boolean;
   readonly revokeShouldFail: boolean;
@@ -40,6 +43,7 @@ type State = {
 const createInitial = (): State => ({
   apiKeys: [],
   nextCreated: undefined,
+  accounts: [{ providerId: "credential" }],
   createShouldFail: false,
   listShouldFail: false,
   revokeShouldFail: false,
@@ -59,6 +63,7 @@ const createInitial = (): State => ({
     changeEmail: vi.fn(),
     changePassword: vi.fn(),
     deleteAccount: vi.fn(),
+    listAccounts: vi.fn(),
   },
 });
 
@@ -161,12 +166,18 @@ export const authClientFactory = async () => {
         await Promise.reject(new Error("Failed to delete account"));
       }
     },
+    listAccounts: async (): Promise<readonly LinkedAccount[]> => {
+      const s = getState();
+      s.spies.listAccounts();
+      return await Promise.resolve(s.accounts);
+    },
   };
 };
 
 type SetupOverrides = {
   readonly apiKeys?: readonly ApiKeySummary[];
   readonly nextCreated?: CreatedApiKey;
+  readonly accounts?: readonly LinkedAccount[];
   readonly createShouldFail?: boolean;
   readonly listShouldFail?: boolean;
   readonly revokeShouldFail?: boolean;
@@ -189,10 +200,12 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
   current.spies.changeEmail.mockClear();
   current.spies.changePassword.mockClear();
   current.spies.deleteAccount.mockClear();
+  current.spies.listAccounts.mockClear();
 
   setState({
     apiKeys: overrides.apiKeys ?? [],
     nextCreated: overrides.nextCreated,
+    accounts: overrides.accounts ?? [{ providerId: "credential" }],
     createShouldFail: overrides.createShouldFail ?? false,
     listShouldFail: overrides.listShouldFail ?? false,
     revokeShouldFail: overrides.revokeShouldFail ?? false,

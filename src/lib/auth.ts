@@ -52,6 +52,15 @@ export const getSession = async (): Promise<SessionResponse> => {
   };
 };
 
+export type LinkedAccount = {
+  readonly providerId: string;
+};
+
+export const listAccounts = async (): Promise<readonly LinkedAccount[]> => {
+  const { data, error } = await client.listAccounts();
+  return error === null ? data.map((a) => ({ providerId: a.providerId })) : [];
+};
+
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
 const NAME_MAX = 60;
