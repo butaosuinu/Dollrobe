@@ -7,17 +7,29 @@ import { authSessionAtom } from "@/stores/authAtoms";
 
 const CREDENTIAL_PROVIDER_ID = "credential";
 
-const accountsAtom = atom(async (get): Promise<readonly LinkedAccount[]> => {
+// 取得失敗を「credential 無し」と誤認させないため、エラーは "error" sentinel で
+// 表現する。fail-closed (= credential あり扱い) で hasPasswordAtom が解決する。
+type AccountsState = readonly LinkedAccount[] | "error";
+
+const accountsAtom = atom(async (get): Promise<AccountsState> => {
   const session = await get(authSessionAtom);
-  return session.isAuthenticated ? await listAccounts().catch(() => []) : [];
+  return session.isAuthenticated
+    ? await listAccounts().catch((): "error" => "error")
+    : [];
 });
 
 export const accountsUnwrappedAtom = unwrap(
   accountsAtom,
-  (prev): readonly LinkedAccount[] => prev ?? [],
+  (prev): AccountsState => prev ?? [],
 );
 
 export const hasPasswordAtom = atom((get) => {
   const accounts = get(accountsUnwrappedAtom);
-  return accounts.some((a) => a.providerId === CREDENTIAL_PROVIDER_ID);
+  // 取得失敗時は credential 保有として扱い、credential ありユーザーが
+  // 誤って setPassword 分岐に入って詰まないようにする。OAuth-only
+  // ユーザーは listAccounts が成功するまで「現在のパスワード」入力が
+  // 出るが、ロード完了後に正しいモードへ切り替わる。
+  return accounts === "error"
+    ? true
+    : accounts.some((a) => a.providerId === CREDENTIAL_PROVIDER_ID);
 });

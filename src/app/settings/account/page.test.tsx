@@ -101,6 +101,34 @@ describe("AccountSettingsPage", () => {
     });
   });
 
+  it("listAccounts 失敗時は credential あり扱いとなり changePassword 経路が出る", async () => {
+    const { spies } = setupAuthClient({ listAccountsShouldFail: true });
+    const user = userEvent.setup();
+    await renderWithProviders(<AccountSettingsPage />);
+
+    await screen.findByRole("heading", { name: "パスワード" });
+
+    expect(
+      await screen.findByLabelText("現在のパスワード"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "パスワードを設定" }),
+    ).toBeNull();
+
+    await user.type(screen.getByLabelText("現在のパスワード"), "oldpass12");
+    await user.type(screen.getByLabelText("新しいパスワード"), "newpass12");
+    await user.type(
+      screen.getByLabelText("新しいパスワード（確認）"),
+      "newpass12",
+    );
+    await user.click(screen.getByRole("button", { name: "パスワードを変更" }));
+
+    await waitFor(() => {
+      expect(spies.changePassword).toHaveBeenCalled();
+    });
+    expect(spies.setPassword).not.toHaveBeenCalled();
+  });
+
   it("OAuth-only ユーザーは setPassword が呼ばれ、現在のパスワード入力が出ない", async () => {
     const { spies } = setupAuthClient({
       accounts: [{ providerId: "google" }],

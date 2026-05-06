@@ -40,6 +40,7 @@ type State = {
   readonly changePasswordShouldFail: boolean;
   readonly setPasswordShouldFail: boolean;
   readonly deleteAccountShouldFail: boolean;
+  readonly listAccountsShouldFail: boolean;
   readonly spies: Spies;
 };
 
@@ -57,6 +58,7 @@ const createInitial = (): State => ({
   changePasswordShouldFail: false,
   setPasswordShouldFail: false,
   deleteAccountShouldFail: false,
+  listAccountsShouldFail: false,
   spies: {
     createApiKey: vi.fn(),
     listApiKeys: vi.fn(),
@@ -181,7 +183,9 @@ export const authClientFactory = async () => {
     listAccounts: async (): Promise<readonly LinkedAccount[]> => {
       const s = getState();
       s.spies.listAccounts();
-      return await Promise.resolve(s.accounts);
+      return s.listAccountsShouldFail
+        ? await Promise.reject(new Error("Failed to list accounts"))
+        : await Promise.resolve(s.accounts);
     },
   };
 };
@@ -200,6 +204,7 @@ type SetupOverrides = {
   readonly changePasswordShouldFail?: boolean;
   readonly setPasswordShouldFail?: boolean;
   readonly deleteAccountShouldFail?: boolean;
+  readonly listAccountsShouldFail?: boolean;
 };
 
 export const setupAuthClient = (overrides: SetupOverrides = {}) => {
@@ -230,6 +235,7 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
     changePasswordShouldFail: overrides.changePasswordShouldFail ?? false,
     setPasswordShouldFail: overrides.setPasswordShouldFail ?? false,
     deleteAccountShouldFail: overrides.deleteAccountShouldFail ?? false,
+    listAccountsShouldFail: overrides.listAccountsShouldFail ?? false,
     spies: current.spies,
   });
 

@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import { requestId } from "hono/request-id";
 import { timing } from "hono/timing";
 import { trpcServer } from "@hono/trpc-server";
+import { APIError } from "better-auth/api";
 import { appRouter } from "./trpc/router";
 import type { TRPCContext } from "./trpc/index";
 import type { Env } from "./types";
@@ -67,6 +68,38 @@ app.use("*", async (c, next) => {
 app.use("*", async (c, next) => {
   c.set("auth", createAuth({ env: c.env }));
   await next();
+});
+
+// better-auth の setPassword はサーバー内部 API としてのみ提供されており、
+// HTTP route が無いため /api/auth/* の handler では 404 になる。
+// ここで intercept して auth.api.setPassword をサーバーから呼び出す。
+type SetPasswordBody = { readonly newPassword?: unknown };
+
+const isAPIError = (e: unknown): e is APIError => e instanceof APIError;
+
+app.post("/api/auth/set-password", async (c) => {
+  const auth = c.get("auth");
+  const parsed = await c.req
+    .json<SetPasswordBody>()
+    .catch((): SetPasswordBody => ({}));
+  const newPassword = parsed.newPassword;
+
+  if (typeof newPassword !== "string") {
+    return c.json({ message: "newPassword required" }, 400);
+  }
+
+  const result = await auth.api
+    .setPassword({
+      body: { newPassword },
+      headers: c.req.raw.headers,
+    })
+    .catch((e: unknown) => e);
+
+  return isAPIError(result)
+    ? c.json({ message: result.body?.message ?? "Failed" }, 400)
+    : result instanceof Error
+      ? c.json({ message: "Failed" }, 500)
+      : c.json({ status: true });
 });
 
 app.all("/api/auth/*", async (c) => {
