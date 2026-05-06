@@ -37,6 +37,7 @@ export default tseslint.config(
       "playwright.config.ts",
       ".claude/",
       ".mcp.json",
+      "scripts/**/*.mjs",
     ],
   },
   js.configs.recommended,
