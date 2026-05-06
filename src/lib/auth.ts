@@ -31,7 +31,7 @@ export type SessionResponse = {
     | undefined;
 };
 
-const { signOut: clientSignOut, signIn } = client;
+const { signOut: clientSignOut, signIn, signUp } = client;
 const { social } = signIn;
 
 export const signInSocial = social;
@@ -50,6 +50,145 @@ export const getSession = async (): Promise<SessionResponse> => {
             },
           },
   };
+};
+
+const PASSWORD_MIN = 8;
+const PASSWORD_MAX = 128;
+const NAME_MAX = 60;
+
+const emailField = z.email().trim();
+const passwordField = z.string().min(PASSWORD_MIN).max(PASSWORD_MAX);
+const nameField = z.string().trim().min(1).max(NAME_MAX);
+const optionalImageField = z
+  .url()
+  .trim()
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+
+export const signInEmailSchema = z.object({
+  email: emailField,
+  password: z.string().min(1),
+});
+
+export const signUpEmailSchema = z
+  .object({
+    name: nameField,
+    email: emailField,
+    password: passwordField,
+    passwordConfirm: passwordField,
+  })
+  .refine((v) => v.password === v.passwordConfirm, {
+    path: ["passwordConfirm"],
+    message: "パスワードが一致しません",
+  });
+
+export const updateProfileSchema = z.object({
+  name: nameField,
+  image: optionalImageField,
+});
+
+export const changeEmailSchema = z.object({
+  newEmail: emailField,
+});
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1).optional(),
+    newPassword: passwordField,
+    newPasswordConfirm: passwordField,
+  })
+  .refine((v) => v.newPassword === v.newPasswordConfirm, {
+    path: ["newPasswordConfirm"],
+    message: "パスワードが一致しません",
+  });
+
+export const deleteAccountSchema = z.object({
+  confirmEmail: emailField,
+  password: z.string().min(1).optional(),
+});
+
+export type SignInEmailInput = z.infer<typeof signInEmailSchema>;
+export type SignUpEmailInput = z.infer<typeof signUpEmailSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type ChangeEmailInput = z.infer<typeof changeEmailSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
+
+const fail = (msg: string): never => {
+  // eslint-disable-next-line functional/no-throw-statements -- caller catches
+  throw new Error(msg);
+};
+
+export const signInWithEmail = async (
+  input: SignInEmailInput,
+): Promise<void> => {
+  const { error } = await client.signIn.email({
+    email: input.email,
+    password: input.password,
+  });
+  return error === null
+    ? undefined
+    : fail(error.message ?? "ログインに失敗しました");
+};
+
+export const signUpWithEmail = async (input: {
+  readonly name: string;
+  readonly email: string;
+  readonly password: string;
+}): Promise<void> => {
+  const { error } = await signUp.email({
+    name: input.name,
+    email: input.email,
+    password: input.password,
+  });
+  return error === null
+    ? undefined
+    : fail(error.message ?? "サインアップに失敗しました");
+};
+
+export const updateProfile = async (
+  input: UpdateProfileInput,
+): Promise<void> => {
+  const { error } = await client.updateUser({
+    name: input.name,
+    image: input.image,
+  });
+  return error === null
+    ? undefined
+    : fail(error.message ?? "プロフィール更新に失敗しました");
+};
+
+export const changeEmail = async (input: ChangeEmailInput): Promise<void> => {
+  const { error } = await client.changeEmail({
+    newEmail: input.newEmail,
+  });
+  return error === null
+    ? undefined
+    : fail(error.message ?? "メールアドレス変更に失敗しました");
+};
+
+export const changePassword = async (
+  input: ChangePasswordInput,
+): Promise<void> => {
+  const { error } = await client.changePassword({
+    currentPassword: input.currentPassword ?? "",
+    newPassword: input.newPassword,
+    revokeOtherSessions: true,
+  });
+  return error === null
+    ? undefined
+    : fail(error.message ?? "パスワード変更に失敗しました");
+};
+
+export const deleteAccount = async (
+  input: DeleteAccountInput,
+): Promise<void> => {
+  const { error } = await client.deleteUser(
+    input.password === undefined ? {} : { password: input.password },
+  );
+  return error === null
+    ? undefined
+    : fail(error.message ?? "アカウント削除に失敗しました");
 };
 
 export const API_KEY_SCOPE = Object.freeze({
@@ -109,11 +248,6 @@ const toMillis = (raw: unknown): number => {
 const toLastRequest = (raw: unknown): number | undefined => {
   const ms = toMillis(raw);
   return ms === 0 ? undefined : ms;
-};
-
-const fail = (msg: string): never => {
-  // eslint-disable-next-line functional/no-throw-statements -- ErrorBoundary handles via Suspense
-  throw new Error(msg);
 };
 
 export const createApiKey = async (input: {

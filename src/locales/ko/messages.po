@@ -159,11 +159,20 @@ msgstr "\"{0}\"을(를) 완전히 삭제하시겠습니까? 이 작업은 되돌
 msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
 msgstr "\"{0}\"을(를) 분실로 표시합니다. 수납 위치 정보는 지워집니다."
 
+#: src/app/signup/page.tsx
+msgid "30 秒で、最初の引き出しを開けられます"
+msgstr "30초 만에 첫 번째 서랍을 열 수 있어요"
+
+#: src/components/auth/SignUpForm.tsx
+msgid "8 文字以上。英数字を含めると安全です。"
+msgstr "8자 이상. 영문과 숫자를 포함하면 안전합니다."
+
 #: src/components/coordinate/OriginBadge.tsx
 msgid "AI"
 msgstr "AI"
 
 #: src/app/settings/api-keys/page.tsx
+#: src/components/settings/SettingsTabs.tsx
 msgid "API キー"
 msgstr "API 키"
 
@@ -241,6 +250,10 @@ msgstr "DDS (~55cm)"
 msgid "Google でログイン"
 msgstr "Google로 로그인"
 
+#: src/components/settings/account/ProfileForm.tsx
+msgid "https://..."
+msgstr "https://..."
+
 #: src/lib/i18n-labels.ts
 msgid "MDD L胸 (~40cm)"
 msgstr "MDD L버스트 (~40cm)"
@@ -256,6 +269,10 @@ msgstr "MDD S버스트 (~40cm)"
 #: src/lib/i18n-labels.ts
 msgid "MSD (~43cm)"
 msgstr "MSD (~43cm)"
+
+#: src/components/settings/account/EmailChangeForm.tsx
+msgid "new@example.com"
+msgstr "new@example.com"
 
 #: src/app/nfc-write/page.tsx
 msgid "NFC タグにタッチしてください..."
@@ -339,6 +356,11 @@ msgstr "X (Twitter)로 로그인"
 msgid "YoSD (~26cm)"
 msgstr "YoSD (~26cm)"
 
+#: src/components/auth/EmailPasswordForm.tsx
+#: src/components/auth/SignUpForm.tsx
+msgid "you@example.com"
+msgstr "you@example.com"
+
 #: src/app/archive/page.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollDetail.tsx
@@ -374,6 +396,34 @@ msgstr "아카이브가 비어 있습니다"
 #: src/lib/i18n-labels.ts
 msgid "アウター"
 msgstr "아우터"
+
+#: src/components/settings/SettingsTabs.tsx
+msgid "アカウント"
+msgstr "계정"
+
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "アカウントの削除に失敗しました"
+msgstr "계정 삭제에 실패했습니다"
+
+#: src/app/signin/page.tsx
+msgid "アカウントをお持ちでない方は <0>新規登録</0>"
+msgstr "계정이 없으신가요? <0>회원가입</0>"
+
+#: src/components/auth/SignUpForm.tsx
+msgid "アカウントを作成できませんでした。メールアドレスがすでに使われている可能性があります。"
+msgstr "계정을 만들 수 없습니다. 이메일이 이미 사용 중일 수 있습니다."
+
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "アカウントを削除"
+msgstr "계정 삭제"
+
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "アカウントを削除する"
+msgstr "계정 삭제하기"
+
+#: src/components/auth/SignUpForm.tsx
+msgid "アカウント作成"
+msgstr "계정 만들기"
 
 #: src/lib/i18n-labels.ts
 msgid "アクセサリー"
@@ -460,6 +510,7 @@ msgstr "컬러"
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
+#: src/components/settings/account/DeleteAccountSection.tsx
 #: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 #: src/components/ui/ConfirmSheet.tsx
 msgid "キャンセル"
@@ -551,6 +602,10 @@ msgstr "이 장소의 모든 옷을 확인 완료로 표시"
 msgid "この引き出しの他の服、まだありますか？"
 msgstr "이 서랍의 다른 옷들, 아직 있나요?"
 
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "この操作は取り消せません。確認のため、登録メールアドレスを入力してください。"
+msgstr "이 작업은 취소할 수 없습니다. 확인을 위해 등록된 이메일 주소를 입력하세요."
+
 #: src/components/settings/api-key/ApiKeyRevealSheet.tsx
 msgid "コピー"
 msgstr "복사"
@@ -623,6 +678,10 @@ msgstr "스코프"
 msgid "ステータス"
 msgstr "상태"
 
+#: src/app/signup/page.tsx
+msgid "すでにアカウントをお持ちの方は <0>ログイン</0>"
+msgstr "이미 계정이 있으신가요? <0>로그인</0>"
+
 #: src/app/dolls/page.tsx
 #: src/app/dolls/page.tsx
 #: src/app/garments/page.tsx
@@ -653,8 +712,12 @@ msgid "セット内容"
 msgstr "세트 구성"
 
 #: src/app/signin/page.tsx
-msgid "ソーシャルアカウントでログインすると、QR/NFC スキャンの記録や API キーの発行など、すべての機能を利用できます。"
-msgstr "소셜 계정으로 로그인하면 QR/NFC 스캔 기록과 API 키 발급을 비롯한 모든 기능을 이용할 수 있습니다."
+#~ msgid "ソーシャルアカウントでログインすると、QR/NFC スキャンの記録や API キーの発行など、すべての機能を利用できます。"
+#~ msgstr "소셜 계정으로 로그인하면 QR/NFC 스캔 기록과 API 키 발급을 비롯한 모든 기능을 이용할 수 있습니다."
+
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "ソーシャルログインで作成されたアカウントです。新しいパスワードを設定すると、メール + パスワードでもログインできるようになります。"
+msgstr "소셜 로그인으로 만들어진 계정입니다. 새 비밀번호를 설정하면 이메일 + 비밀번호로도 로그인할 수 있습니다."
 
 #: src/lib/i18n-labels.ts
 msgid "ソックス/タイツ"
@@ -743,6 +806,10 @@ msgstr "인형 목록"
 msgid "ドール服の名前"
 msgstr "인형 옷 이름"
 
+#: src/app/signin/page.tsx
+msgid "ドール服管理にログイン"
+msgstr "인형 옷 관리에 로그인"
+
 #: src/lib/i18n-labels.ts
 msgid "トップス"
 msgstr "상의"
@@ -758,6 +825,37 @@ msgstr "없음"
 #: src/components/scan/OrphanCheckoutDialog.tsx
 #~ msgid "なくした"
 #~ msgstr "분실함"
+
+#: src/app/settings/account/page.tsx
+#: src/components/auth/EmailPasswordForm.tsx
+#: src/components/auth/SignUpForm.tsx
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "パスワード"
+msgstr "비밀번호"
+
+#: src/components/auth/SignUpForm.tsx
+msgid "パスワード（確認）"
+msgstr "비밀번호 (확인)"
+
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "パスワードの設定に失敗しました"
+msgstr "비밀번호 설정에 실패했습니다"
+
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "パスワードを変更"
+msgstr "비밀번호 변경"
+
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "パスワードを変更しました"
+msgstr "비밀번호가 변경되었습니다"
+
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "パスワードを設定"
+msgstr "비밀번호 설정"
+
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "パスワードを設定しました"
+msgstr "비밀번호가 설정되었습니다"
 
 #: src/lib/i18n-labels.ts
 msgid "ピンク"
@@ -783,6 +881,22 @@ msgstr "브랜드/메이커"
 #: src/components/garment/ImageUpload.tsx
 msgid "プレビュー"
 msgstr "미리보기"
+
+#: src/app/settings/account/page.tsx
+msgid "プロフィール"
+msgstr "프로필"
+
+#: src/components/settings/account/ProfileForm.tsx
+msgid "プロフィールの更新に失敗しました"
+msgstr "프로필 업데이트에 실패했습니다"
+
+#: src/components/settings/account/ProfileForm.tsx
+msgid "プロフィールを更新しました"
+msgstr "프로필을 업데이트했습니다"
+
+#: src/components/settings/account/ProfileForm.tsx
+msgid "プロフィール画像 URL"
+msgstr "프로필 이미지 URL"
 
 #: src/components/ui/Pagination.tsx
 msgid "ページネーション"
@@ -838,6 +952,11 @@ msgstr "아직 코디가 없습니다"
 msgid "まだドールがいません"
 msgstr "아직 인형이 없습니다"
 
+#: src/app/signin/page.tsx
+#: src/app/signup/page.tsx
+msgid "または"
+msgstr "또는"
+
 #: src/components/garment/csv/CsvDropZone.tsx
 msgid "またはクリックしてファイルを選択"
 msgstr "또는 클릭하여 파일 선택"
@@ -866,6 +985,36 @@ msgstr "아직 열지 않았습니다"
 #: src/components/doll/DollForm.tsx
 msgid "メーカー"
 msgstr "메이커"
+
+#: src/app/settings/account/page.tsx
+#: src/components/auth/EmailPasswordForm.tsx
+#: src/components/auth/SignUpForm.tsx
+msgid "メールアドレス"
+msgstr "이메일 주소"
+
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "メールアドレスが一致しません"
+msgstr "이메일 주소가 일치하지 않습니다"
+
+#: src/components/settings/account/EmailChangeForm.tsx
+msgid "メールアドレスの変更に失敗しました"
+msgstr "이메일 변경에 실패했습니다"
+
+#: src/components/auth/EmailPasswordForm.tsx
+msgid "メールアドレスまたはパスワードが正しくありません"
+msgstr "이메일 또는 비밀번호가 올바르지 않습니다"
+
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "メールアドレスを再入力"
+msgstr "이메일 주소 재입력"
+
+#: src/components/settings/account/EmailChangeForm.tsx
+msgid "メールアドレスを変更"
+msgstr "이메일 변경"
+
+#: src/components/settings/account/EmailChangeForm.tsx
+msgid "メールアドレスを変更しました"
+msgstr "이메일이 변경되었습니다"
 
 #: src/app/coordinates/[id]/page.tsx
 #: src/components/coordinate/CoordinateBuilder.tsx
@@ -905,10 +1054,18 @@ msgstr "초기화"
 msgid "ログアウト"
 msgstr "로그아웃"
 
-#: src/app/signin/page.tsx
+#: src/components/auth/EmailPasswordForm.tsx
 #: src/components/auth/UserMenu.tsx
 msgid "ログイン"
 msgstr "로그인"
+
+#: src/app/settings/account/page.tsx
+msgid "ログインに使うメールアドレスです。"
+msgstr "로그인에 사용하는 이메일 주소입니다."
+
+#: src/components/auth/EmailPasswordForm.tsx
+msgid "ログイン中…"
+msgstr "로그인 중…"
 
 #: src/app/garments/page.tsx
 #: src/lib/nav-items.ts
@@ -982,6 +1139,10 @@ msgstr "정렬"
 msgid "今ここにいなくても確認"
 msgstr "지금 여기 없어도 확인"
 
+#: src/app/settings/account/page.tsx
+msgid "他のユーザーや UI に表示されます。"
+msgstr "다른 사용자나 UI에 표시됩니다."
+
 #: src/components/location/StorageCaseForm.tsx
 msgid "作成"
 msgstr "생성"
@@ -1001,6 +1162,10 @@ msgstr "사용 중"
 #: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 msgid "例: agent-1"
 msgstr "예: agent-1"
+
+#: src/components/auth/SignUpForm.tsx
+msgid "例: ドリーラー"
+msgstr "예: 돌러"
 
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "例: ワンピース用"
@@ -1214,6 +1379,10 @@ msgstr "장소가 설정되었습니다"
 msgid "変更"
 msgstr "변경"
 
+#: src/components/settings/account/ProfileForm.tsx
+msgid "変更を保存"
+msgstr "변경 사항 저장"
+
 #: src/app/settings/api-keys/page.tsx
 msgid "外部 AI エージェントから接続するための Personal Access Token を発行・管理します。"
 msgstr "외부 AI 에이전트에서 연결하기 위한 Personal Access Token을 발급·관리합니다."
@@ -1239,8 +1408,13 @@ msgstr "완료"
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
+#: src/components/settings/account/DeleteAccountSection.tsx
 msgid "完全に削除"
 msgstr "영구 삭제"
+
+#: src/app/settings/account/page.tsx
+msgid "定期的な更新を推奨します。"
+msgstr "정기적인 업데이트를 권장합니다."
 
 #: src/lib/i18n-labels.ts
 msgid "帽子/ヘッドドレス"
@@ -1249,6 +1423,10 @@ msgstr "모자/헤드드레스"
 #: src/components/location/StorageCaseForm.tsx
 msgid "引き出し"
 msgstr "서랍"
+
+#: src/app/signin/page.tsx
+msgid "引き出しの中身を、いつでもどこでも"
+msgstr "서랍 속을 언제 어디서나"
 
 #: src/components/location/StorageGrid.tsx
 msgid "引き出しを編集"
@@ -1262,7 +1440,7 @@ msgstr "복원"
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
 #: src/app/settings/api-keys/page.tsx
-#: src/app/signin/page.tsx
+#: src/app/settings/layout.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
@@ -1281,6 +1459,22 @@ msgstr "새 API 키"
 #: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 msgid "新しい API キーを発行"
 msgstr "새 API 키 발급"
+
+#: src/app/signup/page.tsx
+msgid "新しいアカウントを作る"
+msgstr "새 계정 만들기"
+
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "新しいパスワード"
+msgstr "새 비밀번호"
+
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "新しいパスワード（確認）"
+msgstr "새 비밀번호 (확인)"
+
+#: src/components/settings/account/EmailChangeForm.tsx
+msgid "新しいメールアドレス"
+msgstr "새 이메일 주소"
 
 #: src/components/digest/DigestBanner.tsx
 msgid "新しい週間レポートが届いています"
@@ -1385,6 +1579,10 @@ msgstr "미배치"
 msgid "未配置にする"
 msgstr "미배치로 설정"
 
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "本当に削除しますか？"
+msgstr "정말 삭제하시겠습니까?"
+
 #: src/components/digest/DigestCard.tsx
 msgid "次に引き出しを開けたときに自動で確認されます"
 msgstr "다음에 서랍을 열 때 자동으로 확인됩니다"
@@ -1409,6 +1607,14 @@ msgstr "매주 월요일에 자동 생성됩니다"
 msgid "状態"
 msgstr "상태"
 
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "現在のパスワード"
+msgstr "현재 비밀번호"
+
+#: src/components/settings/account/PasswordChangeForm.tsx
+msgid "現在のパスワードが正しくないか、更新に失敗しました"
+msgstr "현재 비밀번호가 올바르지 않거나 업데이트에 실패했습니다"
+
 #: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 msgid "生キーは発行直後の一度しか表示されません。安全な場所に保管してください。"
 msgstr "원본 키는 발급 직후 한 번만 표시됩니다. 안전한 곳에 보관해 주세요."
@@ -1427,10 +1633,18 @@ msgstr "발급"
 msgid "登録された服がありません"
 msgstr "등록된 옷이 없습니다."
 
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "登録した服・収納場所・コーデ・ドールはすべて削除され、復元できません。"
+msgstr "등록한 옷·보관 장소·코디·인형은 모두 삭제되며 복구할 수 없습니다."
+
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "登録する"
 msgstr "등록"
+
+#: src/components/auth/SignUpForm.tsx
+msgid "登録中…"
+msgstr "등록 중…"
 
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "登録完了"
@@ -1547,6 +1761,11 @@ msgstr "의상 케이스를 추가하여 옷의 수납 장소를 관리하세요
 msgid "表示件数"
 msgstr "표시 건수"
 
+#: src/components/auth/SignUpForm.tsx
+#: src/components/settings/account/ProfileForm.tsx
+msgid "表示名"
+msgstr "표시 이름"
+
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/components/digest/DigestCard.tsx
 #: src/lib/i18n-labels.ts
@@ -1563,7 +1782,9 @@ msgstr "확인 필요 아이템 ({0}건)"
 msgid "言語"
 msgstr "언어"
 
+#: src/app/settings/layout.tsx
 #: src/components/auth/UserMenu.tsx
+#: src/components/settings/SettingsTabs.tsx
 msgid "設定"
 msgstr "설정"
 

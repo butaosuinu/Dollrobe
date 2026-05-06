@@ -47,16 +47,20 @@ export const garments = sqliteTable(
   ],
 );
 
-export const storageCases = sqliteTable("storage_cases", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  name: text("name").notNull(),
-  type: text("type").notNull().default("grid"),
-  description: text("description"),
-  rows: integer("rows").notNull().default(5),
-  cols: integer("cols").notNull().default(3),
-  createdAt: integer("created_at").notNull(),
-});
+export const storageCases = sqliteTable(
+  "storage_cases",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    name: text("name").notNull(),
+    type: text("type").notNull().default("grid"),
+    description: text("description"),
+    rows: integer("rows").notNull().default(5),
+    cols: integer("cols").notNull().default(3),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("idx_storage_cases_user_id").on(table.userId)],
+);
 
 export const storageLocations = sqliteTable(
   "storage_locations",
@@ -76,7 +80,10 @@ export const storageLocations = sqliteTable(
     correctionCount: integer("correction_count").notNull().default(0),
     createdAt: integer("created_at").notNull(),
   },
-  (table) => [index("idx_locations_case_id").on(table.caseId)],
+  (table) => [
+    index("idx_locations_case_id").on(table.caseId),
+    index("idx_storage_locations_user_id").on(table.userId),
+  ],
 );
 
 export const coordinates = sqliteTable("coordinates", {

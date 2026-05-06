@@ -1,10 +1,25 @@
 import { vi } from "vitest";
-import type { ApiKeyScope, ApiKeySummary, CreatedApiKey } from "@/lib/auth";
+import type {
+  ApiKeyScope,
+  ApiKeySummary,
+  ChangeEmailInput,
+  ChangePasswordInput,
+  CreatedApiKey,
+  DeleteAccountInput,
+  SignInEmailInput,
+  UpdateProfileInput,
+} from "@/lib/auth";
 
 type Spies = {
   readonly createApiKey: ReturnType<typeof vi.fn>;
   readonly listApiKeys: ReturnType<typeof vi.fn>;
   readonly revokeApiKey: ReturnType<typeof vi.fn>;
+  readonly signInWithEmail: ReturnType<typeof vi.fn>;
+  readonly signUpWithEmail: ReturnType<typeof vi.fn>;
+  readonly updateProfile: ReturnType<typeof vi.fn>;
+  readonly changeEmail: ReturnType<typeof vi.fn>;
+  readonly changePassword: ReturnType<typeof vi.fn>;
+  readonly deleteAccount: ReturnType<typeof vi.fn>;
 };
 
 type State = {
@@ -13,6 +28,12 @@ type State = {
   readonly createShouldFail: boolean;
   readonly listShouldFail: boolean;
   readonly revokeShouldFail: boolean;
+  readonly signInShouldFail: boolean;
+  readonly signUpShouldFail: boolean;
+  readonly updateProfileShouldFail: boolean;
+  readonly changeEmailShouldFail: boolean;
+  readonly changePasswordShouldFail: boolean;
+  readonly deleteAccountShouldFail: boolean;
   readonly spies: Spies;
 };
 
@@ -22,10 +43,22 @@ const createInitial = (): State => ({
   createShouldFail: false,
   listShouldFail: false,
   revokeShouldFail: false,
+  signInShouldFail: false,
+  signUpShouldFail: false,
+  updateProfileShouldFail: false,
+  changeEmailShouldFail: false,
+  changePasswordShouldFail: false,
+  deleteAccountShouldFail: false,
   spies: {
     createApiKey: vi.fn(),
     listApiKeys: vi.fn(),
     revokeApiKey: vi.fn(),
+    signInWithEmail: vi.fn(),
+    signUpWithEmail: vi.fn(),
+    updateProfile: vi.fn(),
+    changeEmail: vi.fn(),
+    changePassword: vi.fn(),
+    deleteAccount: vi.fn(),
   },
 });
 
@@ -82,6 +115,52 @@ export const authClientFactory = async () => {
         apiKeys: s.apiKeys.filter((k) => k.id !== keyId),
       });
     },
+    signInWithEmail: async (input: SignInEmailInput): Promise<void> => {
+      const s = getState();
+      s.spies.signInWithEmail(input);
+      if (s.signInShouldFail) {
+        await Promise.reject(new Error("Failed to sign in"));
+      }
+    },
+    signUpWithEmail: async (input: {
+      readonly name: string;
+      readonly email: string;
+      readonly password: string;
+    }): Promise<void> => {
+      const s = getState();
+      s.spies.signUpWithEmail(input);
+      if (s.signUpShouldFail) {
+        await Promise.reject(new Error("Failed to sign up"));
+      }
+    },
+    updateProfile: async (input: UpdateProfileInput): Promise<void> => {
+      const s = getState();
+      s.spies.updateProfile(input);
+      if (s.updateProfileShouldFail) {
+        await Promise.reject(new Error("Failed to update profile"));
+      }
+    },
+    changeEmail: async (input: ChangeEmailInput): Promise<void> => {
+      const s = getState();
+      s.spies.changeEmail(input);
+      if (s.changeEmailShouldFail) {
+        await Promise.reject(new Error("Failed to change email"));
+      }
+    },
+    changePassword: async (input: ChangePasswordInput): Promise<void> => {
+      const s = getState();
+      s.spies.changePassword(input);
+      if (s.changePasswordShouldFail) {
+        await Promise.reject(new Error("Failed to change password"));
+      }
+    },
+    deleteAccount: async (input: DeleteAccountInput): Promise<void> => {
+      const s = getState();
+      s.spies.deleteAccount(input);
+      if (s.deleteAccountShouldFail) {
+        await Promise.reject(new Error("Failed to delete account"));
+      }
+    },
   };
 };
 
@@ -91,6 +170,12 @@ type SetupOverrides = {
   readonly createShouldFail?: boolean;
   readonly listShouldFail?: boolean;
   readonly revokeShouldFail?: boolean;
+  readonly signInShouldFail?: boolean;
+  readonly signUpShouldFail?: boolean;
+  readonly updateProfileShouldFail?: boolean;
+  readonly changeEmailShouldFail?: boolean;
+  readonly changePasswordShouldFail?: boolean;
+  readonly deleteAccountShouldFail?: boolean;
 };
 
 export const setupAuthClient = (overrides: SetupOverrides = {}) => {
@@ -98,6 +183,12 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
   current.spies.createApiKey.mockClear();
   current.spies.listApiKeys.mockClear();
   current.spies.revokeApiKey.mockClear();
+  current.spies.signInWithEmail.mockClear();
+  current.spies.signUpWithEmail.mockClear();
+  current.spies.updateProfile.mockClear();
+  current.spies.changeEmail.mockClear();
+  current.spies.changePassword.mockClear();
+  current.spies.deleteAccount.mockClear();
 
   setState({
     apiKeys: overrides.apiKeys ?? [],
@@ -105,6 +196,12 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
     createShouldFail: overrides.createShouldFail ?? false,
     listShouldFail: overrides.listShouldFail ?? false,
     revokeShouldFail: overrides.revokeShouldFail ?? false,
+    signInShouldFail: overrides.signInShouldFail ?? false,
+    signUpShouldFail: overrides.signUpShouldFail ?? false,
+    updateProfileShouldFail: overrides.updateProfileShouldFail ?? false,
+    changeEmailShouldFail: overrides.changeEmailShouldFail ?? false,
+    changePasswordShouldFail: overrides.changePasswordShouldFail ?? false,
+    deleteAccountShouldFail: overrides.deleteAccountShouldFail ?? false,
     spies: current.spies,
   });
 

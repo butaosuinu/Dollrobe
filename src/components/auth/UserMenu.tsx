@@ -44,7 +44,7 @@ const UserMenu = () => {
         </div>
       )}
       <Link
-        href="/settings/api-keys"
+        href="/settings/account"
         className="p-1 text-text-tertiary hover:text-text-primary"
         aria-label={t`設定`}
       >

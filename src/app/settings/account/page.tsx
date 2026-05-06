@@ -1,0 +1,62 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAtomValue } from "jotai";
+import { Trans } from "@lingui/react/macro";
+import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
+import DeleteAccountSection from "@/components/settings/account/DeleteAccountSection";
+import EmailChangeForm from "@/components/settings/account/EmailChangeForm";
+import PasswordChangeForm from "@/components/settings/account/PasswordChangeForm";
+import ProfileForm from "@/components/settings/account/ProfileForm";
+import SectionCard from "@/components/settings/account/SectionCard";
+
+const AccountSettingsPage = () => {
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAtomValue(
+    authSessionUnwrappedAtom,
+  );
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/signin");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading || !isAuthenticated || user === undefined) {
+    return undefined;
+  }
+
+  // OAuth-only ユーザーの password 列の有無はクライアントから判定できないため、
+  // 入力は常に表示し、不正な値は better-auth 側で弾いて失敗トーストで案内する。
+  const hasPassword = true;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <SectionCard
+        title={<Trans>プロフィール</Trans>}
+        description={<Trans>他のユーザーや UI に表示されます。</Trans>}
+      >
+        <ProfileForm currentUser={user} />
+      </SectionCard>
+
+      <SectionCard
+        title={<Trans>メールアドレス</Trans>}
+        description={<Trans>ログインに使うメールアドレスです。</Trans>}
+      >
+        <EmailChangeForm currentEmail={user.email} />
+      </SectionCard>
+
+      <SectionCard
+        title={<Trans>パスワード</Trans>}
+        description={<Trans>定期的な更新を推奨します。</Trans>}
+      >
+        <PasswordChangeForm hasPassword={hasPassword} />
+      </SectionCard>
+
+      <DeleteAccountSection currentEmail={user.email} />
+    </div>
+  );
+};
+
+export default AccountSettingsPage;
