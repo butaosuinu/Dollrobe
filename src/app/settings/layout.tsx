@@ -1,3 +1,5 @@
+"use client";
+
 import { t } from "@lingui/core/macro";
 import SettingsTabs from "@/components/settings/SettingsTabs";
 import PageHeader from "@/components/ui/PageHeader";
