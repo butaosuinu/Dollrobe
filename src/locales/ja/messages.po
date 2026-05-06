@@ -171,7 +171,6 @@ msgstr "8 文字以上。英数字を含めると安全です。"
 msgid "AI"
 msgstr "AI"
 
-#: src/app/settings/api-keys/page.tsx
 #: src/components/settings/SettingsTabs.tsx
 msgid "API キー"
 msgstr "API キー"
@@ -1439,7 +1438,6 @@ msgstr "復元"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
-#: src/app/settings/api-keys/page.tsx
 #: src/app/settings/layout.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx

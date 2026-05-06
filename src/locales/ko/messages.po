@@ -171,7 +171,6 @@ msgstr "8자 이상. 영문과 숫자를 포함하면 안전합니다."
 msgid "AI"
 msgstr "AI"
 
-#: src/app/settings/api-keys/page.tsx
 #: src/components/settings/SettingsTabs.tsx
 msgid "API キー"
 msgstr "API 키"
@@ -1439,7 +1438,6 @@ msgstr "복원"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
-#: src/app/settings/api-keys/page.tsx
 #: src/app/settings/layout.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx

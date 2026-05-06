@@ -171,7 +171,6 @@ msgstr "至少 8 个字符。包含字母和数字更安全。"
 msgid "AI"
 msgstr "AI"
 
-#: src/app/settings/api-keys/page.tsx
 #: src/components/settings/SettingsTabs.tsx
 msgid "API キー"
 msgstr "API 密钥"
@@ -1439,7 +1438,6 @@ msgstr "恢复"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
-#: src/app/settings/api-keys/page.tsx
 #: src/app/settings/layout.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
