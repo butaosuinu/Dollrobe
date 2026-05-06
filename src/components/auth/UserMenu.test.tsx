@@ -13,14 +13,15 @@ describe("UserMenu", () => {
     expect(screen.getByLabelText("ログアウト")).toBeInTheDocument();
   });
 
-  it("未認証時は何も表示されない", async () => {
+  it("未認証時はログインリンクが表示される", async () => {
     server.use(unauthenticatedHandler);
-    const { container } = await renderWithProviders(<UserMenu />);
+    await renderWithProviders(<UserMenu />);
 
     await waitFor(() => {
       expect(screen.queryByTestId("suspense-loading")).not.toBeInTheDocument();
     });
 
-    expect(container.innerHTML).toBe("");
+    const loginLink = await screen.findByRole("link", { name: "ログイン" });
+    expect(loginLink).toHaveAttribute("href", "/signin");
   });
 });

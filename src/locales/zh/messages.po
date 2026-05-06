@@ -142,6 +142,11 @@ msgstr "确定删除\"{0}\"吗？箱内的衣服将变为\"取出中\"状态。"
 msgid "「{0}」を削除しますか？この操作は取り消せません。"
 msgstr "确定删除「{0}」吗？此操作无法撤销。"
 
+#. placeholder {0}: revokingKey.name
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "「{0}」を失効します。失効したキーは復元できません。"
+msgstr "撤销「{0}」。撤销后的密钥无法恢复。"
+
 #. placeholder {0}: doll.name
 #. placeholder {0}: garment.name
 #: src/components/doll/DollDetail.tsx
@@ -157,6 +162,43 @@ msgstr "将「{0}」标记为丢失。收纳位置信息将被清除。"
 #: src/components/coordinate/OriginBadge.tsx
 msgid "AI"
 msgstr "AI"
+
+#: src/app/settings/api-keys/page.tsx
+msgid "API キー"
+msgstr "API 密钥"
+
+#. placeholder {0}: target.name
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "API キー「{0}」を失効しました"
+msgstr "已撤销 API 密钥「{0}」"
+
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "API キーの失効に失敗しました"
+msgstr "撤销 API 密钥失败"
+
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
+msgid "API キーの発行に失敗しました"
+msgstr "签发 API 密钥失败"
+
+#: src/app/settings/api-keys/page.tsx
+msgid "API キーの読み込みに失敗しました"
+msgstr "加载 API 密钥失败"
+
+#: src/components/settings/api-key/ApiKeyRevealSheet.tsx
+msgid "API キーをコピー"
+msgstr "复制 API 密钥"
+
+#: src/components/settings/api-key/ApiKeyRevealSheet.tsx
+msgid "API キーをコピーしました"
+msgstr "已复制 API 密钥"
+
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "API キーを失効"
+msgstr "撤销 API 密钥"
+
+#: src/components/settings/api-key/ApiKeyRevealSheet.tsx
+msgid "API キーを発行しました"
+msgstr "已签发 API 密钥"
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -260,6 +302,22 @@ msgstr "信任度比 QR 扫描恢复得更保守（约 0.5）"
 #: src/components/garment/GarmentDetail.tsx
 msgid "QRを印刷"
 msgstr "打印QR"
+
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "read-only"
+msgstr "read-only"
+
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
+msgid "read-only（読み取り専用）"
+msgstr "read-only（只读）"
+
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "read-write"
+msgstr "read-write"
+
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
+msgid "read-write（読み取り＋書き込み）"
+msgstr "read-write（读取＋写入）"
 
 #: src/lib/i18n-labels.ts
 msgid "SD (~57cm)"
@@ -402,6 +460,7 @@ msgstr "颜色"
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 #: src/components/ui/ConfirmSheet.tsx
 msgid "キャンセル"
 msgstr "取消"
@@ -468,6 +527,10 @@ msgstr "搭配名称"
 msgid "コーデ詳細"
 msgstr "搭配详情"
 
+#: src/components/settings/api-key/ApiKeyRevealSheet.tsx
+msgid "この API キーは一度だけ表示されます。閉じる前に必ずコピーしてください。"
+msgstr "此 API 密钥仅显示一次。请在关闭前务必复制。"
+
 #: src/app/nfc-write/page.tsx
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "此设备不支持NFC写入。请使用Android Chrome。"
@@ -487,6 +550,18 @@ msgstr "将此位置的所有衣服标记为已确认"
 #: src/components/scan/CheckoutConfirmSheet.tsx
 msgid "この引き出しの他の服、まだありますか？"
 msgstr "这个抽屉里的其他衣服都还在吗？"
+
+#: src/components/settings/api-key/ApiKeyRevealSheet.tsx
+msgid "コピー"
+msgstr "复制"
+
+#: src/components/settings/api-key/ApiKeyRevealSheet.tsx
+msgid "コピーに失敗しました。手動でコピーしてください"
+msgstr "复制失败,请手动复制"
+
+#: src/components/settings/api-key/ApiKeyRevealSheet.tsx
+msgid "コピー済み"
+msgstr "已复制"
 
 #: src/app/garments/page.tsx
 #: src/components/dashboard/WardrobeAnalytics.tsx
@@ -539,6 +614,10 @@ msgstr "已扫描"
 msgid "スキャン中の場所"
 msgstr "正在扫描的位置"
 
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
+msgid "スコープ"
+msgstr "范围"
+
 #: src/components/dashboard/StatsOverview.tsx
 #: src/components/garment/GarmentDetail.tsx
 msgid "ステータス"
@@ -572,6 +651,10 @@ msgstr "套装"
 #: src/components/garment/GarmentForm.tsx
 msgid "セット内容"
 msgstr "套装内容"
+
+#: src/app/signin/page.tsx
+msgid "ソーシャルアカウントでログインすると、QR/NFC スキャンの記録や API キーの発行など、すべての機能を利用できます。"
+msgstr "使用社交账号登录后，即可使用 QR/NFC 扫描记录和 API 密钥发行等全部功能。"
 
 #: src/lib/i18n-labels.ts
 msgid "ソックス/タイツ"
@@ -743,6 +826,10 @@ msgstr "身体尺寸"
 msgid "ボトムス"
 msgstr "下装"
 
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "まだ API キーがありません"
+msgstr "尚无 API 密钥"
+
 #: src/app/coordinates/page.tsx
 msgid "まだコーデがありません"
 msgstr "还没有搭配"
@@ -818,6 +905,11 @@ msgstr "重置"
 msgid "ログアウト"
 msgstr "退出登录"
 
+#: src/app/signin/page.tsx
+#: src/components/auth/UserMenu.tsx
+msgid "ログイン"
+msgstr "登录"
+
 #: src/app/garments/page.tsx
 #: src/lib/nav-items.ts
 msgid "ワードローブ"
@@ -863,8 +955,16 @@ msgid "一覧に戻る"
 msgstr "返回列表"
 
 #: src/components/coordinate/CoordinateBuilder.tsx
-msgid "下のリストから服を選択してください"
-msgstr "请从下面的列表中选择衣服。"
+msgid "上へ"
+msgstr "上移"
+
+#: src/components/coordinate/CoordinateBuilder.tsx
+#~ msgid "下のリストから服を選択してください"
+#~ msgstr "请从下面的列表中选择衣服。"
+
+#: src/components/coordinate/CoordinateBuilder.tsx
+msgid "下へ"
+msgstr "下移"
 
 #: src/components/digest/DigestCard.tsx
 #: src/lib/i18n-labels.ts
@@ -886,6 +986,10 @@ msgstr "不在现场也可确认"
 msgid "作成"
 msgstr "创建"
 
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "作成日時"
+msgstr "创建时间"
+
 #: src/app/coordinates/[id]/page.tsx
 msgid "使用する服"
 msgstr "使用的衣服"
@@ -893,6 +997,10 @@ msgstr "使用的衣服"
 #: src/components/dashboard/CheckedOutSection.tsx
 msgid "使用中"
 msgstr "使用中"
+
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
+msgid "例: agent-1"
+msgstr "例如: agent-1"
 
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "例: ワンピース用"
@@ -966,6 +1074,10 @@ msgstr "来登记你的第一个娃娃吧"
 msgid "最初のドール服を登録してみましょう"
 msgstr "来登记你的第一件娃衣吧"
 
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "最終使用日時"
+msgstr "最后使用时间"
+
 #: src/components/dashboard/RecentItems.tsx
 msgid "最近のアイテム"
 msgstr "最近的物品"
@@ -997,7 +1109,6 @@ msgstr "上一页"
 msgid "前の値を適用"
 msgstr "应用上一个值"
 
-#: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/ui/Pagination.tsx
 msgid "前へ"
@@ -1062,6 +1173,7 @@ msgstr "合计"
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/garment/GarmentForm.tsx
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 msgid "名前"
 msgstr "名称"
 
@@ -1102,9 +1214,26 @@ msgstr "位置已设置"
 msgid "変更"
 msgstr "更改"
 
+#: src/app/settings/api-keys/page.tsx
+msgid "外部 AI エージェントから接続するための Personal Access Token を発行・管理します。"
+msgstr "为外部 AI 代理连接签发和管理 Personal Access Token。"
+
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "外部エージェントから接続するための API キーを発行できます"
+msgstr "可签发供外部代理连接的 API 密钥"
+
+#: src/components/settings/api-key/ApiKeyList.tsx
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "失効"
+msgstr "撤销"
+
 #: src/lib/i18n-labels.ts
 msgid "季節物 (90日)"
 msgstr "季节性衣物 (90天)"
+
+#: src/components/settings/api-key/ApiKeyRevealSheet.tsx
+msgid "完了"
+msgstr "完成"
 
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollDetail.tsx
@@ -1132,6 +1261,8 @@ msgstr "恢复"
 
 #: src/app/nfc-write/page.tsx
 #: src/app/nfc-write/page.tsx
+#: src/app/settings/api-keys/page.tsx
+#: src/app/signin/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
@@ -1141,6 +1272,15 @@ msgstr "返回"
 #: src/components/coordinate/OriginBadge.tsx
 msgid "手動"
 msgstr "手动"
+
+#: src/app/settings/api-keys/page.tsx
+msgid "新しい API キー"
+msgstr "新建 API 密钥"
+
+#: src/app/settings/api-keys/page.tsx
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
+msgid "新しい API キーを発行"
+msgstr "签发新的 API 密钥"
 
 #: src/components/digest/DigestBanner.tsx
 msgid "新しい週間レポートが届いています"
@@ -1225,6 +1365,10 @@ msgstr "编辑衣服"
 msgid "服を選ぶ"
 msgstr "选择衣服"
 
+#: src/components/settings/api-key/ApiKeyList.tsx
+msgid "未使用"
+msgstr "未使用"
+
 #: src/components/dashboard/StaleLocationItem.tsx
 msgid "未確認 {uncertainItemCount}着"
 msgstr "未确认 {uncertainItemCount}件"
@@ -1251,7 +1395,6 @@ msgid "次のページ"
 msgstr "下一页"
 
 #: src/app/nfc-write/page.tsx
-#: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
 #: src/components/ui/Pagination.tsx
@@ -1266,11 +1409,19 @@ msgstr "每周一自动生成"
 msgid "状態"
 msgstr "状态"
 
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
+msgid "生キーは発行直後の一度しか表示されません。安全な場所に保管してください。"
+msgstr "原始密钥仅在签发后显示一次。请妥善保管。"
+
 #. placeholder {0}: status.completed
 #. placeholder {1}: status.total
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "画像をアップロードしています ({0}/{1})"
 msgstr "正在上传图片 ({0}/{1})"
+
+#: src/components/settings/api-key/ApiKeyCreateSheet.tsx
+msgid "発行"
+msgstr "签发"
 
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "登録された服がありません"
@@ -1411,6 +1562,10 @@ msgstr "待确认的物品（{0}件）"
 #: src/components/settings/LocaleSelector.tsx
 msgid "言語"
 msgstr "语言"
+
+#: src/components/auth/UserMenu.tsx
+msgid "設定"
+msgstr "设置"
 
 #: src/components/garment/DollCombobox.tsx
 msgid "該当するドールがありません"

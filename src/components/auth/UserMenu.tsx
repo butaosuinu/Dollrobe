@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useAtomValue, useSetAtom } from "jotai";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { authSessionUnwrappedAtom, signOutAtom } from "@/stores/authAtoms";
 
@@ -15,8 +17,19 @@ const UserMenu = () => {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted || authState.user === undefined) {
+  if (!isMounted || authState.isLoading) {
     return undefined;
+  }
+
+  if (authState.user === undefined) {
+    return (
+      <Link
+        href="/signin"
+        className="rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-primary-50 hover:text-text-primary"
+      >
+        <Trans>ログイン</Trans>
+      </Link>
+    );
   }
 
   const { user } = authState;
@@ -30,6 +43,13 @@ const UserMenu = () => {
           {user.name.charAt(0)}
         </div>
       )}
+      <Link
+        href="/settings/api-keys"
+        className="p-1 text-text-tertiary hover:text-text-primary"
+        aria-label={t`設定`}
+      >
+        <Settings className="size-4" />
+      </Link>
       <button
         type="button"
         onClick={() => {

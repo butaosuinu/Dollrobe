@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { server } from "./mocks/server";
 import { resetTestDb } from "./mocks/db";
 import { clearTrpcOverrides } from "./mocks/trpc/handlerFactory";
-import { restoreCanvasMocks } from "./helpers/canvas";
+import { restoreInstalledProperties } from "./helpers/propertyMock";
 
 const navMod = await vi.hoisted(
   async () => await import("./mocks/modules/nextNavigation"),
@@ -37,6 +37,9 @@ const onlineMod = await vi.hoisted(
 const jsqrMod = await vi.hoisted(
   async () => await import("./mocks/modules/jsqr"),
 );
+const authClientMod = await vi.hoisted(
+  async () => await import("./mocks/modules/authClient"),
+);
 
 vi.mock("next/navigation", navMod.nextNavigationFactory);
 vi.mock("next/link", linkMod.nextLinkFactory);
@@ -48,6 +51,7 @@ vi.mock("@/hooks/useColorExtraction", colorMod.useColorExtractionFactory);
 vi.mock("@/hooks/useBrandSuggestions", brandMod.useBrandSuggestionsFactory);
 vi.mock("@/hooks/useOnlineSync", onlineMod.useOnlineSyncFactory);
 vi.mock("jsqr", jsqrMod.jsqrFactory);
+vi.mock("@/lib/auth", authClientMod.authClientFactory);
 
 beforeAll(() => {
   server.listen({ onUnhandledRequest: "error" });
@@ -57,7 +61,7 @@ afterEach(async () => {
   cleanup();
   server.resetHandlers();
   clearTrpcOverrides();
-  restoreCanvasMocks();
+  restoreInstalledProperties();
 
   resetTestDb();
 
