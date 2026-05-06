@@ -15,6 +15,7 @@ import { imageRoutes } from "./routes/image";
 import * as imageService from "./services/image-service";
 import { handleDigestCron } from "./scheduled/digest-cron";
 import { handleDigestQueue } from "./queues/digest-consumer";
+import { mcpHandler, mcpMethodNotAllowed } from "./mcp/server";
 
 type Variables = {
   auth: Auth;
@@ -106,6 +107,10 @@ app.get("/api/images/serve/*", async (c) => {
 });
 
 app.route("/api/images", imageRoutes);
+
+app.post("/api/mcp", mcpHandler);
+app.get("/api/mcp", mcpMethodNotAllowed);
+app.delete("/api/mcp", mcpMethodNotAllowed);
 
 app.use(
   "/trpc/*",

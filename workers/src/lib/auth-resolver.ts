@@ -2,7 +2,7 @@ import type { Auth } from "../auth";
 
 const BEARER_PREFIX = "bearer ";
 
-const extractBearerKey = (headers: Headers): string | undefined => {
+export const extractBearerKey = (headers: Headers): string | undefined => {
   const raw = headers.get("authorization");
   if (raw == null) {
     return undefined;

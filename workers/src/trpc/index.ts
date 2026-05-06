@@ -10,6 +10,9 @@ export type TRPCContext = {
   readonly honoContext?: HonoContext;
   readonly auth?: Auth;
   readonly logger: Logger;
+  // 上流ですでに認証が確定している場合 (例: MCP の API キー検証後) に渡す。
+  // 値があれば authMiddleware は cookie/Bearer の再評価をスキップし、混在クレデンシャル時の身元なりすましを防ぐ。
+  readonly preAuthenticatedUserId?: string;
 };
 
 export type AuthenticatedTRPCContext = TRPCContext & {
@@ -33,6 +36,12 @@ const loggingMiddleware = t.middleware(async ({ ctx, path, type, next }) => {
 });
 
 const authMiddleware = t.middleware(async ({ ctx, next }) => {
+  if (ctx.preAuthenticatedUserId !== undefined) {
+    return await next({
+      ctx: { ...ctx, userId: ctx.preAuthenticatedUserId },
+    });
+  }
+
   if (ctx.auth === undefined || ctx.honoContext === undefined) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
