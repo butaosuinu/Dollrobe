@@ -56,9 +56,14 @@ export type LinkedAccount = {
   readonly providerId: string;
 };
 
+// 取得失敗時は throw し、accountsAtom 側で "error" sentinel に変換する。
+// [] を返すと credential ありユーザーが OAuth-only と誤判定され、setPassword
+// 分岐に流されて詰まる。fail-closed を効かせるため呼び出し側で reject を伝える。
 export const listAccounts = async (): Promise<readonly LinkedAccount[]> => {
   const { data, error } = await client.listAccounts();
-  return error === null ? data.map((a) => ({ providerId: a.providerId })) : [];
+  return error === null
+    ? data.map((a) => ({ providerId: a.providerId }))
+    : fail(error.message ?? "アカウント一覧の取得に失敗しました");
 };
 
 const PASSWORD_MIN = 8;
