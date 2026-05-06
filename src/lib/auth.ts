@@ -70,12 +70,13 @@ const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
 const NAME_MAX = 60;
 
-const emailField = z.email().trim();
+const emailField = z.string().trim().pipe(z.email());
 const passwordField = z.string().min(PASSWORD_MIN).max(PASSWORD_MAX);
 const nameField = z.string().trim().min(1).max(NAME_MAX);
 const optionalImageField = z
-  .url()
+  .string()
   .trim()
+  .pipe(z.url())
   .optional()
   .or(z.literal("").transform(() => undefined));
 
