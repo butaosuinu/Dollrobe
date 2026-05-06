@@ -41,7 +41,13 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
       },
     },
     user: {
-      changeEmail: { enabled: true },
+      changeEmail: {
+        enabled: true,
+        // emailVerified が false のユーザー (今回はメール検証を要求しないため
+        // 全員が該当) は即時メール更新を許可。verification 基盤を後から
+        // 追加する場合は sendChangeEmailConfirmation 等を併設する。
+        updateEmailWithoutVerification: true,
+      },
       deleteUser: {
         enabled: true,
         beforeDelete: async (user) => {

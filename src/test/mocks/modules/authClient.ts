@@ -7,6 +7,7 @@ import type {
   CreatedApiKey,
   DeleteAccountInput,
   LinkedAccount,
+  SetPasswordInput,
   SignInEmailInput,
   UpdateProfileInput,
 } from "@/lib/auth";
@@ -20,6 +21,7 @@ type Spies = {
   readonly updateProfile: ReturnType<typeof vi.fn>;
   readonly changeEmail: ReturnType<typeof vi.fn>;
   readonly changePassword: ReturnType<typeof vi.fn>;
+  readonly setPassword: ReturnType<typeof vi.fn>;
   readonly deleteAccount: ReturnType<typeof vi.fn>;
   readonly listAccounts: ReturnType<typeof vi.fn>;
 };
@@ -36,6 +38,7 @@ type State = {
   readonly updateProfileShouldFail: boolean;
   readonly changeEmailShouldFail: boolean;
   readonly changePasswordShouldFail: boolean;
+  readonly setPasswordShouldFail: boolean;
   readonly deleteAccountShouldFail: boolean;
   readonly spies: Spies;
 };
@@ -52,6 +55,7 @@ const createInitial = (): State => ({
   updateProfileShouldFail: false,
   changeEmailShouldFail: false,
   changePasswordShouldFail: false,
+  setPasswordShouldFail: false,
   deleteAccountShouldFail: false,
   spies: {
     createApiKey: vi.fn(),
@@ -62,6 +66,7 @@ const createInitial = (): State => ({
     updateProfile: vi.fn(),
     changeEmail: vi.fn(),
     changePassword: vi.fn(),
+    setPassword: vi.fn(),
     deleteAccount: vi.fn(),
     listAccounts: vi.fn(),
   },
@@ -159,6 +164,13 @@ export const authClientFactory = async () => {
         await Promise.reject(new Error("Failed to change password"));
       }
     },
+    setPassword: async (input: SetPasswordInput): Promise<void> => {
+      const s = getState();
+      s.spies.setPassword(input);
+      if (s.setPasswordShouldFail) {
+        await Promise.reject(new Error("Failed to set password"));
+      }
+    },
     deleteAccount: async (input: DeleteAccountInput): Promise<void> => {
       const s = getState();
       s.spies.deleteAccount(input);
@@ -186,6 +198,7 @@ type SetupOverrides = {
   readonly updateProfileShouldFail?: boolean;
   readonly changeEmailShouldFail?: boolean;
   readonly changePasswordShouldFail?: boolean;
+  readonly setPasswordShouldFail?: boolean;
   readonly deleteAccountShouldFail?: boolean;
 };
 
@@ -199,6 +212,7 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
   current.spies.updateProfile.mockClear();
   current.spies.changeEmail.mockClear();
   current.spies.changePassword.mockClear();
+  current.spies.setPassword.mockClear();
   current.spies.deleteAccount.mockClear();
   current.spies.listAccounts.mockClear();
 
@@ -214,6 +228,7 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
     updateProfileShouldFail: overrides.updateProfileShouldFail ?? false,
     changeEmailShouldFail: overrides.changeEmailShouldFail ?? false,
     changePasswordShouldFail: overrides.changePasswordShouldFail ?? false,
+    setPasswordShouldFail: overrides.setPasswordShouldFail ?? false,
     deleteAccountShouldFail: overrides.deleteAccountShouldFail ?? false,
     spies: current.spies,
   });

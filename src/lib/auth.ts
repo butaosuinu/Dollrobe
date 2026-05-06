@@ -111,6 +111,16 @@ export const changePasswordSchema = z
     message: "パスワードが一致しません",
   });
 
+export const setPasswordSchema = z
+  .object({
+    newPassword: passwordField,
+    newPasswordConfirm: passwordField,
+  })
+  .refine((v) => v.newPassword === v.newPasswordConfirm, {
+    path: ["newPasswordConfirm"],
+    message: "パスワードが一致しません",
+  });
+
 export const deleteAccountSchema = z.object({
   confirmEmail: emailField,
   password: z.string().min(1).optional(),
@@ -121,6 +131,7 @@ export type SignUpEmailInput = z.infer<typeof signUpEmailSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangeEmailInput = z.infer<typeof changeEmailSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
 export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
 
 const fail = (msg: string): never => {
@@ -187,6 +198,19 @@ export const changePassword = async (
   return error === null
     ? undefined
     : fail(error.message ?? "パスワード変更に失敗しました");
+};
+
+// OAuth-only ユーザー (credential アカウント未保有) 向けの初回パスワード設定。
+// better-auth の POST /set-password を呼ぶ。既に credential ありなら 400 で弾かれる。
+// client.setPassword は dynamic proxy で型に出ないため、$fetch を直接使う。
+export const setPassword = async (input: SetPasswordInput): Promise<void> => {
+  const { error } = await client.$fetch("/set-password", {
+    method: "POST",
+    body: { newPassword: input.newPassword },
+  });
+  return error === null
+    ? undefined
+    : fail(error.message ?? "パスワード設定に失敗しました");
 };
 
 export const deleteAccount = async (

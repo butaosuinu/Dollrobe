@@ -4,7 +4,12 @@ import { useState } from "react";
 import { useSetAtom } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { changePassword, changePasswordSchema } from "@/lib/auth";
+import {
+  changePassword,
+  changePasswordSchema,
+  setPassword,
+  setPasswordSchema,
+} from "@/lib/auth";
 import { addToastAtom } from "@/stores/toastAtoms";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -41,16 +46,19 @@ const PasswordChangeForm = ({ hasPassword }: Props) => {
     (hasPassword && currentPassword === "");
 
   const validate = () => {
-    const parsed = changePasswordSchema.safeParse({
-      currentPassword: hasPassword ? currentPassword : undefined,
-      newPassword,
-      newPasswordConfirm,
-    });
+    const parsed = hasPassword
+      ? changePasswordSchema.safeParse({
+          currentPassword,
+          newPassword,
+          newPasswordConfirm,
+        })
+      : setPasswordSchema.safeParse({ newPassword, newPasswordConfirm });
     if (parsed.success) {
       setFieldErrors(EMPTY_ERRORS);
       return parsed.data;
     }
-    const flat = parsed.error.flatten().fieldErrors;
+    const flat: Record<string, readonly string[] | undefined> =
+      parsed.error.flatten().fieldErrors;
     setFieldErrors({
       currentPassword: flat.currentPassword?.[0] ?? undefined,
       newPassword: flat.newPassword?.[0] ?? undefined,
@@ -67,7 +75,12 @@ const PasswordChangeForm = ({ hasPassword }: Props) => {
     if (data === undefined) return;
 
     setIsSubmitting(true);
-    const failed = await changePassword(data).catch(() => true);
+    const failed = hasPassword
+      ? await changePassword(data).catch(() => true)
+      : await setPassword({
+          newPassword: data.newPassword,
+          newPasswordConfirm: data.newPasswordConfirm,
+        }).catch(() => true);
     setIsSubmitting(false);
 
     if (failed === true) {

@@ -101,7 +101,7 @@ describe("AccountSettingsPage", () => {
     });
   });
 
-  it("OAuth-only ユーザーはパスワード設定モードで現在のパスワード入力が出ない", async () => {
+  it("OAuth-only ユーザーは setPassword が呼ばれ、現在のパスワード入力が出ない", async () => {
     const { spies } = setupAuthClient({
       accounts: [{ providerId: "google" }],
     });
@@ -123,12 +123,12 @@ describe("AccountSettingsPage", () => {
     await user.click(screen.getByRole("button", { name: "パスワードを設定" }));
 
     await waitFor(() => {
-      expect(spies.changePassword).toHaveBeenCalledWith({
-        currentPassword: undefined,
+      expect(spies.setPassword).toHaveBeenCalledWith({
         newPassword: "newpass12",
         newPasswordConfirm: "newpass12",
       });
     });
+    expect(spies.changePassword).not.toHaveBeenCalled();
   });
 
   it("退会フローでメール一致時のみ削除ボタンが有効", async () => {
