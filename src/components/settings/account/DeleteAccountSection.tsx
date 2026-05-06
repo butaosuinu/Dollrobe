@@ -39,14 +39,16 @@ const DeleteAccountSection = ({ currentEmail }: Props) => {
     if (isDisabled) return;
     setIsSubmitting(true);
     const failed = await deleteAccount({ confirmEmail }).catch(() => true);
-    setIsSubmitting(false);
 
     if (failed === true) {
+      setIsSubmitting(false);
       addToast({ message: t`アカウントの削除に失敗しました` });
       return;
     }
 
-    refreshAuth();
+    // 新しい session 取得を待ってから遷移しないと、/signin が unwrap の prev
+    // (認証済み) を見て / に弾く race が起きる。
+    await refreshAuth();
     router.replace("/signin");
   };
 
