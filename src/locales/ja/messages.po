@@ -1050,8 +1050,13 @@ msgid "リセット"
 msgstr "リセット"
 
 #: src/components/auth/UserMenu.tsx
+#: src/components/auth/UserMenu.tsx
 msgid "ログアウト"
 msgstr "ログアウト"
+
+#: src/components/auth/UserMenu.tsx
+msgid "ログアウトしますか？"
+msgstr "ログアウトしますか？"
 
 #: src/components/auth/EmailPasswordForm.tsx
 #: src/components/auth/UserMenu.tsx
@@ -1229,6 +1234,10 @@ msgstr "全ドール"
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "全部ある"
 msgstr "全部ある"
+
+#: src/components/auth/UserMenu.tsx
+msgid "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
+msgstr "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
 
 #: src/app/dolls/page.tsx
 msgid "最初のドールを登録してみましょう"

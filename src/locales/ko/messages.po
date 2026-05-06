@@ -1050,8 +1050,13 @@ msgid "リセット"
 msgstr "초기화"
 
 #: src/components/auth/UserMenu.tsx
+#: src/components/auth/UserMenu.tsx
 msgid "ログアウト"
 msgstr "로그아웃"
+
+#: src/components/auth/UserMenu.tsx
+msgid "ログアウトしますか？"
+msgstr "로그아웃하시겠습니까?"
 
 #: src/components/auth/EmailPasswordForm.tsx
 #: src/components/auth/UserMenu.tsx
@@ -1229,6 +1234,10 @@ msgstr "모든 인형"
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "全部ある"
 msgstr "전부 있음"
+
+#: src/components/auth/UserMenu.tsx
+msgid "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
+msgstr "다시 로그인할 때까지 보관 장소 확인이나 옷 등록을 할 수 없습니다."
 
 #: src/app/dolls/page.tsx
 msgid "最初のドールを登録してみましょう"

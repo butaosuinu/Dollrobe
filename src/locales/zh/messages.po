@@ -1050,8 +1050,13 @@ msgid "リセット"
 msgstr "重置"
 
 #: src/components/auth/UserMenu.tsx
+#: src/components/auth/UserMenu.tsx
 msgid "ログアウト"
 msgstr "退出登录"
+
+#: src/components/auth/UserMenu.tsx
+msgid "ログアウトしますか？"
+msgstr "要退出登录吗？"
 
 #: src/components/auth/EmailPasswordForm.tsx
 #: src/components/auth/UserMenu.tsx
@@ -1229,6 +1234,10 @@ msgstr "所有娃娃"
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "全部ある"
 msgstr "全部都在"
+
+#: src/components/auth/UserMenu.tsx
+msgid "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
+msgstr "在再次登录之前，无法查看收纳位置或注册衣物。"
 
 #: src/app/dolls/page.tsx
 msgid "最初のドールを登録してみましょう"
