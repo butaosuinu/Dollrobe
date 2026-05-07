@@ -219,12 +219,22 @@ export const setPassword = async (input: SetPasswordInput): Promise<void> => {
     : fail(error.message ?? "パスワード設定に失敗しました");
 };
 
+// confirmEmail を server に送り、session の user.email と一致するか
+// サーバ側で検証してから auth.api.deleteUser を実行する。client.deleteUser
+// は schema 上 confirmEmail を受け取らないため、$fetch で intercept route
+// を直接叩く形にする。クライアント側のメール一致チェックだけだと、stale
+// state や bypass で意図しない削除が成立し得る。
 export const deleteAccount = async (
   input: DeleteAccountInput,
 ): Promise<void> => {
-  const { error } = await client.deleteUser(
-    input.password === undefined ? {} : { password: input.password },
-  );
+  const body =
+    input.password === undefined
+      ? { confirmEmail: input.confirmEmail }
+      : { confirmEmail: input.confirmEmail, password: input.password };
+  const { error } = await client.$fetch("/delete-user", {
+    method: "POST",
+    body,
+  });
   return error === null
     ? undefined
     : fail(error.message ?? "アカウント削除に失敗しました");
