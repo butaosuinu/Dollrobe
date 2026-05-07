@@ -209,7 +209,11 @@ export const deleteStorageCaseAtom = atom(
       .equals(caseId)
       .and((l) => l.userId === userId)
       .delete();
-    await getDb().storageCases.delete(caseId);
+    await getDb()
+      .storageCases.where("id")
+      .equals(caseId)
+      .and((c) => c.userId === userId)
+      .delete();
     await getDb().syncQueue.add({
       type: SYNC_ACTION_TYPE.STORAGE_CASE_DELETE,
       payload: { id: caseId },
