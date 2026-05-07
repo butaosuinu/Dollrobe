@@ -18,6 +18,7 @@ type Spies = {
   readonly revokeApiKey: ReturnType<typeof vi.fn>;
   readonly signInWithEmail: ReturnType<typeof vi.fn>;
   readonly signUpWithEmail: ReturnType<typeof vi.fn>;
+  readonly signOut: ReturnType<typeof vi.fn>;
   readonly updateProfile: ReturnType<typeof vi.fn>;
   readonly changeEmail: ReturnType<typeof vi.fn>;
   readonly changePassword: ReturnType<typeof vi.fn>;
@@ -35,6 +36,8 @@ type State = {
   readonly revokeShouldFail: boolean;
   readonly signInShouldFail: boolean;
   readonly signUpShouldFail: boolean;
+  readonly signOutShouldFail: boolean;
+  readonly signOutResolveWithError: boolean;
   readonly updateProfileShouldFail: boolean;
   readonly changeEmailShouldFail: boolean;
   readonly changePasswordShouldFail: boolean;
@@ -53,6 +56,8 @@ const createInitial = (): State => ({
   revokeShouldFail: false,
   signInShouldFail: false,
   signUpShouldFail: false,
+  signOutShouldFail: false,
+  signOutResolveWithError: false,
   updateProfileShouldFail: false,
   changeEmailShouldFail: false,
   changePasswordShouldFail: false,
@@ -65,6 +70,7 @@ const createInitial = (): State => ({
     revokeApiKey: vi.fn(),
     signInWithEmail: vi.fn(),
     signUpWithEmail: vi.fn(),
+    signOut: vi.fn(),
     updateProfile: vi.fn(),
     changeEmail: vi.fn(),
     changePassword: vi.fn(),
@@ -145,6 +151,18 @@ export const authClientFactory = async () => {
         await Promise.reject(new Error("Failed to sign up"));
       }
     },
+    signOut: async (): Promise<
+      { readonly error: Error | null } | undefined
+    > => {
+      const s = getState();
+      s.spies.signOut();
+      if (s.signOutShouldFail) {
+        await Promise.reject(new Error("Failed to sign out"));
+      }
+      return s.signOutResolveWithError
+        ? { error: new Error("Failed to sign out (resolved)") }
+        : undefined;
+    },
     updateProfile: async (input: UpdateProfileInput): Promise<void> => {
       const s = getState();
       s.spies.updateProfile(input);
@@ -199,6 +217,8 @@ type SetupOverrides = {
   readonly revokeShouldFail?: boolean;
   readonly signInShouldFail?: boolean;
   readonly signUpShouldFail?: boolean;
+  readonly signOutShouldFail?: boolean;
+  readonly signOutResolveWithError?: boolean;
   readonly updateProfileShouldFail?: boolean;
   readonly changeEmailShouldFail?: boolean;
   readonly changePasswordShouldFail?: boolean;
@@ -214,6 +234,7 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
   current.spies.revokeApiKey.mockClear();
   current.spies.signInWithEmail.mockClear();
   current.spies.signUpWithEmail.mockClear();
+  current.spies.signOut.mockClear();
   current.spies.updateProfile.mockClear();
   current.spies.changeEmail.mockClear();
   current.spies.changePassword.mockClear();
@@ -230,6 +251,8 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
     revokeShouldFail: overrides.revokeShouldFail ?? false,
     signInShouldFail: overrides.signInShouldFail ?? false,
     signUpShouldFail: overrides.signUpShouldFail ?? false,
+    signOutShouldFail: overrides.signOutShouldFail ?? false,
+    signOutResolveWithError: overrides.signOutResolveWithError ?? false,
     updateProfileShouldFail: overrides.updateProfileShouldFail ?? false,
     changeEmailShouldFail: overrides.changeEmailShouldFail ?? false,
     changePasswordShouldFail: overrides.changePasswordShouldFail ?? false,

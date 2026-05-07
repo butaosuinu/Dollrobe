@@ -38,18 +38,20 @@ export const signInSocial = social;
 export const signOut = clientSignOut;
 
 export const getSession = async (): Promise<SessionResponse> => {
-  const { data: rawData } = await client.getSession();
-  return {
-    data:
-      rawData === null
-        ? undefined
-        : {
-            user: {
-              ...rawData.user,
-              image: rawData.user.image ?? undefined,
-            },
-          },
-  };
+  const { data: rawData, error } = await client.getSession();
+  return error === null
+    ? {
+        data:
+          rawData === null
+            ? undefined
+            : {
+                user: {
+                  ...rawData.user,
+                  image: rawData.user.image ?? undefined,
+                },
+              },
+      }
+    : fail(error.message ?? "セッション取得に失敗しました");
 };
 
 export type LinkedAccount = {

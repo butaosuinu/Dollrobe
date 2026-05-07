@@ -159,7 +159,7 @@ msgstr "确定永久删除\"{0}\"吗？此操作无法撤销。"
 msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
 msgstr "将「{0}」标记为丢失。收纳位置信息将被清除。"
 
-#: src/app/signup/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "30 秒で、最初の引き出しを開けられます"
 msgstr "30 秒内打开第一个抽屉"
 
@@ -404,7 +404,7 @@ msgstr "账户"
 msgid "アカウントの削除に失敗しました"
 msgstr "删除账户失败"
 
-#: src/app/signin/page.tsx
+#: src/app/(public)/signin/page.tsx
 msgid "アカウントをお持ちでない方は <0>新規登録</0>"
 msgstr "还没有账户？<0>注册</0>"
 
@@ -465,6 +465,10 @@ msgstr "欢迎回来"
 #: src/lib/i18n-labels.ts
 msgid "オレンジ"
 msgstr "橙色"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "オンラインに戻るとログイン画面に進めます"
+msgstr "恢复在线后即可进入登录页面"
 
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "お出かけコーデ"
@@ -677,7 +681,7 @@ msgstr "范围"
 msgid "ステータス"
 msgstr "状态"
 
-#: src/app/signup/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "すでにアカウントをお持ちの方は <0>ログイン</0>"
 msgstr "已有账户？<0>登录</0>"
 
@@ -700,6 +704,10 @@ msgstr "查看全部"
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "ズレを直す"
 msgstr "修正偏差"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "セッションを確認できませんでした"
+msgstr "无法验证会话"
 
 #: src/lib/i18n-labels.ts
 msgid "セット"
@@ -805,7 +813,7 @@ msgstr "娃娃列表"
 msgid "ドール服の名前"
 msgstr "娃衣名称"
 
-#: src/app/signin/page.tsx
+#: src/app/(public)/signin/page.tsx
 msgid "ドール服管理にログイン"
 msgstr "登录人偶衣物管理"
 
@@ -836,9 +844,17 @@ msgstr "密码"
 msgid "パスワード（確認）"
 msgstr "密码（确认）"
 
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "パスワードが正しくないか、アカウントの削除に失敗しました"
+msgstr "密码不正确或删除账号失败"
+
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードの設定に失敗しました"
 msgstr "设置密码失败"
+
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "パスワードを入力"
+msgstr "输入密码"
 
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードを変更"
@@ -951,8 +967,8 @@ msgstr "还没有搭配"
 msgid "まだドールがいません"
 msgstr "还没有娃娃"
 
-#: src/app/signin/page.tsx
-#: src/app/signup/page.tsx
+#: src/app/(public)/signin/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "または"
 msgstr "或"
 
@@ -1062,6 +1078,10 @@ msgstr "要退出登录吗？"
 #: src/components/auth/UserMenu.tsx
 msgid "ログイン"
 msgstr "登录"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "ログインが必要です"
+msgstr "需要登录"
 
 #: src/app/settings/account/page.tsx
 msgid "ログインに使うメールアドレスです。"
@@ -1238,6 +1258,10 @@ msgstr "全部都在"
 #: src/components/auth/UserMenu.tsx
 msgid "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
 msgstr "在再次登录之前，无法查看收纳位置或注册衣物。"
+
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "最初からやり直す"
+msgstr "重新开始"
 
 #: src/app/dolls/page.tsx
 msgid "最初のドールを登録してみましょう"
@@ -1432,7 +1456,7 @@ msgstr "帽子/头饰"
 msgid "引き出し"
 msgstr "抽屉"
 
-#: src/app/signin/page.tsx
+#: src/app/(public)/signin/page.tsx
 msgid "引き出しの中身を、いつでもどこでも"
 msgstr "随时随地查看抽屉里的物品"
 
@@ -1467,7 +1491,7 @@ msgstr "新建 API 密钥"
 msgid "新しい API キーを発行"
 msgstr "签发新的 API 密钥"
 
-#: src/app/signup/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "新しいアカウントを作る"
 msgstr "创建新账户"
 
@@ -1649,6 +1673,10 @@ msgstr "已注册的衣物、收纳位置、搭配和人偶都将被删除，无
 msgid "登録する"
 msgstr "登记"
 
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "登録できませんでした"
+msgstr "注册失败"
+
 #: src/components/auth/SignUpForm.tsx
 msgid "登録中…"
 msgstr "注册中…"
@@ -1805,6 +1833,10 @@ msgstr "没有匹配的娃娃"
 msgid "詳細"
 msgstr "详情"
 
+#: src/stores/bulkCaptureAtoms.ts
+msgid "認証セッションが切れました。再度ログインしてください。"
+msgstr "您的会话已过期。请重新登录。"
+
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
@@ -1831,6 +1863,10 @@ msgstr "加载失败"
 #: src/lib/i18n-labels.ts
 msgid "赤"
 msgstr "红色"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "通信状況を確認してから再読み込みしてください"
+msgstr "请检查网络连接后重新加载页面"
 
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"

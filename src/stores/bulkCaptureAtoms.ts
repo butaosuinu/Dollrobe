@@ -1,5 +1,7 @@
 import { atom } from "jotai";
 import { createId } from "@paralleldrive/cuid2";
+import { msg } from "@lingui/core/macro";
+import { i18n } from "@/i18n/lingui";
 import type {
   BulkCaptureItem,
   BulkCaptureMetadata,
@@ -170,7 +172,17 @@ export const executeBulkRegistrationAtom = atom(undefined, async (get, set) => {
   const items = get(capturedItemsAtom);
   const metadataMap = get(metadataMapAtom);
   const authState = await get(authSessionAtom);
-  const userId = authState.user?.id ?? "local";
+  const userId = authState.user?.id;
+  if (userId === undefined) {
+    set(bulkCaptureStepAtom, "registering");
+    set(bulkRegistrationStatusAtom, {
+      status: "error",
+      message: i18n._(
+        msg`認証セッションが切れました。再度ログインしてください。`,
+      ),
+    });
+    return;
+  }
 
   set(bulkCaptureStepAtom, "registering");
   set(bulkRegistrationStatusAtom, {

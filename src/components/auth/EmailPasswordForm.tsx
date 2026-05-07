@@ -54,7 +54,7 @@ const EmailPasswordForm = () => {
       return;
     }
 
-    refreshAuth();
+    await refreshAuth();
     router.replace("/");
   };
 

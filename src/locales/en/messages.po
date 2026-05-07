@@ -159,7 +159,7 @@ msgstr "Permanently delete \"{0}\"? This action cannot be undone."
 msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
 msgstr "Mark \"{0}\" as lost. Its location information will be cleared."
 
-#: src/app/signup/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "30 秒で、最初の引き出しを開けられます"
 msgstr "Open your first drawer in 30 seconds"
 
@@ -404,7 +404,7 @@ msgstr "Account"
 msgid "アカウントの削除に失敗しました"
 msgstr "Failed to delete account"
 
-#: src/app/signin/page.tsx
+#: src/app/(public)/signin/page.tsx
 msgid "アカウントをお持ちでない方は <0>新規登録</0>"
 msgstr "Don't have an account? <0>Sign up</0>"
 
@@ -465,6 +465,10 @@ msgstr "Welcome back"
 #: src/lib/i18n-labels.ts
 msgid "オレンジ"
 msgstr "Orange"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "オンラインに戻るとログイン画面に進めます"
+msgstr "Return online to access the sign-in screen"
 
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "お出かけコーデ"
@@ -677,7 +681,7 @@ msgstr "Scope"
 msgid "ステータス"
 msgstr "Status"
 
-#: src/app/signup/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "すでにアカウントをお持ちの方は <0>ログイン</0>"
 msgstr "Already have an account? <0>Sign in</0>"
 
@@ -700,6 +704,10 @@ msgstr "View all"
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "ズレを直す"
 msgstr "Fix discrepancy"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "セッションを確認できませんでした"
+msgstr "Could not verify session"
 
 #: src/lib/i18n-labels.ts
 msgid "セット"
@@ -805,7 +813,7 @@ msgstr "Doll list"
 msgid "ドール服の名前"
 msgstr "Garment name"
 
-#: src/app/signin/page.tsx
+#: src/app/(public)/signin/page.tsx
 msgid "ドール服管理にログイン"
 msgstr "Sign in to Doll Wardrobe"
 
@@ -836,9 +844,17 @@ msgstr "Password"
 msgid "パスワード（確認）"
 msgstr "Password (Confirm)"
 
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "パスワードが正しくないか、アカウントの削除に失敗しました"
+msgstr "Incorrect password, or failed to delete account"
+
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードの設定に失敗しました"
 msgstr "Failed to set password"
+
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "パスワードを入力"
+msgstr "Enter password"
 
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードを変更"
@@ -951,8 +967,8 @@ msgstr "No outfits yet"
 msgid "まだドールがいません"
 msgstr "No dolls yet"
 
-#: src/app/signin/page.tsx
-#: src/app/signup/page.tsx
+#: src/app/(public)/signin/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "または"
 msgstr "OR"
 
@@ -1062,6 +1078,10 @@ msgstr "Sign out?"
 #: src/components/auth/UserMenu.tsx
 msgid "ログイン"
 msgstr "Sign in"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "ログインが必要です"
+msgstr "Sign-in required"
 
 #: src/app/settings/account/page.tsx
 msgid "ログインに使うメールアドレスです。"
@@ -1238,6 +1258,10 @@ msgstr "All present"
 #: src/components/auth/UserMenu.tsx
 msgid "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
 msgstr "You won't be able to check storage or register garments until you sign in again."
+
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "最初からやり直す"
+msgstr "Start over"
 
 #: src/app/dolls/page.tsx
 msgid "最初のドールを登録してみましょう"
@@ -1432,7 +1456,7 @@ msgstr "Hats/Headdress"
 msgid "引き出し"
 msgstr "Drawer"
 
-#: src/app/signin/page.tsx
+#: src/app/(public)/signin/page.tsx
 msgid "引き出しの中身を、いつでもどこでも"
 msgstr "Your drawers, anytime and anywhere"
 
@@ -1467,7 +1491,7 @@ msgstr "New API key"
 msgid "新しい API キーを発行"
 msgstr "Issue a new API key"
 
-#: src/app/signup/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "新しいアカウントを作る"
 msgstr "Create a new account"
 
@@ -1649,6 +1673,10 @@ msgstr "All registered garments, locations, coordinates, and dolls will be delet
 msgid "登録する"
 msgstr "Register"
 
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "登録できませんでした"
+msgstr "Registration failed"
+
 #: src/components/auth/SignUpForm.tsx
 msgid "登録中…"
 msgstr "Registering…"
@@ -1805,6 +1833,10 @@ msgstr "No matching dolls found"
 msgid "詳細"
 msgstr "Details"
 
+#: src/stores/bulkCaptureAtoms.ts
+msgid "認証セッションが切れました。再度ログインしてください。"
+msgstr "Your session has expired. Please sign in again."
+
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
@@ -1831,6 +1863,10 @@ msgstr "Failed to load"
 #: src/lib/i18n-labels.ts
 msgid "赤"
 msgstr "Red"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "通信状況を確認してから再読み込みしてください"
+msgstr "Check your network connection and reload the page"
 
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"

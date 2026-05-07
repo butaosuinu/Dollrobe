@@ -159,7 +159,7 @@ msgstr "「{0}」を完全に削除しますか？この操作は取り消せま
 msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
 msgstr "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
 
-#: src/app/signup/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "30 秒で、最初の引き出しを開けられます"
 msgstr "30 秒で、最初の引き出しを開けられます"
 
@@ -404,7 +404,7 @@ msgstr "アカウント"
 msgid "アカウントの削除に失敗しました"
 msgstr "アカウントの削除に失敗しました"
 
-#: src/app/signin/page.tsx
+#: src/app/(public)/signin/page.tsx
 msgid "アカウントをお持ちでない方は <0>新規登録</0>"
 msgstr "アカウントをお持ちでない方は <0>新規登録</0>"
 
@@ -465,6 +465,10 @@ msgstr "おかえりなさい"
 #: src/lib/i18n-labels.ts
 msgid "オレンジ"
 msgstr "オレンジ"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "オンラインに戻るとログイン画面に進めます"
+msgstr "オンラインに戻るとログイン画面に進めます"
 
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "お出かけコーデ"
@@ -677,7 +681,7 @@ msgstr "スコープ"
 msgid "ステータス"
 msgstr "ステータス"
 
-#: src/app/signup/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "すでにアカウントをお持ちの方は <0>ログイン</0>"
 msgstr "すでにアカウントをお持ちの方は <0>ログイン</0>"
 
@@ -700,6 +704,10 @@ msgstr "すべて見る"
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "ズレを直す"
 msgstr "ズレを直す"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "セッションを確認できませんでした"
+msgstr "セッションを確認できませんでした"
 
 #: src/lib/i18n-labels.ts
 msgid "セット"
@@ -805,7 +813,7 @@ msgstr "ドール一覧"
 msgid "ドール服の名前"
 msgstr "ドール服の名前"
 
-#: src/app/signin/page.tsx
+#: src/app/(public)/signin/page.tsx
 msgid "ドール服管理にログイン"
 msgstr "ドール服管理にログイン"
 
@@ -836,9 +844,17 @@ msgstr "パスワード"
 msgid "パスワード（確認）"
 msgstr "パスワード（確認）"
 
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "パスワードが正しくないか、アカウントの削除に失敗しました"
+msgstr "パスワードが正しくないか、アカウントの削除に失敗しました"
+
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードの設定に失敗しました"
 msgstr "パスワードの設定に失敗しました"
+
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "パスワードを入力"
+msgstr "パスワードを入力"
 
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードを変更"
@@ -951,8 +967,8 @@ msgstr "まだコーデがありません"
 msgid "まだドールがいません"
 msgstr "まだドールがいません"
 
-#: src/app/signin/page.tsx
-#: src/app/signup/page.tsx
+#: src/app/(public)/signin/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "または"
 msgstr "または"
 
@@ -1062,6 +1078,10 @@ msgstr "ログアウトしますか？"
 #: src/components/auth/UserMenu.tsx
 msgid "ログイン"
 msgstr "ログイン"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "ログインが必要です"
+msgstr "ログインが必要です"
 
 #: src/app/settings/account/page.tsx
 msgid "ログインに使うメールアドレスです。"
@@ -1238,6 +1258,10 @@ msgstr "全部ある"
 #: src/components/auth/UserMenu.tsx
 msgid "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
 msgstr "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
+
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "最初からやり直す"
+msgstr "最初からやり直す"
 
 #: src/app/dolls/page.tsx
 msgid "最初のドールを登録してみましょう"
@@ -1432,7 +1456,7 @@ msgstr "帽子/ヘッドドレス"
 msgid "引き出し"
 msgstr "引き出し"
 
-#: src/app/signin/page.tsx
+#: src/app/(public)/signin/page.tsx
 msgid "引き出しの中身を、いつでもどこでも"
 msgstr "引き出しの中身を、いつでもどこでも"
 
@@ -1467,7 +1491,7 @@ msgstr "新しい API キー"
 msgid "新しい API キーを発行"
 msgstr "新しい API キーを発行"
 
-#: src/app/signup/page.tsx
+#: src/app/(public)/signup/page.tsx
 msgid "新しいアカウントを作る"
 msgstr "新しいアカウントを作る"
 
@@ -1649,6 +1673,10 @@ msgstr "登録した服・収納場所・コーデ・ドールはすべて削除
 msgid "登録する"
 msgstr "登録する"
 
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "登録できませんでした"
+msgstr "登録できませんでした"
+
 #: src/components/auth/SignUpForm.tsx
 msgid "登録中…"
 msgstr "登録中…"
@@ -1805,6 +1833,10 @@ msgstr "該当するドールがありません"
 msgid "詳細"
 msgstr "詳細"
 
+#: src/stores/bulkCaptureAtoms.ts
+msgid "認証セッションが切れました。再度ログインしてください。"
+msgstr "認証セッションが切れました。再度ログインしてください。"
+
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
 #: src/components/location/StorageLocationEditForm.tsx
@@ -1831,6 +1863,10 @@ msgstr "読み込みに失敗しました"
 #: src/lib/i18n-labels.ts
 msgid "赤"
 msgstr "赤"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "通信状況を確認してから再読み込みしてください"
+msgstr "通信状況を確認してから再読み込みしてください"
 
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"

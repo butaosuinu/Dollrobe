@@ -84,7 +84,7 @@ const SignUpForm = () => {
       return;
     }
 
-    refreshAuth();
+    await refreshAuth();
     router.replace("/");
   };
 
