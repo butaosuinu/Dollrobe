@@ -87,7 +87,6 @@ const cancelArchiveAtom = atom(
     const pending = get(pendingArchivesAtom).find(
       (p) => p.id === id && p.entityType === entityType,
     );
-
     if (pending === undefined) return;
     clearTimeout(pending.timerId);
     set(dismissToastAtom, pending.toastId);

@@ -259,7 +259,8 @@ const permissionsSchema = z
 
 const permissionsToScope = (raw: unknown): ApiKeyScope => {
   const parsed = permissionsSchema.safeParse(raw);
-  const actions = parsed.success ? (parsed.data?.all ?? []) : [];
+  if (!parsed.success) return API_KEY_SCOPE.READ_ONLY;
+  const actions = parsed.data?.all ?? [];
   return actions.includes("write")
     ? API_KEY_SCOPE.READ_WRITE
     : API_KEY_SCOPE.READ_ONLY;
@@ -285,13 +286,10 @@ const dateLikeSchema = z
 
 const toMillis = (raw: unknown): number => {
   const parsed = dateLikeSchema.safeParse(raw);
-  return !parsed.success || parsed.data == null
-    ? 0
-    : parsed.data instanceof Date
-      ? parsed.data.getTime()
-      : typeof parsed.data === "number"
-        ? parsed.data
-        : new Date(parsed.data).getTime();
+  if (!parsed.success || parsed.data == null) return 0;
+  if (parsed.data instanceof Date) return parsed.data.getTime();
+  if (typeof parsed.data === "number") return parsed.data;
+  return new Date(parsed.data).getTime();
 };
 
 const toLastRequest = (raw: unknown): number | undefined => {

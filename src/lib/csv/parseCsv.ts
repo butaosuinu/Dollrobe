@@ -58,14 +58,11 @@ export const parseCsv = (text: string): ParsedCsvResult => {
     .filter((line) => line.trim() !== "");
 
   const [headerLine] = lines;
-  return headerLine === undefined
-    ? { headers: [], rows: [] }
-    : {
-        headers: splitCsvLine(headerLine).map((h) => h.trim()),
-        rows: lines
-          .slice(1)
-          .map((line) => splitCsvLine(line).map((f) => f.trim())),
-      };
+  if (headerLine === undefined) return { headers: [], rows: [] };
+  return {
+    headers: splitCsvLine(headerLine).map((h) => h.trim()),
+    rows: lines.slice(1).map((line) => splitCsvLine(line).map((f) => f.trim())),
+  };
 };
 
 export const hasRequiredHeaders = (

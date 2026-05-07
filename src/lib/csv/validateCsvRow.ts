@@ -135,29 +135,31 @@ const buildValidRow = (record: Record<string, string>): CsvValidationResult => {
     (s) => s === (record.dollSize?.trim() ?? ""),
   );
 
-  return category !== undefined && dollSize !== undefined
-    ? {
-        ok: true,
-        data: {
-          name: record.name?.trim() ?? "",
-          category,
-          dollSize,
-          colors: parseArrayField(record.colors),
-          tags: parseArrayField(record.tags),
-          brand: record.brand?.trim() ?? "",
-          confidenceDecayDays: parseDecayDays(record.confidenceDecayDays),
+  if (category === undefined || dollSize === undefined) {
+    return {
+      ok: false,
+      errors: [
+        {
+          row: 0,
+          field: "internal",
+          message: "Unexpected validation error",
         },
-      }
-    : {
-        ok: false,
-        errors: [
-          {
-            row: 0,
-            field: "internal",
-            message: "Unexpected validation error",
-          },
-        ],
-      };
+      ],
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      name: record.name?.trim() ?? "",
+      category,
+      dollSize,
+      colors: parseArrayField(record.colors),
+      tags: parseArrayField(record.tags),
+      brand: record.brand?.trim() ?? "",
+      confidenceDecayDays: parseDecayDays(record.confidenceDecayDays),
+    },
+  };
 };
 
 export const validateCsvRow = ({
