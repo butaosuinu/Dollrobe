@@ -81,7 +81,7 @@ export class DollWardrobeDB extends Dexie {
       })
       .upgrade(async (tx) => {
         const syncTable = tx.table("syncQueue");
-        /* eslint-disable functional/no-conditional-statements, functional/immutable-data, @typescript-eslint/prefer-destructuring -- Dexie modify callback requires in-place mutation; destructuring loses type guard narrowing */
+        /* eslint-disable functional/immutable-data, @typescript-eslint/prefer-destructuring -- Dexie modify callback requires in-place mutation; destructuring loses type guard narrowing */
         await syncTable
           .toCollection()
           .filter((item: Record<string, unknown>) => {
@@ -105,7 +105,7 @@ export class DollWardrobeDB extends Dexie {
             payload.dollSizes = [payload.dollSize];
             delete payload.dollSize;
           });
-        /* eslint-enable functional/no-conditional-statements, functional/immutable-data, @typescript-eslint/prefer-destructuring */
+        /* eslint-enable functional/immutable-data, @typescript-eslint/prefer-destructuring */
       });
     this.version(5)
       .stores({
@@ -286,7 +286,7 @@ export class DollWardrobeDB extends Dexie {
 
 const holder = new Map<string, DollWardrobeDB>();
 
-/* eslint-disable functional/no-conditional-statements, functional/immutable-data -- lazy singleton requires one-time mutation to defer IndexedDB access from SSR */
+/* eslint-disable functional/immutable-data -- lazy singleton requires one-time mutation to defer IndexedDB access from SSR */
 export const getDb = (): DollWardrobeDB => {
   const existing = holder.get("db");
   if (existing !== undefined) {
@@ -296,4 +296,4 @@ export const getDb = (): DollWardrobeDB => {
   holder.set("db", instance);
   return instance;
 };
-/* eslint-enable functional/no-conditional-statements, functional/immutable-data */
+/* eslint-enable functional/immutable-data */

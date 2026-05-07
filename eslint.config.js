@@ -71,6 +71,10 @@ export default tseslint.config(
         "error",
         { enforceParameterCount: false },
       ],
+      "functional/no-conditional-statements": [
+        "error",
+        { allowReturningBranches: true },
+      ],
       eqeqeq: ["error", "always", { null: "ignore" }],
       "no-restricted-syntax": [
         "error",

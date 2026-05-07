@@ -48,7 +48,6 @@ const archiveEntity = async (
       }));
 };
 
-/* eslint-disable functional/no-conditional-statements -- archive orchestration requires imperative control flow */
 const executeArchiveAtom = atom(
   undefined,
   async (
@@ -64,15 +63,13 @@ const executeArchiveAtom = atom(
         (p) => p.id === id && p.entityType === entityType,
       ) !== undefined;
 
-    if (isPending) {
-      await archiveEntity(entityType, id, Date.now());
-      if (entityType === "garment") {
-        set(refreshGarmentsAtom);
-      } else {
-        set(refreshDollsAtom);
-      }
+    if (!isPending) {
+      set(pendingArchivesAtom, (prev) => removePending(prev, id, entityType));
+      return;
     }
 
+    await archiveEntity(entityType, id, Date.now());
+    set(entityType === "garment" ? refreshGarmentsAtom : refreshDollsAtom);
     set(pendingArchivesAtom, (prev) => removePending(prev, id, entityType));
   },
 );
@@ -91,11 +88,10 @@ const cancelArchiveAtom = atom(
       (p) => p.id === id && p.entityType === entityType,
     );
 
-    if (pending !== undefined) {
-      clearTimeout(pending.timerId);
-      set(dismissToastAtom, pending.toastId);
-      set(pendingArchivesAtom, (prev) => removePending(prev, id, entityType));
-    }
+    if (pending === undefined) return;
+    clearTimeout(pending.timerId);
+    set(dismissToastAtom, pending.toastId);
+    set(pendingArchivesAtom, (prev) => removePending(prev, id, entityType));
   },
 );
 
@@ -137,4 +133,3 @@ export const requestArchiveAtom = atom(
     ]);
   },
 );
-/* eslint-enable functional/no-conditional-statements */
