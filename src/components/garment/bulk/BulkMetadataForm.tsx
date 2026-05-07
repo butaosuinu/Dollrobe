@@ -59,8 +59,8 @@ const BulkMetadataForm = () => {
     }
   }, [items, currentIndex, currentItem, metadataMap, setMetadata]);
 
-  const handleRegister = useCallback(() => {
-    executeRegistration();
+  const handleRegister = useCallback(async () => {
+    await executeRegistration();
   }, [executeRegistration]);
 
   return currentItem === undefined || currentMetadata === undefined ? (

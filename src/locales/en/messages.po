@@ -1255,6 +1255,10 @@ msgstr "All present"
 msgid "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
 msgstr "You won't be able to check storage or register garments until you sign in again."
 
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "最初からやり直す"
+msgstr "Start over"
+
 #: src/app/(protected)/dolls/page.tsx
 msgid "最初のドールを登録してみましょう"
 msgstr "Register your first doll"
@@ -1665,6 +1669,10 @@ msgstr "All registered garments, locations, coordinates, and dolls will be delet
 msgid "登録する"
 msgstr "Register"
 
+#: src/components/garment/bulk/BulkRegistrationProgress.tsx
+msgid "登録できませんでした"
+msgstr "Registration failed"
+
 #: src/components/auth/SignUpForm.tsx
 msgid "登録中…"
 msgstr "Registering…"
@@ -1820,6 +1828,10 @@ msgstr "No matching dolls found"
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "詳細"
 msgstr "Details"
+
+#: src/stores/bulkCaptureAtoms.ts
+msgid "認証セッションが切れました。再度ログインしてください。"
+msgstr "Your session has expired. Please sign in again."
 
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx

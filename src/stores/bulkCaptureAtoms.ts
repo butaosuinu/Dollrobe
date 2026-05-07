@@ -1,5 +1,7 @@
 import { atom } from "jotai";
 import { createId } from "@paralleldrive/cuid2";
+import { msg } from "@lingui/core/macro";
+import { i18n } from "@/i18n/lingui";
 import type {
   BulkCaptureItem,
   BulkCaptureMetadata,
@@ -171,11 +173,18 @@ export const executeBulkRegistrationAtom = atom(undefined, async (get, set) => {
   const metadataMap = get(metadataMapAtom);
   const authState = await get(authSessionAtom);
   const userId = authState.user?.id;
-  /* eslint-disable functional/no-conditional-statements, functional/no-throw-statements -- fail-fast invariant: callers are mounted under RequireAuth */
+  /* eslint-disable functional/no-conditional-statements -- early return for unauthenticated session keeps the success-path unindented */
   if (userId === undefined) {
-    throw new Error("Bulk registration requires an authenticated user");
+    set(bulkCaptureStepAtom, "registering");
+    set(bulkRegistrationStatusAtom, {
+      status: "error",
+      message: i18n._(
+        msg`認証セッションが切れました。再度ログインしてください。`,
+      ),
+    });
+    return;
   }
-  /* eslint-enable functional/no-conditional-statements, functional/no-throw-statements */
+  /* eslint-enable functional/no-conditional-statements */
 
   set(bulkCaptureStepAtom, "registering");
   set(bulkRegistrationStatusAtom, {
