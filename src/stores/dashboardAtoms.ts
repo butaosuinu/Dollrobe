@@ -31,24 +31,26 @@ const toStaleLocation = ({
 }): StaleLocation | undefined => {
   const referenceAt = location.lastVisitedAt ?? location.createdAt;
   const daysSinceLastVisit = Math.floor((now - referenceAt) / MS_PER_DAY);
-  const uncertainItemCount =
-    daysSinceLastVisit < STALE_LOCATION_THRESHOLD_DAYS
-      ? 0
-      : getItemsNeedingReview(activeGarments, location.id, {
-          lastLocationVisitedAt: location.lastVisitedAt,
-        }).length;
-  return daysSinceLastVisit >= STALE_LOCATION_THRESHOLD_DAYS &&
-    uncertainItemCount > 0
-    ? {
-        locationId: location.id,
-        caseId: location.caseId,
-        locationLabel: location.customName ?? location.label,
-        caseName: storageCase.name,
-        uncertainItemCount,
-        daysSinceLastVisit,
-        neverVisited: location.lastVisitedAt === undefined,
-      }
-    : undefined;
+  if (daysSinceLastVisit < STALE_LOCATION_THRESHOLD_DAYS) return undefined;
+
+  const { length: uncertainItemCount } = getItemsNeedingReview(
+    activeGarments,
+    location.id,
+    {
+      lastLocationVisitedAt: location.lastVisitedAt,
+    },
+  );
+  if (uncertainItemCount === 0) return undefined;
+
+  return {
+    locationId: location.id,
+    caseId: location.caseId,
+    locationLabel: location.customName ?? location.label,
+    caseName: storageCase.name,
+    uncertainItemCount,
+    daysSinceLastVisit,
+    neverVisited: location.lastVisitedAt === undefined,
+  };
 };
 
 export const staleLocationsSuspenseAtom = atom(

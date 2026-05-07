@@ -65,42 +65,45 @@ const buildLocations = ({
   readonly input: AddStorageCaseInput;
   readonly caseId: string;
   readonly now: number;
-}): readonly StorageLocation[] =>
-  input.type === "unit"
-    ? [
-        {
-          id: createId(),
-          userId: input.userId,
-          caseId,
-          label: input.name,
-          customName: undefined,
-          description: undefined,
-          row: 0,
-          col: 0,
-          lastVisitedAt: undefined,
-          confirmAllCount: 0,
-          correctionCount: 0,
-          createdAt: now,
-        },
-      ]
-    : Array.from({ length: input.rows * input.cols }, (_, i) => {
-        const row = Math.floor(i / input.cols);
-        const col = i % input.cols;
-        return {
-          id: createId(),
-          userId: input.userId,
-          caseId,
-          label: generateLabel({ row, col }),
-          customName: undefined,
-          description: undefined,
-          row,
-          col,
-          lastVisitedAt: undefined,
-          confirmAllCount: 0,
-          correctionCount: 0,
-          createdAt: now,
-        };
-      });
+}): readonly StorageLocation[] => {
+  if (input.type === "unit") {
+    return [
+      {
+        id: createId(),
+        userId: input.userId,
+        caseId,
+        label: input.name,
+        customName: undefined,
+        description: undefined,
+        row: 0,
+        col: 0,
+        lastVisitedAt: undefined,
+        confirmAllCount: 0,
+        correctionCount: 0,
+        createdAt: now,
+      },
+    ];
+  }
+
+  return Array.from({ length: input.rows * input.cols }, (_, i) => {
+    const row = Math.floor(i / input.cols);
+    const col = i % input.cols;
+    return {
+      id: createId(),
+      userId: input.userId,
+      caseId,
+      label: generateLabel({ row, col }),
+      customName: undefined,
+      description: undefined,
+      row,
+      col,
+      lastVisitedAt: undefined,
+      confirmAllCount: 0,
+      correctionCount: 0,
+      createdAt: now,
+    };
+  });
+};
 
 export const addStorageCaseWithLocationsAtom = atom(
   undefined,

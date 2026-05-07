@@ -55,13 +55,12 @@ export const executeSyncAtom = atom(
     set(refreshPendingSyncCountAtom);
     set(syncStatusAtom, result.ok ? SYNC_STATUS.IDLE : SYNC_STATUS.ERROR);
     set(lastSyncErrorAtom, result.ok ? undefined : result.error);
-    if (result.ok) {
-      set(refreshDollsAtom);
-      set(refreshGarmentsAtom);
-      set(refreshStorageCasesAtom);
-      set(refreshStorageLocationsAtom);
-      set(refreshCoordinatesAtom);
-    }
+    if (!result.ok) return;
+    set(refreshDollsAtom);
+    set(refreshGarmentsAtom);
+    set(refreshStorageCasesAtom);
+    set(refreshStorageLocationsAtom);
+    set(refreshCoordinatesAtom);
   },
 );
 

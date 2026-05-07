@@ -71,6 +71,10 @@ export default tseslint.config(
         "error",
         { enforceParameterCount: false },
       ],
+      "functional/no-conditional-statements": [
+        "error",
+        { allowReturningBranches: true },
+      ],
       eqeqeq: ["error", "always", { null: "ignore" }],
       "no-restricted-syntax": [
         "error",
@@ -210,12 +214,6 @@ export default tseslint.config(
       "functional/no-return-void": "off",
       "@typescript-eslint/class-methods-use-this": "off",
       "no-console": "off",
-    },
-  },
-  {
-    files: ["src/stores/**/*.ts"],
-    rules: {
-      "functional/no-conditional-statements": "off",
     },
   },
   {
