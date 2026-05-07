@@ -3,7 +3,6 @@ import { createStore } from "jotai";
 import { getDb } from "@/lib/db/dexie";
 import { SYNC_ACTION_TYPE } from "@/lib/constants";
 import { createTestDoll, createTestGarment, FIXED_NOW } from "@/test/factories";
-import { setupCuid2 } from "@/test/mocks/modules/cuid2";
 import {
   pendingArchivesAtom,
   requestArchiveAtom,
@@ -47,8 +46,6 @@ const lastToastAction = (
 
 describe("pendingArchiveAtoms", () => {
   beforeEach(() => {
-    // 複数 toast が共存するテストで cuid 衝突を避けるため sequential を使う
-    setupCuid2({ mode: "sequential" });
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
     vi.setSystemTime(FIXED_NOW);
   });
