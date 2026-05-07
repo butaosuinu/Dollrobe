@@ -154,7 +154,7 @@ export class DollWardrobeDB extends Dexie {
           DOLL_SIZE_MIGRATION[size] ?? size;
 
         const garmentsTable = tx.table("garments");
-        /* eslint-disable no-param-reassign, @typescript-eslint/prefer-destructuring, functional/no-conditional-statements -- Dexie modify callback requires in-place mutation; destructuring loses type guard narrowing; payload mutation needs sequential independent guards */
+        /* eslint-disable no-param-reassign, @typescript-eslint/prefer-destructuring, functional/no-conditional-statements -- Dexie modify callback requires in-place mutation; destructuring loses type guard narrowing; payload may carry dollSizes AND bodySize so cannot early-return after the first guard */
         await garmentsTable
           .toCollection()
           .modify((g: Record<string, unknown>) => {
