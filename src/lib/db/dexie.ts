@@ -250,15 +250,15 @@ export class DollWardrobeDB extends Dexie {
         dolls: "id, userId, bodySize, archivedAt",
       })
       .upgrade(async (tx) => {
-        const locationsTable = tx.table("storageLocations");
-        /* eslint-disable no-param-reassign -- Dexie modify callback requires in-place mutation */
-        await locationsTable
-          .toCollection()
-          .modify((l: Record<string, unknown>) => {
-            l.confirmAllCount ??= 0;
-            l.correctionCount ??= 0;
-          });
-        /* eslint-enable no-param-reassign */
+        const locationsTable =
+          tx.table<Record<string, unknown>>("storageLocations");
+        const records = await locationsTable.toArray();
+        const updated = records.map((l) => ({
+          ...l,
+          confirmAllCount: l.confirmAllCount ?? 0,
+          correctionCount: l.correctionCount ?? 0,
+        }));
+        await locationsTable.bulkPut(updated);
       });
   }
 }
