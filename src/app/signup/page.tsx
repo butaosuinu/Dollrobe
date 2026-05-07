@@ -4,14 +4,14 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
-import { Shirt } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
 import AuthDivider from "@/components/auth/AuthDivider";
-import EmailPasswordForm from "@/components/auth/EmailPasswordForm";
 import LoginButton from "@/components/auth/LoginButton";
+import SignUpForm from "@/components/auth/SignUpForm";
 
-const SignInPage = () => {
+const SignUpPage = () => {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAtomValue(authSessionUnwrappedAtom);
 
@@ -29,17 +29,17 @@ const SignInPage = () => {
     <div className="mx-auto flex w-full max-w-md flex-col gap-7 px-5 pb-10 pt-6 lg:gap-8 lg:pt-10">
       <header className="flex flex-col items-center gap-2 pt-2 text-center">
         <div className="flex size-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-700 ring-1 ring-inset ring-primary-200">
-          <Shirt className="size-6" />
+          <Sparkles className="size-6" />
         </div>
         <h1 className="font-display text-2xl font-bold tracking-tight text-text-primary">
-          <Trans>ドール服管理にログイン</Trans>
+          <Trans>新しいアカウントを作る</Trans>
         </h1>
         <p className="text-sm text-text-secondary">
-          <Trans>引き出しの中身を、いつでもどこでも</Trans>
+          <Trans>30 秒で、最初の引き出しを開けられます</Trans>
         </p>
       </header>
 
-      <EmailPasswordForm />
+      <SignUpForm />
 
       <AuthDivider>
         <Trans>または</Trans>
@@ -52,12 +52,12 @@ const SignInPage = () => {
 
       <p className="text-center text-sm text-text-secondary">
         <Trans>
-          アカウントをお持ちでない方は{" "}
+          すでにアカウントをお持ちの方は{" "}
           <Link
-            href="/signup"
+            href="/signin"
             className="font-medium text-primary-600 underline-offset-4 hover:underline"
           >
-            新規登録
+            ログイン
           </Link>
         </Trans>
       </p>
@@ -65,4 +65,4 @@ const SignInPage = () => {
   );
 };
 
-export default SignInPage;
+export default SignUpPage;

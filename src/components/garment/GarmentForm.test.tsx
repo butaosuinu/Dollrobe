@@ -87,7 +87,9 @@ describe("GarmentForm", () => {
       expect(garments[0]?.dollSizes).toEqual(["SD"]);
       expect(garments[0]?.status).toBe("stored");
     });
-    expect(navHandle.router.push).toHaveBeenCalledWith("/garments");
+    await waitFor(() => {
+      expect(navHandle.router.push).toHaveBeenCalledWith("/garments");
+    });
   });
 
   it("カテゴリを変更して登録すると反映される", async () => {

@@ -52,6 +52,10 @@ export const signOutAtom = atom(undefined, async (_get, set) => {
   set(authRefreshTriggerAtom, (prev) => prev + 1);
 });
 
-export const refreshAuthAtom = atom(undefined, (_get, set) => {
+// trigger を増やしただけでは authSessionAtom が再解決する前にナビゲートが走り、
+// unwrap が prev (古い認証済み状態) を返してしまう。await get で新しい session が
+// 解決するまで待つことで、退会後に /signin で stale auth が見える race を防ぐ。
+export const refreshAuthAtom = atom(undefined, async (get, set) => {
   set(authRefreshTriggerAtom, (prev) => prev + 1);
+  await get(authSessionAtom);
 });

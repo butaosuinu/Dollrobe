@@ -7,11 +7,13 @@ import { LogOut, Settings } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { authSessionUnwrappedAtom, signOutAtom } from "@/stores/authAtoms";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 
 const UserMenu = () => {
   const authState = useAtomValue(authSessionUnwrappedAtom);
   const signOut = useSetAtom(signOutAtom);
   const [isMounted, setIsMounted] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -44,7 +46,7 @@ const UserMenu = () => {
         </div>
       )}
       <Link
-        href="/settings/api-keys"
+        href="/settings/account"
         className="p-1 text-text-tertiary hover:text-text-primary"
         aria-label={t`設定`}
       >
@@ -52,14 +54,22 @@ const UserMenu = () => {
       </Link>
       <button
         type="button"
-        onClick={() => {
-          signOut();
-        }}
+        onClick={() => setIsConfirmOpen(true)}
         className="p-1 text-text-tertiary hover:text-text-primary"
         aria-label={t`ログアウト`}
       >
         <LogOut className="size-4" />
       </button>
+      <ConfirmSheet
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={() => {
+          signOut();
+        }}
+        title={t`ログアウトしますか？`}
+        message={t`再びログインするまで、収納場所の確認や服の登録ができなくなります。`}
+        confirmLabel={t`ログアウト`}
+      />
     </div>
   );
 };

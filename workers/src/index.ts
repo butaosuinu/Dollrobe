@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import { requestId } from "hono/request-id";
 import { timing } from "hono/timing";
 import { trpcServer } from "@hono/trpc-server";
+import { APIError } from "better-auth/api";
 import { appRouter } from "./trpc/router";
 import type { TRPCContext } from "./trpc/index";
 import type { Env } from "./types";
@@ -68,6 +69,86 @@ app.use("*", async (c, next) => {
 app.use("*", async (c, next) => {
   c.set("auth", createAuth({ env: c.env }));
   await next();
+});
+
+// better-auth の setPassword はサーバー内部 API としてのみ提供されており、
+// HTTP route が無いため /api/auth/* の handler では 404 になる。
+// ここで intercept して auth.api.setPassword をサーバーから呼び出す。
+type SetPasswordBody = { readonly newPassword?: unknown };
+
+const isAPIError = (e: unknown): e is APIError => e instanceof APIError;
+
+app.post("/api/auth/set-password", async (c) => {
+  const auth = c.get("auth");
+  const parsed = await c.req
+    .json<SetPasswordBody>()
+    .catch((): SetPasswordBody => ({}));
+  const newPassword = parsed.newPassword;
+
+  if (typeof newPassword !== "string") {
+    return c.json({ message: "newPassword required" }, 400);
+  }
+
+  const result = await auth.api
+    .setPassword({
+      body: { newPassword },
+      headers: c.req.raw.headers,
+    })
+    .catch((e: unknown) => e);
+
+  return isAPIError(result)
+    ? c.json({ message: result.body?.message ?? "Failed" }, 400)
+    : result instanceof Error
+      ? c.json({ message: "Failed" }, 500)
+      : c.json({ status: true });
+});
+
+// confirmEmail をサーバ側で検証してから better-auth の deleteUser を呼ぶ。
+// UI 側のメール再入力チェックだけでは stale state / bypass で意図しない
+// 削除が成立し得るため、session.user.email との一致を fail-closed で確認する。
+type DeleteUserBody = {
+  readonly confirmEmail?: unknown;
+  readonly password?: unknown;
+};
+
+app.post("/api/auth/delete-user", async (c) => {
+  const auth = c.get("auth");
+  const parsed = await c.req
+    .json<DeleteUserBody>()
+    .catch((): DeleteUserBody => ({}));
+  const confirmEmail = parsed.confirmEmail;
+  const password = parsed.password;
+
+  if (typeof confirmEmail !== "string" || confirmEmail.trim() === "") {
+    return c.json({ message: "confirmEmail required" }, 400);
+  }
+
+  const session = await auth.api
+    .getSession({ headers: c.req.raw.headers })
+    .catch((): null => null);
+
+  if (session === null) {
+    return c.json({ message: "Unauthorized" }, 401);
+  }
+
+  // 大文字小文字差で本人なのに弾かれるのを避けるため、両辺を小文字化して比較
+  if (session.user.email.toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+    return c.json({ message: "確認メールアドレスが一致しません" }, 403);
+  }
+
+  const body = typeof password === "string" ? { password } : {};
+  const result = await auth.api
+    .deleteUser({
+      body,
+      headers: c.req.raw.headers,
+    })
+    .catch((e: unknown) => e);
+
+  return isAPIError(result)
+    ? c.json({ message: result.body?.message ?? "Failed" }, 400)
+    : result instanceof Error
+      ? c.json({ message: "Failed" }, 500)
+      : c.json({ status: true });
 });
 
 app.all("/api/auth/*", async (c) => {

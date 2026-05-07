@@ -13,7 +13,6 @@ import ApiKeyList from "@/components/settings/api-key/ApiKeyList";
 import ApiKeyCreateSheet from "@/components/settings/api-key/ApiKeyCreateSheet";
 import ApiKeyRevealSheet from "@/components/settings/api-key/ApiKeyRevealSheet";
 import Button from "@/components/ui/Button";
-import PageHeader from "@/components/ui/PageHeader";
 import Skeleton from "@/components/ui/Skeleton";
 
 const ApiKeysPage = () => {
@@ -35,9 +34,7 @@ const ApiKeysPage = () => {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4">
-      <PageHeader title={t`API キー`} backHref="/" backLabel={t`戻る`} />
-
+    <>
       <p className="text-sm text-text-secondary">
         <Trans>
           外部 AI エージェントから接続するための Personal Access Token
@@ -89,7 +86,7 @@ const ApiKeysPage = () => {
         createdKey={createdKey}
         onClose={() => setCreatedKey(undefined)}
       />
-    </div>
+    </>
   );
 };
 
