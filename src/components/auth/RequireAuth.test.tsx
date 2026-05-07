@@ -12,7 +12,7 @@ import RequireAuth from "./RequireAuth";
 
 describe("RequireAuth", () => {
   beforeEach(() => {
-    setupNextNavigation();
+    setupNextNavigation({ pathname: "/dashboard" });
     installObjectProperty(window.navigator, "onLine", true);
   });
 
@@ -28,7 +28,7 @@ describe("RequireAuth", () => {
 
   it("未認証 + オンラインのとき /signin に redirect される", async () => {
     server.use(unauthenticatedHandler);
-    const { router } = setupNextNavigation();
+    const { router } = setupNextNavigation({ pathname: "/dashboard" });
 
     await renderWithProviders(
       <RequireAuth>
@@ -45,7 +45,7 @@ describe("RequireAuth", () => {
   it("未認証 + オフラインのとき案内文が表示され redirect しない", async () => {
     server.use(unauthenticatedHandler);
     installObjectProperty(window.navigator, "onLine", false);
-    const { router } = setupNextNavigation();
+    const { router } = setupNextNavigation({ pathname: "/dashboard" });
 
     await renderWithProviders(
       <RequireAuth>
@@ -77,7 +77,7 @@ describe("RequireAuth", () => {
 
   it("セッション取得が transient エラーで失敗したとき redirect せず案内文が表示される", async () => {
     server.use(sessionFetchFailureHandler);
-    const { router } = setupNextNavigation();
+    const { router } = setupNextNavigation({ pathname: "/dashboard" });
 
     await renderWithProviders(
       <RequireAuth>
@@ -106,5 +106,19 @@ describe("RequireAuth", () => {
     );
 
     expect(await screen.findByTestId("public-content")).toBeInTheDocument();
+  });
+
+  it("公開パス / (LP) では未認証でも子要素が描画され redirect しない", async () => {
+    server.use(unauthenticatedHandler);
+    const { router } = setupNextNavigation({ pathname: "/" });
+
+    await renderWithProviders(
+      <RequireAuth>
+        <p data-testid="public-content">ランディング</p>
+      </RequireAuth>,
+    );
+
+    expect(await screen.findByTestId("public-content")).toBeInTheDocument();
+    expect(router.replace).not.toHaveBeenCalled();
   });
 });

@@ -36,6 +36,40 @@ describe("LoginButton", () => {
     expect(mockSignInSocial).toHaveBeenCalledWith({ provider: "twitter" });
   });
 
+  it("callbackURL prop が渡されたとき signInSocial に絶対 URL で渡される", async () => {
+    Object.defineProperty(window, "location", {
+      value: { origin: "https://example.test" },
+      configurable: true,
+    });
+    const user = userEvent.setup();
+    render(<LoginButton provider="google" callbackURL="/dashboard" />, {
+      wrapper: I18nTestWrapper,
+    });
+
+    await user.click(screen.getByRole("button", { name: "Google でログイン" }));
+
+    expect(mockSignInSocial).toHaveBeenCalledWith({
+      provider: "google",
+      callbackURL: "https://example.test/dashboard",
+    });
+  });
+
+  it("callbackURL が // で始まるときは signInSocial に callbackURL が渡されない", async () => {
+    Object.defineProperty(window, "location", {
+      value: { origin: "https://example.test" },
+      configurable: true,
+    });
+    const user = userEvent.setup();
+    render(
+      <LoginButton provider="google" callbackURL="//evil.example.com/bad" />,
+      { wrapper: I18nTestWrapper },
+    );
+
+    await user.click(screen.getByRole("button", { name: "Google でログイン" }));
+
+    expect(mockSignInSocial).toHaveBeenCalledWith({ provider: "google" });
+  });
+
   it("ログインエラー時にconsole.errorが呼ばれる", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")

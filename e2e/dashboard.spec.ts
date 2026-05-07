@@ -11,7 +11,7 @@ test.describe("ダッシュボード", () => {
   test("認証済みユーザーがダッシュボードを表示できる", async ({
     authedPage,
   }) => {
-    await authedPage.goto("/");
+    await authedPage.goto("/dashboard");
 
     await expect(authedPage.getByText("おかえりなさい")).toBeVisible();
   });
@@ -31,13 +31,13 @@ test.describe("ダッシュボード", () => {
       storageLocations: [createStorageLocation({ id: "l-1", caseId: "c-1" })],
     });
 
-    await authedPage.goto("/");
+    await authedPage.goto("/dashboard");
     await expect(authedPage.getByText("ステータス")).toBeVisible();
     await expect(authedPage.getByText("合計")).toBeVisible();
   });
 
   test("ナビゲーションで各ページに遷移できる", async ({ authedPage }) => {
-    await authedPage.goto("/");
+    await authedPage.goto("/dashboard");
     await authedPage.getByText("おかえりなさい").waitFor({
       state: "visible",
       timeout: 30_000,
@@ -60,6 +60,6 @@ test.describe("ダッシュボード", () => {
     await expect(authedPage).toHaveURL(/\/scan/);
 
     await nav.getByRole("link", { name: "ホーム" }).click();
-    await expect(authedPage).toHaveURL("/");
+    await expect(authedPage).toHaveURL("/dashboard");
   });
 });

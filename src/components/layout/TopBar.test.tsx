@@ -16,7 +16,7 @@ const ACTIVE_LINK_CLASS = "bg-primary-100";
 
 describe("TopBar", () => {
   beforeEach(() => {
-    setupNextNavigation({ pathname: "/" });
+    setupNextNavigation({ pathname: "/dashboard" });
   });
 
   describe("ナビゲーションのアクティブ状態", () => {

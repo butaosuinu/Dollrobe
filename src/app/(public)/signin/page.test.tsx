@@ -102,4 +102,39 @@ describe("SignInPage", () => {
       expect(router.replace).toHaveBeenCalledWith("/");
     });
   });
+
+  it("認証済みで ?redirect=/dashboard が指定されているとき /dashboard へリダイレクトする", async () => {
+    const { router } = setupNextNavigation({
+      searchParams: new URLSearchParams("redirect=/dashboard"),
+    });
+
+    await renderWithProviders(<SignInPage />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith("/dashboard");
+    });
+  });
+
+  it("? redirect=// で始まる open redirect は弾かれてデフォルト / にフォールバック", async () => {
+    const { router } = setupNextNavigation({
+      searchParams: new URLSearchParams("redirect=//evil.example.com/bad"),
+    });
+
+    await renderWithProviders(<SignInPage />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith("/");
+    });
+  });
+
+  it("「← サービス紹介に戻る」リンクが / を指す", async () => {
+    server.use(unauthenticatedHandler);
+
+    await renderWithProviders(<SignInPage />);
+
+    const link = await screen.findByRole("link", {
+      name: /サービス紹介に戻る/,
+    });
+    expect(link).toHaveAttribute("href", "/");
+  });
 });
