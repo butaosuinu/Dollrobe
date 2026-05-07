@@ -161,14 +161,13 @@ export const classifyColor = (colorString: string): ColorName =>
   COLOR_NAME_MAP.get(colorString) ??
   classifyParsed(parseHsl(colorString) ?? parseHex(colorString));
 
-const classifyParsed = (parsed: ParsedHsl | undefined): ColorName =>
-  parsed === undefined
-    ? "black"
-    : parsed.s < ACHROMATIC_SATURATION_THRESHOLD
-      ? parsed.l < ACHROMATIC_LIGHTNESS_MIDPOINT
-        ? "black"
-        : "white"
-      : findClosestHuePreset(parsed.h);
+const classifyParsed = (parsed: ParsedHsl | undefined): ColorName => {
+  if (parsed === undefined) return "black";
+  if (parsed.s < ACHROMATIC_SATURATION_THRESHOLD) {
+    return parsed.l < ACHROMATIC_LIGHTNESS_MIDPOINT ? "black" : "white";
+  }
+  return findClosestHuePreset(parsed.h);
+};
 
 const COLOR_NAME_TO_HSL: Readonly<Record<ColorName, string>> = {
   black: PRESET_COLORS[0],
