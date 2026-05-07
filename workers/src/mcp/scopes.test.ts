@@ -60,19 +60,22 @@ describe("TOOL_REQUIRED_SCOPE", () => {
   it("only includes whitelisted tools", () => {
     expect(Object.keys(TOOL_REQUIRED_SCOPE).sort()).toEqual([
       "add_garment_tags",
+      "create_coordinate",
       "get_garment",
       "get_organization_digest",
       "get_storage_case",
+      "list_coordinates",
       "list_dolls",
       "list_garments",
       "list_storage_cases",
     ]);
   });
 
-  it("flags add_garment_tags as the only write tool", () => {
+  it("flags coordinate create and tag write as the write tools", () => {
     const writeOnly = Object.entries(TOOL_REQUIRED_SCOPE)
       .filter(([, scope]) => scope === "write")
-      .map(([name]) => name);
-    expect(writeOnly).toEqual(["add_garment_tags"]);
+      .map(([name]) => name)
+      .sort();
+    expect(writeOnly).toEqual(["add_garment_tags", "create_coordinate"]);
   });
 });

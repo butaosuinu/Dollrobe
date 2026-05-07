@@ -33,7 +33,9 @@ export const TOOL_REQUIRED_SCOPE = {
   list_storage_cases: SCOPE_READ,
   get_storage_case: SCOPE_READ,
   get_organization_digest: SCOPE_READ,
+  list_coordinates: SCOPE_READ,
   add_garment_tags: SCOPE_WRITE,
+  create_coordinate: SCOPE_WRITE,
 } as const satisfies Record<string, McpScope>;
 
 export type McpToolName = keyof typeof TOOL_REQUIRED_SCOPE;
