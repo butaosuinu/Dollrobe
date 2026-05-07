@@ -20,7 +20,6 @@ export const digestListAtom = atom(async (get) =>
 );
 
 export const hasUnreadDigestAtom = atom(async (get) => {
-  // eslint-disable-next-line functional/no-conditional-statements -- SSR guard
   if (typeof window === "undefined") return false;
   get(digestRefreshTriggerAtom);
   const result = await trpcClient.digest.hasUnread
