@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { createStore } from "jotai";
 import { server } from "@/test/mocks/server";
-import { unauthenticatedHandler } from "@/test/mocks/handlers";
+import {
+  unauthenticatedHandler,
+  sessionFetchFailureHandler,
+} from "@/test/mocks/handlers";
 import { setupAuthSession } from "@/test/mocks/modules/authAtomsState";
 import { setupAuthClient } from "@/test/mocks/modules/authClient";
 import {
@@ -39,6 +42,31 @@ describe("authAtoms", () => {
       await primeAuth(store);
 
       expect(store.get(currentUserIdAtom)).toBeUndefined();
+    });
+  });
+
+  describe("authSessionAtom", () => {
+    it("セッション取得が transient エラーで失敗したとき hasError: true になり user は undefined", async () => {
+      server.use(sessionFetchFailureHandler);
+      const store = createStore();
+      await primeAuth(store);
+
+      const state = await store.get(authSessionAtom);
+      expect(state.hasError).toBe(true);
+      expect(state.user).toBeUndefined();
+      expect(state.isAuthenticated).toBe(false);
+      expect(state.isLoading).toBe(false);
+    });
+
+    it("未認証時は hasError: false、isAuthenticated: false", async () => {
+      server.use(unauthenticatedHandler);
+      const store = createStore();
+      await primeAuth(store);
+
+      const state = await store.get(authSessionAtom);
+      expect(state.hasError).toBe(false);
+      expect(state.user).toBeUndefined();
+      expect(state.isAuthenticated).toBe(false);
     });
   });
 

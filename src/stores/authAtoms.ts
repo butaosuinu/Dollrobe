@@ -17,6 +17,10 @@ type AuthState = {
   readonly user: AuthUser | undefined;
   readonly isAuthenticated: boolean;
   readonly isLoading: boolean;
+  // getSession() がネットワーク/サーバエラーで失敗したケース。
+  // user === undefined と区別することで、RequireAuth が transient な失敗を
+  // 「未認証」と誤判定して /signin に飛ばしてしまうのを防ぐ。
+  readonly hasError: boolean;
 };
 
 const extractUser = (
@@ -35,17 +39,36 @@ const extractUser = (
 
 const authRefreshTriggerAtom = atom(0);
 
+type SessionFetchResult =
+  | { readonly ok: true; readonly session: SessionResponse }
+  | { readonly ok: false };
+
+const wrapSession = async (): Promise<SessionFetchResult> => {
+  const session = await getSession().catch((): undefined => undefined);
+  return session === undefined ? { ok: false } : { ok: true, session };
+};
+
 export const authSessionAtom = atom(async (get): Promise<AuthState> => {
   get(authRefreshTriggerAtom);
-  const session = await getSession().catch(() => undefined);
-  const user = extractUser(session);
-  return { user, isAuthenticated: user !== undefined, isLoading: false };
+  const result = await wrapSession();
+  const user = result.ok ? extractUser(result.session) : undefined;
+  return {
+    user,
+    isAuthenticated: user !== undefined,
+    isLoading: false,
+    hasError: !result.ok,
+  };
 });
 
 export const authSessionUnwrappedAtom = unwrap(
   authSessionAtom,
   (prev): AuthState =>
-    prev ?? { user: undefined, isAuthenticated: false, isLoading: true },
+    prev ?? {
+      user: undefined,
+      isAuthenticated: false,
+      isLoading: true,
+      hasError: false,
+    },
 );
 
 // Suspense にしないことで dataAtom 側との二重 Suspense を避ける。未認証時は即

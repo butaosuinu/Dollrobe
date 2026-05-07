@@ -705,6 +705,10 @@ msgstr "すべて見る"
 msgid "ズレを直す"
 msgstr "ズレを直す"
 
+#: src/components/auth/RequireAuth.tsx
+msgid "セッションを確認できませんでした"
+msgstr "セッションを確認できませんでした"
+
 #: src/lib/i18n-labels.ts
 msgid "セット"
 msgstr "セット"
@@ -1859,6 +1863,10 @@ msgstr "読み込みに失敗しました"
 #: src/lib/i18n-labels.ts
 msgid "赤"
 msgstr "赤"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "通信状況を確認してから再読み込みしてください"
+msgstr "通信状況を確認してから再読み込みしてください"
 
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"

@@ -705,6 +705,10 @@ msgstr "查看全部"
 msgid "ズレを直す"
 msgstr "修正偏差"
 
+#: src/components/auth/RequireAuth.tsx
+msgid "セッションを確認できませんでした"
+msgstr "无法验证会话"
+
 #: src/lib/i18n-labels.ts
 msgid "セット"
 msgstr "套装"
@@ -1859,6 +1863,10 @@ msgstr "加载失败"
 #: src/lib/i18n-labels.ts
 msgid "赤"
 msgstr "红色"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "通信状況を確認してから再読み込みしてください"
+msgstr "请检查网络连接后重新加载页面"
 
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"

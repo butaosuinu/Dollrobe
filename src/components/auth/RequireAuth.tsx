@@ -17,7 +17,7 @@ type Props = {
 const RequireAuth = ({ children }: Props) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isLoading } = useAtomValue(authSessionUnwrappedAtom);
+  const { user, isLoading, hasError } = useAtomValue(authSessionUnwrappedAtom);
   const [isOnline, setIsOnline] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const isPublicPath = PUBLIC_PATHS.has(pathname);
@@ -36,13 +36,19 @@ const RequireAuth = ({ children }: Props) => {
   }, []);
 
   useEffect(() => {
-    if (isPublicPath || !isMounted || isLoading || user !== undefined) {
+    if (
+      isPublicPath ||
+      !isMounted ||
+      isLoading ||
+      user !== undefined ||
+      hasError
+    ) {
       return;
     }
     if (isOnline) {
       router.replace("/signin");
     }
-  }, [isPublicPath, isMounted, isLoading, user, isOnline, router]);
+  }, [isPublicPath, isMounted, isLoading, user, hasError, isOnline, router]);
 
   if (isPublicPath) {
     return <>{children}</>;
@@ -50,6 +56,25 @@ const RequireAuth = ({ children }: Props) => {
 
   if (!isMounted || isLoading) {
     return undefined;
+  }
+
+  // セッション取得が transient エラー（バックエンド/ネットワーク不調）で失敗
+  // した場合は「未認証」とは区別する。誤って /signin に飛ばさず、再試行を
+  // 促す案内を表示する。
+  if (hasError) {
+    return (
+      <div
+        role="status"
+        className="mx-auto flex max-w-md flex-col items-center gap-3 px-5 py-12 text-center"
+      >
+        <p className="text-base font-medium text-text-primary">
+          <Trans>セッションを確認できませんでした</Trans>
+        </p>
+        <p className="text-sm text-text-secondary">
+          <Trans>通信状況を確認してから再読み込みしてください</Trans>
+        </p>
+      </div>
+    );
   }
 
   if (user === undefined) {

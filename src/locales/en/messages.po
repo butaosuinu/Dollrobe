@@ -705,6 +705,10 @@ msgstr "View all"
 msgid "ズレを直す"
 msgstr "Fix discrepancy"
 
+#: src/components/auth/RequireAuth.tsx
+msgid "セッションを確認できませんでした"
+msgstr "Could not verify session"
+
 #: src/lib/i18n-labels.ts
 msgid "セット"
 msgstr "Set"
@@ -1859,6 +1863,10 @@ msgstr "Failed to load"
 #: src/lib/i18n-labels.ts
 msgid "赤"
 msgstr "Red"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "通信状況を確認してから再読み込みしてください"
+msgstr "Check your network connection and reload the page"
 
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"

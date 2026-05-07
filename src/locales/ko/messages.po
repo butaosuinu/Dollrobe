@@ -705,6 +705,10 @@ msgstr "모두 보기"
 msgid "ズレを直す"
 msgstr "차이 수정"
 
+#: src/components/auth/RequireAuth.tsx
+msgid "セッションを確認できませんでした"
+msgstr "세션을 확인할 수 없습니다"
+
 #: src/lib/i18n-labels.ts
 msgid "セット"
 msgstr "세트"
@@ -1859,6 +1863,10 @@ msgstr "로딩에 실패했습니다"
 #: src/lib/i18n-labels.ts
 msgid "赤"
 msgstr "빨강"
+
+#: src/components/auth/RequireAuth.tsx
+msgid "通信状況を確認してから再読み込みしてください"
+msgstr "네트워크 연결을 확인한 후 페이지를 다시 로드하세요"
 
 #: src/lib/i18n-labels.ts
 msgid "通常 (30日)"
