@@ -55,9 +55,7 @@ export const currentUserIdAtom = atom(
 );
 
 const clearLocalDb = async (): Promise<void> => {
-  /* eslint-disable functional/no-conditional-statements -- SSR guard */
   if (typeof indexedDB === "undefined") return;
-  /* eslint-enable functional/no-conditional-statements */
   const db = getDb();
   await db
     .transaction("rw", db.tables, async () => {

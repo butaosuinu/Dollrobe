@@ -173,7 +173,6 @@ export const executeBulkRegistrationAtom = atom(undefined, async (get, set) => {
   const metadataMap = get(metadataMapAtom);
   const authState = await get(authSessionAtom);
   const userId = authState.user?.id;
-  /* eslint-disable functional/no-conditional-statements -- early return for unauthenticated session keeps the success-path unindented */
   if (userId === undefined) {
     set(bulkCaptureStepAtom, "registering");
     set(bulkRegistrationStatusAtom, {
@@ -184,7 +183,6 @@ export const executeBulkRegistrationAtom = atom(undefined, async (get, set) => {
     });
     return;
   }
-  /* eslint-enable functional/no-conditional-statements */
 
   set(bulkCaptureStepAtom, "registering");
   set(bulkRegistrationStatusAtom, {

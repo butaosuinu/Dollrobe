@@ -106,7 +106,6 @@ export const addStorageCaseWithLocationsAtom = atom(
   undefined,
   async (get, set, input: AddStorageCaseInput) => {
     const userId = get(currentUserIdAtom);
-    // eslint-disable-next-line functional/no-conditional-statements -- userId guard
     if (userId === undefined) return;
 
     const now = Date.now();
@@ -169,7 +168,6 @@ export const deleteStorageCaseAtom = atom(
   undefined,
   async (get, set, caseId: string) => {
     const userId = get(currentUserIdAtom);
-    // eslint-disable-next-line functional/no-conditional-statements -- userId guard
     if (userId === undefined) return;
 
     const now = Date.now();

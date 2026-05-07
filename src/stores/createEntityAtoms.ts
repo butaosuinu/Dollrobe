@@ -25,7 +25,6 @@ export const createEntityAtoms = <T extends { readonly userId: string }>(
   const refreshTriggerAtom = atom(0);
 
   const dataAtom = atom(async (get) => {
-    // eslint-disable-next-line functional/no-conditional-statements -- SSR guard
     if (typeof indexedDB === "undefined") return [] satisfies T[] as T[];
     get(refreshTriggerAtom);
     const userId = get(currentUserIdAtom);

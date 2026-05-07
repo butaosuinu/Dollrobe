@@ -48,7 +48,6 @@ const archiveEntity = async (
       }));
 };
 
-/* eslint-disable functional/no-conditional-statements -- archive orchestration requires imperative control flow */
 const executeArchiveAtom = atom(
   undefined,
   async (
@@ -137,4 +136,3 @@ export const requestArchiveAtom = atom(
     ]);
   },
 );
-/* eslint-enable functional/no-conditional-statements */

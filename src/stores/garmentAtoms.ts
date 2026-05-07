@@ -80,7 +80,6 @@ export const confirmAllGarmentsAtom = atom(
   undefined,
   async (get, set, locationId: string) => {
     const userId = get(currentUserIdAtom);
-    // eslint-disable-next-line functional/no-conditional-statements -- userId guard
     if (userId === undefined) return;
 
     const now = Date.now();
@@ -127,7 +126,6 @@ export const confirmPartialGarmentsAtom = atom(
     },
   ) => {
     const userId = get(currentUserIdAtom);
-    // eslint-disable-next-line functional/no-conditional-statements -- userId guard
     if (userId === undefined) return;
 
     const now = Date.now();
@@ -206,7 +204,6 @@ export const confirmAllByMemoryAtom = atom(
   undefined,
   async (get, set, locationId: string) => {
     const userId = get(currentUserIdAtom);
-    // eslint-disable-next-line functional/no-conditional-statements -- userId guard
     if (userId === undefined) return;
 
     const now = Date.now();

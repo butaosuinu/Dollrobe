@@ -213,6 +213,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/stores/**/*.ts"],
+    rules: {
+      "functional/no-conditional-statements": "off",
+    },
+  },
+  {
     files: ["src/components/**/*.tsx", "src/app/**/*.tsx"],
     rules: {
       "functional/no-expression-statements": "off",

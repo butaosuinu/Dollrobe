@@ -55,7 +55,6 @@ export const executeSyncAtom = atom(
     set(refreshPendingSyncCountAtom);
     set(syncStatusAtom, result.ok ? SYNC_STATUS.IDLE : SYNC_STATUS.ERROR);
     set(lastSyncErrorAtom, result.ok ? undefined : result.error);
-    // eslint-disable-next-line functional/no-conditional-statements -- refresh atoms only on success
     if (result.ok) {
       set(refreshDollsAtom);
       set(refreshGarmentsAtom);
