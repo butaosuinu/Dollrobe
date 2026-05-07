@@ -15,34 +15,45 @@ import Input from "@/components/ui/Input";
 
 type Props = {
   readonly currentEmail: string;
+  readonly hasPassword: boolean;
 };
 
-const DeleteAccountSection = ({ currentEmail }: Props) => {
+const DeleteAccountSection = ({ currentEmail, hasPassword }: Props) => {
   const router = useRouter();
   const refreshAuth = useSetAtom(refreshAuthAtom);
   const addToast = useSetAtom(addToastAtom);
 
   const [isOpen, setIsOpen] = useState(false);
   const [confirmEmail, setConfirmEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isMatch = confirmEmail === currentEmail;
-  const isDisabled = !isMatch || isSubmitting;
+  const isEmailMatch = confirmEmail === currentEmail;
+  const isPasswordReady = !hasPassword || password.length > 0;
+  const isDisabled = !isEmailMatch || !isPasswordReady || isSubmitting;
 
   const handleClose = () => {
     if (isSubmitting) return;
     setConfirmEmail("");
+    setPassword("");
     setIsOpen(false);
   };
 
   const handleDelete = async () => {
     if (isDisabled) return;
     setIsSubmitting(true);
-    const failed = await deleteAccount({ confirmEmail }).catch(() => true);
+    const failed = await deleteAccount({
+      confirmEmail,
+      password: hasPassword ? password : undefined,
+    }).catch(() => true);
 
     if (failed === true) {
       setIsSubmitting(false);
-      addToast({ message: t`アカウントの削除に失敗しました` });
+      addToast({
+        message: hasPassword
+          ? t`パスワードが正しくないか、アカウントの削除に失敗しました`
+          : t`アカウントの削除に失敗しました`,
+      });
       return;
     }
 
@@ -101,11 +112,21 @@ const DeleteAccountSection = ({ currentEmail }: Props) => {
             value={confirmEmail}
             onChange={(e) => setConfirmEmail(e.target.value)}
             error={
-              confirmEmail !== "" && !isMatch
+              confirmEmail !== "" && !isEmailMatch
                 ? t`メールアドレスが一致しません`
                 : undefined
             }
           />
+          {hasPassword ? (
+            <Input
+              type="password"
+              label={t`パスワードを入力`}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          ) : undefined}
           <div className="flex gap-3">
             <Button variant="ghost" fullWidth onClick={handleClose}>
               <Trans>キャンセル</Trans>

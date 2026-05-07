@@ -52,7 +52,10 @@ const AccountSettingsPage = () => {
         <PasswordChangeForm hasPassword={hasPassword} />
       </SectionCard>
 
-      <DeleteAccountSection currentEmail={user.email} />
+      <DeleteAccountSection
+        currentEmail={user.email}
+        hasPassword={hasPassword}
+      />
     </div>
   );
 };

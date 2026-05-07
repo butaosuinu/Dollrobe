@@ -159,7 +159,7 @@ describe("AccountSettingsPage", () => {
     expect(spies.changePassword).not.toHaveBeenCalled();
   });
 
-  it("退会フローでメール一致時のみ削除ボタンが有効", async () => {
+  it("退会フロー (credential): メール一致 + パスワード入力で削除ボタンが有効になる", async () => {
     const { spies } = setupAuthClient();
     const { router } = setupNextNavigation();
     const user = userEvent.setup();
@@ -179,6 +179,11 @@ describe("AccountSettingsPage", () => {
       "test@example.com",
     );
 
+    // メールだけでは有効化されない (credential ユーザーはパスワード必須)
+    expect(finalDelete).toBeDisabled();
+
+    await user.type(screen.getByLabelText("パスワードを入力"), "secret123");
+
     await waitFor(() => {
       expect(finalDelete).not.toBeDisabled();
     });
@@ -188,6 +193,46 @@ describe("AccountSettingsPage", () => {
     await waitFor(() => {
       expect(spies.deleteAccount).toHaveBeenCalledWith({
         confirmEmail: "test@example.com",
+        password: "secret123",
+      });
+    });
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith("/signin");
+    });
+  });
+
+  it("退会フロー (OAuth-only): メール一致のみで削除可能、パスワード欄は出ない", async () => {
+    const { spies } = setupAuthClient({ accounts: [] });
+    const { router } = setupNextNavigation();
+    const user = userEvent.setup();
+    await renderWithProviders(<AccountSettingsPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "アカウントを削除する" }),
+    );
+
+    const finalDelete = await screen.findByRole("button", {
+      name: "完全に削除",
+    });
+    expect(finalDelete).toBeDisabled();
+
+    expect(screen.queryByLabelText("パスワードを入力")).not.toBeInTheDocument();
+
+    await user.type(
+      screen.getByLabelText("メールアドレスを再入力"),
+      "test@example.com",
+    );
+
+    await waitFor(() => {
+      expect(finalDelete).not.toBeDisabled();
+    });
+
+    await user.click(finalDelete);
+
+    await waitFor(() => {
+      expect(spies.deleteAccount).toHaveBeenCalledWith({
+        confirmEmail: "test@example.com",
+        password: undefined,
       });
     });
     await waitFor(() => {
