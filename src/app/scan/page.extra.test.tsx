@@ -3,7 +3,7 @@ import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
-import * as nfcCapability from "@/lib/nfc/capability";
+import { setNfcSupported } from "@/test/helpers/nfc";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
@@ -54,7 +54,7 @@ describe("ScanPage (extra)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     scanTrigger.onScan = undefined;
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(false);
+    setNfcSupported(false);
     nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
   });
 
@@ -184,7 +184,7 @@ describe("ScanPage (extra)", () => {
   });
 
   it("信頼度低のアイテムでダイアログ表示中も QrScanner / NfcReader 自体は描画される", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     testDb.storageLocation.create({ id: "loc-1", label: "A-1" });
     testDb.garment.create({
       id: "g-1",

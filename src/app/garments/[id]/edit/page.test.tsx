@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
@@ -7,6 +7,9 @@ import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { setupUseColorExtraction } from "@/test/mocks/modules/useColorExtraction";
+import { createDeferred } from "@/test/helpers/deferred";
+import { createPngFile } from "@/test/helpers/files";
+import { fireSingleFileSelect } from "@/test/helpers/fileInput";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentEditPage from "./page";
 
@@ -213,15 +216,10 @@ describe("GarmentEditPage", () => {
     const colorHandle = setupUseColorExtraction();
     colorHandle.extractColors.mockResolvedValue({ presetColors: [] });
 
-    const release: { fn: (value: { imageUrl: string }) => void } = {
-      fn: () => undefined,
-    };
-    const uploadGate = new Promise<{ imageUrl: string }>((resolve) => {
-      release.fn = resolve;
-    });
+    const upload = createDeferred<{ imageUrl: string }>();
     server.use(
       http.post("*/api/images/upload/*", async () => {
-        const body = await uploadGate;
+        const body = await upload.promise;
         return HttpResponse.json(body);
       }),
     );
@@ -231,17 +229,17 @@ describe("GarmentEditPage", () => {
     const user = userEvent.setup();
     await renderWithProviders(<GarmentEditPage />);
 
-    const file = new File(["dummy"], "test.png", { type: "image/png" });
-    const input = document.querySelector('input[type="file"]');
+    const input =
+      document.querySelector<HTMLInputElement>('input[type="file"]');
     if (input === null) return;
-    fireEvent.change(input, { target: { files: [file] } });
+    fireSingleFileSelect(input, createPngFile());
     await user.click(screen.getByRole("button", { name: "更新する" }));
 
     expect(
       await screen.findByRole("button", { name: "アップロード中..." }),
     ).toBeDisabled();
 
-    release.fn({ imageUrl: "https://example.com/x.png" });
+    upload.resolve({ imageUrl: "https://example.com/x.png" });
     await waitFor(() => {
       expect(navHandle.current.router.push).toHaveBeenCalledWith(
         "/garments/garment-1",

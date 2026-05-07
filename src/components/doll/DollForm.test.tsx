@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
 import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import { createDeferred } from "@/test/helpers/deferred";
+import { createPngFile } from "@/test/helpers/files";
+import { fireSingleFileSelect } from "@/test/helpers/fileInput";
 import DollForm from "./DollForm";
 
 const navHandle = setupNextNavigation();
@@ -66,7 +69,7 @@ describe("DollForm", () => {
       const dolls = await db.dolls.toArray();
       expect(dolls.length).toBe(1);
       expect(dolls[0]?.name).toBe("リナ");
-      expect(dolls[0]?.id).toMatch(/^[a-z0-9]+$/i);
+      expect(dolls[0]?.id).toMatch(/^[a-z0-9]+$/);
       expect(dolls[0]?.bodySize).toBe("SD");
     });
     await waitFor(() => {
@@ -75,25 +78,20 @@ describe("DollForm", () => {
   });
 
   it("アップロード中はボタンが disabled + テキスト変更", async () => {
-    const release: { fn: (value: { imageUrl: string }) => void } = {
-      fn: () => undefined,
-    };
-    const uploadGate = new Promise<{ imageUrl: string }>((resolve) => {
-      release.fn = resolve;
-    });
+    const upload = createDeferred<{ imageUrl: string }>();
     server.use(
       http.post("*/api/images/upload/*", async () => {
-        const body = await uploadGate;
+        const body = await upload.promise;
         return HttpResponse.json(body);
       }),
     );
     const user = userEvent.setup();
     await renderWithProviders(<DollForm />);
 
-    const file = new File(["dummy"], "test.png", { type: "image/png" });
-    const input = document.querySelector('input[type="file"]');
+    const input =
+      document.querySelector<HTMLInputElement>('input[type="file"]');
     if (input === null) return;
-    fireEvent.change(input, { target: { files: [file] } });
+    fireSingleFileSelect(input, createPngFile());
     await user.type(screen.getByLabelText("名前"), "リナ");
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
@@ -101,7 +99,7 @@ describe("DollForm", () => {
       await screen.findByRole("button", { name: "アップロード中..." }),
     ).toBeDisabled();
 
-    release.fn({ imageUrl: "https://example.com/x.png" });
+    upload.resolve({ imageUrl: "https://example.com/x.png" });
     await waitFor(() => {
       expect(navHandle.router.push).toHaveBeenCalledWith("/dolls");
     });

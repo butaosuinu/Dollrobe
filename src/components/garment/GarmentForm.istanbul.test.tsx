@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
@@ -7,6 +7,8 @@ import { FIXED_NOW, createTestGarment } from "@/test/factories";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { setupUseColorExtraction } from "@/test/mocks/modules/useColorExtraction";
+import { createPngFile } from "@/test/helpers/files";
+import { fireSingleFileSelect } from "@/test/helpers/fileInput";
 import GarmentForm from "./GarmentForm";
 
 const colorHandle: {
@@ -17,16 +19,13 @@ const colorHandle: {
 
 const TIMEOUT_MS = 3000;
 
-const createPngFile = (name = "test.png"): File =>
-  new File(["dummy"], name, { type: "image/png" });
-
 const fireFileSelect = (file: File): void => {
-  const input = document.querySelector('input[type="file"]');
+  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
   if (input === null) {
     // eslint-disable-next-line functional/no-throw-statements
     throw new Error("file input not found");
   }
-  fireEvent.change(input, { target: { files: [file] } });
+  fireSingleFileSelect(input, file);
 };
 
 describe("GarmentForm istanbul coverage", () => {
@@ -335,7 +334,7 @@ describe("GarmentForm istanbul coverage", () => {
     fireFileSelect(createPngFile("test2.png"));
     await waitFor(
       () => {
-        expect(revokeSpy).toHaveBeenCalled();
+        expect(revokeSpy).toHaveBeenCalledTimes(1);
       },
       { timeout: TIMEOUT_MS },
     );

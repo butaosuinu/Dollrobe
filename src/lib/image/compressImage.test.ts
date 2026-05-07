@@ -5,10 +5,9 @@ import {
   installCanvas2DContextNull,
   installCanvasToBlob,
 } from "@/test/helpers/canvas";
+import { compressImage } from "./compressImage";
 
 vi.unmock("@/lib/image/compressImage");
-
-const { compressImage } = await import("./compressImage");
 
 const PNG_MIME = "image/png";
 const JPEG_MIME = "image/jpeg";

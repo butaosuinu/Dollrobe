@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
@@ -7,6 +7,9 @@ import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { setupUseColorExtraction } from "@/test/mocks/modules/useColorExtraction";
+import { createDeferred } from "@/test/helpers/deferred";
+import { createPngFile } from "@/test/helpers/files";
+import { fireSingleFileSelect } from "@/test/helpers/fileInput";
 import { compressImage } from "@/lib/image/compressImage";
 import GarmentForm from "./GarmentForm";
 
@@ -77,7 +80,7 @@ describe("GarmentForm", () => {
       const garments = await db.garments.toArray();
       expect(garments.length).toBe(1);
       expect(garments[0]?.name).toBe("新しいドレス");
-      expect(garments[0]?.id).toMatch(/^[a-z0-9]+$/i);
+      expect(garments[0]?.id).toMatch(/^[a-z0-9]+$/);
       expect(garments[0]?.userId).toBe("user-1");
       expect(garments[0]?.category).toBe("tops");
       expect(garments[0]?.dollSizes).toEqual(["SD"]);
@@ -120,25 +123,20 @@ describe("GarmentForm", () => {
   });
 
   it("アップロード中はボタンが disabled + テキスト変更", async () => {
-    const release: { fn: (value: { imageUrl: string }) => void } = {
-      fn: () => undefined,
-    };
-    const uploadGate = new Promise<{ imageUrl: string }>((resolve) => {
-      release.fn = resolve;
-    });
+    const upload = createDeferred<{ imageUrl: string }>();
     server.use(
       http.post("*/api/images/upload/*", async () => {
-        const body = await uploadGate;
+        const body = await upload.promise;
         return HttpResponse.json(body);
       }),
     );
     const user = userEvent.setup();
     await renderWithProviders(<GarmentForm />);
 
-    const file = new File(["dummy"], "test.png", { type: "image/png" });
-    const input = document.querySelector('input[type="file"]');
+    const input =
+      document.querySelector<HTMLInputElement>('input[type="file"]');
     if (input === null) return;
-    fireEvent.change(input, { target: { files: [file] } });
+    fireSingleFileSelect(input, createPngFile());
     await user.type(screen.getByLabelText("名前"), "テスト");
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
@@ -146,7 +144,7 @@ describe("GarmentForm", () => {
       await screen.findByRole("button", { name: "アップロード中..." }),
     ).toBeDisabled();
 
-    release.fn({ imageUrl: "https://example.com/x.png" });
+    upload.resolve({ imageUrl: "https://example.com/x.png" });
     await waitFor(() => {
       expect(navHandle.router.push).toHaveBeenCalledWith("/garments");
     });
@@ -154,22 +152,18 @@ describe("GarmentForm", () => {
 
   it("圧縮中はボタンが disabled + テキスト変更", async () => {
     type CompressResult = { file: File; width: number; height: number };
-    const release: { fn: (value: CompressResult) => void } = {
-      fn: () => undefined,
-    };
-    const compressGate = new Promise<CompressResult>((resolve) => {
-      release.fn = resolve;
-    });
+    const compress = createDeferred<CompressResult>();
     vi.mocked(compressImage).mockImplementationOnce(
-      async () => await compressGate,
+      async () => await compress.promise,
     );
     const user = userEvent.setup();
     await renderWithProviders(<GarmentForm />);
 
-    const file = new File(["dummy"], "test.png", { type: "image/png" });
-    const input = document.querySelector('input[type="file"]');
+    const file = createPngFile();
+    const input =
+      document.querySelector<HTMLInputElement>('input[type="file"]');
     if (input === null) return;
-    fireEvent.change(input, { target: { files: [file] } });
+    fireSingleFileSelect(input, file);
     await user.type(screen.getByLabelText("名前"), "テスト");
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
@@ -177,7 +171,7 @@ describe("GarmentForm", () => {
       await screen.findByRole("button", { name: "アップロード中..." }),
     ).toBeDisabled();
 
-    release.fn({ file, width: 100, height: 100 });
+    compress.resolve({ file, width: 100, height: 100 });
     await waitFor(() => {
       expect(navHandle.router.push).toHaveBeenCalledWith("/garments");
     });
@@ -206,10 +200,11 @@ describe("GarmentForm", () => {
     });
     await renderWithProviders(<GarmentForm />);
 
-    const file = new File(["dummy"], "test.png", { type: "image/png" });
-    const input = document.querySelector('input[type="file"]');
+    const file = createPngFile();
+    const input =
+      document.querySelector<HTMLInputElement>('input[type="file"]');
     if (input === null) return;
-    fireEvent.change(input, { target: { files: [file] } });
+    fireSingleFileSelect(input, file);
 
     expect(colorHandle.current.extractColors).toHaveBeenCalledWith({ file });
   });
@@ -219,10 +214,10 @@ describe("GarmentForm", () => {
     colorHandle.current.extractColors.mockResolvedValue({ presetColors: [] });
     await renderWithProviders(<GarmentForm />);
 
-    const file = new File(["dummy"], "test.png", { type: "image/png" });
-    const input = document.querySelector('input[type="file"]');
+    const input =
+      document.querySelector<HTMLInputElement>('input[type="file"]');
     if (input === null) return;
-    fireEvent.change(input, { target: { files: [file] } });
+    fireSingleFileSelect(input, createPngFile());
 
     await user.type(screen.getByLabelText("名前"), "テスト服");
     expect(screen.getByRole("button", { name: "登録する" })).toBeEnabled();

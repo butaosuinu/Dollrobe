@@ -57,7 +57,7 @@ describe("NewCoordinatePage", () => {
     });
     const saved = await getDb().coordinates.toArray();
     expect(saved).toHaveLength(1);
-    expect(saved[0]?.id).toMatch(/^[a-z0-9]+$/i);
+    expect(saved[0]?.id).toMatch(/^[a-z0-9]+$/);
     expect(saved[0]).toMatchObject({
       name: "お出かけ",
       garmentIds: ["g-1", "g-2"],

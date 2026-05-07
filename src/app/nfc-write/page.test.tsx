@@ -3,7 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
-import * as nfcCapability from "@/lib/nfc/capability";
+import { setNfcSupported } from "@/test/helpers/nfc";
 import { renderWithProviders } from "@/test/testUtils";
 import NfcWritePage from "./page";
 
@@ -23,7 +23,7 @@ vi.mock("@/lib/nfc/writer", async () => {
 describe("NfcWritePage", () => {
   beforeEach(() => {
     mockWriteNfcTag.mockReset();
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(false);
+    setNfcSupported(false);
   });
 
   afterEach(() => {
@@ -31,7 +31,7 @@ describe("NfcWritePage", () => {
   });
 
   it("NFC非対応デバイスで非対応メッセージを表示する", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(false);
+    setNfcSupported(false);
     await renderWithProviders(<NfcWritePage />);
 
     expect(
@@ -42,7 +42,7 @@ describe("NfcWritePage", () => {
   });
 
   it("NFC対応デバイスでタイプ選択画面を表示する", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     await renderWithProviders(<NfcWritePage />);
 
     expect(
@@ -53,7 +53,7 @@ describe("NfcWritePage", () => {
   });
 
   it("「服」を選択するとアイテム選択画面に進む", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();
     const user = userEvent.setup();
@@ -65,7 +65,7 @@ describe("NfcWritePage", () => {
   });
 
   it("「収納場所」を選択するとアイテム選択画面に進む", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     testDb.storageCase.create({ id: "case-1", name: "ケースA" });
     testDb.storageLocation.create({
       id: "loc-1",
@@ -82,7 +82,7 @@ describe("NfcWritePage", () => {
   });
 
   it("アイテムを選択して「次へ」で書き込み準備画面に進む", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();
     const user = userEvent.setup();
@@ -98,7 +98,7 @@ describe("NfcWritePage", () => {
   });
 
   it("「戻る」で前の画面に戻る", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();
     const user = userEvent.setup();
@@ -114,7 +114,7 @@ describe("NfcWritePage", () => {
   });
 
   it("書き込み成功時にフィードバックを表示する", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     mockWriteNfcTag.mockResolvedValueOnce({ ok: true });
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();
@@ -134,7 +134,7 @@ describe("NfcWritePage", () => {
   });
 
   it("権限拒否時にエラーメッセージを表示する", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     mockWriteNfcTag.mockResolvedValueOnce({
       ok: false,
       errorKind: "permission_denied",
@@ -158,7 +158,7 @@ describe("NfcWritePage", () => {
   });
 
   it("書き込み失敗時にエラーメッセージを表示する", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     mockWriteNfcTag.mockResolvedValueOnce({
       ok: false,
       errorKind: "write_failed",
@@ -180,7 +180,7 @@ describe("NfcWritePage", () => {
   });
 
   it("「もう1枚書き込む」でタイプ選択に戻る", async () => {
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+    setNfcSupported(true);
     mockWriteNfcTag.mockResolvedValueOnce({ ok: true });
     testDb.garment.create({ id: "g-1", name: "白いドレス" });
     await seedDbFromTestDb();

@@ -3,7 +3,7 @@ import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
-import * as nfcCapability from "@/lib/nfc/capability";
+import { setNfcSupported } from "@/test/helpers/nfc";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
@@ -54,7 +54,7 @@ describe("ScanPage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     scanTrigger.onScan = undefined;
-    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(false);
+    setNfcSupported(false);
     nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
   });
 
@@ -273,7 +273,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 対応デバイスで NfcReader が表示される", async () => {
-      vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+      setNfcSupported(true);
       await renderWithProviders(<ScanPage />);
 
       expect(screen.getByTestId("qr-scanner")).toBeInTheDocument();
@@ -281,7 +281,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 非対応デバイスで NfcReader が非表示になる", async () => {
-      vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(false);
+      setNfcSupported(false);
       await renderWithProviders(<ScanPage />);
 
       expect(screen.getByTestId("qr-scanner")).toBeInTheDocument();
@@ -289,7 +289,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 経由で服スキャンが動作する", async () => {
-      vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+      setNfcSupported(true);
       testDb.storageLocation.create({ id: "loc-1", label: "A-1" });
       testDb.garment.create({ id: "g-1", name: "赤いワンピース" });
       await seedDbFromTestDb();
@@ -308,7 +308,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 経由で場所スキャンが動作する", async () => {
-      vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
+      setNfcSupported(true);
       testDb.storageLocation.create({ id: "loc-1", label: "B-2" });
       await seedDbFromTestDb();
 

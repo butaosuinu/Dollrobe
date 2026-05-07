@@ -7,6 +7,9 @@ import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
 import { createTestDoll } from "@/test/factories";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import { createDeferred } from "@/test/helpers/deferred";
+import { createPngFile } from "@/test/helpers/files";
+import { fireSingleFileSelect } from "@/test/helpers/fileInput";
 import { compressImage } from "@/lib/image/compressImage";
 import DollForm from "./DollForm";
 
@@ -16,14 +19,11 @@ const EXISTING_IMAGE_URL = "https://cdn.example.com/existing.png";
 const UPLOADED_IMAGE_URL = "https://cdn.example.com/uploaded.png";
 
 const selectFileInput = (file: File): void => {
-  const input = document.querySelector('input[type="file"]');
+  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
   expect(input).not.toBeNull();
   if (input == null) return;
-  fireEvent.change(input, { target: { files: [file] } });
+  fireSingleFileSelect(input, file);
 };
-
-const createPngFile = (name = "new.png"): File =>
-  new File(["dummy"], name, { type: "image/png" });
 
 describe("DollForm (extra coverage)", () => {
   beforeEach(() => {
@@ -304,7 +304,7 @@ describe("DollForm (extra coverage)", () => {
       expect(dolls[0]?.imageUrl).toBe(UPLOADED_IMAGE_URL);
     });
     expect(collected.length).toBeGreaterThanOrEqual(1);
-    expect(collected[0]).toMatch(/^[a-z0-9]+$/i);
+    expect(collected[0]).toMatch(/^[a-z0-9]+$/);
   });
 
   it("新規登録 + 画像アップロード失敗時は imageUrl が undefined で保存される", async () => {
@@ -335,14 +335,9 @@ describe("DollForm (extra coverage)", () => {
 
   it("圧縮中は送信が抑止される (handleSubmit 早期 return)", async () => {
     type CompressResult = { file: File; width: number; height: number };
-    const release: { fn: (value: CompressResult) => void } = {
-      fn: () => undefined,
-    };
-    const compressGate = new Promise<CompressResult>((resolve) => {
-      release.fn = resolve;
-    });
+    const compress = createDeferred<CompressResult>();
     vi.mocked(compressImage).mockImplementationOnce(
-      async () => await compressGate,
+      async () => await compress.promise,
     );
     const uploadSpy = vi.fn();
     server.use(
@@ -357,7 +352,6 @@ describe("DollForm (extra coverage)", () => {
     await user.type(screen.getByLabelText("名前"), "リナ");
     const file = createPngFile();
     selectFileInput(file);
-    // 1 回目の送信で「圧縮中」状態に入る
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
     const button = await screen.findByRole("button", {
@@ -372,12 +366,9 @@ describe("DollForm (extra coverage)", () => {
     if (form == null) return;
     fireEvent.submit(form);
 
-    // 一定時間待っても upload が呼ばれていないことを確認
-    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(uploadSpy).not.toHaveBeenCalled();
 
-    // gate を解放してテスト後の dangling Promise を解決
-    release.fn({ file, width: 100, height: 100 });
+    compress.resolve({ file, width: 100, height: 100 });
     await waitFor(() => {
       expect(navHandle.router.push).toHaveBeenCalledWith("/dolls");
     });
