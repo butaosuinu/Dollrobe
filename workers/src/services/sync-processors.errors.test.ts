@@ -1,13 +1,8 @@
 import { env } from "cloudflare:test";
 import { TRPCError } from "@trpc/server";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createDrizzle } from "../db/client";
-import {
-  TEST_USER_ID,
-  createTestLogger,
-  getTestDb,
-  resetDatabase,
-} from "../test/helpers";
+import { TEST_USER_ID, createTestLogger } from "../test/helpers";
 import { ACTION_PROCESSORS } from "./sync-processors";
 
 const logger = createTestLogger();
@@ -30,10 +25,6 @@ const validGarmentPayload = {
   createdAt: NOW,
   updatedAt: NOW,
 };
-
-beforeEach(async () => {
-  await resetDatabase(getTestDb());
-});
 
 describe("ACTION_PROCESSORS — safeParse 失敗時に BAD_REQUEST を返す", () => {
   it("garment:create に不正な payload を渡すと BAD_REQUEST", async () => {
@@ -140,32 +131,18 @@ describe("ACTION_PROCESSORS — safeParse 失敗時に BAD_REQUEST を返す", (
 });
 
 describe("ACTION_PROCESSORS — DB 例外時の伝搬", () => {
-  it("DB 例外発生時に TRPCError(INTERNAL_SERVER_ERROR) として伝搬する", async () => {
-    const spy = vi.spyOn(env.DB, "prepare").mockImplementationOnce(() => {
+  it("DB 例外を TRPCError(INTERNAL_SERVER_ERROR) として伝搬する", async () => {
+    vi.spyOn(env.DB, "prepare").mockImplementationOnce(() => {
       throw new Error("simulated d1 failure");
     });
 
     const processor = ACTION_PROCESSORS["garment:create"]!;
 
-    await expect(processor(ctx, validGarmentPayload)).rejects.toMatchObject({
-      name: "TRPCError",
-      code: "INTERNAL_SERVER_ERROR",
-    });
-
-    spy.mockRestore();
-  });
-
-  it("processor は TRPCError インスタンスを reject する", async () => {
-    const spy = vi.spyOn(env.DB, "prepare").mockImplementationOnce(() => {
-      throw new Error("simulated d1 failure");
-    });
-
-    const processor = ACTION_PROCESSORS["garment:create"]!;
-
-    await expect(processor(ctx, validGarmentPayload)).rejects.toBeInstanceOf(
-      TRPCError,
+    const rejected = await processor(ctx, validGarmentPayload).catch(
+      (e: unknown) => e,
     );
 
-    spy.mockRestore();
+    expect(rejected).toBeInstanceOf(TRPCError);
+    expect(rejected).toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
   });
 });
