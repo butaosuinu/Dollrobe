@@ -1,24 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { act, screen, fireEvent, waitFor } from "@testing-library/react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import {
   installCanvas2DContext,
   installVideoReadyState,
 } from "@/test/helpers/canvas";
+import { flushPromises } from "@/test/helpers/flushPromises";
 import {
   createMockMediaStream,
   createMockTrack,
   installMediaDevices,
+  installMediaElementPlayback,
 } from "@/test/helpers/mediaDevices";
-import { setupJsqr, createMockQRCode } from "@/test/mocks/modules/jsqr";
+import { setupJsqr, simulateQrScan } from "@/test/mocks/modules/jsqr";
 import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
 import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
-
-const SCAN_INTERVAL_MS = 250;
 
 const nfcSupHandle: {
   current: ReturnType<typeof setupUseNfcSupported>;
@@ -32,51 +32,20 @@ const nfcRdrHandle: {
   current: setupUseNfcReader({ status: "scanning" }),
 };
 
-const jsqrHandle: { current: ReturnType<typeof setupJsqr> } = {
-  current: setupJsqr(),
-};
-
-const flushPromises = async () => {
-  await act(async () => {
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-  });
-};
-
-const simulateScan = async (data: string) => {
-  jsqrHandle.current.mockReturnValueOnce(createMockQRCode(data));
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(SCAN_INTERVAL_MS);
-  });
-};
-
 describe("ScanPage (extra)", () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     nfcSupHandle.current = setupUseNfcSupported(false);
     nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
-    jsqrHandle.current = setupJsqr();
+    setupJsqr();
 
     installMediaDevices({
       resolveStream: createMockMediaStream(createMockTrack()),
     });
     installCanvas2DContext();
     installVideoReadyState(4, 4);
-
-    Object.defineProperty(HTMLMediaElement.prototype, "play", {
-      value: vi.fn(async () => await Promise.resolve(undefined)),
-      writable: true,
-      configurable: true,
-    });
-    Object.defineProperty(HTMLMediaElement.prototype, "srcObject", {
-      value: undefined,
-      writable: true,
-      configurable: true,
-    });
+    installMediaElementPlayback();
   });
 
   afterEach(() => {
@@ -91,7 +60,7 @@ describe("ScanPage (extra)", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("https://example.com/foo");
+    await simulateQrScan("https://example.com/foo");
     await flushPromises();
 
     expect(
@@ -105,7 +74,7 @@ describe("ScanPage (extra)", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/unknown-loc");
+    await simulateQrScan("dwg://l/unknown-loc");
     await flushPromises();
 
     expect(screen.getByText("場所を設定しました")).toBeInTheDocument();
@@ -119,9 +88,9 @@ describe("ScanPage (extra)", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
-    await simulateScan("dwg://g/unknown-garment");
+    await simulateQrScan("dwg://g/unknown-garment");
     await flushPromises();
 
     expect(screen.getByText("unknown-garment")).toBeInTheDocument();
@@ -157,7 +126,7 @@ describe("ScanPage (extra)", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
 
     expect(screen.queryByText("全部ある")).toBeNull();
@@ -180,7 +149,7 @@ describe("ScanPage (extra)", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
 
     fireEvent.click(screen.getByRole("button", { name: "ズレを直す" }));
@@ -206,7 +175,7 @@ describe("ScanPage (extra)", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
 
     fireEvent.click(screen.getByRole("button", { name: "ズレを直す" }));
@@ -234,7 +203,7 @@ describe("ScanPage (extra)", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
 
     expect(

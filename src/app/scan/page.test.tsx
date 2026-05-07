@@ -6,19 +6,19 @@ import {
   installCanvas2DContext,
   installVideoReadyState,
 } from "@/test/helpers/canvas";
+import { flushPromises } from "@/test/helpers/flushPromises";
 import {
   createMockMediaStream,
   createMockTrack,
   installMediaDevices,
+  installMediaElementPlayback,
 } from "@/test/helpers/mediaDevices";
-import { setupJsqr, createMockQRCode } from "@/test/mocks/modules/jsqr";
+import { setupJsqr, simulateQrScan } from "@/test/mocks/modules/jsqr";
 import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
 import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
-
-const SCAN_INTERVAL_MS = 250;
 
 const nfcSupHandle: {
   current: ReturnType<typeof setupUseNfcSupported>;
@@ -32,29 +32,6 @@ const nfcRdrHandle: {
   current: setupUseNfcReader({ status: "scanning" }),
 };
 
-const jsqrHandle: { current: ReturnType<typeof setupJsqr> } = {
-  current: setupJsqr(),
-};
-
-const flushPromises = async () => {
-  // Dexie 書き込み + jotai async atom + React state 更新を flush。
-  // setInterval だけ faked なので microtask は通常通り走る。
-  await act(async () => {
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-  });
-};
-
-const simulateScan = async (data: string) => {
-  jsqrHandle.current.mockReturnValueOnce(createMockQRCode(data));
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(SCAN_INTERVAL_MS);
-  });
-};
-
 describe("ScanPage", () => {
   beforeEach(() => {
     // setInterval だけ fake にして QrScanner の scanFrame ループを制御。
@@ -64,24 +41,14 @@ describe("ScanPage", () => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     nfcSupHandle.current = setupUseNfcSupported(false);
     nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
-    jsqrHandle.current = setupJsqr();
+    setupJsqr();
 
     installMediaDevices({
       resolveStream: createMockMediaStream(createMockTrack()),
     });
     installCanvas2DContext();
     installVideoReadyState(4, 4);
-
-    Object.defineProperty(HTMLMediaElement.prototype, "play", {
-      value: vi.fn(async () => await Promise.resolve(undefined)),
-      writable: true,
-      configurable: true,
-    });
-    Object.defineProperty(HTMLMediaElement.prototype, "srcObject", {
-      value: undefined,
-      writable: true,
-      configurable: true,
-    });
+    installMediaElementPlayback();
   });
 
   afterEach(() => {
@@ -106,7 +73,7 @@ describe("ScanPage", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
 
     expect(
@@ -123,9 +90,9 @@ describe("ScanPage", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
-    await simulateScan("dwg://g/g-1");
+    await simulateQrScan("dwg://g/g-1");
     await flushPromises();
 
     expect(screen.getByText("白いドレス")).toBeInTheDocument();
@@ -141,11 +108,11 @@ describe("ScanPage", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
-    await simulateScan("dwg://g/g-1");
+    await simulateQrScan("dwg://g/g-1");
     await flushPromises();
-    await simulateScan("dwg://g/g-2");
+    await simulateQrScan("dwg://g/g-2");
     await flushPromises();
 
     expect(screen.getByText("2着をスキャンしました")).toBeInTheDocument();
@@ -159,11 +126,11 @@ describe("ScanPage", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
-    await simulateScan("dwg://g/g-1");
+    await simulateQrScan("dwg://g/g-1");
     await flushPromises();
-    await simulateScan("dwg://g/g-1");
+    await simulateQrScan("dwg://g/g-1");
     await flushPromises();
 
     expect(screen.getByText("1着をスキャンしました")).toBeInTheDocument();
@@ -181,7 +148,7 @@ describe("ScanPage", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
 
     fireEvent.click(screen.getByText("この場所の全服を確認済みにする"));
@@ -210,7 +177,7 @@ describe("ScanPage", () => {
     await renderWithProviders(<ScanPage />);
     await flushPromises();
 
-    await simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
     await flushPromises();
 
     fireEvent.click(screen.getByText("リセット"));
@@ -237,7 +204,7 @@ describe("ScanPage", () => {
       await renderWithProviders(<ScanPage />);
       await flushPromises();
 
-      await simulateScan("dwg://l/loc-1");
+      await simulateQrScan("dwg://l/loc-1");
       await flushPromises();
 
       expect(screen.getByText("古いドレス")).toBeInTheDocument();
@@ -259,7 +226,7 @@ describe("ScanPage", () => {
       await renderWithProviders(<ScanPage />);
       await flushPromises();
 
-      await simulateScan("dwg://l/loc-1");
+      await simulateQrScan("dwg://l/loc-1");
       await flushPromises();
 
       expect(screen.queryByText("全部ある")).toBeNull();
@@ -280,7 +247,7 @@ describe("ScanPage", () => {
       await renderWithProviders(<ScanPage />);
       await flushPromises();
 
-      await simulateScan("dwg://l/loc-1");
+      await simulateQrScan("dwg://l/loc-1");
       await flushPromises();
 
       fireEvent.click(screen.getByRole("button", { name: "全部ある" }));

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { act, screen, fireEvent, waitFor } from "@testing-library/react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
@@ -9,10 +9,12 @@ import {
   installCanvas2DContext,
   installCanvasToDataURL,
 } from "@/test/helpers/canvas";
+import { flushPromises } from "@/test/helpers/flushPromises";
 import {
   createMockMediaStream,
   createMockTrack,
   installMediaDevices,
+  installMediaElementPlayback,
 } from "@/test/helpers/mediaDevices";
 import { renderWithProviders } from "@/test/testUtils";
 import BulkCapturePage from "./page";
@@ -26,9 +28,6 @@ vi.mock("@/lib/image/compressImage", () => ({
     await Promise.resolve({ file, width: 100, height: 100 }),
 }));
 
-const VIDEO_WIDTH = 640;
-const VIDEO_HEIGHT = 480;
-
 describe("BulkCapturePage", () => {
   beforeEach(() => {
     navHandle.current = setupNextNavigation();
@@ -39,27 +38,7 @@ describe("BulkCapturePage", () => {
     });
     installCanvas2DContext();
     installCanvasToDataURL("data:image/jpeg;base64,VEVTVA==");
-
-    Object.defineProperty(HTMLMediaElement.prototype, "play", {
-      value: vi.fn(async () => await Promise.resolve(undefined)),
-      writable: true,
-      configurable: true,
-    });
-    Object.defineProperty(HTMLMediaElement.prototype, "srcObject", {
-      value: undefined,
-      writable: true,
-      configurable: true,
-    });
-    Object.defineProperty(HTMLVideoElement.prototype, "videoWidth", {
-      value: VIDEO_WIDTH,
-      writable: true,
-      configurable: true,
-    });
-    Object.defineProperty(HTMLVideoElement.prototype, "videoHeight", {
-      value: VIDEO_HEIGHT,
-      writable: true,
-      configurable: true,
-    });
+    installMediaElementPlayback({ videoWidth: 640, videoHeight: 480 });
 
     server.use(
       http.post("*/api/images/upload/*", () =>
@@ -73,11 +52,7 @@ describe("BulkCapturePage", () => {
   });
 
   const clickCaptureWhenReady = async () => {
-    // useEffect の start() → getUserMedia 解決 → setIsActive(true) を待つ
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await flushPromises();
     fireEvent.click(screen.getByRole("button", { name: "" }));
   };
 
