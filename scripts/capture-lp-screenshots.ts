@@ -101,9 +101,7 @@ const captureLocale = async (locale: Locale): Promise<void> => {
 };
 
 const main = async (): Promise<void> => {
-  for (const locale of LOCALES) {
-    await captureLocale(locale);
-  }
+  await Promise.all(LOCALES.map(captureLocale));
 };
 
 main().catch((error: unknown) => {
