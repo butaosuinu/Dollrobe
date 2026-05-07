@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { atom, createStore } from "jotai";
+import { createStore } from "jotai";
 import { SYNC_ACTION_TYPE, SYNC_STATUS } from "@/lib/constants";
 import { getDb } from "@/lib/db/dexie";
 import {
@@ -15,6 +15,13 @@ import {
   trpcQuery,
   type RouterOutputs,
 } from "@/test/mocks/trpc/handlerFactory";
+import {
+  executeSyncAtom,
+  lastSyncErrorAtom,
+  pendingSyncCountAtom,
+  refreshPendingSyncCountAtom,
+  syncStatusAtom,
+} from "@/stores/syncAtoms";
 
 const pushSpy = vi.fn();
 const pullSpy = vi.fn();
@@ -52,68 +59,6 @@ const installSync = ({
   );
 };
 
-const refreshSpies = vi.hoisted(() => ({
-  coordinates: vi.fn(),
-  dolls: vi.fn(),
-  garments: vi.fn(),
-  storageCases: vi.fn(),
-  storageLocations: vi.fn(),
-}));
-
-vi.mock("@/stores/coordinateAtoms", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/stores/coordinateAtoms")
-  >("@/stores/coordinateAtoms");
-  return {
-    ...actual,
-    refreshCoordinatesAtom: atom(undefined, () => {
-      refreshSpies.coordinates();
-    }),
-  };
-});
-
-vi.mock("@/stores/dollAtoms", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/stores/dollAtoms")>(
-      "@/stores/dollAtoms",
-    );
-  return {
-    ...actual,
-    refreshDollsAtom: atom(undefined, () => {
-      refreshSpies.dolls();
-    }),
-  };
-});
-
-vi.mock("@/stores/garmentAtoms", async () => {
-  const actual = await vi.importActual<typeof import("@/stores/garmentAtoms")>(
-    "@/stores/garmentAtoms",
-  );
-  return {
-    ...actual,
-    refreshGarmentsAtom: atom(undefined, () => {
-      refreshSpies.garments();
-    }),
-  };
-});
-
-vi.mock("@/stores/locationAtoms", async () => {
-  const actual = await vi.importActual<typeof import("@/stores/locationAtoms")>(
-    "@/stores/locationAtoms",
-  );
-  return {
-    ...actual,
-    refreshStorageCasesAtom: atom(undefined, () => {
-      refreshSpies.storageCases();
-    }),
-    refreshStorageLocationsAtom: atom(undefined, () => {
-      refreshSpies.storageLocations();
-    }),
-  };
-});
-
-const importSyncAtoms = async () => await import("@/stores/syncAtoms");
-
 const emptyServerState = () => ({
   garments: [],
   dolls: [],
@@ -126,11 +71,6 @@ describe("syncAtoms", () => {
   beforeEach(() => {
     pushSpy.mockReset();
     pullSpy.mockReset();
-    refreshSpies.coordinates.mockReset();
-    refreshSpies.dolls.mockReset();
-    refreshSpies.garments.mockReset();
-    refreshSpies.storageCases.mockReset();
-    refreshSpies.storageLocations.mockReset();
   });
 
   afterEach(() => {
@@ -138,39 +78,38 @@ describe("syncAtoms", () => {
   });
 
   describe("executeSyncAtom", () => {
-    it(
-      "push と pull が成功すると refresh atom がすべて呼ばれ、状態が IDLE に戻る",
-      { timeout: 15_000 },
-      async () => {
-        installSync({});
-
-        await getDb().syncQueue.bulkAdd([
-          {
-            type: SYNC_ACTION_TYPE.GARMENT_CREATE,
-            payload: { id: "g-1" },
-            createdAt: FIXED_NOW,
+    it("push と pull が成功すると syncQueue が消化され、Dexie が pull payload で置換され IDLE に戻る", async () => {
+      installSync({
+        pull: {
+          resolve: {
+            garments: [createTestGarment({ id: "g-pull" })],
+            dolls: [],
+            coordinates: [],
+            storageCases: [],
+            storageLocations: [],
           },
-        ]);
+        },
+      });
 
-        const store = createStore();
-        const { executeSyncAtom, syncStatusAtom, lastSyncErrorAtom } =
-          await importSyncAtoms();
+      await getDb().syncQueue.bulkAdd([
+        {
+          type: SYNC_ACTION_TYPE.GARMENT_CREATE,
+          payload: { id: "g-1" },
+          createdAt: FIXED_NOW,
+        },
+      ]);
 
-        await store.set(executeSyncAtom);
+      const store = createStore();
+      await store.set(executeSyncAtom);
 
-        expect(pushSpy).toHaveBeenCalledTimes(1);
-        expect(pullSpy).toHaveBeenCalledTimes(1);
-        expect(refreshSpies.coordinates).toHaveBeenCalledTimes(1);
-        expect(refreshSpies.dolls).toHaveBeenCalledTimes(1);
-        expect(refreshSpies.garments).toHaveBeenCalledTimes(1);
-        expect(refreshSpies.storageCases).toHaveBeenCalledTimes(1);
-        expect(refreshSpies.storageLocations).toHaveBeenCalledTimes(1);
-        expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.IDLE);
-        expect(store.get(lastSyncErrorAtom)).toBeUndefined();
-        const remaining = await getDb().syncQueue.count();
-        expect(remaining).toBe(0);
-      },
-    );
+      expect(pushSpy).toHaveBeenCalledTimes(1);
+      expect(pullSpy).toHaveBeenCalledTimes(1);
+      expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.IDLE);
+      expect(store.get(lastSyncErrorAtom)).toBeUndefined();
+      expect(await getDb().syncQueue.count()).toBe(0);
+      const garments = await getDb().garments.toArray();
+      expect(garments.map((g) => g.id)).toEqual(["g-pull"]);
+    });
 
     it("無効な type の queue 項目は push リクエストから除外される", async () => {
       installSync({});
@@ -184,7 +123,6 @@ describe("syncAtoms", () => {
       ]);
 
       const store = createStore();
-      const { executeSyncAtom } = await importSyncAtoms();
       await store.set(executeSyncAtom);
 
       expect(pushSpy).not.toHaveBeenCalled();
@@ -196,7 +134,6 @@ describe("syncAtoms", () => {
       installSync({});
 
       const store = createStore();
-      const { executeSyncAtom, syncStatusAtom } = await importSyncAtoms();
       await store.set(executeSyncAtom);
 
       expect(pushSpy).not.toHaveBeenCalled();
@@ -204,40 +141,36 @@ describe("syncAtoms", () => {
       expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.IDLE);
     });
 
-    it("push 失敗時は ERROR 状態と lastSyncError がセットされ、refresh は呼ばれない", async () => {
+    it("push 失敗時は ERROR 状態と lastSyncError がセットされ、Dexie が pull で clear されない", async () => {
       installSync({ push: { throwError: new Error("push exploded") } });
 
-      await getDb().syncQueue.bulkAdd([
-        {
-          type: SYNC_ACTION_TYPE.GARMENT_CREATE,
-          payload: { id: "g-1" },
-          createdAt: FIXED_NOW,
-        },
+      await Promise.all([
+        getDb().syncQueue.bulkAdd([
+          {
+            type: SYNC_ACTION_TYPE.GARMENT_CREATE,
+            payload: { id: "g-1" },
+            createdAt: FIXED_NOW,
+          },
+        ]),
+        getDb().garments.add(createTestGarment({ id: "stale" })),
       ]);
 
       const store = createStore();
-      const { executeSyncAtom, syncStatusAtom, lastSyncErrorAtom } =
-        await importSyncAtoms();
-
       await store.set(executeSyncAtom);
 
       expect(pullSpy).not.toHaveBeenCalled();
       expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.ERROR);
       expect(store.get(lastSyncErrorAtom)).toBe("push exploded");
-      expect(refreshSpies.dolls).not.toHaveBeenCalled();
-      expect(refreshSpies.garments).not.toHaveBeenCalled();
-      expect(refreshSpies.storageCases).not.toHaveBeenCalled();
-      expect(refreshSpies.storageLocations).not.toHaveBeenCalled();
-      expect(refreshSpies.coordinates).not.toHaveBeenCalled();
+      // pull が走らないので transaction.clear() が無く、push 失敗で bulkDelete 前に return するため両方残る
+      const garments = await getDb().garments.toArray();
+      expect(garments.map((g) => g.id)).toEqual(["stale"]);
+      expect(await getDb().syncQueue.count()).toBe(1);
     });
 
     it("push が string をスローした場合は server からの message が lastSyncError に入る", async () => {
       installSync({ push: { throwError: "boom" } });
 
       const store = createStore();
-      const { executeSyncAtom, lastSyncErrorAtom, syncStatusAtom } =
-        await importSyncAtoms();
-
       await getDb().syncQueue.bulkAdd([
         {
           type: SYNC_ACTION_TYPE.DOLL_CREATE,
@@ -252,18 +185,28 @@ describe("syncAtoms", () => {
       expect(store.get(lastSyncErrorAtom)).toBe("boom");
     });
 
-    it("pull 失敗時も ERROR 状態と lastSyncError がセットされる", async () => {
+    it("pull 失敗時は push 由来の syncQueue 消化までは進むが Dexie は事前 seed のまま", async () => {
       installSync({ pull: { throwError: new Error("pull broken") } });
 
-      const store = createStore();
-      const { executeSyncAtom, syncStatusAtom, lastSyncErrorAtom } =
-        await importSyncAtoms();
+      await Promise.all([
+        getDb().syncQueue.bulkAdd([
+          {
+            type: SYNC_ACTION_TYPE.GARMENT_CREATE,
+            payload: { id: "g-1" },
+            createdAt: FIXED_NOW,
+          },
+        ]),
+        getDb().garments.add(createTestGarment({ id: "stale" })),
+      ]);
 
+      const store = createStore();
       await store.set(executeSyncAtom);
 
       expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.ERROR);
       expect(store.get(lastSyncErrorAtom)).toBe("pull broken");
-      expect(refreshSpies.dolls).not.toHaveBeenCalled();
+      expect(await getDb().syncQueue.count()).toBe(0);
+      const garments = await getDb().garments.toArray();
+      expect(garments.map((g) => g.id)).toEqual(["stale"]);
     });
 
     it("pull で得たエンティティが Dexie に書き戻される", async () => {
@@ -302,14 +245,16 @@ describe("syncAtoms", () => {
       await getDb().garments.add(createTestGarment({ id: "stale" }));
 
       const store = createStore();
-      const { executeSyncAtom } = await importSyncAtoms();
       await store.set(executeSyncAtom);
 
-      const garments = await getDb().garments.toArray();
-      const dolls = await getDb().dolls.toArray();
-      const coordinates = await getDb().coordinates.toArray();
-      const cases = await getDb().storageCases.toArray();
-      const locations = await getDb().storageLocations.toArray();
+      const [garments, dolls, coordinates, cases, locations] =
+        await Promise.all([
+          getDb().garments.toArray(),
+          getDb().dolls.toArray(),
+          getDb().coordinates.toArray(),
+          getDb().storageCases.toArray(),
+          getDb().storageLocations.toArray(),
+        ]);
 
       expect(garments.map((g) => g.id)).toEqual(["g-pull"]);
       expect(dolls.map((d) => d.id)).toEqual(["d-pull"]);
@@ -324,7 +269,6 @@ describe("syncAtoms", () => {
       installSync({});
 
       const store = createStore();
-      const { executeSyncAtom, lastSyncErrorAtom } = await importSyncAtoms();
       store.set(lastSyncErrorAtom, "前回のエラー");
       expect(store.get(lastSyncErrorAtom)).toBe("前回のエラー");
 
@@ -350,16 +294,12 @@ describe("syncAtoms", () => {
       ]);
 
       const store = createStore();
-      const { pendingSyncCountAtom } = await importSyncAtoms();
       const count = await store.get(pendingSyncCountAtom);
       expect(count).toBe(2);
     });
 
     it("refreshPendingSyncCountAtom の発火後に再カウントされる", async () => {
       const store = createStore();
-      const { pendingSyncCountAtom, refreshPendingSyncCountAtom } =
-        await importSyncAtoms();
-
       expect(await store.get(pendingSyncCountAtom)).toBe(0);
 
       await getDb().syncQueue.add({
@@ -376,7 +316,6 @@ describe("syncAtoms", () => {
       vi.stubGlobal("indexedDB", undefined);
 
       const store = createStore();
-      const { pendingSyncCountAtom } = await importSyncAtoms();
       const count = await store.get(pendingSyncCountAtom);
       expect(count).toBe(0);
     });
