@@ -5,7 +5,7 @@ import type {
   StorageLocation,
 } from "../../src/types/index";
 
-const E2E_TEST_USER_ID = "test-user-001";
+const E2E_TEST_USER_ID = "temp-user-001";
 const FIXED_NOW = new Date("2025-06-15T00:00:00Z").getTime();
 
 export const createGarment = (overrides: Partial<Garment> = {}): Garment => ({
