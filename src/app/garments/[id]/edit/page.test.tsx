@@ -1,22 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/mocks/server";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
-import { setupCuid2 } from "@/test/mocks/modules/cuid2";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
-import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
+import { setupUseColorExtraction } from "@/test/mocks/modules/useColorExtraction";
 import { renderWithProviders } from "@/test/testUtils";
 import GarmentEditPage from "./page";
 
 const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
   current: setupNextNavigation(),
-};
-
-const uploadHandle: {
-  current: ReturnType<typeof setupUseImageUpload>;
-} = {
-  current: setupUseImageUpload(),
 };
 
 describe("GarmentEditPage", () => {
@@ -25,8 +20,6 @@ describe("GarmentEditPage", () => {
     navHandle.current = setupNextNavigation({
       params: { id: "garment-1" },
     });
-    setupCuid2();
-    uploadHandle.current = setupUseImageUpload();
   });
 
   afterEach(() => {
@@ -217,14 +210,42 @@ describe("GarmentEditPage", () => {
   });
 
   it("アップロード中はボタンが disabled になる", async () => {
-    uploadHandle.current.setUploadState({ status: "uploading" });
-    testDb.garment.create({ id: "garment-1" });
+    const colorHandle = setupUseColorExtraction();
+    colorHandle.extractColors.mockResolvedValue({ presetColors: [] });
+
+    const release: { fn: (value: { imageUrl: string }) => void } = {
+      fn: () => undefined,
+    };
+    const uploadGate = new Promise<{ imageUrl: string }>((resolve) => {
+      release.fn = resolve;
+    });
+    server.use(
+      http.post("*/api/images/upload/*", async () => {
+        const body = await uploadGate;
+        return HttpResponse.json(body);
+      }),
+    );
+    testDb.garment.create({ id: "garment-1", name: "白いドレス" });
     await seedDbFromTestDb();
 
+    const user = userEvent.setup();
     await renderWithProviders(<GarmentEditPage />);
 
+    const file = new File(["dummy"], "test.png", { type: "image/png" });
+    const input = document.querySelector('input[type="file"]');
+    if (input === null) return;
+    fireEvent.change(input, { target: { files: [file] } });
+    await user.click(screen.getByRole("button", { name: "更新する" }));
+
     expect(
-      screen.getByRole("button", { name: "アップロード中..." }),
+      await screen.findByRole("button", { name: "アップロード中..." }),
     ).toBeDisabled();
+
+    release.fn({ imageUrl: "https://example.com/x.png" });
+    await waitFor(() => {
+      expect(navHandle.current.router.push).toHaveBeenCalledWith(
+        "/garments/garment-1",
+      );
+    });
   });
 });

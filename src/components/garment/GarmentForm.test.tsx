@@ -1,22 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/mocks/server";
 import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
-import { setupCuid2 } from "@/test/mocks/modules/cuid2";
-import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
-import { setupUseBrandSuggestions } from "@/test/mocks/modules/useBrandSuggestions";
 import { setupUseColorExtraction } from "@/test/mocks/modules/useColorExtraction";
+import { compressImage } from "@/lib/image/compressImage";
 import GarmentForm from "./GarmentForm";
 
 const navHandle = setupNextNavigation();
-
-const uploadHandle: {
-  current: ReturnType<typeof setupUseImageUpload>;
-} = {
-  current: setupUseImageUpload(),
-};
 
 const colorHandle: {
   current: ReturnType<typeof setupUseColorExtraction>;
@@ -28,11 +22,13 @@ describe("GarmentForm", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     setupNextNavigation();
-    setupCuid2({ id: "test-cuid" });
-    uploadHandle.current = setupUseImageUpload();
-    setupUseBrandSuggestions([]);
     colorHandle.current = setupUseColorExtraction();
     colorHandle.current.extractColors.mockResolvedValue({ presetColors: [] });
+    server.use(
+      http.post("*/api/images/upload/*", () =>
+        HttpResponse.json({ imageUrl: "https://r2.example.com/test.png" }),
+      ),
+    );
   });
 
   afterEach(() => {
@@ -42,7 +38,7 @@ describe("GarmentForm", () => {
   it("フォームの各フィールドが表示される", async () => {
     await renderWithProviders(<GarmentForm />);
 
-    expect(screen.getByLabelText("名前")).toBeInTheDocument();
+    expect(await screen.findByLabelText("名前")).toBeInTheDocument();
     expect(screen.getByLabelText("カテゴリ")).toBeInTheDocument();
     expect(
       screen.getByRole("group", { name: "ドールサイズ" }),
@@ -81,7 +77,7 @@ describe("GarmentForm", () => {
       const garments = await db.garments.toArray();
       expect(garments.length).toBe(1);
       expect(garments[0]?.name).toBe("新しいドレス");
-      expect(garments[0]?.id).toBe("test-cuid");
+      expect(garments[0]?.id).toMatch(/^[a-z0-9]+$/i);
       expect(garments[0]?.userId).toBe("user-1");
       expect(garments[0]?.category).toBe("tops");
       expect(garments[0]?.dollSizes).toEqual(["SD"]);
@@ -124,21 +120,67 @@ describe("GarmentForm", () => {
   });
 
   it("アップロード中はボタンが disabled + テキスト変更", async () => {
-    uploadHandle.current.setUploadState({ status: "uploading" });
+    const release: { fn: (value: { imageUrl: string }) => void } = {
+      fn: () => undefined,
+    };
+    const uploadGate = new Promise<{ imageUrl: string }>((resolve) => {
+      release.fn = resolve;
+    });
+    server.use(
+      http.post("*/api/images/upload/*", async () => {
+        const body = await uploadGate;
+        return HttpResponse.json(body);
+      }),
+    );
+    const user = userEvent.setup();
     await renderWithProviders(<GarmentForm />);
 
+    const file = new File(["dummy"], "test.png", { type: "image/png" });
+    const input = document.querySelector('input[type="file"]');
+    if (input === null) return;
+    fireEvent.change(input, { target: { files: [file] } });
+    await user.type(screen.getByLabelText("名前"), "テスト");
+    await user.click(screen.getByRole("button", { name: "登録する" }));
+
     expect(
-      screen.getByRole("button", { name: "アップロード中..." }),
+      await screen.findByRole("button", { name: "アップロード中..." }),
     ).toBeDisabled();
+
+    release.fn({ imageUrl: "https://example.com/x.png" });
+    await waitFor(() => {
+      expect(navHandle.router.push).toHaveBeenCalledWith("/garments");
+    });
   });
 
   it("圧縮中はボタンが disabled + テキスト変更", async () => {
-    uploadHandle.current.setUploadState({ status: "compressing" });
+    type CompressResult = { file: File; width: number; height: number };
+    const release: { fn: (value: CompressResult) => void } = {
+      fn: () => undefined,
+    };
+    const compressGate = new Promise<CompressResult>((resolve) => {
+      release.fn = resolve;
+    });
+    vi.mocked(compressImage).mockImplementationOnce(
+      async () => await compressGate,
+    );
+    const user = userEvent.setup();
     await renderWithProviders(<GarmentForm />);
 
+    const file = new File(["dummy"], "test.png", { type: "image/png" });
+    const input = document.querySelector('input[type="file"]');
+    if (input === null) return;
+    fireEvent.change(input, { target: { files: [file] } });
+    await user.type(screen.getByLabelText("名前"), "テスト");
+    await user.click(screen.getByRole("button", { name: "登録する" }));
+
     expect(
-      screen.getByRole("button", { name: "アップロード中..." }),
+      await screen.findByRole("button", { name: "アップロード中..." }),
     ).toBeDisabled();
+
+    release.fn({ file, width: 100, height: 100 });
+    await waitFor(() => {
+      expect(navHandle.router.push).toHaveBeenCalledWith("/garments");
+    });
   });
 
   it("色分析中はローディング表示される", async () => {

@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { getDb } from "@/lib/db/dexie";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
-import { setupCuid2 } from "@/test/mocks/modules/cuid2";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import NewCoordinatePage from "./page";
@@ -17,7 +16,6 @@ describe("NewCoordinatePage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     navHandle.current = setupNextNavigation();
-    setupCuid2({ id: "test-coordinate-id" });
   });
 
   afterEach(() => {
@@ -59,8 +57,8 @@ describe("NewCoordinatePage", () => {
     });
     const saved = await getDb().coordinates.toArray();
     expect(saved).toHaveLength(1);
+    expect(saved[0]?.id).toMatch(/^[a-z0-9]+$/i);
     expect(saved[0]).toMatchObject({
-      id: "test-coordinate-id",
       name: "お出かけ",
       garmentIds: ["g-1", "g-2"],
       isAiGenerated: false,

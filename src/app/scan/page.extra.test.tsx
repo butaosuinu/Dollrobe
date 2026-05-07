@@ -3,7 +3,7 @@ import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
 import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
-import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
+import * as nfcCapability from "@/lib/nfc/capability";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
@@ -38,12 +38,6 @@ vi.mock("@/components/scan/NfcCapabilityBadge", () => ({
   default: () => <span data-testid="nfc-badge" />,
 }));
 
-const nfcSupHandle: {
-  current: ReturnType<typeof setupUseNfcSupported>;
-} = {
-  current: setupUseNfcSupported(),
-};
-
 const nfcRdrHandle: {
   current: ReturnType<typeof setupUseNfcReader>;
 } = {
@@ -60,7 +54,7 @@ describe("ScanPage (extra)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     scanTrigger.onScan = undefined;
-    nfcSupHandle.current = setupUseNfcSupported(false);
+    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(false);
     nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
   });
 
@@ -190,7 +184,7 @@ describe("ScanPage (extra)", () => {
   });
 
   it("信頼度低のアイテムでダイアログ表示中も QrScanner / NfcReader 自体は描画される", async () => {
-    nfcSupHandle.current.setSupported(true);
+    vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(true);
     testDb.storageLocation.create({ id: "loc-1", label: "A-1" });
     testDb.garment.create({
       id: "g-1",
