@@ -1,16 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import TopBar from "./TopBar";
-
-vi.mock("@/components/settings/LocaleSelector", () => ({
-  default: () => <div data-testid="locale-selector" />,
-}));
-
-vi.mock("@/components/auth/UserMenu", () => ({
-  default: () => <div data-testid="user-menu" />,
-}));
 
 const ACTIVE_LINK_CLASS = "bg-primary-100";
 

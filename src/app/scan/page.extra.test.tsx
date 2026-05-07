@@ -2,41 +2,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import {
+  installCanvas2DContext,
+  installVideoReadyState,
+} from "@/test/helpers/canvas";
+import {
+  createMockMediaStream,
+  createMockTrack,
+  installMediaDevices,
+} from "@/test/helpers/mediaDevices";
+import { setupJsqr, createMockQRCode } from "@/test/mocks/modules/jsqr";
 import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
 import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
 
-const scanTrigger = vi.hoisted(
-  (): { onScan: ((data: string) => void) | undefined } => ({
-    onScan: undefined,
-  }),
-);
-
-vi.mock("@/components/scan/QrScanner", () => ({
-  default: ({
-    onScan,
-  }: {
-    readonly onScan: (data: string) => void;
-    readonly isActive: boolean;
-  }) => {
-    scanTrigger.onScan = onScan;
-    return <div data-testid="qr-scanner" />;
-  },
-}));
-
-vi.mock("@/components/scan/NfcReader", () => ({
-  default: ({
-    nfcState,
-  }: {
-    readonly nfcState: { readonly status: string };
-  }) => <div data-testid="nfc-reader" data-status={nfcState.status} />,
-}));
-
-vi.mock("@/components/scan/NfcCapabilityBadge", () => ({
-  default: () => <span data-testid="nfc-badge" />,
-}));
+const SCAN_INTERVAL_MS = 250;
 
 const nfcSupHandle: {
   current: ReturnType<typeof setupUseNfcSupported>;
@@ -50,21 +32,55 @@ const nfcRdrHandle: {
   current: setupUseNfcReader({ status: "scanning" }),
 };
 
-const simulateScan = (data: string) => {
-  act(() => {
-    scanTrigger.onScan?.(data);
+const jsqrHandle: { current: ReturnType<typeof setupJsqr> } = {
+  current: setupJsqr(),
+};
+
+const flushPromises = async () => {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+};
+
+const simulateScan = async (data: string) => {
+  jsqrHandle.current.mockReturnValueOnce(createMockQRCode(data));
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(SCAN_INTERVAL_MS);
   });
 };
 
 describe("ScanPage (extra)", () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    scanTrigger.onScan = undefined;
     nfcSupHandle.current = setupUseNfcSupported(false);
     nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
+    jsqrHandle.current = setupJsqr();
+
+    installMediaDevices({
+      resolveStream: createMockMediaStream(createMockTrack()),
+    });
+    installCanvas2DContext();
+    installVideoReadyState(4, 4);
+
+    Object.defineProperty(HTMLMediaElement.prototype, "play", {
+      value: vi.fn(async () => await Promise.resolve(undefined)),
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, "srcObject", {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    });
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -73,8 +89,10 @@ describe("ScanPage (extra)", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("https://example.com/foo");
+    await simulateScan("https://example.com/foo");
+    await flushPromises();
 
     expect(
       screen.getByText("場所のQRをスキャンして、収納場所を設定してください"),
@@ -85,8 +103,10 @@ describe("ScanPage (extra)", () => {
 
   it("未登録の場所IDをスキャンしても locationId 自体をフォールバックして表示する", async () => {
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/unknown-loc");
+    await simulateScan("dwg://l/unknown-loc");
+    await flushPromises();
 
     expect(screen.getByText("場所を設定しました")).toBeInTheDocument();
     expect(screen.getAllByText("unknown-loc").length).toBeGreaterThan(0);
@@ -97,9 +117,12 @@ describe("ScanPage (extra)", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
-    simulateScan("dwg://g/unknown-garment");
+    await simulateScan("dwg://l/loc-1");
+    await flushPromises();
+    await simulateScan("dwg://g/unknown-garment");
+    await flushPromises();
 
     expect(screen.getByText("unknown-garment")).toBeInTheDocument();
     expect(screen.getByText("1着をスキャンしました")).toBeInTheDocument();
@@ -107,6 +130,7 @@ describe("ScanPage (extra)", () => {
 
   it("activeLocation 未設定で全確認を押しても何も起きない", async () => {
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
     expect(
       screen.getByText("場所のQRをスキャンして、収納場所を設定してください"),
@@ -131,8 +155,10 @@ describe("ScanPage (extra)", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
+    await simulateScan("dwg://l/loc-1");
+    await flushPromises();
 
     expect(screen.queryByText("全部ある")).toBeNull();
     expect(screen.queryByText("ズレを直す")).toBeNull();
@@ -152,8 +178,10 @@ describe("ScanPage (extra)", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
+    await simulateScan("dwg://l/loc-1");
+    await flushPromises();
 
     fireEvent.click(screen.getByRole("button", { name: "ズレを直す" }));
 
@@ -176,13 +204,13 @@ describe("ScanPage (extra)", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
+    await simulateScan("dwg://l/loc-1");
+    await flushPromises();
 
     fireEvent.click(screen.getByRole("button", { name: "ズレを直す" }));
-    act(() => {
-      fireEvent.click(screen.getByRole("button", { name: "確定する" }));
-    });
+    fireEvent.click(screen.getByRole("button", { name: "確定する" }));
 
     await waitFor(() => {
       expect(screen.queryByRole("button", { name: "確定する" })).toBeNull();
@@ -204,13 +232,15 @@ describe("ScanPage (extra)", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
+    await simulateScan("dwg://l/loc-1");
+    await flushPromises();
 
     expect(
       screen.getByRole("button", { name: "全部ある" }),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("qr-scanner")).toBeInTheDocument();
-    expect(screen.getByTestId("nfc-reader")).toBeInTheDocument();
+    expect(document.querySelector("video")).not.toBeNull();
+    expect(screen.getByText("NFC 待ち受け中...")).toBeInTheDocument();
   });
 });
