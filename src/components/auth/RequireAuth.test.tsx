@@ -57,4 +57,31 @@ describe("RequireAuth", () => {
     expect(router.replace).not.toHaveBeenCalled();
     expect(screen.queryByTestId("protected-content")).not.toBeInTheDocument();
   });
+
+  it("公開パス /signin では未認証でも子要素が描画され redirect しない", async () => {
+    server.use(unauthenticatedHandler);
+    const { router } = setupNextNavigation({ pathname: "/signin" });
+
+    await renderWithProviders(
+      <RequireAuth>
+        <p data-testid="public-content">サインイン</p>
+      </RequireAuth>,
+    );
+
+    expect(await screen.findByTestId("public-content")).toBeInTheDocument();
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("公開パス /signup では未認証でも子要素が描画される", async () => {
+    server.use(unauthenticatedHandler);
+    setupNextNavigation({ pathname: "/signup" });
+
+    await renderWithProviders(
+      <RequireAuth>
+        <p data-testid="public-content">サインアップ</p>
+      </RequireAuth>,
+    );
+
+    expect(await screen.findByTestId("public-content")).toBeInTheDocument();
+  });
 });

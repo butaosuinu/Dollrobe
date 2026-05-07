@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
+
+const PUBLIC_PATHS: ReadonlySet<string> = new Set(["/signin", "/signup"]);
 
 type Props = {
   readonly children: ReactNode;
@@ -12,9 +14,11 @@ type Props = {
 
 const RequireAuth = ({ children }: Props) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isLoading } = useAtomValue(authSessionUnwrappedAtom);
   const [isOnline, setIsOnline] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const isPublicPath = PUBLIC_PATHS.has(pathname);
 
   useEffect(() => {
     setIsMounted(true);
@@ -30,13 +34,17 @@ const RequireAuth = ({ children }: Props) => {
   }, []);
 
   useEffect(() => {
-    if (!isMounted || isLoading || user !== undefined) {
+    if (isPublicPath || !isMounted || isLoading || user !== undefined) {
       return;
     }
     if (isOnline) {
       router.replace("/signin");
     }
-  }, [isMounted, isLoading, user, isOnline, router]);
+  }, [isPublicPath, isMounted, isLoading, user, isOnline, router]);
+
+  if (isPublicPath) {
+    return <>{children}</>;
+  }
 
   if (!isMounted || isLoading) {
     return undefined;
