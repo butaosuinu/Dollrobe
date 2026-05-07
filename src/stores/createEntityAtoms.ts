@@ -2,6 +2,7 @@ import type Dexie from "dexie";
 import { atom } from "jotai";
 import type { Atom, WritableAtom } from "jotai";
 import { getDb } from "@/lib/db/dexie";
+import { currentUserIdAtom } from "@/stores/authAtoms";
 
 type SyncActionTypes = {
   readonly create: string;
@@ -17,17 +18,21 @@ type EntityAtoms<T> = {
   readonly deleteAtom: WritableAtom<undefined, [string], Promise<void>>;
 };
 
-export const createEntityAtoms = <T>(
+export const createEntityAtoms = <T extends { readonly userId: string }>(
   getTable: () => Dexie.Table<T, string>,
   syncActionTypes: SyncActionTypes,
 ): EntityAtoms<T> => {
   const refreshTriggerAtom = atom(0);
 
-  const dataAtom = atom(async (get) =>
-    typeof indexedDB === "undefined"
+  const dataAtom = atom(async (get) => {
+    // eslint-disable-next-line functional/no-conditional-statements -- SSR guard
+    if (typeof indexedDB === "undefined") return [] satisfies T[] as T[];
+    get(refreshTriggerAtom);
+    const userId = get(currentUserIdAtom);
+    return userId === undefined
       ? ([] satisfies T[] as T[])
-      : (get(refreshTriggerAtom), await getTable().toArray()),
-  );
+      : await getTable().where("userId").equals(userId).toArray();
+  });
 
   const refreshAtom = atom(undefined, (_get, set) => {
     set(refreshTriggerAtom, (prev) => prev + 1);

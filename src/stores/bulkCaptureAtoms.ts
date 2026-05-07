@@ -170,7 +170,12 @@ export const executeBulkRegistrationAtom = atom(undefined, async (get, set) => {
   const items = get(capturedItemsAtom);
   const metadataMap = get(metadataMapAtom);
   const authState = await get(authSessionAtom);
-  const userId = authState.user?.id ?? "local";
+  const userId = authState.user?.id;
+  /* eslint-disable functional/no-conditional-statements, functional/no-throw-statements -- fail-fast invariant: callers are mounted under RequireAuth */
+  if (userId === undefined) {
+    throw new Error("Bulk registration requires an authenticated user");
+  }
+  /* eslint-enable functional/no-conditional-statements, functional/no-throw-statements */
 
   set(bulkCaptureStepAtom, "registering");
   set(bulkRegistrationStatusAtom, {

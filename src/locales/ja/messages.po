@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: STEP_TITLES[step]
-#: src/app/garments/import/page.tsx
+#: src/app/(protected)/garments/import/page.tsx
 msgid "{0}"
 msgstr "{0}"
 
@@ -45,7 +45,7 @@ msgstr "{0}件の登録に成功しました"
 
 #. placeholder {0}: caseGarments.length
 #. placeholder {0}: garments.length
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 #: src/components/location/StorageCell.tsx
 msgid "{0}着"
@@ -75,7 +75,7 @@ msgstr "{0}着をスキャンしました"
 
 #. placeholder {0}: storageCase.rows
 #. placeholder {1}: storageCase.cols
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 msgid "{0}行 x {1}列"
 msgstr "{0}行 x {1}列"
@@ -100,7 +100,7 @@ msgstr "{elapsedDays}日前から取り出し中"
 msgid "{errorCount}件 エラー"
 msgstr "{errorCount}件 エラー"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 msgid "{needsReviewCount}着 要確認"
 msgstr "{needsReviewCount}着 要確認"
@@ -133,12 +133,12 @@ msgid "「{0}」をアーカイブしますか？"
 msgstr "「{0}」をアーカイブしますか？"
 
 #. placeholder {0}: deletingCase.name
-#: src/app/locations/page.tsx
+#: src/app/(protected)/locations/page.tsx
 msgid "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
 msgstr "「{0}」を削除しますか？ケース内の服は「取り出し中」になります。"
 
 #. placeholder {0}: coordinate.name
-#: src/app/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
 msgid "「{0}」を削除しますか？この操作は取り消せません。"
 msgstr "「{0}」を削除しますか？この操作は取り消せません。"
 
@@ -188,7 +188,7 @@ msgstr "API キーの失効に失敗しました"
 msgid "API キーの発行に失敗しました"
 msgstr "API キーの発行に失敗しました"
 
-#: src/app/settings/api-keys/page.tsx
+#: src/app/(protected)/settings/api-keys/page.tsx
 msgid "API キーの読み込みに失敗しました"
 msgstr "API キーの読み込みに失敗しました"
 
@@ -208,8 +208,8 @@ msgstr "API キーを失効"
 msgid "API キーを発行しました"
 msgstr "API キーを発行しました"
 
-#: src/app/garments/new/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/new/page.tsx
+#: src/app/(protected)/garments/page.tsx
 msgid "CSVインポート"
 msgstr "CSVインポート"
 
@@ -273,19 +273,19 @@ msgstr "MSD (~43cm)"
 msgid "new@example.com"
 msgstr "new@example.com"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "NFC タグにタッチしてください..."
 msgstr "NFC タグにタッチしてください..."
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "NFC タグへの書き込みが完了しました"
 msgstr "NFC タグへの書き込みが完了しました"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "NFC タグ書き込み"
 msgstr "NFC タグ書き込み"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 #: src/components/scan/NfcReader.tsx
 msgid "NFC の権限が拒否されました"
 msgstr "NFC の権限が拒否されました"
@@ -302,11 +302,11 @@ msgstr "NFC 待ち受け中..."
 msgid "NFC 非対応"
 msgstr "NFC 非対応"
 
-#: src/app/print/page.tsx
+#: src/app/(protected)/print/page.tsx
 msgid "QR ラベル印刷"
 msgstr "QR ラベル印刷"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 #: src/components/location/StorageGrid.tsx
 msgid "QR 確認より信頼度は控えめに戻ります（約0.5）"
 msgstr "QR 確認より信頼度は控えめに戻ります（約0.5）"
@@ -360,7 +360,7 @@ msgstr "YoSD (~26cm)"
 msgid "you@example.com"
 msgstr "you@example.com"
 
-#: src/app/archive/page.tsx
+#: src/app/(protected)/archive/page.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/doll/DollDetail.tsx
@@ -370,16 +370,16 @@ msgstr "you@example.com"
 msgid "アーカイブ"
 msgstr "アーカイブ"
 
-#: src/app/dolls/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(protected)/dolls/page.tsx
+#: src/app/(protected)/garments/page.tsx
 msgid "アーカイブ ({archivedCount})"
 msgstr "アーカイブ ({archivedCount})"
 
-#: src/app/archive/page.tsx
+#: src/app/(protected)/archive/page.tsx
 msgid "アーカイブしたドールはここに表示されます"
 msgstr "アーカイブしたドールはここに表示されます"
 
-#: src/app/archive/page.tsx
+#: src/app/(protected)/archive/page.tsx
 msgid "アーカイブした服はここに表示されます"
 msgstr "アーカイブした服はここに表示されます"
 
@@ -387,8 +387,8 @@ msgstr "アーカイブした服はここに表示されます"
 msgid "アーカイブしました"
 msgstr "アーカイブしました"
 
-#: src/app/archive/page.tsx
-#: src/app/archive/page.tsx
+#: src/app/(protected)/archive/page.tsx
+#: src/app/(protected)/archive/page.tsx
 msgid "アーカイブは空です"
 msgstr "アーカイブは空です"
 
@@ -458,7 +458,7 @@ msgstr "インポート完了"
 msgid "ウィッグ"
 msgstr "ウィッグ"
 
-#: src/app/page.tsx
+#: src/app/(protected)/page.tsx
 msgid "おかえりなさい"
 msgstr "おかえりなさい"
 
@@ -466,16 +466,20 @@ msgstr "おかえりなさい"
 msgid "オレンジ"
 msgstr "オレンジ"
 
+#: src/components/auth/RequireAuth.tsx
+msgid "オンラインに戻るとログイン画面に進めます"
+msgstr "オンラインに戻るとログイン画面に進めます"
+
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "お出かけコーデ"
 msgstr "お出かけコーデ"
 
-#: src/app/coordinates/page.tsx
+#: src/app/(protected)/coordinates/page.tsx
 msgid "お気に入りの組み合わせを保存しておきましょう"
 msgstr "お気に入りの組み合わせを保存しておきましょう"
 
-#: src/app/dolls/page.tsx
-#: src/app/dolls/page.tsx
+#: src/app/(protected)/dolls/page.tsx
+#: src/app/(protected)/dolls/page.tsx
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
 msgid "カスタマイザー"
@@ -504,7 +508,7 @@ msgstr "カメラで撮影"
 msgid "カラー"
 msgstr "カラー"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 #: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/location/StorageCaseEditForm.tsx
 #: src/components/location/StorageCaseForm.tsx
@@ -519,22 +523,22 @@ msgstr "キャンセル"
 msgid "グリッド表示"
 msgstr "グリッド表示"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 msgid "ケースが見つかりません"
 msgstr "ケースが見つかりません"
 
-#: src/app/locations/page.tsx
+#: src/app/(protected)/locations/page.tsx
 msgid "ケースを削除"
 msgstr "ケースを削除"
 
-#: src/app/locations/page.tsx
+#: src/app/(protected)/locations/page.tsx
 msgid "ケースを編集"
 msgstr "ケースを編集"
 
-#: src/app/locations/page.tsx
-#: src/app/locations/page.tsx
-#: src/app/locations/page.tsx
-#: src/app/locations/page.tsx
+#: src/app/(protected)/locations/page.tsx
+#: src/app/(protected)/locations/page.tsx
+#: src/app/(protected)/locations/page.tsx
+#: src/app/(protected)/locations/page.tsx
 msgid "ケースを追加"
 msgstr "ケースを追加"
 
@@ -547,25 +551,25 @@ msgstr "ケース一覧"
 msgid "ケース名"
 msgstr "ケース名"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 msgid "ケース詳細"
 msgstr "ケース詳細"
 
-#: src/app/coordinates/page.tsx
+#: src/app/(protected)/coordinates/page.tsx
 #: src/lib/nav-items.ts
 msgid "コーデ"
 msgstr "コーデ"
 
-#: src/app/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
 msgid "コーデが見つかりません"
 msgstr "コーデが見つかりません"
 
-#: src/app/coordinates/new/page.tsx
-#: src/app/coordinates/page.tsx
+#: src/app/(protected)/coordinates/new/page.tsx
+#: src/app/(protected)/coordinates/page.tsx
 msgid "コーデを作る"
 msgstr "コーデを作る"
 
-#: src/app/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
 msgid "コーデを削除"
 msgstr "コーデを削除"
 
@@ -573,7 +577,7 @@ msgstr "コーデを削除"
 msgid "コーデ名"
 msgstr "コーデ名"
 
-#: src/app/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
 msgid "コーデ詳細"
 msgstr "コーデ詳細"
 
@@ -581,11 +585,11 @@ msgstr "コーデ詳細"
 msgid "この API キーは一度だけ表示されます。閉じる前に必ずコピーしてください。"
 msgstr "この API キーは一度だけ表示されます。閉じる前に必ずコピーしてください。"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 msgid "このボックスには服がありません"
 msgstr "このボックスには服がありません"
 
@@ -617,7 +621,7 @@ msgstr "コピーに失敗しました。手動でコピーしてください"
 msgid "コピー済み"
 msgstr "コピー済み"
 
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/page.tsx
 #: src/components/dashboard/WardrobeAnalytics.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "サイズ"
@@ -655,12 +659,12 @@ msgstr "シューズ"
 msgid "スキップ"
 msgstr "スキップ"
 
-#: src/app/scan/page.tsx
+#: src/app/(protected)/scan/page.tsx
 #: src/lib/nav-items.ts
 msgid "スキャン"
 msgstr "スキャン"
 
-#: src/app/scan/page.tsx
+#: src/app/(protected)/scan/page.tsx
 msgid "スキャンしました"
 msgstr "スキャンしました"
 
@@ -681,9 +685,9 @@ msgstr "ステータス"
 msgid "すでにアカウントをお持ちの方は <0>ログイン</0>"
 msgstr "すでにアカウントをお持ちの方は <0>ログイン</0>"
 
-#: src/app/dolls/page.tsx
-#: src/app/dolls/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(protected)/dolls/page.tsx
+#: src/app/(protected)/dolls/page.tsx
+#: src/app/(protected)/garments/page.tsx
 #: src/lib/i18n-labels.ts
 #: src/lib/i18n-labels.ts
 msgid "すべて"
@@ -741,7 +745,7 @@ msgstr "タイプ"
 msgid "タグ"
 msgstr "タグ"
 
-#: src/app/page.tsx
+#: src/app/(protected)/page.tsx
 msgid "ダッシュボード"
 msgstr "ダッシュボード"
 
@@ -753,18 +757,18 @@ msgstr "タップして確認する"
 msgid "データがありません"
 msgstr "データがありません"
 
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/page.tsx
 #: src/lib/nav-items.ts
 msgid "ドール"
 msgstr "ドール"
 
 #. placeholder {0}: archivedDolls.length
-#: src/app/archive/page.tsx
+#: src/app/(protected)/archive/page.tsx
 msgid "ドール ({0})"
 msgstr "ドール ({0})"
 
-#: src/app/dolls/[id]/edit/page.tsx
-#: src/app/dolls/[id]/page.tsx
+#: src/app/(protected)/dolls/[id]/edit/page.tsx
+#: src/app/(protected)/dolls/[id]/page.tsx
 msgid "ドールが見つかりません"
 msgstr "ドールが見つかりません"
 
@@ -785,17 +789,17 @@ msgstr "ドールの名前"
 msgid "ドールを検索..."
 msgstr "ドールを検索..."
 
-#: src/app/dolls/new/page.tsx
-#: src/app/dolls/page.tsx
-#: src/app/dolls/page.tsx
+#: src/app/(protected)/dolls/new/page.tsx
+#: src/app/(protected)/dolls/page.tsx
+#: src/app/(protected)/dolls/page.tsx
 msgid "ドールを登録"
 msgstr "ドールを登録"
 
-#: src/app/dolls/[id]/edit/page.tsx
+#: src/app/(protected)/dolls/[id]/edit/page.tsx
 msgid "ドールを編集"
 msgstr "ドールを編集"
 
-#: src/app/dolls/page.tsx
+#: src/app/(protected)/dolls/page.tsx
 #: src/components/garment/DollCombobox.tsx
 msgid "ドール一覧"
 msgstr "ドール一覧"
@@ -825,7 +829,7 @@ msgstr "ない"
 #~ msgid "なくした"
 #~ msgstr "なくした"
 
-#: src/app/settings/account/page.tsx
+#: src/app/(protected)/settings/account/page.tsx
 #: src/components/auth/EmailPasswordForm.tsx
 #: src/components/auth/SignUpForm.tsx
 #: src/components/settings/account/PasswordChangeForm.tsx
@@ -836,9 +840,17 @@ msgstr "パスワード"
 msgid "パスワード（確認）"
 msgstr "パスワード（確認）"
 
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "パスワードが正しくないか、アカウントの削除に失敗しました"
+msgstr "パスワードが正しくないか、アカウントの削除に失敗しました"
+
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードの設定に失敗しました"
 msgstr "パスワードの設定に失敗しました"
+
+#: src/components/settings/account/DeleteAccountSection.tsx
+msgid "パスワードを入力"
+msgstr "パスワードを入力"
 
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードを変更"
@@ -881,7 +893,7 @@ msgstr "ブランド/メーカー"
 msgid "プレビュー"
 msgstr "プレビュー"
 
-#: src/app/settings/account/page.tsx
+#: src/app/(protected)/settings/account/page.tsx
 msgid "プロフィール"
 msgstr "プロフィール"
 
@@ -901,8 +913,8 @@ msgstr "プロフィール画像 URL"
 msgid "ページネーション"
 msgstr "ページネーション"
 
-#: src/app/nfc-write/page.tsx
-#: src/app/print/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
+#: src/app/(protected)/print/page.tsx
 msgid "ページの読み込みに失敗しました"
 msgstr "ページの読み込みに失敗しました"
 
@@ -924,7 +936,7 @@ msgstr "ボークス、アゾン等"
 msgid "ホーム"
 msgstr "ホーム"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 #: src/components/garment/LocationPicker.tsx
 #: src/components/location/StorageCaseCard.tsx
 #: src/components/location/StorageCaseForm.tsx
@@ -943,11 +955,11 @@ msgstr "ボトムス"
 msgid "まだ API キーがありません"
 msgstr "まだ API キーがありません"
 
-#: src/app/coordinates/page.tsx
+#: src/app/(protected)/coordinates/page.tsx
 msgid "まだコーデがありません"
 msgstr "まだコーデがありません"
 
-#: src/app/dolls/page.tsx
+#: src/app/(protected)/dolls/page.tsx
 msgid "まだドールがいません"
 msgstr "まだドールがいません"
 
@@ -960,7 +972,7 @@ msgstr "または"
 msgid "またはクリックしてファイルを選択"
 msgstr "またはクリックしてファイルを選択"
 
-#: src/app/digest/page.tsx
+#: src/app/(protected)/digest/page.tsx
 msgid "まだレポートがありません"
 msgstr "まだレポートがありません"
 
@@ -968,11 +980,11 @@ msgstr "まだレポートがありません"
 #~ msgid "まだ使用中"
 #~ msgstr "まだ使用中"
 
-#: src/app/locations/page.tsx
+#: src/app/(protected)/locations/page.tsx
 msgid "まだ収納場所がありません"
 msgstr "まだ収納場所がありません"
 
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/page.tsx
 msgid "まだ服がありません"
 msgstr "まだ服がありません"
 
@@ -985,7 +997,7 @@ msgstr "まだ開けていません"
 msgid "メーカー"
 msgstr "メーカー"
 
-#: src/app/settings/account/page.tsx
+#: src/app/(protected)/settings/account/page.tsx
 #: src/components/auth/EmailPasswordForm.tsx
 #: src/components/auth/SignUpForm.tsx
 msgid "メールアドレス"
@@ -1015,7 +1027,7 @@ msgstr "メールアドレスを変更"
 msgid "メールアドレスを変更しました"
 msgstr "メールアドレスを変更しました"
 
-#: src/app/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
 #: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
@@ -1024,7 +1036,7 @@ msgstr "メールアドレスを変更しました"
 msgid "メモ"
 msgstr "メモ"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "もう1枚書き込む"
 msgstr "もう1枚書き込む"
 
@@ -1063,7 +1075,11 @@ msgstr "ログアウトしますか？"
 msgid "ログイン"
 msgstr "ログイン"
 
-#: src/app/settings/account/page.tsx
+#: src/components/auth/RequireAuth.tsx
+msgid "ログインが必要です"
+msgstr "ログインが必要です"
+
+#: src/app/(protected)/settings/account/page.tsx
 msgid "ログインに使うメールアドレスです。"
 msgstr "ログインに使うメールアドレスです。"
 
@@ -1071,12 +1087,12 @@ msgstr "ログインに使うメールアドレスです。"
 msgid "ログイン中…"
 msgstr "ログイン中…"
 
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/page.tsx
 #: src/lib/nav-items.ts
 msgid "ワードローブ"
 msgstr "ワードローブ"
 
-#: src/app/digest/page.tsx
+#: src/app/(protected)/digest/page.tsx
 msgid "ワードローブの状況をお伝えします"
 msgstr "ワードローブの状況をお伝えします"
 
@@ -1097,21 +1113,21 @@ msgstr "ワンピース"
 msgid "一括登録中..."
 msgstr "一括登録中..."
 
-#: src/app/dolls/page.tsx
+#: src/app/(protected)/dolls/page.tsx
 msgid "一致するドールが見つかりません"
 msgstr "一致するドールが見つかりません"
 
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/page.tsx
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "一致する服が見つかりません"
 msgstr "一致する服が見つかりません"
 
-#: src/app/coordinates/[id]/page.tsx
-#: src/app/dolls/[id]/edit/page.tsx
-#: src/app/dolls/[id]/page.tsx
-#: src/app/garments/[id]/edit/page.tsx
-#: src/app/garments/[id]/page.tsx
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
+#: src/app/(protected)/dolls/[id]/edit/page.tsx
+#: src/app/(protected)/dolls/[id]/page.tsx
+#: src/app/(protected)/garments/[id]/edit/page.tsx
+#: src/app/(protected)/garments/[id]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 msgid "一覧に戻る"
 msgstr "一覧に戻る"
 
@@ -1133,17 +1149,17 @@ msgstr "下へ"
 msgid "不明"
 msgstr "不明"
 
-#: src/app/dolls/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(protected)/dolls/page.tsx
+#: src/app/(protected)/garments/page.tsx
 msgid "並び替え"
 msgstr "並び替え"
 
-#: src/app/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
 #: src/components/location/StorageGrid.tsx
 msgid "今ここにいなくても確認"
 msgstr "今ここにいなくても確認"
 
-#: src/app/settings/account/page.tsx
+#: src/app/(protected)/settings/account/page.tsx
 msgid "他のユーザーや UI に表示されます。"
 msgstr "他のユーザーや UI に表示されます。"
 
@@ -1155,7 +1171,7 @@ msgstr "作成"
 msgid "作成日時"
 msgstr "作成日時"
 
-#: src/app/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
 msgid "使用する服"
 msgstr "使用する服"
 
@@ -1193,7 +1209,7 @@ msgstr "例: 衣装ケース A"
 msgid "保存"
 msgstr "保存"
 
-#: src/app/coordinates/new/page.tsx
+#: src/app/(protected)/coordinates/new/page.tsx
 msgid "保存する"
 msgstr "保存する"
 
@@ -1201,7 +1217,7 @@ msgstr "保存する"
 msgid "保存に失敗しました"
 msgstr "保存に失敗しました"
 
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/page.tsx
 msgid "信頼度"
 msgstr "信頼度"
 
@@ -1239,11 +1255,11 @@ msgstr "全部ある"
 msgid "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
 msgstr "再びログインするまで、収納場所の確認や服の登録ができなくなります。"
 
-#: src/app/dolls/page.tsx
+#: src/app/(protected)/dolls/page.tsx
 msgid "最初のドールを登録してみましょう"
 msgstr "最初のドールを登録してみましょう"
 
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/page.tsx
 msgid "最初のドール服を登録してみましょう"
 msgstr "最初のドール服を登録してみましょう"
 
@@ -1263,9 +1279,9 @@ msgstr "写真を追加"
 msgid "列数"
 msgstr "列数"
 
-#: src/app/coordinates/[id]/page.tsx
-#: src/app/coordinates/[id]/page.tsx
-#: src/app/locations/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
+#: src/app/(protected)/locations/page.tsx
 #: src/components/coordinate/CoordinateBuilder.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
@@ -1287,11 +1303,11 @@ msgstr "前の値を適用"
 msgid "前へ"
 msgstr "前へ"
 
-#: src/app/print/page.tsx
+#: src/app/(protected)/print/page.tsx
 msgid "印刷"
 msgstr "印刷"
 
-#: src/app/print/page.tsx
+#: src/app/(protected)/print/page.tsx
 msgid "印刷する QR コードが選択されていません"
 msgstr "印刷する QR コードが選択されていません"
 
@@ -1303,8 +1319,8 @@ msgstr "収納"
 msgid "収納中"
 msgstr "収納中"
 
-#: src/app/locations/page.tsx
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/locations/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "収納場所"
 msgstr "収納場所"
 
@@ -1358,11 +1374,11 @@ msgstr "名前: A→Z"
 msgid "名前: Z→A"
 msgstr "名前: Z→A"
 
-#: src/app/dolls/page.tsx
+#: src/app/(protected)/dolls/page.tsx
 msgid "名前やカスタマイザーで検索..."
 msgstr "名前やカスタマイザーで検索..."
 
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/page.tsx
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "名前やタグで検索..."
 msgstr "名前やタグで検索..."
@@ -1379,7 +1395,7 @@ msgstr "場所のQRをスキャンして、収納場所を設定してくださ�
 msgid "場所を設定"
 msgstr "場所を設定"
 
-#: src/app/scan/page.tsx
+#: src/app/(protected)/scan/page.tsx
 msgid "場所を設定しました"
 msgstr "場所を設定しました"
 
@@ -1391,7 +1407,7 @@ msgstr "変更"
 msgid "変更を保存"
 msgstr "変更を保存"
 
-#: src/app/settings/api-keys/page.tsx
+#: src/app/(protected)/settings/api-keys/page.tsx
 msgid "外部 AI エージェントから接続するための Personal Access Token を発行・管理します。"
 msgstr "外部 AI エージェントから接続するための Personal Access Token を発行・管理します。"
 
@@ -1420,7 +1436,7 @@ msgstr "完了"
 msgid "完全に削除"
 msgstr "完全に削除"
 
-#: src/app/settings/account/page.tsx
+#: src/app/(protected)/settings/account/page.tsx
 msgid "定期的な更新を推奨します。"
 msgstr "定期的な更新を推奨します。"
 
@@ -1445,9 +1461,9 @@ msgstr "引き出しを編集"
 msgid "復元"
 msgstr "復元"
 
-#: src/app/nfc-write/page.tsx
-#: src/app/nfc-write/page.tsx
-#: src/app/settings/layout.tsx
+#: src/app/(protected)/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
+#: src/app/(protected)/settings/layout.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
@@ -1458,11 +1474,11 @@ msgstr "戻る"
 msgid "手動"
 msgstr "手動"
 
-#: src/app/settings/api-keys/page.tsx
+#: src/app/(protected)/settings/api-keys/page.tsx
 msgid "新しい API キー"
 msgstr "新しい API キー"
 
-#: src/app/settings/api-keys/page.tsx
+#: src/app/(protected)/settings/api-keys/page.tsx
 #: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 msgid "新しい API キーを発行"
 msgstr "新しい API キーを発行"
@@ -1492,7 +1508,7 @@ msgstr "新しい週間レポートが届いています"
 msgid "新しい順"
 msgstr "新しい順"
 
-#: src/app/coordinates/page.tsx
+#: src/app/(protected)/coordinates/page.tsx
 msgid "新規作成"
 msgstr "新規作成"
 
@@ -1504,61 +1520,61 @@ msgstr "既読にする"
 msgid "既読済み"
 msgstr "既読済み"
 
-#: src/app/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "更新する"
 msgstr "更新する"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "書き込みがキャンセルされました"
 msgstr "書き込みがキャンセルされました"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "書き込みに失敗しました"
 msgstr "書き込みに失敗しました"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "書き込み対象"
 msgstr "書き込み対象"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "書き込む"
 msgstr "書き込む"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "書き込む収納場所を選択"
 msgstr "書き込む収納場所を選択"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "書き込む対象を選択してください"
 msgstr "書き込む対象を選択してください"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "書き込む服を選択"
 msgstr "書き込む服を選択"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "服"
 msgstr "服"
 
 #. placeholder {0}: archivedGarments.length
-#: src/app/archive/page.tsx
+#: src/app/(protected)/archive/page.tsx
 msgid "服 ({0})"
 msgstr "服 ({0})"
 
-#: src/app/garments/[id]/edit/page.tsx
-#: src/app/garments/[id]/page.tsx
+#: src/app/(protected)/garments/[id]/edit/page.tsx
+#: src/app/(protected)/garments/[id]/page.tsx
 msgid "服が見つかりません"
 msgstr "服が見つかりません"
 
-#: src/app/garments/new/page.tsx
-#: src/app/garments/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/new/page.tsx
+#: src/app/(protected)/garments/page.tsx
+#: src/app/(protected)/garments/page.tsx
 msgid "服を登録"
 msgstr "服を登録"
 
-#: src/app/garments/[id]/edit/page.tsx
+#: src/app/(protected)/garments/[id]/edit/page.tsx
 msgid "服を編集"
 msgstr "服を編集"
 
@@ -1599,14 +1615,14 @@ msgstr "次に引き出しを開けたときに自動で確認されます"
 msgid "次のページ"
 msgstr "次のページ"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 #: src/components/garment/bulk/CaptureCamera.tsx
 #: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "次へ"
 
-#: src/app/digest/page.tsx
+#: src/app/(protected)/digest/page.tsx
 msgid "毎週月曜日に自動生成されます"
 msgstr "毎週月曜日に自動生成されます"
 
@@ -1669,7 +1685,7 @@ msgstr "白"
 msgid "着"
 msgstr "着"
 
-#: src/app/dolls/[id]/page.tsx
+#: src/app/(protected)/dolls/[id]/page.tsx
 msgid "着用可能な服"
 msgstr "着用可能な服"
 
@@ -1726,7 +1742,7 @@ msgstr "続けて撮影する"
 msgid "緑"
 msgstr "緑"
 
-#: src/app/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
 #: src/components/doll/DollDetail.tsx
 #: src/components/garment/GarmentDetail.tsx
 #: src/components/location/StorageCaseCard.tsx
@@ -1756,7 +1772,7 @@ msgstr "行"
 msgid "行数"
 msgstr "行数"
 
-#: src/app/locations/page.tsx
+#: src/app/(protected)/locations/page.tsx
 msgid "衣装ケースを追加して、服の収納場所を管理しましょう"
 msgstr "衣装ケースを追加して、服の収納場所を管理しましょう"
 
@@ -1789,7 +1805,7 @@ msgstr "要確認のアイテム（{0}件）"
 msgid "言語"
 msgstr "言語"
 
-#: src/app/settings/layout.tsx
+#: src/app/(protected)/settings/layout.tsx
 #: src/components/auth/UserMenu.tsx
 #: src/components/settings/SettingsTabs.tsx
 msgid "設定"
@@ -1799,8 +1815,8 @@ msgstr "設定"
 msgid "該当するドールがありません"
 msgstr "該当するドールがありません"
 
-#: src/app/dolls/[id]/page.tsx
-#: src/app/garments/[id]/page.tsx
+#: src/app/(protected)/dolls/[id]/page.tsx
+#: src/app/(protected)/garments/[id]/page.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "詳細"
 msgstr "詳細"
@@ -1811,20 +1827,20 @@ msgstr "詳細"
 msgid "説明"
 msgstr "説明"
 
-#: src/app/archive/page.tsx
-#: src/app/coordinates/[id]/page.tsx
-#: src/app/coordinates/page.tsx
-#: src/app/digest/page.tsx
-#: src/app/dolls/[id]/edit/page.tsx
-#: src/app/dolls/[id]/page.tsx
-#: src/app/dolls/[id]/page.tsx
-#: src/app/dolls/page.tsx
-#: src/app/garments/[id]/edit/page.tsx
-#: src/app/garments/[id]/page.tsx
-#: src/app/garments/page.tsx
-#: src/app/locations/[caseId]/page.tsx
-#: src/app/locations/page.tsx
-#: src/app/page.tsx
+#: src/app/(protected)/archive/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/page.tsx
+#: src/app/(protected)/digest/page.tsx
+#: src/app/(protected)/dolls/[id]/edit/page.tsx
+#: src/app/(protected)/dolls/[id]/page.tsx
+#: src/app/(protected)/dolls/[id]/page.tsx
+#: src/app/(protected)/dolls/page.tsx
+#: src/app/(protected)/garments/[id]/edit/page.tsx
+#: src/app/(protected)/garments/[id]/page.tsx
+#: src/app/(protected)/garments/page.tsx
+#: src/app/(protected)/locations/[caseId]/page.tsx
+#: src/app/(protected)/locations/page.tsx
+#: src/app/(protected)/page.tsx
 msgid "読み込みに失敗しました"
 msgstr "読み込みに失敗しました"
 
@@ -1836,17 +1852,17 @@ msgstr "赤"
 msgid "通常 (30日)"
 msgstr "通常 (30日)"
 
-#: src/app/garments/bulk/page.tsx
-#: src/app/garments/new/page.tsx
-#: src/app/garments/page.tsx
+#: src/app/(protected)/garments/bulk/page.tsx
+#: src/app/(protected)/garments/new/page.tsx
+#: src/app/(protected)/garments/page.tsx
 msgid "連続撮影"
 msgstr "連続撮影"
 
-#: src/app/digest/page.tsx
+#: src/app/(protected)/digest/page.tsx
 msgid "週間レポート"
 msgstr "週間レポート"
 
-#: src/app/nfc-write/page.tsx
+#: src/app/(protected)/nfc-write/page.tsx
 msgid "選択してください"
 msgstr "選択してください"
 
@@ -1854,7 +1870,7 @@ msgstr "選択してください"
 msgid "選択中の服"
 msgstr "選択中の服"
 
-#: src/app/coordinates/[id]/page.tsx
+#: src/app/(protected)/coordinates/[id]/page.tsx
 msgid "関連する服がありません（削除された可能性があります）"
 msgstr "関連する服がありません（削除された可能性があります）"
 

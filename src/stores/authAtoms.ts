@@ -4,6 +4,7 @@ import { atom } from "jotai";
 import { unwrap } from "jotai/utils";
 import { getSession, signOut as authSignOut } from "@/lib/auth";
 import type { SessionResponse } from "@/lib/auth";
+import { getDb } from "@/lib/db/dexie";
 
 type AuthUser = {
   readonly id: string;
@@ -47,9 +48,33 @@ export const authSessionUnwrappedAtom = unwrap(
     prev ?? { user: undefined, isAuthenticated: false, isLoading: true },
 );
 
-export const signOutAtom = atom(undefined, async (_get, set) => {
+// Suspense にしないことで dataAtom 側との二重 Suspense を避ける。未認証時は即
+// undefined を返し、依存する dataAtom は空配列で解決する。
+export const currentUserIdAtom = atom(
+  (get) => get(authSessionUnwrappedAtom).user?.id,
+);
+
+const clearLocalDb = async (): Promise<void> => {
+  /* eslint-disable functional/no-conditional-statements -- SSR guard */
+  if (typeof indexedDB === "undefined") return;
+  /* eslint-enable functional/no-conditional-statements */
+  const db = getDb();
+  await db
+    .transaction("rw", db.tables, async () => {
+      await Promise.all(
+        db.tables.map(async (t) => {
+          await t.clear();
+        }),
+      );
+    })
+    .catch(() => undefined);
+};
+
+export const signOutAtom = atom(undefined, async (get, set) => {
   await authSignOut().catch(() => undefined);
+  await clearLocalDb();
   set(authRefreshTriggerAtom, (prev) => prev + 1);
+  await get(authSessionAtom);
 });
 
 // trigger を増やしただけでは authSessionAtom が再解決する前にナビゲートが走り、

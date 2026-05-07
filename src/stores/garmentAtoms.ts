@@ -5,30 +5,33 @@ import { getEffectiveDecayDays } from "@/lib/confidence";
 import type { Garment, ScanConfirmation, StorageLocation } from "@/types";
 import { createEntityAtoms, createRestoreAtom } from "./createEntityAtoms";
 import { refreshStorageLocationsAtom } from "./locationAtoms";
+import { currentUserIdAtom } from "./authAtoms";
 
 const MEMORY_CONFIRM_CONFIDENCE = 0.5;
 
 const recordLocationVisit = async ({
   locationId,
+  userId,
   confirmAllDelta,
   correctionDelta,
   now,
 }: {
   readonly locationId: string;
+  readonly userId: string;
   readonly confirmAllDelta: number;
   readonly correctionDelta: number;
   readonly now: number;
 }): Promise<StorageLocation | undefined> => {
   const location = await getDb().storageLocations.get(locationId);
   const updated: StorageLocation | undefined =
-    location === undefined
-      ? undefined
-      : {
+    location?.userId === userId
+      ? {
           ...location,
           confirmAllCount: location.confirmAllCount + confirmAllDelta,
           correctionCount: location.correctionCount + correctionDelta,
           lastVisitedAt: now,
-        };
+        }
+      : undefined;
   await (updated === undefined
     ? Promise.resolve()
     : Promise.all([
@@ -75,11 +78,16 @@ export const restoreGarmentAtom = createRestoreAtom(
 
 export const confirmAllGarmentsAtom = atom(
   undefined,
-  async (_get, set, locationId: string) => {
+  async (get, set, locationId: string) => {
+    const userId = get(currentUserIdAtom);
+    // eslint-disable-next-line functional/no-conditional-statements -- userId guard
+    if (userId === undefined) return;
+
     const now = Date.now();
     const garments = await getDb()
       .garments.where("locationId")
       .equals(locationId)
+      .and((g) => g.userId === userId)
       .toArray();
 
     const storedGarments = garments.filter(
@@ -98,6 +106,7 @@ export const confirmAllGarmentsAtom = atom(
     );
     await recordLocationVisit({
       locationId,
+      userId,
       confirmAllDelta: 1,
       correctionDelta: 0,
       now,
@@ -110,13 +119,17 @@ export const confirmAllGarmentsAtom = atom(
 export const confirmPartialGarmentsAtom = atom(
   undefined,
   async (
-    _get,
+    get,
     set,
     input: {
       readonly locationId: string;
       readonly confirmations: readonly ScanConfirmation[];
     },
   ) => {
+    const userId = get(currentUserIdAtom);
+    // eslint-disable-next-line functional/no-conditional-statements -- userId guard
+    if (userId === undefined) return;
+
     const now = Date.now();
     const { locationId, confirmations } = input;
     const confirmedIds = confirmations
@@ -129,6 +142,7 @@ export const confirmPartialGarmentsAtom = atom(
     const confirmedGarments = await getDb()
       .garments.where("id")
       .anyOf(confirmedIds)
+      .and((g) => g.userId === userId)
       .toArray();
 
     await getDb().garments.bulkPut(
@@ -149,6 +163,7 @@ export const confirmPartialGarmentsAtom = atom(
     const deniedGarments = await getDb()
       .garments.where("id")
       .anyOf(deniedIds)
+      .and((g) => g.userId === userId)
       .toArray();
 
     await getDb().garments.bulkPut(
@@ -177,6 +192,7 @@ export const confirmPartialGarmentsAtom = atom(
     const hasDiscrepancy = deniedIds.length > 0;
     await recordLocationVisit({
       locationId,
+      userId,
       confirmAllDelta: hasDiscrepancy ? 0 : 1,
       correctionDelta: hasDiscrepancy ? 1 : 0,
       now,
@@ -188,11 +204,16 @@ export const confirmPartialGarmentsAtom = atom(
 
 export const confirmAllByMemoryAtom = atom(
   undefined,
-  async (_get, set, locationId: string) => {
+  async (get, set, locationId: string) => {
+    const userId = get(currentUserIdAtom);
+    // eslint-disable-next-line functional/no-conditional-statements -- userId guard
+    if (userId === undefined) return;
+
     const now = Date.now();
     const garments = await getDb()
       .garments.where("locationId")
       .equals(locationId)
+      .and((g) => g.userId === userId)
       .toArray();
 
     const storedGarments = garments.filter(
