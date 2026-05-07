@@ -3,6 +3,7 @@ import { createStore } from "jotai";
 import { server } from "@/test/mocks/server";
 import { unauthenticatedHandler } from "@/test/mocks/handlers";
 import { setupAuthSession } from "@/test/mocks/modules/authAtomsState";
+import { setupAuthClient } from "@/test/mocks/modules/authClient";
 import {
   createTestDoll,
   createTestGarment,
@@ -42,7 +43,7 @@ describe("authAtoms", () => {
   });
 
   describe("signOutAtom", () => {
-    it("ログアウト時に IndexedDB の全テーブルが clear される", async () => {
+    it("ログアウト成功時に IndexedDB の全テーブルが clear される", async () => {
       setupAuthSession({ userId: "user-1" });
       const db = getDb();
       await db.garments.add(createTestGarment({ id: "g1", userId: "user-1" }));
@@ -59,6 +60,7 @@ describe("authAtoms", () => {
       const store = createStore();
       await primeAuth(store);
 
+      setupAuthClient();
       server.use(unauthenticatedHandler);
       await store.set(signOutAtom);
 
@@ -68,6 +70,26 @@ describe("authAtoms", () => {
       expect(await db.coordinates.count()).toBe(0);
       expect(await db.dolls.count()).toBe(0);
       expect(await db.syncQueue.count()).toBe(0);
+    });
+
+    it("ログアウトが失敗したとき IndexedDB は clear されない（未同期データ保護）", async () => {
+      setupAuthSession({ userId: "user-1" });
+      const db = getDb();
+      await db.garments.add(createTestGarment({ id: "g1", userId: "user-1" }));
+      await db.syncQueue.add({
+        type: "garment.create",
+        payload: { id: "g1" },
+        createdAt: 0,
+      });
+
+      const store = createStore();
+      await primeAuth(store);
+
+      setupAuthClient({ signOutShouldFail: true });
+      await store.set(signOutAtom);
+
+      expect(await db.garments.count()).toBe(1);
+      expect(await db.syncQueue.count()).toBe(1);
     });
 
     it("ログアウト後 currentUserIdAtom が undefined になる", async () => {

@@ -70,9 +70,13 @@ const clearLocalDb = async (): Promise<void> => {
     .catch(() => undefined);
 };
 
+const SIGN_OUT_FAILED = Symbol("signOutFailed");
+
 export const signOutAtom = atom(undefined, async (get, set) => {
-  await authSignOut().catch(() => undefined);
-  await clearLocalDb();
+  const result = await authSignOut().catch(() => SIGN_OUT_FAILED);
+  // signOut 失敗時（オフライン等）はサーバセッションが残るため、未同期データを
+  // 消さないようローカル DB は保持する。
+  await (result === SIGN_OUT_FAILED ? Promise.resolve() : clearLocalDb());
   set(authRefreshTriggerAtom, (prev) => prev + 1);
   await get(authSessionAtom);
 });
