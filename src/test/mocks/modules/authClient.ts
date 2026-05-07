@@ -37,6 +37,7 @@ type State = {
   readonly signInShouldFail: boolean;
   readonly signUpShouldFail: boolean;
   readonly signOutShouldFail: boolean;
+  readonly signOutResolveWithError: boolean;
   readonly updateProfileShouldFail: boolean;
   readonly changeEmailShouldFail: boolean;
   readonly changePasswordShouldFail: boolean;
@@ -56,6 +57,7 @@ const createInitial = (): State => ({
   signInShouldFail: false,
   signUpShouldFail: false,
   signOutShouldFail: false,
+  signOutResolveWithError: false,
   updateProfileShouldFail: false,
   changeEmailShouldFail: false,
   changePasswordShouldFail: false,
@@ -149,12 +151,17 @@ export const authClientFactory = async () => {
         await Promise.reject(new Error("Failed to sign up"));
       }
     },
-    signOut: async (): Promise<void> => {
+    signOut: async (): Promise<
+      { readonly error: Error | null } | undefined
+    > => {
       const s = getState();
       s.spies.signOut();
       if (s.signOutShouldFail) {
         await Promise.reject(new Error("Failed to sign out"));
       }
+      return s.signOutResolveWithError
+        ? { error: new Error("Failed to sign out (resolved)") }
+        : undefined;
     },
     updateProfile: async (input: UpdateProfileInput): Promise<void> => {
       const s = getState();
@@ -211,6 +218,7 @@ type SetupOverrides = {
   readonly signInShouldFail?: boolean;
   readonly signUpShouldFail?: boolean;
   readonly signOutShouldFail?: boolean;
+  readonly signOutResolveWithError?: boolean;
   readonly updateProfileShouldFail?: boolean;
   readonly changeEmailShouldFail?: boolean;
   readonly changePasswordShouldFail?: boolean;
@@ -244,6 +252,7 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
     signInShouldFail: overrides.signInShouldFail ?? false,
     signUpShouldFail: overrides.signUpShouldFail ?? false,
     signOutShouldFail: overrides.signOutShouldFail ?? false,
+    signOutResolveWithError: overrides.signOutResolveWithError ?? false,
     updateProfileShouldFail: overrides.updateProfileShouldFail ?? false,
     changeEmailShouldFail: overrides.changeEmailShouldFail ?? false,
     changePasswordShouldFail: overrides.changePasswordShouldFail ?? false,

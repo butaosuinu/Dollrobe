@@ -92,6 +92,26 @@ describe("authAtoms", () => {
       expect(await db.syncQueue.count()).toBe(1);
     });
 
+    it("ログアウトが reject せず { error } で resolve したとき IndexedDB は clear されない", async () => {
+      setupAuthSession({ userId: "user-1" });
+      const db = getDb();
+      await db.garments.add(createTestGarment({ id: "g1", userId: "user-1" }));
+      await db.syncQueue.add({
+        type: "garment.create",
+        payload: { id: "g1" },
+        createdAt: 0,
+      });
+
+      const store = createStore();
+      await primeAuth(store);
+
+      setupAuthClient({ signOutResolveWithError: true });
+      await store.set(signOutAtom);
+
+      expect(await db.garments.count()).toBe(1);
+      expect(await db.syncQueue.count()).toBe(1);
+    });
+
     it("ログアウト後 currentUserIdAtom が undefined になる", async () => {
       setupAuthSession({ userId: "user-1" });
       const store = createStore();

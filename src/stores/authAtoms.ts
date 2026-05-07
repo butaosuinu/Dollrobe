@@ -70,13 +70,22 @@ const clearLocalDb = async (): Promise<void> => {
     .catch(() => undefined);
 };
 
-const SIGN_OUT_FAILED = Symbol("signOutFailed");
+const SIGN_OUT_REJECTED = Symbol("signOutRejected");
+
+const hasError = (result: unknown): boolean =>
+  typeof result === "object" &&
+  result !== null &&
+  "error" in result &&
+  result.error !== null &&
+  result.error !== undefined;
 
 export const signOutAtom = atom(undefined, async (get, set) => {
-  const result = await authSignOut().catch(() => SIGN_OUT_FAILED);
-  // signOut 失敗時（オフライン等）はサーバセッションが残るため、未同期データを
-  // 消さないようローカル DB は保持する。
-  await (result === SIGN_OUT_FAILED ? Promise.resolve() : clearLocalDb());
+  // Better Auth は失敗時に reject せず { error } 付きで resolve するケースがある。
+  // reject と error フィールドの両方を見て、サーバセッションが残っている場合は
+  // 未同期データを失わないようローカル DB を保持する。
+  const result = await authSignOut().catch(() => SIGN_OUT_REJECTED);
+  const failed = result === SIGN_OUT_REJECTED || hasError(result);
+  await (failed ? Promise.resolve() : clearLocalDb());
   set(authRefreshTriggerAtom, (prev) => prev + 1);
   await get(authSessionAtom);
 });
