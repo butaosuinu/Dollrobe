@@ -1,9 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore } from "jotai";
-import type { Atom } from "jotai";
 import { getDb } from "@/lib/db/dexie";
 import { SYNC_ACTION_TYPE } from "@/lib/constants";
-import { createTestDoll, createTestGarment } from "@/test/factories";
+import { createTestDoll, createTestGarment, FIXED_NOW } from "@/test/factories";
 import { setupCuid2 } from "@/test/mocks/modules/cuid2";
 import {
   pendingArchivesAtom,
@@ -12,7 +11,6 @@ import {
 import { toastsAtom } from "@/stores/toastAtoms";
 
 const ARCHIVE_DELAY_MS = 5000;
-const FIXED_NOW = new Date("2025-06-15T00:00:00Z").getTime();
 const FLUSH_TIMEOUT_MS = 1000;
 const FLUSH_POLL_INTERVAL_MS = 5;
 
@@ -31,15 +29,14 @@ const waitForCondition = async (check: () => boolean): Promise<boolean> => {
   return false;
 };
 
-const flushArchive = async (
-  store: Store,
-  pending: Atom<ReadonlyArray<{ readonly id: string }>>,
-) => {
+const flushArchive = async (store: Store) => {
   // setTimeout コールバックを起動する
   vi.advanceTimersByTime(ARCHIVE_DELAY_MS);
   // Dexie の async 操作を解決させるため real timers に戻す
   vi.useRealTimers();
-  const drained = await waitForCondition(() => store.get(pending).length === 0);
+  const drained = await waitForCondition(
+    () => store.get(pendingArchivesAtom).length === 0,
+  );
   expect(drained, "pendingArchives drained").toBe(true);
 };
 
@@ -112,7 +109,7 @@ describe("pendingArchiveAtoms", () => {
 
       store.set(requestArchiveAtom, { id: "g-1", entityType: "garment" });
       const archiveTime = FIXED_NOW + ARCHIVE_DELAY_MS;
-      await flushArchive(store, pendingArchivesAtom);
+      await flushArchive(store);
 
       const stored = await getDb().garments.get("g-1");
       expect(stored?.archivedAt).toBe(archiveTime);
@@ -131,7 +128,7 @@ describe("pendingArchiveAtoms", () => {
 
       store.set(requestArchiveAtom, { id: "d-1", entityType: "doll" });
       const archiveTime = FIXED_NOW + ARCHIVE_DELAY_MS;
-      await flushArchive(store, pendingArchivesAtom);
+      await flushArchive(store);
 
       const stored = await getDb().dolls.get("d-1");
       expect(stored?.archivedAt).toBe(archiveTime);
@@ -148,7 +145,7 @@ describe("pendingArchiveAtoms", () => {
         id: "missing-id",
         entityType: "garment",
       });
-      await flushArchive(store, pendingArchivesAtom);
+      await flushArchive(store);
 
       const queued = await getDb().syncQueue.toArray();
       expect(queued).toHaveLength(0);

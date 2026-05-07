@@ -78,42 +78,38 @@ describe("syncAtoms", () => {
   });
 
   describe("executeSyncAtom", () => {
-    it(
-      "push と pull が成功すると syncQueue が消化され、Dexie が pull payload で置換され IDLE に戻る",
-      { timeout: 15_000 },
-      async () => {
-        installSync({
-          pull: {
-            resolve: {
-              garments: [createTestGarment({ id: "g-pull" })],
-              dolls: [],
-              coordinates: [],
-              storageCases: [],
-              storageLocations: [],
-            },
+    it("push と pull が成功すると syncQueue が消化され、Dexie が pull payload で置換され IDLE に戻る", async () => {
+      installSync({
+        pull: {
+          resolve: {
+            garments: [createTestGarment({ id: "g-pull" })],
+            dolls: [],
+            coordinates: [],
+            storageCases: [],
+            storageLocations: [],
           },
-        });
+        },
+      });
 
-        await getDb().syncQueue.bulkAdd([
-          {
-            type: SYNC_ACTION_TYPE.GARMENT_CREATE,
-            payload: { id: "g-1" },
-            createdAt: FIXED_NOW,
-          },
-        ]);
+      await getDb().syncQueue.bulkAdd([
+        {
+          type: SYNC_ACTION_TYPE.GARMENT_CREATE,
+          payload: { id: "g-1" },
+          createdAt: FIXED_NOW,
+        },
+      ]);
 
-        const store = createStore();
-        await store.set(executeSyncAtom);
+      const store = createStore();
+      await store.set(executeSyncAtom);
 
-        expect(pushSpy).toHaveBeenCalledTimes(1);
-        expect(pullSpy).toHaveBeenCalledTimes(1);
-        expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.IDLE);
-        expect(store.get(lastSyncErrorAtom)).toBeUndefined();
-        expect(await getDb().syncQueue.count()).toBe(0);
-        const garments = await getDb().garments.toArray();
-        expect(garments.map((g) => g.id)).toEqual(["g-pull"]);
-      },
-    );
+      expect(pushSpy).toHaveBeenCalledTimes(1);
+      expect(pullSpy).toHaveBeenCalledTimes(1);
+      expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.IDLE);
+      expect(store.get(lastSyncErrorAtom)).toBeUndefined();
+      expect(await getDb().syncQueue.count()).toBe(0);
+      const garments = await getDb().garments.toArray();
+      expect(garments.map((g) => g.id)).toEqual(["g-pull"]);
+    });
 
     it("無効な type の queue 項目は push リクエストから除外される", async () => {
       installSync({});
@@ -148,15 +144,16 @@ describe("syncAtoms", () => {
     it("push 失敗時は ERROR 状態と lastSyncError がセットされ、Dexie が pull で clear されない", async () => {
       installSync({ push: { throwError: new Error("push exploded") } });
 
-      await getDb().syncQueue.bulkAdd([
-        {
-          type: SYNC_ACTION_TYPE.GARMENT_CREATE,
-          payload: { id: "g-1" },
-          createdAt: FIXED_NOW,
-        },
+      await Promise.all([
+        getDb().syncQueue.bulkAdd([
+          {
+            type: SYNC_ACTION_TYPE.GARMENT_CREATE,
+            payload: { id: "g-1" },
+            createdAt: FIXED_NOW,
+          },
+        ]),
+        getDb().garments.add(createTestGarment({ id: "stale" })),
       ]);
-      // pull が走らないため、ローカルの stale エントリは残るはず
-      await getDb().garments.add(createTestGarment({ id: "stale" }));
 
       const store = createStore();
       await store.set(executeSyncAtom);
@@ -164,10 +161,9 @@ describe("syncAtoms", () => {
       expect(pullSpy).not.toHaveBeenCalled();
       expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.ERROR);
       expect(store.get(lastSyncErrorAtom)).toBe("push exploded");
-      // pull の transaction.clear() が走っていないので stale が残る
+      // pull が走らないので transaction.clear() が無く、push 失敗で bulkDelete 前に return するため両方残る
       const garments = await getDb().garments.toArray();
       expect(garments.map((g) => g.id)).toEqual(["stale"]);
-      // syncQueue も削除されない（push 失敗で bulkDelete 前に return）
       expect(await getDb().syncQueue.count()).toBe(1);
     });
 
@@ -189,27 +185,26 @@ describe("syncAtoms", () => {
       expect(store.get(lastSyncErrorAtom)).toBe("boom");
     });
 
-    it("pull 失敗時も ERROR 状態と lastSyncError がセットされ、Dexie は事前 seed のまま", async () => {
+    it("pull 失敗時は push 由来の syncQueue 消化までは進むが Dexie は事前 seed のまま", async () => {
       installSync({ pull: { throwError: new Error("pull broken") } });
 
-      // push が成功したあと pull が失敗するパス。push 成功で syncQueue は削除される
-      await getDb().syncQueue.bulkAdd([
-        {
-          type: SYNC_ACTION_TYPE.GARMENT_CREATE,
-          payload: { id: "g-1" },
-          createdAt: FIXED_NOW,
-        },
+      await Promise.all([
+        getDb().syncQueue.bulkAdd([
+          {
+            type: SYNC_ACTION_TYPE.GARMENT_CREATE,
+            payload: { id: "g-1" },
+            createdAt: FIXED_NOW,
+          },
+        ]),
+        getDb().garments.add(createTestGarment({ id: "stale" })),
       ]);
-      await getDb().garments.add(createTestGarment({ id: "stale" }));
 
       const store = createStore();
       await store.set(executeSyncAtom);
 
       expect(store.get(syncStatusAtom)).toBe(SYNC_STATUS.ERROR);
       expect(store.get(lastSyncErrorAtom)).toBe("pull broken");
-      // push 成功 → syncQueue は消化されている
       expect(await getDb().syncQueue.count()).toBe(0);
-      // pull 失敗 → garments は事前 seed のまま
       const garments = await getDb().garments.toArray();
       expect(garments.map((g) => g.id)).toEqual(["stale"]);
     });
@@ -252,11 +247,14 @@ describe("syncAtoms", () => {
       const store = createStore();
       await store.set(executeSyncAtom);
 
-      const garments = await getDb().garments.toArray();
-      const dolls = await getDb().dolls.toArray();
-      const coordinates = await getDb().coordinates.toArray();
-      const cases = await getDb().storageCases.toArray();
-      const locations = await getDb().storageLocations.toArray();
+      const [garments, dolls, coordinates, cases, locations] =
+        await Promise.all([
+          getDb().garments.toArray(),
+          getDb().dolls.toArray(),
+          getDb().coordinates.toArray(),
+          getDb().storageCases.toArray(),
+          getDb().storageLocations.toArray(),
+        ]);
 
       expect(garments.map((g) => g.id)).toEqual(["g-pull"]);
       expect(dolls.map((d) => d.id)).toEqual(["d-pull"]);
