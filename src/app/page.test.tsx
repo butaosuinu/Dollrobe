@@ -21,7 +21,7 @@ describe("LandingPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("CTA リンクが /signin?redirect=/dashboard を指す", async () => {
+  it("CTA リンクが /signin?redirect=%2Fdashboard を指す", async () => {
     server.use(unauthenticatedHandler);
 
     await renderWithProviders(<LandingPage />);
@@ -31,7 +31,7 @@ describe("LandingPage", () => {
     });
     expect(ctaLinks.length).toBeGreaterThan(0);
     for (const link of ctaLinks) {
-      expect(link).toHaveAttribute("href", "/signin?redirect=/dashboard");
+      expect(link).toHaveAttribute("href", "/signin?redirect=%2Fdashboard");
     }
   });
 

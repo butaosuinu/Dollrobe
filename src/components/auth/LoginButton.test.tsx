@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { I18nTestWrapper } from "@/test/i18nWrapper";
+import { installObjectProperty } from "@/test/helpers/propertyMock";
 import LoginButton from "./LoginButton";
 
 const mockSignInSocial = vi.fn().mockResolvedValue(undefined);
@@ -37,9 +38,8 @@ describe("LoginButton", () => {
   });
 
   it("callbackURL prop が渡されたとき signInSocial に絶対 URL で渡される", async () => {
-    Object.defineProperty(window, "location", {
-      value: { origin: "https://example.test" },
-      configurable: true,
+    installObjectProperty(window, "location", {
+      origin: "https://example.test",
     });
     const user = userEvent.setup();
     render(<LoginButton provider="google" callbackURL="/dashboard" />, {
@@ -55,9 +55,8 @@ describe("LoginButton", () => {
   });
 
   it("callbackURL が // で始まるときは signInSocial に callbackURL が渡されない", async () => {
-    Object.defineProperty(window, "location", {
-      value: { origin: "https://example.test" },
-      configurable: true,
+    installObjectProperty(window, "location", {
+      origin: "https://example.test",
     });
     const user = userEvent.setup();
     render(

@@ -12,10 +12,13 @@ import EmailPasswordForm from "@/components/auth/EmailPasswordForm";
 import LoginButton from "@/components/auth/LoginButton";
 
 const DEFAULT_REDIRECT = "/";
+const AUTH_PATHS = new Set(["/signin", "/signup"]);
 
 const sanitizeRedirect = (raw: string | null): string => {
   if (raw === null) return DEFAULT_REDIRECT;
   if (!raw.startsWith("/") || raw.startsWith("//")) return DEFAULT_REDIRECT;
+  const pathname = raw.split("?")[0]?.split("#")[0] ?? "";
+  if (AUTH_PATHS.has(pathname)) return DEFAULT_REDIRECT;
   return raw;
 };
 

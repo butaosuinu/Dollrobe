@@ -127,6 +127,30 @@ describe("SignInPage", () => {
     });
   });
 
+  it("認証済みで ?redirect=/signin の自己参照ループは弾かれて / にフォールバック", async () => {
+    const { router } = setupNextNavigation({
+      searchParams: new URLSearchParams("redirect=/signin"),
+    });
+
+    await renderWithProviders(<SignInPage />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith("/");
+    });
+  });
+
+  it("認証済みで ?redirect=/signup も弾かれて / にフォールバック", async () => {
+    const { router } = setupNextNavigation({
+      searchParams: new URLSearchParams("redirect=/signup"),
+    });
+
+    await renderWithProviders(<SignInPage />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith("/");
+    });
+  });
+
   it("「← サービス紹介に戻る」リンクが / を指す", async () => {
     server.use(unauthenticatedHandler);
 

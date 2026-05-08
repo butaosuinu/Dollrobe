@@ -11,7 +11,7 @@ type Props = {
   readonly className?: string;
 };
 
-const DEFAULT_HREF = "/signin?redirect=/dashboard";
+const DEFAULT_HREF = `/signin?redirect=${encodeURIComponent("/dashboard")}`;
 
 /* eslint-disable lingui/no-unlocalized-strings -- Tailwind class strings, not user copy */
 const VARIANT_STYLES = {

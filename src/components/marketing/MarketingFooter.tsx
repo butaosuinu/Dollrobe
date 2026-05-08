@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Trans } from "@lingui/react/macro";
 import Logo from "@/components/marketing/Logo";
 import LocaleSelector from "@/components/settings/LocaleSelector";
@@ -45,18 +44,6 @@ const MarketingFooter = () => (
         </div>
 
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
-          <Link
-            href="#privacy"
-            className="text-text-secondary transition-colors hover:text-text-primary"
-          >
-            <Trans>プライバシーポリシー</Trans>
-          </Link>
-          <Link
-            href="#terms"
-            className="text-text-secondary transition-colors hover:text-text-primary"
-          >
-            <Trans>利用規約</Trans>
-          </Link>
           <LocaleSelector />
         </nav>
       </div>
