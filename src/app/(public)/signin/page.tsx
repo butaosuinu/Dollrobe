@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { Shirt } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
@@ -11,15 +11,28 @@ import AuthDivider from "@/components/auth/AuthDivider";
 import EmailPasswordForm from "@/components/auth/EmailPasswordForm";
 import LoginButton from "@/components/auth/LoginButton";
 
-const SignInPage = () => {
+const DEFAULT_REDIRECT = "/";
+const AUTH_PATHS = new Set(["/signin", "/signup"]);
+
+const sanitizeRedirect = (raw: string | null): string => {
+  if (raw === null) return DEFAULT_REDIRECT;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return DEFAULT_REDIRECT;
+  const pathname = raw.split("?")[0]?.split("#")[0] ?? "";
+  if (AUTH_PATHS.has(pathname)) return DEFAULT_REDIRECT;
+  return raw;
+};
+
+const SignInInner = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = sanitizeRedirect(searchParams.get("redirect"));
   const { isAuthenticated, isLoading } = useAtomValue(authSessionUnwrappedAtom);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.replace("/");
+      router.replace(redirect);
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, redirect, router]);
 
   if (isLoading || isAuthenticated) {
     return undefined;
@@ -39,15 +52,15 @@ const SignInPage = () => {
         </p>
       </header>
 
-      <EmailPasswordForm />
+      <EmailPasswordForm redirect={redirect} />
 
       <AuthDivider>
         <Trans>または</Trans>
       </AuthDivider>
 
       <div className="flex flex-col gap-2.5">
-        <LoginButton provider="google" />
-        <LoginButton provider="twitter" />
+        <LoginButton provider="google" callbackURL={redirect} />
+        <LoginButton provider="twitter" callbackURL={redirect} />
       </div>
 
       <p className="text-center text-sm text-text-secondary">
@@ -61,8 +74,21 @@ const SignInPage = () => {
           </Link>
         </Trans>
       </p>
+
+      <Link
+        href="/"
+        className="text-center text-sm text-text-tertiary transition-colors hover:text-text-secondary"
+      >
+        <Trans>← サービス紹介に戻る</Trans>
+      </Link>
     </div>
   );
 };
+
+const SignInPage = () => (
+  <Suspense fallback={undefined}>
+    <SignInInner />
+  </Suspense>
+);
 
 export default SignInPage;

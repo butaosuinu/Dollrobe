@@ -1,126 +1,47 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, within } from "@testing-library/react";
-import { MS_PER_DAY } from "@/lib/constants";
-import { testDb, FIXED_NOW } from "@/test/mocks/db";
-import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import { describe, it, expect, beforeEach } from "vitest";
+import { screen, waitFor } from "@testing-library/react";
+import { server } from "@/test/mocks/server";
+import { unauthenticatedHandler } from "@/test/mocks/handlers";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
-import DashboardPage from "./page";
+import LandingPage from "./page";
 
-describe("DashboardPage", () => {
+describe("LandingPage", () => {
   beforeEach(() => {
-    setupNextNavigation();
-    vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
+    setupNextNavigation({ pathname: "/" });
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
+  it("未認証時に LP の主要見出しが表示される", async () => {
+    server.use(unauthenticatedHandler);
 
-  it("服がない場合に統計が全て0で表示される", async () => {
-    await renderWithProviders(<DashboardPage />);
+    await renderWithProviders(<LandingPage />);
 
-    expect(await screen.findByText("ステータス")).toBeInTheDocument();
-    const zeros = screen.getAllByText("0");
-    expect(zeros.length).toBeGreaterThanOrEqual(3);
-  });
-
-  it("統計が正しく表示される", async () => {
-    testDb.garment.create({
-      id: "g-1",
-      name: "確定1",
-      lastScannedAt: FIXED_NOW,
-    });
-    testDb.garment.create({
-      id: "g-2",
-      name: "確定2",
-      lastScannedAt: FIXED_NOW - 5 * MS_PER_DAY,
-    });
-    testDb.garment.create({
-      id: "g-3",
-      name: "要確認",
-      lastScannedAt: FIXED_NOW - 25 * MS_PER_DAY,
-    });
-    await seedDbFromTestDb();
-
-    await renderWithProviders(<DashboardPage />);
-
-    const statsHeading = await screen.findByText("ステータス");
-    const statsSection = within(statsHeading.closest("section")!);
-    expect(statsSection.getByText("3")).toBeInTheDocument();
-    expect(statsSection.getByText("2")).toBeInTheDocument();
-    expect(statsSection.getByText("1")).toBeInTheDocument();
-  });
-
-  it("3日以上チェックアウト中の服がある場合にセクションと解決ボタンを表示する", async () => {
-    testDb.garment.create({
-      id: "g-1",
-      name: "貸し出しドレス",
-      status: "checked_out",
-      checkedOutAt: FIXED_NOW - 4 * MS_PER_DAY,
-    });
-    await seedDbFromTestDb();
-
-    await renderWithProviders(<DashboardPage />);
-
-    expect(await screen.findByText("4日前から取り出し中")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /しまった/ }),
+      await screen.findByRole("heading", { level: 1 }),
     ).toBeInTheDocument();
   });
 
-  it("3日未満のチェックアウトはセクションに表示されるがボタンは非表示", async () => {
-    testDb.garment.create({
-      id: "g-1",
-      name: "貸し出しドレス",
-      status: "checked_out",
-      checkedOutAt: FIXED_NOW - 1 * MS_PER_DAY,
+  it("CTA リンクが /signin?redirect=%2Fdashboard を指す", async () => {
+    server.use(unauthenticatedHandler);
+
+    await renderWithProviders(<LandingPage />);
+
+    const ctaLinks = await screen.findAllByRole("link", {
+      name: /無料で始める|始める/,
     });
-    await seedDbFromTestDb();
-
-    await renderWithProviders(<DashboardPage />);
-
-    expect(await screen.findByText("1日前から取り出し中")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /しまった/ }),
-    ).not.toBeInTheDocument();
+    expect(ctaLinks.length).toBeGreaterThan(0);
+    for (const link of ctaLinks) {
+      expect(link).toHaveAttribute("href", "/signin?redirect=%2Fdashboard");
+    }
   });
 
-  it("最近のアイテムをlastScannedAt順で表示する", async () => {
-    testDb.garment.create({
-      id: "g-1",
-      name: "古い服",
-      lastScannedAt: FIXED_NOW - 10 * MS_PER_DAY,
+  it("認証済みのときは /dashboard へリダイレクトする", async () => {
+    const { router } = setupNextNavigation({ pathname: "/" });
+
+    await renderWithProviders(<LandingPage />);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith("/dashboard");
     });
-    testDb.garment.create({
-      id: "g-2",
-      name: "最近の服",
-      lastScannedAt: FIXED_NOW,
-    });
-    await seedDbFromTestDb();
-
-    await renderWithProviders(<DashboardPage />);
-
-    expect(await screen.findByText("最近のアイテム")).toBeInTheDocument();
-    expect(screen.getByText("古い服")).toBeInTheDocument();
-    expect(screen.getByText("最近の服")).toBeInTheDocument();
-  });
-
-  it("最近のアイテムは最大8件まで表示される", async () => {
-    Array.from({ length: 10 }, (_, i) =>
-      testDb.garment.create({
-        id: `g-${i}`,
-        name: `服${i}`,
-        lastScannedAt: FIXED_NOW - i * MS_PER_DAY,
-      }),
-    );
-    await seedDbFromTestDb();
-
-    await renderWithProviders(<DashboardPage />);
-
-    expect(await screen.findByText("服0")).toBeInTheDocument();
-    expect(screen.getByText("服7")).toBeInTheDocument();
-    expect(screen.queryByText("服8")).not.toBeInTheDocument();
-    expect(screen.queryByText("服9")).not.toBeInTheDocument();
   });
 });

@@ -6,9 +6,10 @@ import { useAtomValue } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
 
-// 認証ガードを通さないパス。`src/app/(public)/` 配下に追加したページは
-// この Set にも追記する（route group の URL は丸括弧を含まない）
-const PUBLIC_PATHS: ReadonlySet<string> = new Set(["/signin", "/signup"]);
+// 認証ガードを通さないパス。`/` は LP（未ログイン訪問者向けランディング）。
+// `/signin`, `/signup` は `src/app/(public)/` 配下のページ（route group の URL は
+// 丸括弧を含まない）。新たな公開ページを追加したらここにも追記する
+const PUBLIC_PATHS: ReadonlySet<string> = new Set(["/", "/signin", "/signup"]);
 
 type Props = {
   readonly children: ReactNode;

@@ -18,7 +18,11 @@ type FieldErrors = {
 
 const EMPTY_ERRORS: FieldErrors = { email: undefined, password: undefined };
 
-const EmailPasswordForm = () => {
+type Props = {
+  readonly redirect?: string;
+};
+
+const EmailPasswordForm = ({ redirect }: Props = {}) => {
   const router = useRouter();
   const refreshAuth = useSetAtom(refreshAuthAtom);
 
@@ -55,7 +59,7 @@ const EmailPasswordForm = () => {
     }
 
     await refreshAuth();
-    router.replace("/");
+    router.replace(redirect ?? "/");
   };
 
   return (

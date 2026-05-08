@@ -1,80 +1,50 @@
-"use client";
+import type { Metadata } from "next";
+import Hero from "@/components/marketing/Hero";
+import ProblemSection from "@/components/marketing/ProblemSection";
+import FeatureGrid from "@/components/marketing/FeatureGrid";
+import StepsSection from "@/components/marketing/StepsSection";
+import MarketingHeader from "@/components/marketing/MarketingHeader";
+import MarketingFooter from "@/components/marketing/MarketingFooter";
+import LandingAuthRedirect from "@/components/marketing/LandingAuthRedirect";
 
-import { Suspense } from "react";
-import { Trans } from "@lingui/react/macro";
-import { ErrorBoundary } from "@/components/error/ErrorBoundary";
-import StatsOverview from "@/components/dashboard/StatsOverview";
-import CheckedOutSection from "@/components/dashboard/CheckedOutSection";
-import RecentItems from "@/components/dashboard/RecentItems";
-import StaleLocationsCard from "@/components/dashboard/StaleLocationsCard";
-import DigestBanner from "@/components/digest/DigestBanner";
-import WardrobeAnalytics from "@/components/dashboard/WardrobeAnalytics";
-import Skeleton from "@/components/ui/Skeleton";
+/* eslint-disable lingui/no-unlocalized-strings -- OG/Twitter metadata is static
+   ja_JP; per-locale variants would need full SSR routing which is out of scope */
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+const OG_TITLE = "Doll Wardrobe — ドール服が、どこにあるか分かる";
+const OG_DESCRIPTION =
+  "QR と NFC でドール服の収納を半自動管理する PWA。手入力なし、スキャンするだけで在庫が最新に。";
 
-const StatsLoading = () => (
-  <div>
-    <Skeleton className="mb-3 h-4 w-20" />
-    <div className="grid grid-cols-3 gap-3">
-      <Skeleton className="h-24 rounded-xl" />
-      <Skeleton className="h-24 rounded-xl" />
-      <Skeleton className="h-24 rounded-xl" />
-    </div>
-  </div>
+export const generateMetadata = (): Metadata => ({
+  title: OG_TITLE,
+  description: OG_DESCRIPTION,
+  metadataBase: SITE_URL === "" ? undefined : new URL(SITE_URL),
+  openGraph: {
+    title: OG_TITLE,
+    description: OG_DESCRIPTION,
+    siteName: "Doll Wardrobe",
+    locale: "ja_JP",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: OG_TITLE,
+    description: OG_DESCRIPTION,
+  },
+});
+/* eslint-enable lingui/no-unlocalized-strings */
+
+const LandingPage = () => (
+  <>
+    <LandingAuthRedirect />
+    <MarketingHeader />
+    <main>
+      <Hero />
+      <ProblemSection />
+      <FeatureGrid />
+      <StepsSection />
+    </main>
+    <MarketingFooter />
+  </>
 );
 
-const DashboardPage = () => (
-  <div className="flex flex-col gap-6 p-4 lg:py-8">
-    <div className="animate-[fade-in_0.4s_ease-out]">
-      <p className="text-sm text-text-secondary">
-        <Trans>おかえりなさい</Trans>
-      </p>
-      <h2 className="font-display text-xl font-bold">
-        <Trans>ダッシュボード</Trans>
-      </h2>
-    </div>
-
-    <ErrorBoundary fallback={<></>}>
-      <Suspense fallback={<></>}>
-        <DigestBanner />
-      </Suspense>
-    </ErrorBoundary>
-
-    <ErrorBoundary fallback={<></>}>
-      <Suspense fallback={<Skeleton className="h-32 rounded-xl" />}>
-        <StaleLocationsCard />
-      </Suspense>
-    </ErrorBoundary>
-
-    <ErrorBoundary
-      fallback={
-        <p className="text-sm text-danger">
-          <Trans>読み込みに失敗しました</Trans>
-        </p>
-      }
-    >
-      <Suspense fallback={<StatsLoading />}>
-        <StatsOverview />
-      </Suspense>
-    </ErrorBoundary>
-
-    <ErrorBoundary fallback={<></>}>
-      <Suspense fallback={<Skeleton className="h-32 rounded-xl" />}>
-        <CheckedOutSection />
-      </Suspense>
-    </ErrorBoundary>
-
-    <ErrorBoundary fallback={<></>}>
-      <Suspense fallback={<Skeleton className="h-48 rounded-xl" />}>
-        <RecentItems />
-      </Suspense>
-    </ErrorBoundary>
-
-    <ErrorBoundary fallback={<></>}>
-      <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
-        <WardrobeAnalytics />
-      </Suspense>
-    </ErrorBoundary>
-  </div>
-);
-
-export default DashboardPage;
+export default LandingPage;

@@ -148,7 +148,7 @@ export const test = base.extend<TestFixtures>({
   },
 
   seed: async ({ authedPage }, use) => {
-    await authedPage.goto("/");
+    await authedPage.goto("/dashboard");
     await authedPage.getByText("おかえりなさい").waitFor({
       state: "visible",
       timeout: 30_000,
