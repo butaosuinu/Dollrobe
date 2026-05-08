@@ -4,6 +4,17 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import {
+  installCanvas2DContext,
+  installCanvasToDataURL,
+} from "@/test/helpers/canvas";
+import { flushPromises } from "@/test/helpers/flushPromises";
+import {
+  createMockMediaStream,
+  createMockTrack,
+  installMediaDevices,
+  installMediaElementPlayback,
+} from "@/test/helpers/mediaDevices";
 import { renderWithProviders } from "@/test/testUtils";
 import BulkCapturePage from "./page";
 
@@ -11,36 +22,20 @@ const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
   current: setupNextNavigation(),
 };
 
-const mockCaptureFrame = vi.hoisted(() => vi.fn());
-const mockStart = vi.hoisted(() => vi.fn());
-const mockStop = vi.hoisted(() => vi.fn());
-
-vi.mock("@/hooks/useCamera", () => ({
-  useCamera: () => ({
-    videoRef: { current: null },
-    canvasRef: { current: null },
-    isActive: true,
-    error: undefined,
-    start: mockStart,
-    stop: mockStop,
-    captureFrame: mockCaptureFrame,
-  }),
-}));
-
 vi.mock("@/lib/image/compressImage", () => ({
   compressImage: async ({ file }: { readonly file: File }) =>
     await Promise.resolve({ file, width: 100, height: 100 }),
 }));
 
-const createTestBlob = () => new Blob(["test-image"], { type: "image/png" });
-
 describe("BulkCapturePage", () => {
   beforeEach(() => {
     navHandle.current = setupNextNavigation();
-    mockCaptureFrame.mockClear();
-    mockStart.mockClear();
-    mockStop.mockClear();
-    mockCaptureFrame.mockReturnValue(createTestBlob());
+    installMediaDevices({
+      resolveStream: createMockMediaStream(createMockTrack()),
+    });
+    installCanvas2DContext();
+    installCanvasToDataURL("data:image/jpeg;base64,VEVTVA==");
+    installMediaElementPlayback({ videoWidth: 640, videoHeight: 480 });
 
     server.use(
       http.post("*/api/images/upload/*", () =>
@@ -53,6 +48,11 @@ describe("BulkCapturePage", () => {
     vi.restoreAllMocks();
   });
 
+  const clickCaptureWhenReady = async () => {
+    await flushPromises();
+    fireEvent.click(screen.getByRole("button", { name: "" }));
+  };
+
   it("初期状態でカメラビューが表示される", async () => {
     await renderWithProviders(<BulkCapturePage />);
 
@@ -63,7 +63,7 @@ describe("BulkCapturePage", () => {
   it("撮影するとサムネイルが表示される", async () => {
     await renderWithProviders(<BulkCapturePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    await clickCaptureWhenReady();
 
     await waitFor(() => {
       expect(screen.getByText("1/30")).toBeInTheDocument();
@@ -74,7 +74,7 @@ describe("BulkCapturePage", () => {
   it("サムネイル削除ボタンでアイテムが除去される", async () => {
     await renderWithProviders(<BulkCapturePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    await clickCaptureWhenReady();
 
     await waitFor(() => {
       expect(screen.getByText("1/30")).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe("BulkCapturePage", () => {
   it("「次へ」クリックでメタデータ入力に遷移する", async () => {
     await renderWithProviders(<BulkCapturePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    await clickCaptureWhenReady();
 
     await waitFor(() => {
       expect(screen.getByText("1/30")).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe("BulkCapturePage", () => {
     const user = userEvent.setup();
     await renderWithProviders(<BulkCapturePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    await clickCaptureWhenReady();
     await waitFor(() => {
       expect(screen.getByText("1/30")).toBeInTheDocument();
     });
@@ -132,7 +132,7 @@ describe("BulkCapturePage", () => {
     const user = userEvent.setup();
     await renderWithProviders(<BulkCapturePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    await clickCaptureWhenReady();
     await waitFor(() => {
       expect(screen.getByText("1/30")).toBeInTheDocument();
     });
@@ -153,7 +153,7 @@ describe("BulkCapturePage", () => {
     const user = userEvent.setup();
     await renderWithProviders(<BulkCapturePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    await clickCaptureWhenReady();
     await waitFor(() => {
       expect(screen.getByText("1/30")).toBeInTheDocument();
     });
@@ -178,7 +178,7 @@ describe("BulkCapturePage", () => {
     const user = userEvent.setup();
     await renderWithProviders(<BulkCapturePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    await clickCaptureWhenReady();
     await waitFor(() => {
       expect(screen.getByText("1/30")).toBeInTheDocument();
     });

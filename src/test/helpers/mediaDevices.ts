@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import { installObjectProperty } from "@/test/helpers/propertyMock";
 
 type MockTrack = { readonly stop: ReturnType<typeof vi.fn> };
 type MockStream = { readonly getTracks: () => readonly MockTrack[] };
@@ -17,6 +18,43 @@ type InstallMediaDevicesOptions = {
   readonly getUserMedia?: ReturnType<typeof vi.fn>;
   readonly resolveStream?: MockStream;
   readonly rejectError?: Error;
+};
+
+type InstallMediaElementPlaybackOptions = {
+  readonly videoWidth?: number;
+  readonly videoHeight?: number;
+};
+
+/**
+ * happy-dom が `srcObject` の型チェックを行うため、media element の play() /
+ * srcObject / videoWidth / videoHeight を `installObjectProperty` 経由で上書き
+ * して useCamera / QrScanner の実コンポーネントをテスト環境で動かす。
+ * `restoreInstalledProperties` で setup.ts の afterEach に自動復元される。
+ */
+export const installMediaElementPlayback = (
+  options: InstallMediaElementPlaybackOptions = {},
+): { readonly play: ReturnType<typeof vi.fn> } => {
+  const play = vi.fn(async (): Promise<undefined> => {
+    await Promise.resolve();
+    return undefined;
+  });
+  installObjectProperty(HTMLMediaElement.prototype, "play", play);
+  installObjectProperty(HTMLMediaElement.prototype, "srcObject", undefined);
+  if (options.videoWidth !== undefined) {
+    installObjectProperty(
+      HTMLVideoElement.prototype,
+      "videoWidth",
+      options.videoWidth,
+    );
+  }
+  if (options.videoHeight !== undefined) {
+    installObjectProperty(
+      HTMLVideoElement.prototype,
+      "videoHeight",
+      options.videoHeight,
+    );
+  }
+  return { play };
 };
 
 export const installMediaDevices = (

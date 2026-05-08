@@ -2,41 +2,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
+import {
+  installCanvas2DContext,
+  installVideoReadyState,
+} from "@/test/helpers/canvas";
+import { flushPromises } from "@/test/helpers/flushPromises";
+import {
+  createMockMediaStream,
+  createMockTrack,
+  installMediaDevices,
+  installMediaElementPlayback,
+} from "@/test/helpers/mediaDevices";
+import { setupJsqr, simulateQrScan } from "@/test/mocks/modules/jsqr";
 import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
 import { setNfcSupported } from "@/test/helpers/nfc";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
-
-const scanTrigger = vi.hoisted(
-  (): { onScan: ((data: string) => void) | undefined } => ({
-    onScan: undefined,
-  }),
-);
-
-vi.mock("@/components/scan/QrScanner", () => ({
-  default: ({
-    onScan,
-  }: {
-    readonly onScan: (data: string) => void;
-    readonly isActive: boolean;
-  }) => {
-    scanTrigger.onScan = onScan;
-    return <div data-testid="qr-scanner" />;
-  },
-}));
-
-vi.mock("@/components/scan/NfcReader", () => ({
-  default: ({
-    nfcState,
-  }: {
-    readonly nfcState: { readonly status: string };
-  }) => <div data-testid="nfc-reader" data-status={nfcState.status} />,
-}));
-
-vi.mock("@/components/scan/NfcCapabilityBadge", () => ({
-  default: () => <span data-testid="nfc-badge" />,
-}));
 
 const nfcRdrHandle: {
   current: ReturnType<typeof setupUseNfcReader>;
@@ -44,21 +26,27 @@ const nfcRdrHandle: {
   current: setupUseNfcReader({ status: "scanning" }),
 };
 
-const simulateScan = (data: string) => {
-  act(() => {
-    scanTrigger.onScan?.(data);
-  });
-};
-
 describe("ScanPage", () => {
   beforeEach(() => {
+    // setInterval だけ fake にして QrScanner の scanFrame ループを制御。
+    // setTimeout / Promise は実物のまま使うことで、Dexie 経由の async atom 解決
+    // や findBy* / waitFor が動作する。
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    scanTrigger.onScan = undefined;
     setNfcSupported(false);
     nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
+    setupJsqr();
+
+    installMediaDevices({
+      resolveStream: createMockMediaStream(createMockTrack()),
+    });
+    installCanvas2DContext();
+    installVideoReadyState(4, 4);
+    installMediaElementPlayback();
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -77,8 +65,10 @@ describe("ScanPage", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
+    await flushPromises();
 
     expect(
       screen.getByText("この場所の全服を確認済みにする"),
@@ -92,9 +82,12 @@ describe("ScanPage", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
-    simulateScan("dwg://g/g-1");
+    await simulateQrScan("dwg://l/loc-1");
+    await flushPromises();
+    await simulateQrScan("dwg://g/g-1");
+    await flushPromises();
 
     expect(screen.getByText("白いドレス")).toBeInTheDocument();
     expect(screen.getByText("1着をスキャンしました")).toBeInTheDocument();
@@ -107,10 +100,14 @@ describe("ScanPage", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
-    simulateScan("dwg://g/g-1");
-    simulateScan("dwg://g/g-2");
+    await simulateQrScan("dwg://l/loc-1");
+    await flushPromises();
+    await simulateQrScan("dwg://g/g-1");
+    await flushPromises();
+    await simulateQrScan("dwg://g/g-2");
+    await flushPromises();
 
     expect(screen.getByText("2着をスキャンしました")).toBeInTheDocument();
   });
@@ -121,10 +118,14 @@ describe("ScanPage", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
-    simulateScan("dwg://g/g-1");
-    simulateScan("dwg://g/g-1");
+    await simulateQrScan("dwg://l/loc-1");
+    await flushPromises();
+    await simulateQrScan("dwg://g/g-1");
+    await flushPromises();
+    await simulateQrScan("dwg://g/g-1");
+    await flushPromises();
 
     expect(screen.getByText("1着をスキャンしました")).toBeInTheDocument();
   });
@@ -139,8 +140,10 @@ describe("ScanPage", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
+    await flushPromises();
 
     fireEvent.click(screen.getByText("この場所の全服を確認済みにする"));
 
@@ -152,15 +155,13 @@ describe("ScanPage", () => {
 
     const { getDb } = await import("@/lib/db/dexie");
     const db = getDb();
-    await waitFor(async () => {
-      const garments = await db.garments
-        .where("locationId")
-        .equals("loc-1")
-        .toArray();
-      garments.forEach((g) =>
-        expect(g.lastScannedAt).toBeGreaterThanOrEqual(FIXED_NOW),
-      );
-    });
+    const garments = await db.garments
+      .where("locationId")
+      .equals("loc-1")
+      .toArray();
+    garments.forEach((g) =>
+      expect(g.lastScannedAt).toBeGreaterThanOrEqual(FIXED_NOW),
+    );
   });
 
   it("リセットボタンで初期状態に戻る", async () => {
@@ -168,10 +169,13 @@ describe("ScanPage", () => {
     await seedDbFromTestDb();
 
     await renderWithProviders(<ScanPage />);
+    await flushPromises();
 
-    simulateScan("dwg://l/loc-1");
+    await simulateQrScan("dwg://l/loc-1");
+    await flushPromises();
 
     fireEvent.click(screen.getByText("リセット"));
+    await flushPromises();
 
     expect(
       screen.getByText("場所のQRをスキャンして、収納場所を設定してください"),
@@ -192,8 +196,10 @@ describe("ScanPage", () => {
       await seedDbFromTestDb();
 
       await renderWithProviders(<ScanPage />);
+      await flushPromises();
 
-      simulateScan("dwg://l/loc-1");
+      await simulateQrScan("dwg://l/loc-1");
+      await flushPromises();
 
       expect(screen.getByText("古いドレス")).toBeInTheDocument();
       expect(screen.getByText("全部ある")).toBeInTheDocument();
@@ -212,8 +218,10 @@ describe("ScanPage", () => {
       await seedDbFromTestDb();
 
       await renderWithProviders(<ScanPage />);
+      await flushPromises();
 
-      simulateScan("dwg://l/loc-1");
+      await simulateQrScan("dwg://l/loc-1");
+      await flushPromises();
 
       expect(screen.queryByText("全部ある")).toBeNull();
     });
@@ -231,12 +239,12 @@ describe("ScanPage", () => {
       await seedDbFromTestDb();
 
       await renderWithProviders(<ScanPage />);
+      await flushPromises();
 
-      simulateScan("dwg://l/loc-1");
+      await simulateQrScan("dwg://l/loc-1");
+      await flushPromises();
 
-      act(() => {
-        fireEvent.click(screen.getByRole("button", { name: "全部ある" }));
-      });
+      fireEvent.click(screen.getByRole("button", { name: "全部ある" }));
 
       await waitFor(() => {
         expect(screen.queryByText("全部ある")).toBeNull();
@@ -247,15 +255,13 @@ describe("ScanPage", () => {
 
       const { getDb } = await import("@/lib/db/dexie");
       const db = getDb();
-      await waitFor(async () => {
-        const garments = await db.garments
-          .where("locationId")
-          .equals("loc-1")
-          .toArray();
-        garments.forEach((g) =>
-          expect(g.lastScannedAt).toBeGreaterThanOrEqual(FIXED_NOW),
-        );
-      });
+      const garments = await db.garments
+        .where("locationId")
+        .equals("loc-1")
+        .toArray();
+      garments.forEach((g) =>
+        expect(g.lastScannedAt).toBeGreaterThanOrEqual(FIXED_NOW),
+      );
     });
   });
 
@@ -269,23 +275,23 @@ describe("ScanPage", () => {
     it("NfcCapabilityBadge が常に表示される", async () => {
       await renderWithProviders(<ScanPage />);
 
-      expect(screen.getByTestId("nfc-badge")).toBeInTheDocument();
+      expect(screen.getByText(/NFC (?:対応|非対応)/)).toBeInTheDocument();
     });
 
     it("NFC 対応デバイスで NfcReader が表示される", async () => {
       setNfcSupported(true);
       await renderWithProviders(<ScanPage />);
 
-      expect(screen.getByTestId("qr-scanner")).toBeInTheDocument();
-      expect(screen.getByTestId("nfc-reader")).toBeInTheDocument();
+      expect(document.querySelector("video")).not.toBeNull();
+      expect(screen.getByText("NFC 待ち受け中...")).toBeInTheDocument();
     });
 
     it("NFC 非対応デバイスで NfcReader が非表示になる", async () => {
       setNfcSupported(false);
       await renderWithProviders(<ScanPage />);
 
-      expect(screen.getByTestId("qr-scanner")).toBeInTheDocument();
-      expect(screen.queryByTestId("nfc-reader")).toBeNull();
+      expect(document.querySelector("video")).not.toBeNull();
+      expect(screen.queryByText("NFC 待ち受け中...")).toBeNull();
     });
 
     it("NFC 経由で服スキャンが動作する", async () => {
@@ -295,13 +301,16 @@ describe("ScanPage", () => {
       await seedDbFromTestDb();
 
       await renderWithProviders(<ScanPage />);
+      await flushPromises();
 
       act(() => {
         nfcRdrHandle.current.triggerScan("dwg://l/loc-1");
       });
+      await flushPromises();
       act(() => {
         nfcRdrHandle.current.triggerScan("dwg://g/g-1");
       });
+      await flushPromises();
 
       expect(screen.getByText("赤いワンピース")).toBeInTheDocument();
       expect(screen.getByText("1着をスキャンしました")).toBeInTheDocument();
@@ -313,10 +322,12 @@ describe("ScanPage", () => {
       await seedDbFromTestDb();
 
       await renderWithProviders(<ScanPage />);
+      await flushPromises();
 
       act(() => {
         nfcRdrHandle.current.triggerScan("dwg://l/loc-1");
       });
+      await flushPromises();
 
       expect(screen.getByText("場所を設定しました")).toBeInTheDocument();
     });
