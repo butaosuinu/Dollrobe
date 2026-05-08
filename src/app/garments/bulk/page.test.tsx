@@ -3,7 +3,6 @@ import { screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
-import { setupCuid2 } from "@/test/mocks/modules/cuid2";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import { renderWithProviders } from "@/test/testUtils";
 import BulkCapturePage from "./page";
@@ -38,7 +37,6 @@ const createTestBlob = () => new Blob(["test-image"], { type: "image/png" });
 describe("BulkCapturePage", () => {
   beforeEach(() => {
     navHandle.current = setupNextNavigation();
-    setupCuid2({ id: "cuid", mode: "sequential" });
     mockCaptureFrame.mockClear();
     mockStart.mockClear();
     mockStop.mockClear();

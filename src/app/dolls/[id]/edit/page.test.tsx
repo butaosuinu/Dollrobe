@@ -3,20 +3,12 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
-import { setupCuid2 } from "@/test/mocks/modules/cuid2";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
-import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
 import { renderWithProviders } from "@/test/testUtils";
 import DollEditPage from "./page";
 
 const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
   current: setupNextNavigation(),
-};
-
-const uploadHandle: {
-  current: ReturnType<typeof setupUseImageUpload>;
-} = {
-  current: setupUseImageUpload(),
 };
 
 describe("DollEditPage", () => {
@@ -25,8 +17,6 @@ describe("DollEditPage", () => {
     navHandle.current = setupNextNavigation({
       params: { id: "doll-1" },
     });
-    setupCuid2();
-    uploadHandle.current = setupUseImageUpload();
   });
 
   afterEach(() => {

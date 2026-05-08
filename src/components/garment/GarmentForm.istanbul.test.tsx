@@ -1,20 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/mocks/server";
 import { FIXED_NOW, createTestGarment } from "@/test/factories";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
-import { setupCuid2 } from "@/test/mocks/modules/cuid2";
-import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
-import { setupUseBrandSuggestions } from "@/test/mocks/modules/useBrandSuggestions";
 import { setupUseColorExtraction } from "@/test/mocks/modules/useColorExtraction";
+import { createPngFile } from "@/test/helpers/files";
+import { fireSingleFileSelect } from "@/test/helpers/fileInput";
 import GarmentForm from "./GarmentForm";
-
-const uploadHandle: {
-  current: ReturnType<typeof setupUseImageUpload>;
-} = {
-  current: setupUseImageUpload(),
-};
 
 const colorHandle: {
   current: ReturnType<typeof setupUseColorExtraction>;
@@ -24,29 +19,25 @@ const colorHandle: {
 
 const TIMEOUT_MS = 3000;
 
-const createPngFile = (name = "test.png"): File =>
-  new File(["dummy"], name, { type: "image/png" });
-
 const fireFileSelect = (file: File): void => {
-  const input = document.querySelector('input[type="file"]');
+  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
   if (input === null) {
     // eslint-disable-next-line functional/no-throw-statements
     throw new Error("file input not found");
   }
-  fireEvent.change(input, { target: { files: [file] } });
+  fireSingleFileSelect(input, file);
 };
 
 describe("GarmentForm istanbul coverage", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     setupNextNavigation();
-    setupCuid2({ id: "test-cuid" });
-    uploadHandle.current = setupUseImageUpload();
-    setupUseBrandSuggestions([]);
     colorHandle.current = setupUseColorExtraction();
     colorHandle.current.extractColors.mockResolvedValue({ presetColors: [] });
-    uploadHandle.current.upload.mockResolvedValue(
-      "https://example.com/uploaded.png",
+    server.use(
+      http.post("*/api/images/upload/*", () =>
+        HttpResponse.json({ imageUrl: "https://example.com/uploaded.png" }),
+      ),
     );
   });
 
@@ -56,9 +47,15 @@ describe("GarmentForm istanbul coverage", () => {
 
   it("新規作成で画像アップロード失敗時は imageUrl が undefined になる", async () => {
     const user = userEvent.setup();
-    uploadHandle.current.upload.mockRejectedValue(new Error("upload failed"));
+    server.use(
+      http.post(
+        "*/api/images/upload/*",
+        () => new HttpResponse(null, { status: 500 }),
+      ),
+    );
 
     await renderWithProviders(<GarmentForm />);
+    await screen.findByLabelText("名前");
 
     fireFileSelect(createPngFile());
     await user.type(screen.getByLabelText("名前"), "失敗ケース");
@@ -322,6 +319,7 @@ describe("GarmentForm istanbul coverage", () => {
   });
 
   it("画像を 2 度選択しても 2 度目もハンドラが反応する (URL.revokeObjectURL 分岐)", async () => {
+    const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
     await renderWithProviders(<GarmentForm />);
 
     fireFileSelect(createPngFile());
@@ -332,12 +330,11 @@ describe("GarmentForm istanbul coverage", () => {
       { timeout: TIMEOUT_MS },
     );
 
-    colorHandle.current.extractColors.mockClear();
-    uploadHandle.current.reset.mockClear();
+    revokeSpy.mockClear();
     fireFileSelect(createPngFile("test2.png"));
     await waitFor(
       () => {
-        expect(uploadHandle.current.reset).toHaveBeenCalledTimes(1);
+        expect(revokeSpy).toHaveBeenCalledTimes(1);
       },
       { timeout: TIMEOUT_MS },
     );

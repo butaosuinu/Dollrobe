@@ -7,6 +7,8 @@ import {
 } from "@/test/helpers/canvas";
 import { compressImage } from "./compressImage";
 
+vi.unmock("@/lib/image/compressImage");
+
 const PNG_MIME = "image/png";
 const JPEG_MIME = "image/jpeg";
 const SMALL_FILE_BYTES = 1024;
