@@ -90,8 +90,7 @@ const StepCard = ({
               alt={i18n._(step.alt)}
               width={560}
               height={1184}
-              // eslint-disable-next-line lingui/no-unlocalized-strings -- CSS sizes hint
-              sizes="(max-width: 768px) 280px, 360px"
+              unoptimized
               className="size-full object-cover"
             />
           </div>

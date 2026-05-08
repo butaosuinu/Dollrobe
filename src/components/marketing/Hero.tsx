@@ -79,8 +79,7 @@ const Hero = () => {
               width={720}
               height={1520}
               priority
-              // eslint-disable-next-line lingui/no-unlocalized-strings -- CSS sizes hint
-              sizes="(max-width: 768px) 320px, 360px"
+              unoptimized
               className="size-full object-cover"
             />
           </div>
