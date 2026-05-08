@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type Page } from "@playwright/test";
+import { E2E_TEST_USER_ID } from "../e2e/fixtures/factories";
 import { seedIndexedDB } from "../e2e/fixtures/seed";
 import { buildSeedForScreenshots } from "./lp-screenshot-seed";
 
@@ -21,7 +22,7 @@ const OUTPUT_DIR = path.resolve(__dirname, "../public/lp/screenshots");
 
 const SESSION_RESPONSE = Object.freeze({
   user: {
-    id: "lp-screenshot-user",
+    id: E2E_TEST_USER_ID,
     name: "Preview",
     email: "preview@doll-wardrobe.local",
     image: null,
@@ -62,6 +63,14 @@ const captureLocale = async (locale: Locale): Promise<void> => {
       viewport: { width: 390, height: 844 },
       deviceScaleFactor: 2,
       locale: locale === "ja" ? "ja-JP" : locale,
+    });
+    // tsx (esbuild keepNames=true) が page.evaluate 経由で送るシリアライズ関数に
+    // `__name` ヘルパー参照が残るため、ブラウザ側で polyfill する
+    await context.addInitScript(() => {
+      const g = globalThis as Record<string, unknown>;
+      if (typeof g.__name !== "function") {
+        g.__name = (target: unknown) => target;
+      }
     });
     await context.addInitScript((loc) => {
       localStorage.setItem("dw-locale", loc);
