@@ -13,26 +13,11 @@ const navMod = await vi.hoisted(
 const linkMod = await vi.hoisted(
   async () => await import("./mocks/modules/nextLink"),
 );
-const cuidMod = await vi.hoisted(
-  async () => await import("./mocks/modules/cuid2"),
-);
-const uploadMod = await vi.hoisted(
-  async () => await import("./mocks/modules/useImageUpload"),
-);
-const nfcSupMod = await vi.hoisted(
-  async () => await import("./mocks/modules/useNfcSupported"),
-);
 const nfcRdrMod = await vi.hoisted(
   async () => await import("./mocks/modules/useNfcReader"),
 );
 const colorMod = await vi.hoisted(
   async () => await import("./mocks/modules/useColorExtraction"),
-);
-const brandMod = await vi.hoisted(
-  async () => await import("./mocks/modules/useBrandSuggestions"),
-);
-const onlineMod = await vi.hoisted(
-  async () => await import("./mocks/modules/useOnlineSync"),
 );
 const jsqrMod = await vi.hoisted(
   async () => await import("./mocks/modules/jsqr"),
@@ -43,13 +28,14 @@ const authClientMod = await vi.hoisted(
 
 vi.mock("next/navigation", navMod.nextNavigationFactory);
 vi.mock("next/link", linkMod.nextLinkFactory);
-vi.mock("@paralleldrive/cuid2", cuidMod.cuid2Factory);
-vi.mock("@/hooks/useImageUpload", uploadMod.useImageUploadFactory);
-vi.mock("@/hooks/useNfcSupported", nfcSupMod.useNfcSupportedFactory);
+vi.mock("@/lib/image/compressImage", () => ({
+  compressImage: vi.fn(
+    async ({ file }: { readonly file: File }) =>
+      await Promise.resolve({ file, width: 100, height: 100 }),
+  ),
+}));
 vi.mock("@/hooks/useNfcReader", nfcRdrMod.useNfcReaderFactory);
 vi.mock("@/hooks/useColorExtraction", colorMod.useColorExtractionFactory);
-vi.mock("@/hooks/useBrandSuggestions", brandMod.useBrandSuggestionsFactory);
-vi.mock("@/hooks/useOnlineSync", onlineMod.useOnlineSyncFactory);
 vi.mock("jsqr", jsqrMod.jsqrFactory);
 vi.mock("@/lib/auth", authClientMod.authClientFactory);
 

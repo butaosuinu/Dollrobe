@@ -3,7 +3,6 @@ import { screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
-import { setupCuid2 } from "@/test/mocks/modules/cuid2";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import {
   installCanvas2DContext,
@@ -31,8 +30,6 @@ vi.mock("@/lib/image/compressImage", () => ({
 describe("BulkCapturePage", () => {
   beforeEach(() => {
     navHandle.current = setupNextNavigation();
-    setupCuid2({ id: "cuid", mode: "sequential" });
-
     installMediaDevices({
       resolveStream: createMockMediaStream(createMockTrack()),
     });

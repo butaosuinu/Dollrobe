@@ -1,41 +1,39 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/mocks/server";
 import { FIXED_NOW } from "@/test/mocks/db";
 import { renderWithProviders } from "@/test/testUtils";
 import { createTestDoll } from "@/test/factories";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
-import { setupCuid2 } from "@/test/mocks/modules/cuid2";
-import { setupUseImageUpload } from "@/test/mocks/modules/useImageUpload";
+import { createDeferred } from "@/test/helpers/deferred";
+import { createPngFile } from "@/test/helpers/files";
+import { fireSingleFileSelect } from "@/test/helpers/fileInput";
+import { compressImage } from "@/lib/image/compressImage";
 import DollForm from "./DollForm";
 
 const navHandle = setupNextNavigation();
-
-const uploadHandle: {
-  current: ReturnType<typeof setupUseImageUpload>;
-} = {
-  current: setupUseImageUpload(),
-};
 
 const EXISTING_IMAGE_URL = "https://cdn.example.com/existing.png";
 const UPLOADED_IMAGE_URL = "https://cdn.example.com/uploaded.png";
 
 const selectFileInput = (file: File): void => {
-  const input = document.querySelector('input[type="file"]');
+  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
   expect(input).not.toBeNull();
   if (input == null) return;
-  fireEvent.change(input, { target: { files: [file] } });
+  fireSingleFileSelect(input, file);
 };
-
-const createPngFile = (name = "new.png"): File =>
-  new File(["dummy"], name, { type: "image/png" });
 
 describe("DollForm (extra coverage)", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     setupNextNavigation();
-    setupCuid2({ id: "test-cuid" });
-    uploadHandle.current = setupUseImageUpload();
+    server.use(
+      http.post("*/api/images/upload/*", () =>
+        HttpResponse.json({ imageUrl: UPLOADED_IMAGE_URL }),
+      ),
+    );
   });
 
   afterEach(() => {
@@ -178,6 +176,13 @@ describe("DollForm (extra coverage)", () => {
   });
 
   it("編集モード: 画像未選択なら元の imageUrl がそのまま保持される", async () => {
+    const uploadSpy = vi.fn();
+    server.use(
+      http.post("*/api/images/upload/*", () => {
+        uploadSpy();
+        return HttpResponse.json({ imageUrl: UPLOADED_IMAGE_URL });
+      }),
+    );
     const doll = createTestDoll({
       id: "doll-edit-3",
       name: "リナ",
@@ -197,11 +202,17 @@ describe("DollForm (extra coverage)", () => {
       const updated = await db.dolls.get("doll-edit-3");
       expect(updated?.imageUrl).toBe(EXISTING_IMAGE_URL);
     });
-    expect(uploadHandle.current.upload).not.toHaveBeenCalled();
+    expect(uploadSpy).not.toHaveBeenCalled();
   });
 
   it("画像を新規選択するとプレビューが切り替わり upload が呼ばれる", async () => {
-    uploadHandle.current.upload.mockResolvedValue(UPLOADED_IMAGE_URL);
+    const collected: string[] = [];
+    server.use(
+      http.post("*/api/images/upload/:id", ({ params }) => {
+        collected.push(String(params.id));
+        return HttpResponse.json({ imageUrl: UPLOADED_IMAGE_URL });
+      }),
+    );
     const doll = createTestDoll({
       id: "doll-edit-4",
       name: "リナ",
@@ -212,7 +223,6 @@ describe("DollForm (extra coverage)", () => {
     const db = getDb();
     await db.dolls.add(doll);
 
-    const user = userEvent.setup();
     await renderWithProviders(<DollForm doll={doll} />);
 
     expect(screen.getByAltText("プレビュー")).toHaveAttribute(
@@ -228,24 +238,23 @@ describe("DollForm (extra coverage)", () => {
         "blob:",
       );
     });
-    expect(uploadHandle.current.reset).toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: "更新する" }));
+    fireEvent.click(screen.getByRole("button", { name: "更新する" }));
 
-    await waitFor(() => {
-      expect(uploadHandle.current.upload).toHaveBeenCalledWith({
-        file,
-        garmentId: "doll-edit-4",
-      });
-    });
     await waitFor(async () => {
       const updated = await db.dolls.get("doll-edit-4");
       expect(updated?.imageUrl).toBe(UPLOADED_IMAGE_URL);
     });
+    expect(collected).toContain("doll-edit-4");
   });
 
   it("画像アップロードが失敗した場合は元の imageUrl が維持される", async () => {
-    uploadHandle.current.upload.mockRejectedValue(new Error("upload failed"));
+    server.use(
+      http.post(
+        "*/api/images/upload/*",
+        () => new HttpResponse(null, { status: 500 }),
+      ),
+    );
     const doll = createTestDoll({
       id: "doll-edit-5",
       name: "リナ",
@@ -271,7 +280,13 @@ describe("DollForm (extra coverage)", () => {
   });
 
   it("新規登録時に画像を選択するとアップロード結果が保存される", async () => {
-    uploadHandle.current.upload.mockResolvedValue(UPLOADED_IMAGE_URL);
+    const collected: string[] = [];
+    server.use(
+      http.post("*/api/images/upload/:id", ({ params }) => {
+        collected.push(String(params.id));
+        return HttpResponse.json({ imageUrl: UPLOADED_IMAGE_URL });
+      }),
+    );
     const user = userEvent.setup();
     await renderWithProviders(<DollForm />);
 
@@ -282,22 +297,23 @@ describe("DollForm (extra coverage)", () => {
 
     await user.click(screen.getByRole("button", { name: "登録する" }));
 
-    await waitFor(() => {
-      expect(uploadHandle.current.upload).toHaveBeenCalledWith({
-        file,
-        garmentId: "test-cuid",
-      });
-    });
     const { getDb } = await import("@/lib/db/dexie");
     const db = getDb();
     await waitFor(async () => {
       const dolls = await db.dolls.toArray();
       expect(dolls[0]?.imageUrl).toBe(UPLOADED_IMAGE_URL);
     });
+    expect(collected.length).toBeGreaterThanOrEqual(1);
+    expect(collected[0]).toMatch(/^[a-z0-9]+$/);
   });
 
   it("新規登録 + 画像アップロード失敗時は imageUrl が undefined で保存される", async () => {
-    uploadHandle.current.upload.mockRejectedValue(new Error("upload failed"));
+    server.use(
+      http.post(
+        "*/api/images/upload/*",
+        () => new HttpResponse(null, { status: 500 }),
+      ),
+    );
     const user = userEvent.setup();
     await renderWithProviders(<DollForm />);
 
@@ -318,12 +334,27 @@ describe("DollForm (extra coverage)", () => {
   });
 
   it("圧縮中は送信が抑止される (handleSubmit 早期 return)", async () => {
-    uploadHandle.current.setUploadState({ status: "compressing" });
+    type CompressResult = { file: File; width: number; height: number };
+    const compress = createDeferred<CompressResult>();
+    vi.mocked(compressImage).mockImplementationOnce(
+      async () => await compress.promise,
+    );
+    const uploadSpy = vi.fn();
+    server.use(
+      http.post("*/api/images/upload/*", () => {
+        uploadSpy();
+        return HttpResponse.json({ imageUrl: UPLOADED_IMAGE_URL });
+      }),
+    );
     const user = userEvent.setup();
     await renderWithProviders(<DollForm />);
 
     await user.type(screen.getByLabelText("名前"), "リナ");
-    const button = screen.getByRole("button", {
+    const file = createPngFile();
+    selectFileInput(file);
+    await user.click(screen.getByRole("button", { name: "登録する" }));
+
+    const button = await screen.findByRole("button", {
       name: "アップロード中...",
     });
     expect(button).toBeDisabled();
@@ -335,14 +366,11 @@ describe("DollForm (extra coverage)", () => {
     if (form == null) return;
     fireEvent.submit(form);
 
-    // 一定時間待っても副作用が一切起きていないことを確認
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(uploadSpy).not.toHaveBeenCalled();
 
-    const { getDb } = await import("@/lib/db/dexie");
-    const db = getDb();
-    const after = await db.dolls.toArray();
-    expect(after.length).toBe(0);
-    expect(navHandle.router.push).not.toHaveBeenCalled();
-    expect(uploadHandle.current.upload).not.toHaveBeenCalled();
+    compress.resolve({ file, width: 100, height: 100 });
+    await waitFor(() => {
+      expect(navHandle.router.push).toHaveBeenCalledWith("/dolls");
+    });
   });
 });

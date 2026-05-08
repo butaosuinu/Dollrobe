@@ -2,21 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
-import { createId } from "@paralleldrive/cuid2";
-import { useImageUpload } from "@/hooks/useImageUpload";
-import { useNfcSupported } from "@/hooks/useNfcSupported";
 import { useNfcReader } from "@/hooks/useNfcReader";
 import { useColorExtraction } from "@/hooks/useColorExtraction";
-import { useBrandSuggestions } from "@/hooks/useBrandSuggestions";
-import { useOnlineSync } from "@/hooks/useOnlineSync";
 import jsQR from "jsqr";
 import { setupNextNavigation } from "./nextNavigation";
-import { setupCuid2 } from "./cuid2";
-import { setupUseImageUpload } from "./useImageUpload";
-import { setupUseNfcSupported } from "./useNfcSupported";
 import { setupUseNfcReader } from "./useNfcReader";
 import { setupUseColorExtraction } from "./useColorExtraction";
-import { setupUseBrandSuggestions } from "./useBrandSuggestions";
 import { setupJsqr, createMockQRCode } from "./jsqr";
 
 describe("modules wrapper smoke test", () => {
@@ -40,40 +31,6 @@ describe("modules wrapper smoke test", () => {
     expect(screen.getByText("link-text").getAttribute("href")).toBe("/foo");
   });
 
-  it("cuid2 setupCuid2 で createId が固定値を返す", () => {
-    setupCuid2({ id: "fixed-id" });
-    expect(createId()).toBe("fixed-id");
-
-    setupCuid2({ mode: "sequential", id: "seq" });
-    expect(createId()).toBe("seq-1");
-    expect(createId()).toBe("seq-2");
-  });
-
-  it("useImageUpload setup で state と spy が制御できる", () => {
-    const handle = setupUseImageUpload();
-    handle.setUploadState({
-      status: "success",
-      imageUrl: "https://example.com/x.png",
-    });
-
-    const result = useImageUpload();
-    expect(result.uploadState).toEqual({
-      status: "success",
-      imageUrl: "https://example.com/x.png",
-    });
-
-    void result.upload({ file: new File([""], "x.png"), garmentId: "g-1" });
-    expect(handle.upload).toHaveBeenCalled();
-  });
-
-  it("useNfcSupported setup で boolean が切り替わる", () => {
-    setupUseNfcSupported(true);
-    expect(useNfcSupported()).toBe(true);
-
-    setupUseNfcSupported(false);
-    expect(useNfcSupported()).toBe(false);
-  });
-
   it("useNfcReader setup で onScan を外部から呼べる", () => {
     const handle = setupUseNfcReader({ status: "scanning" });
     const onScan = vi.fn();
@@ -95,17 +52,6 @@ describe("modules wrapper smoke test", () => {
     });
     void result.extractColors({ file: new File([""], "x.png") });
     expect(handle.extractColors).toHaveBeenCalled();
-  });
-
-  it("useBrandSuggestions setup で配列が切り替わる", () => {
-    setupUseBrandSuggestions(["A社", "B社"]);
-    expect(useBrandSuggestions()).toEqual(["A社", "B社"]);
-  });
-
-  it("useOnlineSync は呼び出してもエラーにならない", () => {
-    expect(() => {
-      useOnlineSync();
-    }).not.toThrow();
   });
 
   it("jsqr setupJsqr で mock を制御できる", () => {

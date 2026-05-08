@@ -15,16 +15,10 @@ import {
 } from "@/test/helpers/mediaDevices";
 import { setupJsqr, simulateQrScan } from "@/test/mocks/modules/jsqr";
 import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
-import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
+import { setNfcSupported } from "@/test/helpers/nfc";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
-
-const nfcSupHandle: {
-  current: ReturnType<typeof setupUseNfcSupported>;
-} = {
-  current: setupUseNfcSupported(),
-};
 
 const nfcRdrHandle: {
   current: ReturnType<typeof setupUseNfcReader>;
@@ -39,7 +33,7 @@ describe("ScanPage", () => {
     // や findBy* / waitFor が動作する。
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    nfcSupHandle.current = setupUseNfcSupported(false);
+    setNfcSupported(false);
     nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
     setupJsqr();
 
@@ -285,7 +279,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 対応デバイスで NfcReader が表示される", async () => {
-      nfcSupHandle.current.setSupported(true);
+      setNfcSupported(true);
       await renderWithProviders(<ScanPage />);
 
       expect(document.querySelector("video")).not.toBeNull();
@@ -293,7 +287,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 非対応デバイスで NfcReader が非表示になる", async () => {
-      nfcSupHandle.current.setSupported(false);
+      setNfcSupported(false);
       await renderWithProviders(<ScanPage />);
 
       expect(document.querySelector("video")).not.toBeNull();
@@ -301,7 +295,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 経由で服スキャンが動作する", async () => {
-      nfcSupHandle.current.setSupported(true);
+      setNfcSupported(true);
       testDb.storageLocation.create({ id: "loc-1", label: "A-1" });
       testDb.garment.create({ id: "g-1", name: "赤いワンピース" });
       await seedDbFromTestDb();
@@ -323,7 +317,7 @@ describe("ScanPage", () => {
     });
 
     it("NFC 経由で場所スキャンが動作する", async () => {
-      nfcSupHandle.current.setSupported(true);
+      setNfcSupported(true);
       testDb.storageLocation.create({ id: "loc-1", label: "B-2" });
       await seedDbFromTestDb();
 

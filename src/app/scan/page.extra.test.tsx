@@ -15,16 +15,10 @@ import {
 } from "@/test/helpers/mediaDevices";
 import { setupJsqr, simulateQrScan } from "@/test/mocks/modules/jsqr";
 import { setupUseNfcReader } from "@/test/mocks/modules/useNfcReader";
-import { setupUseNfcSupported } from "@/test/mocks/modules/useNfcSupported";
+import { setNfcSupported } from "@/test/helpers/nfc";
 import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
-
-const nfcSupHandle: {
-  current: ReturnType<typeof setupUseNfcSupported>;
-} = {
-  current: setupUseNfcSupported(),
-};
 
 const nfcRdrHandle: {
   current: ReturnType<typeof setupUseNfcReader>;
@@ -36,7 +30,7 @@ describe("ScanPage (extra)", () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-    nfcSupHandle.current = setupUseNfcSupported(false);
+    setNfcSupported(false);
     nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
     setupJsqr();
 
@@ -187,7 +181,7 @@ describe("ScanPage (extra)", () => {
   });
 
   it("信頼度低のアイテムでダイアログ表示中も QrScanner / NfcReader 自体は描画される", async () => {
-    nfcSupHandle.current.setSupported(true);
+    setNfcSupported(true);
     testDb.storageLocation.create({ id: "loc-1", label: "A-1" });
     testDb.garment.create({
       id: "g-1",
