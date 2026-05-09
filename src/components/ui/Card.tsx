@@ -65,45 +65,53 @@ const cardClassName = ({
   );
 
 const Card = (props: Props) => {
-  const {
-    children,
-    hoverable = false,
-    padding = "md",
-    radius = "md",
-    className,
-  } = props;
+  const merged = cardClassName({
+    hoverable: props.hoverable ?? false,
+    padding: props.padding ?? "md",
+    radius: props.radius ?? "md",
+    clickable: props.clickable === true,
+    className: props.className,
+  });
 
   if (props.clickable === true) {
-    const { clickable: _c, type = "button", ...rest } = props;
+    const {
+      clickable,
+      hoverable,
+      padding,
+      radius,
+      className,
+      children,
+      type = "button",
+      ...rest
+    } = props;
+    void clickable;
+    void hoverable;
+    void padding;
+    void radius;
+    void className;
     return (
-      <button
-        type={type}
-        className={cardClassName({
-          hoverable,
-          padding,
-          radius,
-          clickable: true,
-          className,
-        })}
-        {...rest}
-      >
+      <button {...rest} type={type} className={merged}>
         {children}
       </button>
     );
   }
 
-  const { clickable: _c, ...rest } = props;
+  const {
+    clickable,
+    hoverable,
+    padding,
+    radius,
+    className,
+    children,
+    ...rest
+  } = props;
+  void clickable;
+  void hoverable;
+  void padding;
+  void radius;
+  void className;
   return (
-    <div
-      className={cardClassName({
-        hoverable,
-        padding,
-        radius,
-        clickable: false,
-        className,
-      })}
-      {...rest}
-    >
+    <div {...rest} className={merged}>
       {children}
     </div>
   );

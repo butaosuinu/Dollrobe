@@ -94,4 +94,73 @@ describe("Card", () => {
       "custom-class",
     );
   });
+
+  it("static: className を渡しても base class が保持される", () => {
+    render(
+      <Card className="custom-class">
+        <span>静的</span>
+      </Card>,
+    );
+    const card = screen.getByText("静的").parentElement;
+    expect(card).toHaveClass("custom-class");
+    expect(card).toHaveClass("border-border-default");
+    expect(card).toHaveClass("bg-surface-overlay");
+    expect(card).toHaveClass("shadow-card");
+    expect(card).toHaveClass("p-4");
+    expect(card).toHaveClass("rounded-xl");
+  });
+
+  it("clickable: className を渡しても base class が保持される", () => {
+    render(
+      <Card clickable padding="sm" className="custom-class">
+        選択カード
+      </Card>,
+    );
+    const button = screen.getByRole("button", { name: "選択カード" });
+    expect(button).toHaveClass("custom-class");
+    expect(button).toHaveClass("border-border-default");
+    expect(button).toHaveClass("text-left");
+    expect(button).toHaveClass("w-full");
+    expect(button).toHaveClass("focus-visible:outline-primary-500");
+    expect(button).toHaveClass("p-3");
+  });
+
+  it("static: 非 DOM props (padding/radius/hoverable) が DOM 属性にリークしない", () => {
+    render(
+      <Card padding="lg" radius="lg" hoverable>
+        <span>非リーク</span>
+      </Card>,
+    );
+    const card = screen.getByText("非リーク").parentElement;
+    expect(card).not.toHaveAttribute("padding");
+    expect(card).not.toHaveAttribute("radius");
+    expect(card).not.toHaveAttribute("hoverable");
+    expect(card).not.toHaveAttribute("clickable");
+  });
+
+  it("clickable: 非 DOM props が DOM 属性にリークしない", () => {
+    render(
+      <Card clickable padding="lg" radius="lg" hoverable>
+        ボタン
+      </Card>,
+    );
+    const button = screen.getByRole("button", { name: "ボタン" });
+    expect(button).not.toHaveAttribute("padding");
+    expect(button).not.toHaveAttribute("radius");
+    expect(button).not.toHaveAttribute("hoverable");
+    expect(button).not.toHaveAttribute("clickable");
+  });
+
+  it("clickable: 標準 aria-* 属性は ...rest 経由でそのまま伝わる", () => {
+    render(
+      <Card clickable aria-pressed aria-label="aria伝播テスト">
+        子
+      </Card>,
+    );
+    const button = screen.getByRole("button", {
+      name: "aria伝播テスト",
+      pressed: true,
+    });
+    expect(button).toBeInTheDocument();
+  });
 });
