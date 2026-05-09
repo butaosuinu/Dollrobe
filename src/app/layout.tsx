@@ -5,10 +5,11 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import "@/app/globals.css";
 import { SerwistProvider } from "@/app/serwist-provider";
 import LinguiClientProvider from "@/components/i18n/LinguiProvider";
+import { APP_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Doll Wardrobe",
-  description: "ドール服管理システム",
+  title: APP_NAME,
+  description: `${APP_NAME} - ドール服管理システム`,
   manifest: "/manifest.json",
   icons: {
     icon: [

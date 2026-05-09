@@ -7,7 +7,7 @@ import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { useLingui } from "@lingui/react";
 import { syncStatusAtom } from "@/stores/syncAtoms";
-import { SYNC_STATUS } from "@/lib/constants";
+import { APP_NAME, SYNC_STATUS } from "@/lib/constants";
 import { NAV_ITEMS } from "@/lib/nav-items";
 import { useOnlineSync } from "@/hooks/useOnlineSync";
 import LocaleSelector from "@/components/settings/LocaleSelector";
@@ -37,7 +37,7 @@ const TopBar = () => {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 lg:px-8">
         <div className="flex items-center gap-8">
           <h1 className="font-display text-lg font-bold tracking-tight text-primary-700">
-            Doll Wardrobe
+            {APP_NAME}
           </h1>
           <nav className="hidden items-center gap-1 lg:flex">
             {NAV_ITEMS.map(({ href, label, icon: Icon }) => {

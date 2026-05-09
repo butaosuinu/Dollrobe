@@ -1,7 +1,7 @@
 {
-  "name": "Doll Wardrobe",
-  "short_name": "DollWR",
-  "description": "ドール服管理システム",
+  "name": "Dollrobe",
+  "short_name": "Dollrobe",
+  "description": "Dollrobe - ドール服管理システム",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#faf8f5",

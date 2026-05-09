@@ -245,6 +245,10 @@ msgstr "DDP (~43.5cm)"
 msgid "DDS (~55cm)"
 msgstr "DDS (~55cm)"
 
+#: src/app/(public)/signin/page.tsx
+msgid "Dollrobe にログイン"
+msgstr "Dollrobe에 로그인"
+
 #: src/components/auth/LoginButton.tsx
 msgid "Google でログイン"
 msgstr "Google로 로그인"
@@ -814,8 +818,8 @@ msgid "ドール服の名前"
 msgstr "인형 옷 이름"
 
 #: src/app/(public)/signin/page.tsx
-msgid "ドール服管理にログイン"
-msgstr "인형 옷 관리에 로그인"
+#~ msgid "ドール服管理にログイン"
+#~ msgstr "인형 옷 관리에 로그인"
 
 #: src/lib/i18n-labels.ts
 msgid "トップス"

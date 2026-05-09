@@ -53,11 +53,11 @@ describe("TopBar", () => {
     });
   });
 
-  it("タイトル 'Doll Wardrobe' が表示される", async () => {
+  it("タイトル 'Dollrobe' が表示される", async () => {
     await renderWithProviders(<TopBar />);
 
     expect(
-      screen.getByRole("heading", { name: "Doll Wardrobe" }),
+      screen.getByRole("heading", { name: "Dollrobe" }),
     ).toBeInTheDocument();
   });
 });

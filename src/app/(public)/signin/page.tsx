@@ -32,7 +32,7 @@ const SignInPage = () => {
           <Shirt className="size-6" />
         </div>
         <h1 className="font-display text-2xl font-bold tracking-tight text-text-primary">
-          <Trans>ドール服管理にログイン</Trans>
+          <Trans>Dollrobe にログイン</Trans>
         </h1>
         <p className="text-sm text-text-secondary">
           <Trans>引き出しの中身を、いつでもどこでも</Trans>
