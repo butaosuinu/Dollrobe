@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
 
 type ButtonVariant =
   | "primary"
@@ -51,7 +52,7 @@ export const buttonClassName = ({
 }: ButtonClassNameOptions = {}) =>
   clsx(
     "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
-    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+    FOCUS_RING_CLASS,
     VARIANT_STYLES[variant],
     SIZE_STYLES[size],
     fullWidth && "w-full",
@@ -73,7 +74,7 @@ const Button = ({
       variant,
       size,
       fullWidth,
-      disabled: disabled === true,
+      disabled: Boolean(disabled),
     })}
     disabled={disabled}
     {...rest}

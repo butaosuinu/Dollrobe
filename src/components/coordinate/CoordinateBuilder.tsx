@@ -14,6 +14,7 @@ import {
 } from "@/lib/constants";
 import { GARMENT_CATEGORY_LABEL } from "@/lib/i18n-labels";
 import type { Coordinate, Garment } from "@/types";
+import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import FormShell from "@/components/ui/FormShell";
@@ -145,7 +146,7 @@ const GarmentTile = ({
       clickable
       padding="sm"
       onClick={() => onToggle(garment.id)}
-      ariaPressed={selected}
+      aria-pressed={selected}
       className={clsx(
         "flex flex-col items-stretch gap-1 transition-colors",
         selected ? "border-primary-500 bg-primary-50" : "hover:bg-primary-50",
@@ -380,9 +381,7 @@ const CoordinateBuilder = ({
             <p className="text-sm font-medium text-text-secondary">
               <Trans>選択中の服</Trans>
             </p>
-            <span className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-semibold text-primary-700">
-              {s.selectedGarments.length}
-            </span>
+            <Badge variant="primary">{s.selectedGarments.length}</Badge>
           </div>
           <SelectedGarmentsList
             selectedGarments={s.selectedGarments}

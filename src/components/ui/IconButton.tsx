@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import type { LucideIcon } from "lucide-react";
+import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
 
 type IconButtonSize = "xs" | "sm" | "md" | "lg";
 type IconButtonVariant = "default" | "primary" | "danger";
@@ -44,7 +45,7 @@ export const iconButtonClassName = ({
 }: IconButtonClassNameOptions = {}) =>
   clsx(
     "inline-flex items-center justify-center rounded-lg transition-colors",
-    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+    FOCUS_RING_CLASS,
     SIZE_STYLES[size],
     VARIANT_STYLES[variant],
     disabled && "pointer-events-none opacity-50",
@@ -65,7 +66,7 @@ const IconButton = ({
     className={iconButtonClassName({
       size,
       variant,
-      disabled: disabled === true,
+      disabled: Boolean(disabled),
     })}
     disabled={disabled}
     {...rest}

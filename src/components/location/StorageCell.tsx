@@ -3,6 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import type { Garment, StorageLocation } from "@/types";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_STATUS } from "@/lib/constants";
+import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
 
 type Props = {
   readonly location: StorageLocation;
@@ -43,7 +44,7 @@ const StorageCell = ({ location, garments, onClick, isSelected }: Props) => {
       className={clsx(
         "flex flex-col items-center justify-center rounded-lg border p-2 transition-all",
         "hover:shadow-sm active:scale-95",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+        FOCUS_RING_CLASS,
         CELL_BG[status],
         isSelected === true && "ring-2 ring-primary-500",
       )}

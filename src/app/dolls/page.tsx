@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { Plus, User, Archive } from "lucide-react";
+import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { msg, t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -296,7 +297,10 @@ const DollsPage = () => (
       </h2>
       <Link
         href="/dolls/new"
-        className={`hidden lg:inline-flex ${buttonClassName({ variant: "primary", size: "md" })}`}
+        className={clsx(
+          "hidden lg:inline-flex",
+          buttonClassName({ variant: "primary", size: "md" }),
+        )}
       >
         <Plus className="size-4" />
         <Trans>ドールを登録</Trans>
