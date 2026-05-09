@@ -17,6 +17,7 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
+import TextButton from "@/components/ui/TextButton";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { storageCasesAtom, storageLocationsAtom } from "@/stores/locationAtoms";
 import {
@@ -39,8 +40,6 @@ type SelectOption = {
   readonly value: string;
   readonly label: string;
 };
-
-const BACK_BUTTON_CLASS = "flex items-center gap-1 text-sm text-text-secondary";
 
 const NfcUnsupported = () => (
   <div className="flex flex-col items-center gap-4 py-12 text-center">
@@ -107,10 +106,12 @@ const SelectItemStep = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <button type="button" className={BACK_BUTTON_CLASS} onClick={onBack}>
-        <ArrowLeft className="size-4" />
-        <Trans>戻る</Trans>
-      </button>
+      <TextButton variant="muted" onClick={onBack}>
+        <span className="inline-flex items-center gap-1">
+          <ArrowLeft className="size-4" />
+          <Trans>戻る</Trans>
+        </span>
+      </TextButton>
       <Select
         label={i18n._(
           targetType === "garment"
@@ -147,10 +148,12 @@ const ReadyToWriteStep = ({
   onBack,
 }: ReadyToWriteStepProps) => (
   <div className="flex flex-col gap-4">
-    <button type="button" className={BACK_BUTTON_CLASS} onClick={onBack}>
-      <ArrowLeft className="size-4" />
-      <Trans>戻る</Trans>
-    </button>
+    <TextButton variant="muted" onClick={onBack}>
+      <span className="inline-flex items-center gap-1">
+        <ArrowLeft className="size-4" />
+        <Trans>戻る</Trans>
+      </span>
+    </TextButton>
     <div className="rounded-xl border border-border-default bg-surface-overlay p-4">
       <p className="text-sm text-text-secondary">
         <Trans>書き込み対象</Trans>

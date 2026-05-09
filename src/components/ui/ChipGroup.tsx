@@ -1,6 +1,6 @@
 "use client";
 
-import clsx from "clsx";
+import Chip from "@/components/ui/Chip";
 
 type ChipOption<T extends string> = {
   readonly value: T;
@@ -20,19 +20,14 @@ const ChipGroup = <T extends string>({
 }: Props<T>) => (
   <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
     {options.map((option) => (
-      <button
-        key={option.value}
-        type="button"
-        onClick={() => onSelect(option.value)}
-        className={clsx(
-          "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-          value === option.value
-            ? "bg-primary-500 text-text-inverse"
-            : "border border-border-default bg-surface-overlay text-text-secondary hover:bg-primary-50",
-        )}
-      >
-        {option.label}
-      </button>
+      <div key={option.value} className="shrink-0">
+        <Chip
+          selected={value === option.value}
+          onClick={() => onSelect(option.value)}
+        >
+          {option.label}
+        </Chip>
+      </div>
     ))}
   </div>
 );

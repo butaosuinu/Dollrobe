@@ -33,6 +33,7 @@ import GarmentGrid from "@/components/garment/GarmentGrid";
 import GarmentList from "@/components/garment/GarmentList";
 import Pagination from "@/components/ui/Pagination";
 import usePagination from "@/hooks/usePagination";
+import { buttonClassName } from "@/components/ui/Button";
 import ChipGroup from "@/components/ui/ChipGroup";
 import EmptyState from "@/components/ui/EmptyState";
 import FAB from "@/components/ui/FAB";
@@ -389,21 +390,21 @@ const GarmentsPage = () => (
       <div className="hidden items-center gap-2 lg:flex">
         <Link
           href="/garments/import"
-          className="inline-flex items-center gap-2 rounded-lg border border-border-default px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-overlay"
+          className={buttonClassName({ variant: "outline", size: "md" })}
         >
           <Upload className="size-4" />
           <Trans>CSVインポート</Trans>
         </Link>
         <Link
           href="/garments/bulk"
-          className="inline-flex items-center gap-2 rounded-lg border border-border-default px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-overlay"
+          className={buttonClassName({ variant: "outline", size: "md" })}
         >
           <Camera className="size-4" />
           <Trans>連続撮影</Trans>
         </Link>
         <Link
           href="/garments/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-primary-600"
+          className={buttonClassName({ variant: "primary", size: "md" })}
         >
           <Plus className="size-4" />
           <Trans>服を登録</Trans>

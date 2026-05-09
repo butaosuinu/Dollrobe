@@ -9,6 +9,7 @@ import {
   resetScanSessionAtom,
 } from "@/stores/scanSessionAtoms";
 import Button from "@/components/ui/Button";
+import TextButton from "@/components/ui/TextButton";
 
 type Props = {
   readonly locationName: string | undefined;
@@ -49,13 +50,12 @@ const ScanSessionPanel = ({ locationName, onConfirmAll }: Props) => {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => resetSession()}
-          className="flex items-center gap-1 text-xs text-text-tertiary transition-colors hover:text-text-secondary"
-        >
-          <RotateCcw className="size-3" />
-          <Trans>リセット</Trans>
-        </button>
+        <TextButton variant="muted" onClick={() => resetSession()}>
+          <span className="inline-flex items-center gap-1">
+            <RotateCcw className="size-3" />
+            <Trans>リセット</Trans>
+          </span>
+        </TextButton>
       </div>
 
       {scannedIds.length > 0 && (

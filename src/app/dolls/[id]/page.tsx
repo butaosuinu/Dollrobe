@@ -10,6 +10,7 @@ import DollDetail from "@/components/doll/DollDetail";
 import CompatibleGarmentList from "@/components/doll/CompatibleGarmentList";
 import PageHeader from "@/components/ui/PageHeader";
 import Skeleton from "@/components/ui/Skeleton";
+import TextButton from "@/components/ui/TextButton";
 
 const DollDetailContent = () => {
   const params = useParams();
@@ -23,12 +24,9 @@ const DollDetailContent = () => {
         <p className="text-sm text-text-secondary">
           <Trans>ドールが見つかりません</Trans>
         </p>
-        <button
-          onClick={() => router.push("/dolls")}
-          className="text-sm font-medium text-primary-500"
-        >
+        <TextButton onClick={() => router.push("/dolls")}>
           <Trans>一覧に戻る</Trans>
-        </button>
+        </TextButton>
       </div>
     );
   }

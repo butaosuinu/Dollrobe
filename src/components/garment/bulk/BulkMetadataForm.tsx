@@ -15,6 +15,7 @@ import {
   getMetadataForItem,
 } from "@/stores/bulkCaptureAtoms";
 import Button from "@/components/ui/Button";
+import TextButton from "@/components/ui/TextButton";
 import BulkMetadataFormFields from "./BulkMetadataFormFields";
 
 const BulkMetadataForm = () => {
@@ -90,14 +91,14 @@ const BulkMetadataForm = () => {
       </div>
 
       {!isFirst && (
-        <button
-          type="button"
-          onClick={handleApplyPrevious}
-          className="flex items-center justify-center gap-2 text-sm text-primary-500 hover:text-primary-600"
-        >
-          <Copy className="size-4" />
-          <Trans>前の値を適用</Trans>
-        </button>
+        <div className="flex justify-center">
+          <TextButton onClick={handleApplyPrevious}>
+            <span className="inline-flex items-center gap-2">
+              <Copy className="size-4" />
+              <Trans>前の値を適用</Trans>
+            </span>
+          </TextButton>
+        </div>
       )}
 
       <BulkMetadataFormFields
