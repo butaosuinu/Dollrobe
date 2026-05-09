@@ -2083,6 +2083,10 @@ msgstr "Please select"
 msgid "選択中の服"
 msgstr "Selected garments"
 
+#: src/components/ui/BottomSheet.tsx
+msgid "閉じる"
+msgstr "Close"
+
 #: src/app/coordinates/[id]/page.tsx
 msgid "関連する服がありません（削除された可能性があります）"
 msgstr "No linked garments (they may have been deleted)."

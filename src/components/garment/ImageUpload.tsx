@@ -121,7 +121,7 @@ const ImageUpload = ({ imagePreview, uploadState, onFileSelect }: Props) => {
         disabled={isProcessing}
       />
       {uploadState.status === "error" && (
-        <p className="text-sm text-red-500">{uploadState.message}</p>
+        <p className="text-sm text-danger">{uploadState.message}</p>
       )}
     </div>
   );

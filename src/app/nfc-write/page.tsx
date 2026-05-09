@@ -207,7 +207,7 @@ const ResultStep = ({ writeResult, onWriteAnother }: ResultStepProps) => (
   <div className="flex flex-col items-center gap-4 py-8">
     {writeResult.ok ? (
       <>
-        <CheckCircle2 className="size-16 text-green-500" />
+        <CheckCircle2 className="size-16 text-success" />
         <p className="text-sm font-medium text-text-primary">
           <Trans>NFC タグへの書き込みが完了しました</Trans>
         </p>

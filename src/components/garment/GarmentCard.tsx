@@ -45,7 +45,7 @@ const GarmentCard = ({ garment }: Props) => {
           )}
         </div>
         {isCheckedOut && (
-          <div className="absolute right-2 top-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">
+          <div className="absolute right-2 top-2 rounded-full bg-uncertain px-2 py-0.5 text-[10px] font-bold text-text-inverse">
             <Trans>取り出し中</Trans>
           </div>
         )}

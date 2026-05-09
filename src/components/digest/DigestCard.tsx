@@ -8,6 +8,7 @@ import { msg } from "@lingui/core/macro";
 import type { Digest } from "@/types";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
+import IconButton from "@/components/ui/IconButton";
 import { markDigestReadAtom } from "@/stores/digestAtoms";
 
 type Props = {
@@ -52,19 +53,13 @@ const DigestCard = ({ digest }: Props) => {
               <Trans>未読</Trans>
             </Badge>
           )}
-          <button
-            type="button"
+          <IconButton
+            icon={digest.isRead ? Eye : EyeOff}
+            label={i18n._(digest.isRead ? msg`既読済み` : msg`既読にする`)}
+            size="sm"
             onClick={handleMarkRead}
             disabled={digest.isRead}
-            className="text-text-tertiary transition-colors hover:text-text-primary disabled:cursor-default disabled:opacity-50"
-            aria-label={i18n._(digest.isRead ? msg`既読済み` : msg`既読にする`)}
-          >
-            {digest.isRead ? (
-              <Eye className="size-4" />
-            ) : (
-              <EyeOff className="size-4" />
-            )}
-          </button>
+          />
         </div>
       </div>
 

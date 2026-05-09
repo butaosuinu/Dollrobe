@@ -406,7 +406,7 @@ const CoordinateBuilder = ({
       {s.submitError !== undefined && (
         <p
           role="alert"
-          className="rounded-lg border border-danger/30 bg-red-50 px-3 py-2 text-sm text-danger"
+          className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger"
         >
           {s.submitError}
         </p>

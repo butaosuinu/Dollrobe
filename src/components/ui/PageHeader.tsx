@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import clsx from "clsx";
+import IconButton, { iconButtonClassName } from "@/components/ui/IconButton";
 
 type Props = {
   readonly title: React.ReactNode;
@@ -29,18 +30,17 @@ const PageHeader = ({
       <Link
         href={backHref}
         aria-label={backLabel}
-        className="flex size-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-primary-50"
+        className={iconButtonClassName({ size: "md" })}
       >
-        <ArrowLeft className="size-5" />
+        <ArrowLeft className="size-4" />
       </Link>
     ) : onBack !== undefined ? (
-      <button
+      <IconButton
+        icon={ArrowLeft}
+        label={backLabel ?? ""}
+        size="md"
         onClick={onBack}
-        aria-label={backLabel}
-        className="flex size-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-primary-50"
-      >
-        <ArrowLeft className="size-5" />
-      </button>
+      />
     ) : undefined;
 
   return (
