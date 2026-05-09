@@ -41,12 +41,12 @@ const ConfidenceStats = ({ garments }: Props) => {
     {
       label: msg`確定`,
       value: counts.confirmed,
-      accent: "bg-emerald-50 text-emerald-700",
+      accent: "bg-confirmed/10 text-success",
     },
     {
       label: msg`要確認`,
       value: counts.uncertain + counts.unknown,
-      accent: "bg-amber-50 text-amber-700",
+      accent: "bg-uncertain/15 text-text-primary",
     },
   ];
 

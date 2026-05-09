@@ -3,6 +3,9 @@
 import { useRef } from "react";
 import { X } from "lucide-react";
 import clsx from "clsx";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import IconButton from "@/components/ui/IconButton";
 
 type Props = {
   readonly isOpen: boolean;
@@ -13,6 +16,7 @@ type Props = {
 
 const BottomSheet = ({ isOpen, onClose, title, children }: Props) => {
   const sheetRef = useRef<HTMLDivElement>(null);
+  const { i18n } = useLingui();
 
   if (!isOpen) return undefined;
 
@@ -39,13 +43,12 @@ const BottomSheet = ({ isOpen, onClose, title, children }: Props) => {
         {title !== undefined && (
           <div className="flex items-center justify-between border-b border-border-default px-4 pb-3">
             <h3 className="font-display text-base font-bold">{title}</h3>
-            <button
+            <IconButton
+              icon={X}
+              label={i18n._(t`閉じる`)}
+              size="sm"
               onClick={onClose}
-              className="flex size-8 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-primary-50"
-              aria-label="閉じる"
-            >
-              <X className="size-4" />
-            </button>
+            />
           </div>
         )}
         <div className="overflow-y-auto px-4 pb-8 pt-3">{children}</div>

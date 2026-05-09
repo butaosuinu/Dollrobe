@@ -27,9 +27,9 @@ const getWorstConfidence = (
 };
 
 const CELL_BG = {
-  confirmed: "bg-emerald-50 border-emerald-200",
-  uncertain: "bg-amber-50 border-amber-200",
-  unknown: "bg-orange-50 border-orange-200",
+  confirmed: "bg-confirmed/10 border-confirmed/30",
+  uncertain: "bg-uncertain/15 border-uncertain/40",
+  unknown: "bg-unknown/10 border-unknown/30",
   empty: "bg-surface-raised border-border-default",
 } as const;
 

@@ -11,6 +11,7 @@ import {
   type Locale,
 } from "@/i18n/types";
 import clsx from "clsx";
+import IconButton from "@/components/ui/IconButton";
 
 const LocaleSelector = () => {
   const currentLocale = useAtomValue(localeAtom);
@@ -40,14 +41,12 @@ const LocaleSelector = () => {
 
   return (
     <div ref={ref} className="relative">
-      <button
-        type="button"
+      <IconButton
+        icon={Globe}
+        label={t`言語`}
+        size="md"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex size-8 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-primary-50 hover:text-text-secondary"
-        aria-label={t`言語`}
-      >
-        <Globe className="size-4" />
-      </button>
+      />
 
       {isOpen && (
         <div className="absolute right-0 top-full z-50 mt-1 min-w-[120px] overflow-hidden rounded-lg border border-border-default bg-surface-overlay shadow-md">

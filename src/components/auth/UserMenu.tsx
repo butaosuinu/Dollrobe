@@ -8,6 +8,8 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { authSessionUnwrappedAtom, signOutAtom } from "@/stores/authAtoms";
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
+import IconButton, { iconButtonClassName } from "@/components/ui/IconButton";
+import { buttonClassName } from "@/components/ui/Button";
 
 const UserMenu = () => {
   const authState = useAtomValue(authSessionUnwrappedAtom);
@@ -27,7 +29,7 @@ const UserMenu = () => {
     return (
       <Link
         href="/signin"
-        className="rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-primary-50 hover:text-text-primary"
+        className={buttonClassName({ variant: "ghost", size: "sm" })}
       >
         <Trans>ログイン</Trans>
       </Link>
@@ -47,19 +49,17 @@ const UserMenu = () => {
       )}
       <Link
         href="/settings/account"
-        className="p-1 text-text-tertiary hover:text-text-primary"
         aria-label={t`設定`}
+        className={iconButtonClassName({ size: "sm" })}
       >
         <Settings className="size-4" />
       </Link>
-      <button
-        type="button"
+      <IconButton
+        icon={LogOut}
+        label={t`ログアウト`}
+        size="sm"
         onClick={() => setIsConfirmOpen(true)}
-        className="p-1 text-text-tertiary hover:text-text-primary"
-        aria-label={t`ログアウト`}
-      >
-        <LogOut className="size-4" />
-      </button>
+      />
       <ConfirmSheet
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
