@@ -47,6 +47,38 @@ describe("IconButton", () => {
     render(<IconButton icon={Pencil} label="編集" disabled />);
     expect(screen.getByRole("button", { name: "編集" })).toBeDisabled();
   });
+
+  it("既定で type=button が付与される（フォーム内でも submit しない）", () => {
+    render(<IconButton icon={Pencil} label="編集" />);
+    expect(screen.getByRole("button", { name: "編集" })).toHaveAttribute(
+      "type",
+      "button",
+    );
+  });
+
+  it("type=submit を明示的に渡せる", () => {
+    render(<IconButton icon={Pencil} label="送信" type="submit" />);
+    expect(screen.getByRole("button", { name: "送信" })).toHaveAttribute(
+      "type",
+      "submit",
+    );
+  });
+
+  it("フォーム内でクリックしても onSubmit が走らない（既定 type=button）", async () => {
+    const handleSubmit = vi.fn((e: { preventDefault: () => void }) =>
+      e.preventDefault(),
+    );
+    const handleClick = vi.fn();
+    render(
+      <form onSubmit={handleSubmit}>
+        <IconButton icon={Pencil} label="編集" onClick={handleClick} />
+      </form>,
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "編集" }));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+    expect(handleSubmit).not.toHaveBeenCalled();
+  });
 });
 
 describe("iconButtonClassName", () => {

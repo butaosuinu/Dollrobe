@@ -55,10 +55,12 @@ const IconButton = ({
   label,
   size = "md",
   variant = "default",
+  type = "button",
   disabled,
   ...rest
 }: Props) => (
   <button
+    type={type}
     aria-label={label}
     className={iconButtonClassName({
       size,

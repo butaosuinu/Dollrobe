@@ -62,11 +62,13 @@ const Button = ({
   variant = "primary",
   size = "md",
   fullWidth = false,
+  type = "button",
   children,
   disabled,
   ...rest
 }: Props) => (
   <button
+    type={type}
     className={buttonClassName({
       variant,
       size,
