@@ -21,6 +21,7 @@ import StorageCaseCard from "@/components/location/StorageCaseCard";
 import StorageCaseForm from "@/components/location/StorageCaseForm";
 import StorageCaseEditForm from "@/components/location/StorageCaseEditForm";
 import BottomSheet from "@/components/ui/BottomSheet";
+import Button from "@/components/ui/Button";
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import EmptyState from "@/components/ui/EmptyState";
 import FAB from "@/components/ui/FAB";
@@ -88,13 +89,10 @@ const LocationsContent = () => {
   return (
     <>
       <div className="hidden justify-end lg:flex">
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-primary-600"
-        >
+        <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="size-4" />
           <Trans>ケースを追加</Trans>
-        </button>
+        </Button>
       </div>
       {cases.length === 0 ? (
         <EmptyState

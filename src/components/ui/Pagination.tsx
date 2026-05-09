@@ -1,12 +1,14 @@
 "use client";
 
-import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { PAGE_SIZES } from "@/lib/constants";
 import type { PageSize } from "@/lib/constants";
+import Button from "@/components/ui/Button";
+import IconButton from "@/components/ui/IconButton";
+import PageButton from "@/components/ui/PageButton";
 
 const ELLIPSIS = "ellipsis" as const;
 type PageItem = number | typeof ELLIPSIS;
@@ -90,55 +92,36 @@ const Pagination = ({ pagination, onChangePage, onChangePageSize }: Props) => {
       {totalPages > 1 && (
         <>
           <div className="flex items-center justify-center gap-2 lg:hidden">
-            <button
-              type="button"
+            <IconButton
+              icon={ChevronLeft}
+              label={i18n._(t`前のページ`)}
+              size="md"
               onClick={() => onChangePage(currentPage - 1)}
               disabled={isFirstPage}
-              aria-label={i18n._(t`前のページ`)}
-              className={clsx(
-                "inline-flex size-9 items-center justify-center rounded-lg transition-colors",
-                isFirstPage
-                  ? "pointer-events-none opacity-50"
-                  : "text-text-secondary hover:bg-primary-50",
-              )}
-            >
-              <ChevronLeft className="size-4" />
-            </button>
+            />
             <span className="text-sm text-text-secondary">
               {currentPage} / {totalPages}
             </span>
-            <button
-              type="button"
+            <IconButton
+              icon={ChevronRight}
+              label={i18n._(t`次のページ`)}
+              size="md"
               onClick={() => onChangePage(currentPage + 1)}
               disabled={isLastPage}
-              aria-label={i18n._(t`次のページ`)}
-              className={clsx(
-                "inline-flex size-9 items-center justify-center rounded-lg transition-colors",
-                isLastPage
-                  ? "pointer-events-none opacity-50"
-                  : "text-text-secondary hover:bg-primary-50",
-              )}
-            >
-              <ChevronRight className="size-4" />
-            </button>
+            />
           </div>
 
           <div className="hidden items-center justify-center gap-1 lg:flex">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => onChangePage(currentPage - 1)}
               disabled={isFirstPage}
               aria-label={i18n._(t`前のページ`)}
-              className={clsx(
-                "inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium transition-colors",
-                isFirstPage
-                  ? "pointer-events-none opacity-50"
-                  : "text-text-secondary hover:bg-primary-50",
-              )}
             >
               <ChevronLeft className="size-3.5" />
               <Trans>前へ</Trans>
-            </button>
+            </Button>
 
             {visiblePages.map((item, i) =>
               item === ELLIPSIS ? (
@@ -150,38 +133,25 @@ const Pagination = ({ pagination, onChangePage, onChangePageSize }: Props) => {
                   ...
                 </span>
               ) : (
-                <button
+                <PageButton
                   key={item}
-                  type="button"
-                  onClick={() => onChangePage(item)}
-                  aria-current={item === currentPage ? "page" : undefined}
-                  className={clsx(
-                    "inline-flex size-8 items-center justify-center rounded-lg text-xs font-medium transition-colors",
-                    item === currentPage
-                      ? "bg-primary-500 text-text-inverse"
-                      : "border border-border-default bg-surface-overlay text-text-secondary hover:bg-primary-50",
-                  )}
-                >
-                  {item}
-                </button>
+                  page={item}
+                  currentPage={currentPage}
+                  onClick={onChangePage}
+                />
               ),
             )}
 
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => onChangePage(currentPage + 1)}
               disabled={isLastPage}
               aria-label={i18n._(t`次のページ`)}
-              className={clsx(
-                "inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium transition-colors",
-                isLastPage
-                  ? "pointer-events-none opacity-50"
-                  : "text-text-secondary hover:bg-primary-50",
-              )}
             >
               <Trans>次へ</Trans>
               <ChevronRight className="size-3.5" />
-            </button>
+            </Button>
           </div>
         </>
       )}

@@ -1,10 +1,10 @@
 "use client";
 
 import { Trans } from "@lingui/react/macro";
-import clsx from "clsx";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import ConfidenceBar from "@/components/confidence/ConfidenceBar";
 import ConfidenceBadge from "@/components/confidence/ConfidenceBadge";
+import Button from "@/components/ui/Button";
 import type { Garment } from "@/types";
 
 type ReviewMode = "overview" | "individual";
@@ -36,30 +36,24 @@ const ReviewItemRow = ({
       <ConfidenceBar confidence={confidence} />
       {mode === "individual" && onToggle !== undefined && (
         <div className="flex gap-2">
-          <button
-            type="button"
+          <Button
+            variant={isConfirmed === true ? "primary" : "secondary"}
+            size="sm"
+            fullWidth
+            aria-pressed={isConfirmed === true}
             onClick={() => onToggle(garment.id, true)}
-            className={clsx(
-              "flex-1 rounded-lg py-1.5 text-xs font-medium transition-colors",
-              isConfirmed === true
-                ? "bg-primary-500 text-text-inverse"
-                : "bg-primary-50 text-text-secondary",
-            )}
           >
             <Trans>ある</Trans>
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant={isConfirmed === false ? "danger-solid" : "danger"}
+            size="sm"
+            fullWidth
+            aria-pressed={isConfirmed === false}
             onClick={() => onToggle(garment.id, false)}
-            className={clsx(
-              "flex-1 rounded-lg py-1.5 text-xs font-medium transition-colors",
-              isConfirmed === false
-                ? "bg-red-500 text-white"
-                : "bg-red-50 text-text-secondary",
-            )}
           >
             <Trans>ない</Trans>
-          </button>
+          </Button>
         </div>
       )}
     </div>

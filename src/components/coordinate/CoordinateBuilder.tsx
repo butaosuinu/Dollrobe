@@ -15,6 +15,7 @@ import {
 import { GARMENT_CATEGORY_LABEL } from "@/lib/i18n-labels";
 import type { Coordinate, Garment } from "@/types";
 import Button from "@/components/ui/Button";
+import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import SearchInput from "@/components/ui/SearchInput";
@@ -99,32 +100,27 @@ const SelectedGarmentsList = ({
             </div>
           </div>
           <div className="flex items-center gap-1 border-l border-primary-200/60 pl-2">
-            <button
-              type="button"
-              aria-label={t`上へ`}
+            <IconButton
+              icon={ArrowUp}
+              label={t`上へ`}
+              size="sm"
               onClick={() => onMoveUp(garment.id)}
               disabled={index === 0}
-              className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-100 disabled:opacity-30 disabled:hover:bg-transparent"
-            >
-              <ArrowUp className="size-4" />
-            </button>
-            <button
-              type="button"
-              aria-label={t`下へ`}
+            />
+            <IconButton
+              icon={ArrowDown}
+              label={t`下へ`}
+              size="sm"
               onClick={() => onMoveDown(garment.id)}
               disabled={index === lastIndex}
-              className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-primary-100 disabled:opacity-30 disabled:hover:bg-transparent"
-            >
-              <ArrowDown className="size-4" />
-            </button>
-            <button
-              type="button"
-              aria-label={t`削除`}
+            />
+            <IconButton
+              icon={RemoveIcon}
+              label={t`削除`}
+              size="sm"
+              variant="danger"
               onClick={() => onRemove(garment.id)}
-              className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-red-50 hover:text-danger"
-            >
-              <RemoveIcon className="size-4" />
-            </button>
+            />
           </div>
         </li>
       ))}

@@ -11,6 +11,7 @@ import { coordinatesAtom } from "@/stores/coordinateAtoms";
 import { garmentsAtom } from "@/stores/garmentAtoms";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import CoordinateCard from "@/components/coordinate/CoordinateCard";
+import { buttonClassName } from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import FAB from "@/components/ui/FAB";
 import Skeleton from "@/components/ui/Skeleton";
@@ -57,7 +58,7 @@ const CoordinatesPage = () => (
       </h2>
       <Link
         href="/coordinates/new"
-        className="hidden items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-primary-600 lg:inline-flex"
+        className={`hidden lg:inline-flex ${buttonClassName({ variant: "primary", size: "md" })}`}
       >
         <Plus className="size-4" />
         <Trans>新規作成</Trans>

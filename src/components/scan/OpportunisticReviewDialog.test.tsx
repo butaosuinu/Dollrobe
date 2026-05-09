@@ -131,7 +131,7 @@ describe("OpportunisticReviewDialog", () => {
     if (firstNaiButton === undefined) return;
     fireEvent.click(firstNaiButton);
 
-    expect(firstNaiButton).toHaveClass("bg-red-500");
+    expect(firstNaiButton).toHaveAttribute("aria-pressed", "true");
   });
 
   it("個別選択モードで「確定する」が正しいconfirmationsを渡す", async () => {

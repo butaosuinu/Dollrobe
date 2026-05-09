@@ -7,7 +7,6 @@ import { createId } from "@paralleldrive/cuid2";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import clsx from "clsx";
 import { Loader2 } from "lucide-react";
 import { addGarmentAtom, updateGarmentAtom } from "@/stores/garmentAtoms";
 import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
@@ -31,6 +30,7 @@ import { useBrandSuggestions } from "@/hooks/useBrandSuggestions";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import Chip from "@/components/ui/Chip";
 import TagInput from "@/components/ui/TagInput";
 import ColorPicker from "@/components/ui/ColorPicker";
 import AutocompleteInput from "@/components/ui/AutocompleteInput";
@@ -273,23 +273,17 @@ const GarmentForm = ({ garment }: Props) => {
           {sizeOptions.map(({ value, label }) => {
             const selected = isDollSize(value) && dollSizes.includes(value);
             return (
-              <button
+              <Chip
                 key={value}
-                type="button"
+                selected={selected}
                 onClick={() => {
                   if (isDollSize(value)) {
                     toggleDollSize(value);
                   }
                 }}
-                className={clsx(
-                  "rounded-full border px-3 py-2 text-xs font-medium transition-colors",
-                  selected
-                    ? "border-primary-500 bg-primary-500 text-text-inverse"
-                    : "border-border-default bg-surface-overlay text-text-secondary hover:bg-primary-50",
-                )}
               >
                 {label}
-              </button>
+              </Chip>
             );
           })}
         </div>
