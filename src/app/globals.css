@@ -32,7 +32,7 @@
   --color-text-tertiary: oklch(0.6 0.01 285);
   --color-text-inverse: oklch(0.98 0 0);
 
-  /* === Confidence === */
+  /* === Confidence / Status === */
   --color-confirmed: oklch(0.72 0.19 142);
   --color-uncertain: oklch(0.8 0.18 84);
   --color-unknown: oklch(0.63 0.24 29);

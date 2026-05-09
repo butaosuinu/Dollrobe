@@ -1,6 +1,12 @@
 import clsx from "clsx";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "danger"
+  | "outline"
+  | "danger-solid";
 type ButtonSize = "sm" | "md" | "lg";
 
 type Props = {
@@ -17,7 +23,11 @@ const VARIANT_STYLES: Record<ButtonVariant, string> = {
     "bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300",
   ghost:
     "bg-transparent text-text-secondary hover:bg-primary-50 active:bg-primary-100",
-  danger: "bg-red-50 text-danger hover:bg-red-100 active:bg-red-200",
+  danger: "bg-danger/10 text-danger hover:bg-danger/15 active:bg-danger/25",
+  outline:
+    "border border-border-default bg-surface-overlay text-text-secondary hover:bg-primary-50 hover:text-primary-700",
+  "danger-solid":
+    "bg-danger text-text-inverse hover:opacity-90 active:opacity-80",
 };
 
 const SIZE_STYLES: Record<ButtonSize, string> = {
@@ -25,6 +35,28 @@ const SIZE_STYLES: Record<ButtonSize, string> = {
   md: "h-10 px-4 text-sm",
   lg: "h-12 px-6 text-base",
 };
+
+type ButtonClassNameOptions = {
+  readonly variant?: ButtonVariant;
+  readonly size?: ButtonSize;
+  readonly fullWidth?: boolean;
+  readonly disabled?: boolean;
+};
+
+export const buttonClassName = ({
+  variant = "primary",
+  size = "md",
+  fullWidth = false,
+  disabled = false,
+}: ButtonClassNameOptions = {}) =>
+  clsx(
+    "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+    VARIANT_STYLES[variant],
+    SIZE_STYLES[size],
+    fullWidth && "w-full",
+    disabled && "opacity-50",
+  );
 
 const Button = ({
   variant = "primary",
@@ -35,14 +67,12 @@ const Button = ({
   ...rest
 }: Props) => (
   <button
-    className={clsx(
-      "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
-      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
-      VARIANT_STYLES[variant],
-      SIZE_STYLES[size],
-      fullWidth && "w-full",
-      disabled && "opacity-50",
-    )}
+    className={buttonClassName({
+      variant,
+      size,
+      fullWidth,
+      disabled: disabled === true,
+    })}
     disabled={disabled}
     {...rest}
   >
