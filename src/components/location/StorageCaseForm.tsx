@@ -13,6 +13,7 @@ import {
 } from "@/lib/constants";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import FormShell from "@/components/ui/FormShell";
 import Textarea from "@/components/ui/Textarea";
 
 type CreateCaseInput =
@@ -94,7 +95,7 @@ const StorageCaseForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <FormShell gap="md" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-text-secondary">
           <Trans>タイプ</Trans>
@@ -173,7 +174,7 @@ const StorageCaseForm = ({
           <Trans>作成</Trans>
         </Button>
       </div>
-    </form>
+    </FormShell>
   );
 };
 

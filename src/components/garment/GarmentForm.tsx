@@ -35,6 +35,7 @@ import TagInput from "@/components/ui/TagInput";
 import ColorPicker from "@/components/ui/ColorPicker";
 import AutocompleteInput from "@/components/ui/AutocompleteInput";
 import Textarea from "@/components/ui/Textarea";
+import FormShell from "@/components/ui/FormShell";
 import ImageUpload from "@/components/garment/ImageUpload";
 
 type Props = {
@@ -229,7 +230,7 @@ const GarmentForm = ({ garment }: Props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+    <FormShell gap="md" onSubmit={handleSubmit}>
       <ImageUpload
         imagePreview={imagePreview}
         uploadState={uploadState}
@@ -341,7 +342,7 @@ const GarmentForm = ({ garment }: Props) => {
           <Trans>登録する</Trans>
         )}
       </Button>
-    </form>
+    </FormShell>
   );
 };
 

@@ -17,6 +17,7 @@ import { useImageUpload } from "@/hooks/useImageUpload";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import FormShell from "@/components/ui/FormShell";
 import Textarea from "@/components/ui/Textarea";
 import ImageUpload from "@/components/garment/ImageUpload";
 
@@ -156,7 +157,7 @@ const DollForm = ({ doll }: Props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+    <FormShell gap="md" onSubmit={handleSubmit}>
       <ImageUpload
         imagePreview={imagePreview}
         uploadState={uploadState}
@@ -230,7 +231,7 @@ const DollForm = ({ doll }: Props) => {
           <Trans>登録する</Trans>
         )}
       </Button>
-    </form>
+    </FormShell>
   );
 };
 

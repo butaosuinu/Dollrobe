@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import TextButton from "@/components/ui/TextButton";
@@ -62,26 +63,30 @@ const SelectTypeStep = ({ onSelect }: SelectTypeStepProps) => (
     <p className="text-sm text-text-secondary">
       <Trans>書き込む対象を選択してください</Trans>
     </p>
-    <button
-      type="button"
-      className="flex items-center gap-3 rounded-xl border border-border-default bg-surface-overlay p-4 transition-colors hover:border-primary-400"
+    <Card
+      clickable
+      hoverable
+      padding="md"
       onClick={() => onSelect("garment")}
+      className="flex items-center gap-3"
     >
       <Shirt className="size-6 text-primary-500" />
       <span className="font-medium text-text-primary">
         <Trans>服</Trans>
       </span>
-    </button>
-    <button
-      type="button"
-      className="flex items-center gap-3 rounded-xl border border-border-default bg-surface-overlay p-4 transition-colors hover:border-primary-400"
+    </Card>
+    <Card
+      clickable
+      hoverable
+      padding="md"
       onClick={() => onSelect("location")}
+      className="flex items-center gap-3"
     >
       <MapPin className="size-6 text-primary-500" />
       <span className="font-medium text-text-primary">
         <Trans>収納場所</Trans>
       </span>
-    </button>
+    </Card>
   </div>
 );
 
