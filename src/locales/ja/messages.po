@@ -249,6 +249,10 @@ msgstr "DDP (~43.5cm)"
 msgid "DDS (~55cm)"
 msgstr "DDS (~55cm)"
 
+#: src/app/(public)/signin/page.tsx
+msgid "Dollrobe にログイン"
+msgstr "Dollrobe にログイン"
+
 #: src/components/auth/LoginButton.tsx
 msgid "Google でログイン"
 msgstr "Google でログイン"
@@ -882,8 +886,8 @@ msgid "ドール服の名前"
 msgstr "ドール服の名前"
 
 #: src/app/(public)/signin/page.tsx
-msgid "ドール服管理にログイン"
-msgstr "ドール服管理にログイン"
+#~ msgid "ドール服管理にログイン"
+#~ msgstr "ドール服管理にログイン"
 
 #: src/components/marketing/ProblemSection.tsx
 msgid "どこにしまったか分からない"
@@ -957,8 +961,8 @@ msgid "フィルター"
 msgstr "フィルター"
 
 #: src/components/marketing/MarketingFooter.tsx
-msgid "プライバシーポリシー"
-msgstr "プライバシーポリシー"
+#~ msgid "プライバシーポリシー"
+#~ msgstr "プライバシーポリシー"
 
 #: src/components/garment/GarmentForm.tsx
 msgid "ブラウス、スカート、リボン等"
@@ -1388,8 +1392,8 @@ msgid "列数"
 msgstr "列数"
 
 #: src/components/marketing/MarketingFooter.tsx
-msgid "利用規約"
-msgstr "利用規約"
+#~ msgid "利用規約"
+#~ msgstr "利用規約"
 
 #: src/app/coordinates/[id]/page.tsx
 #: src/app/coordinates/[id]/page.tsx

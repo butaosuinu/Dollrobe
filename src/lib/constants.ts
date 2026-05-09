@@ -1,5 +1,7 @@
 import type { DollSize, GarmentCategory, GarmentStatus } from "@/types";
 
+export const APP_NAME = "Dollrobe";
+
 export const GARMENT_STATUS = Object.freeze({
   STORED: "stored",
   CHECKED_OUT: "checked_out",
