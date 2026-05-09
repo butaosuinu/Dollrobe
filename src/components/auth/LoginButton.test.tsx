@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { I18nTestWrapper } from "@/test/i18nWrapper";
+import { installObjectProperty } from "@/test/helpers/propertyMock";
 import LoginButton from "./LoginButton";
 
 const mockSignInSocial = vi.fn().mockResolvedValue(undefined);
@@ -34,6 +35,38 @@ describe("LoginButton", () => {
     );
 
     expect(mockSignInSocial).toHaveBeenCalledWith({ provider: "twitter" });
+  });
+
+  it("callbackURL prop が渡されたとき signInSocial に絶対 URL で渡される", async () => {
+    installObjectProperty(window, "location", {
+      origin: "https://example.test",
+    });
+    const user = userEvent.setup();
+    render(<LoginButton provider="google" callbackURL="/dashboard" />, {
+      wrapper: I18nTestWrapper,
+    });
+
+    await user.click(screen.getByRole("button", { name: "Google でログイン" }));
+
+    expect(mockSignInSocial).toHaveBeenCalledWith({
+      provider: "google",
+      callbackURL: "https://example.test/dashboard",
+    });
+  });
+
+  it("callbackURL が // で始まるときは signInSocial に callbackURL が渡されない", async () => {
+    installObjectProperty(window, "location", {
+      origin: "https://example.test",
+    });
+    const user = userEvent.setup();
+    render(
+      <LoginButton provider="google" callbackURL="//evil.example.com/bad" />,
+      { wrapper: I18nTestWrapper },
+    );
+
+    await user.click(screen.getByRole("button", { name: "Google でログイン" }));
+
+    expect(mockSignInSocial).toHaveBeenCalledWith({ provider: "google" });
   });
 
   it("ログインエラー時にconsole.errorが呼ばれる", async () => {

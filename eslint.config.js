@@ -35,6 +35,7 @@ export default tseslint.config(
       "public/opencv.js",
       "e2e/",
       "playwright.config.ts",
+      "scripts/",
       ".claude/",
       ".mcp.json",
     ],

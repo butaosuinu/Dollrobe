@@ -30,10 +30,10 @@ describe("BottomNav", () => {
   });
 
   it("全てのナビゲーション項目を表示する", async () => {
-    setPathname("/");
+    setPathname("/dashboard");
     await renderNav();
 
-    expect(getNavLink("/")).toBeInTheDocument();
+    expect(getNavLink("/dashboard")).toBeInTheDocument();
     expect(getNavLink("/garments")).toBeInTheDocument();
     expect(getNavLink("/coordinates")).toBeInTheDocument();
     expect(getNavLink("/scan")).toBeInTheDocument();
@@ -42,7 +42,7 @@ describe("BottomNav", () => {
   });
 
   it("各ナビゲーション項目のラベルを表示する", async () => {
-    setPathname("/");
+    setPathname("/dashboard");
     await renderNav();
 
     expect(screen.getByText("ホーム")).toBeInTheDocument();
@@ -54,10 +54,10 @@ describe("BottomNav", () => {
   });
 
   it("pathname が / のときホームのみ active になる", async () => {
-    setPathname("/");
+    setPathname("/dashboard");
     await renderNav();
 
-    expect(getNavLink("/").className).toContain(ACTIVE_CLASS);
+    expect(getNavLink("/dashboard").className).toContain(ACTIVE_CLASS);
     expect(getNavLink("/garments").className).toContain(INACTIVE_CLASS);
     expect(getNavLink("/coordinates").className).toContain(INACTIVE_CLASS);
     expect(getNavLink("/dolls").className).toContain(INACTIVE_CLASS);
@@ -68,8 +68,8 @@ describe("BottomNav", () => {
     setPathname("/garments");
     await renderNav();
 
-    expect(getNavLink("/").className).toContain(INACTIVE_CLASS);
-    expect(getNavLink("/").className).not.toContain(ACTIVE_CLASS);
+    expect(getNavLink("/dashboard").className).toContain(INACTIVE_CLASS);
+    expect(getNavLink("/dashboard").className).not.toContain(ACTIVE_CLASS);
   });
 
   it("pathname が /garments/123 のときワードローブが active になる（前方一致）", async () => {
@@ -77,7 +77,7 @@ describe("BottomNav", () => {
     await renderNav();
 
     expect(getNavLink("/garments").className).toContain(ACTIVE_CLASS);
-    expect(getNavLink("/").className).toContain(INACTIVE_CLASS);
+    expect(getNavLink("/dashboard").className).toContain(INACTIVE_CLASS);
     expect(getNavLink("/locations").className).toContain(INACTIVE_CLASS);
   });
 
@@ -110,13 +110,13 @@ describe("BottomNav", () => {
   });
 
   it("スキャンボタンは特別なスタイル (-mt-3) を持ち、他のリンクは持たない", async () => {
-    setPathname("/");
+    setPathname("/dashboard");
     await renderNav();
 
     const scanLink = getNavLink("/scan");
     expect(scanLink.className).toContain("-mt-3");
 
-    const homeLink = getNavLink("/");
+    const homeLink = getNavLink("/dashboard");
     expect(homeLink.className).not.toContain("-mt-3");
     expect(homeLink.className).toContain("px-3");
   });
@@ -126,7 +126,7 @@ describe("BottomNav", () => {
     await renderNav();
 
     expect(getNavLink("/dolls").className).toContain(ACTIVE_CLASS);
-    expect(getNavLink("/").className).toContain(INACTIVE_CLASS);
+    expect(getNavLink("/dashboard").className).toContain(INACTIVE_CLASS);
   });
 
   it("pathname が /locations のとき収納が active になる", async () => {
@@ -134,6 +134,6 @@ describe("BottomNav", () => {
     await renderNav();
 
     expect(getNavLink("/locations").className).toContain(ACTIVE_CLASS);
-    expect(getNavLink("/").className).toContain(INACTIVE_CLASS);
+    expect(getNavLink("/dashboard").className).toContain(INACTIVE_CLASS);
   });
 });

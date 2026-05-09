@@ -159,6 +159,10 @@ msgstr "Permanently delete \"{0}\"? This action cannot be undone."
 msgid "「{0}」を紛失としてマークします。収納場所の情報はクリアされます。"
 msgstr "Mark \"{0}\" as lost. Its location information will be cleared."
 
+#: src/app/(public)/signin/page.tsx
+msgid "← サービス紹介に戻る"
+msgstr "← Back to landing page"
+
 #: src/app/(public)/signup/page.tsx
 msgid "30 秒で、最初の引き出しを開けられます"
 msgstr "Open your first drawer in 30 seconds"
@@ -289,6 +293,10 @@ msgstr "NFC tag write completed"
 msgid "NFC タグ書き込み"
 msgstr "NFC Tag Write"
 
+#: src/components/marketing/FeatureGrid.tsx
+msgid "NFC にも対応"
+msgstr "NFC supported too"
+
 #: src/app/nfc-write/page.tsx
 #: src/components/scan/NfcReader.tsx
 msgid "NFC の権限が拒否されました"
@@ -305,6 +313,22 @@ msgstr "Waiting for NFC..."
 #: src/components/scan/NfcCapabilityBadge.tsx
 msgid "NFC 非対応"
 msgstr "NFC not supported"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "QR / NFC ラベルを印刷して貼る"
+msgstr "Print QR / NFC labels and apply them"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "QR スキャンで収納記録"
+msgstr "Scan QR codes to record storage"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "QR と NFC で、<0/>収納を半自動化する"
+msgstr "Use QR and NFC<0/>to semi-automate storage"
+
+#: src/components/marketing/Hero.tsx
+msgid "QR と NFC で、ドール服の収納を半自動で管理。手入力は一切なし。スキャンするだけで、 どこに何があるかが常に最新の状態になります。"
+msgstr "QR and NFC let you manage your doll wardrobe storage with no manual entry — just scan to keep what's where always up to date."
 
 #: src/app/print/page.tsx
 msgid "QR ラベル印刷"
@@ -412,6 +436,10 @@ msgstr "Failed to delete account"
 msgid "アカウントをお持ちでない方は <0>新規登録</0>"
 msgstr "Don't have an account? <0>Sign up</0>"
 
+#: src/components/marketing/MarketingFooter.tsx
+msgid "アカウントを作るのに、10 秒もかかりません。"
+msgstr "Creating an account takes less than 10 seconds."
+
 #: src/components/auth/SignUpForm.tsx
 msgid "アカウントを作成できませんでした。メールアドレスがすでに使われている可能性があります。"
 msgstr "Could not create account. The email may already be in use."
@@ -442,6 +470,10 @@ msgstr "Uploading..."
 msgid "あなたの在庫状況"
 msgstr "Your inventory status"
 
+#: src/components/marketing/Hero.tsx
+msgid "あの服、どこにしまったっけ？<0/><1>を、終わらせる。</1>"
+msgstr "“Where did I put that outfit?”<0/><1>Let's end that.</1>"
+
 #: src/components/scan/ReviewItemRow.tsx
 msgid "ある"
 msgstr "Present"
@@ -462,7 +494,7 @@ msgstr "Import complete"
 msgid "ウィッグ"
 msgstr "Wigs"
 
-#: src/app/page.tsx
+#: src/app/dashboard/page.tsx
 msgid "おかえりなさい"
 msgstr "Welcome back"
 
@@ -481,6 +513,10 @@ msgstr "Going-out outfit"
 #: src/app/coordinates/page.tsx
 msgid "お気に入りの組み合わせを保存しておきましょう"
 msgstr "Save your favourite combinations."
+
+#: src/components/marketing/StepsSection.tsx
+msgid "お迎えしたドールと、衣装を入れる引き出しやケースをアプリに追加します。"
+msgstr "Add your dolls and the drawers or cases that hold their clothes."
 
 #: src/app/dolls/page.tsx
 #: src/app/dolls/page.tsx
@@ -643,6 +679,10 @@ msgstr "Season, scene, why you chose it..."
 msgid "シアン"
 msgstr "Cyan"
 
+#: src/components/marketing/ProblemSection.tsx
+msgid "しばらく着せていない服が、いつの間にか箱の底で見つからない服になっている。"
+msgstr "Outfits you haven't dressed in a while end up lost at the bottom of a box."
+
 #: src/components/digest/DigestCard.tsx
 #~ msgid "しばらく確認していない服が{0}着あります"
 #~ msgstr "{0} garments have not been checked in a while"
@@ -675,6 +715,10 @@ msgstr "Scanned"
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "スキャン中の場所"
 msgstr "Scanning location"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "スキャン画面"
+msgstr "Scan screen"
 
 #: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 msgid "スコープ"
@@ -753,9 +797,17 @@ msgstr "Type"
 msgid "タグ"
 msgstr "Tags"
 
-#: src/app/page.tsx
+#: src/components/marketing/FeatureGrid.tsx
+msgid "タグに触れるだけで場所を記録。QR が読みづらい現場でもスムーズ（Android）。"
+msgstr "Just touch a tag to record the location. Smooth even when QR is hard to read (Android)."
+
+#: src/app/dashboard/page.tsx
 msgid "ダッシュボード"
 msgstr "Dashboard"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "ダッシュボード画面"
+msgstr "Dashboard screen"
 
 #: src/components/digest/DigestBanner.tsx
 msgid "タップして確認する"
@@ -764,6 +816,10 @@ msgstr "Tap to check"
 #: src/components/dashboard/WardrobeAnalytics.tsx
 msgid "データがありません"
 msgstr "No data available"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "できること"
+msgstr "What you can do"
 
 #: src/app/garments/page.tsx
 #: src/lib/nav-items.ts
@@ -789,6 +845,10 @@ msgstr "Doll size"
 msgid "ドールで絞り込み"
 msgstr "Filter by doll"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "ドールと収納場所を登録"
+msgstr "Register dolls and storage spots"
+
 #: src/components/doll/DollForm.tsx
 msgid "ドールの名前"
 msgstr "Doll name"
@@ -812,6 +872,14 @@ msgstr "Edit doll"
 msgid "ドール一覧"
 msgstr "Doll list"
 
+#: src/components/marketing/ProblemSection.tsx
+msgid "ドール服コレクターの「あるある」"
+msgstr "Common pain points for doll-clothes collectors"
+
+#: src/components/marketing/Hero.tsx
+msgid "ドール服のための収納管理 PWA"
+msgstr "Storage management PWA for doll clothes"
+
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/GarmentForm.tsx
 msgid "ドール服の名前"
@@ -820,6 +888,10 @@ msgstr "Garment name"
 #: src/app/(public)/signin/page.tsx
 #~ msgid "ドール服管理にログイン"
 #~ msgstr "Sign in to Doll Wardrobe"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "どこにしまったか分からない"
+msgstr "I can't remember where I put it"
 
 #: src/lib/i18n-labels.ts
 msgid "トップス"
@@ -836,6 +908,10 @@ msgstr "Missing"
 #: src/components/scan/OrphanCheckoutDialog.tsx
 #~ msgid "なくした"
 #~ msgstr "Lost"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "はじめの 4 ステップ"
+msgstr "First 4 steps"
 
 #: src/app/settings/account/page.tsx
 #: src/components/auth/EmailPasswordForm.tsx
@@ -883,6 +959,10 @@ msgstr "Pink"
 #: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "Filter"
+
+#: src/components/marketing/MarketingFooter.tsx
+#~ msgid "プライバシーポリシー"
+#~ msgstr "Privacy Policy"
 
 #: src/components/garment/GarmentForm.tsx
 msgid "ブラウス、スカート、リボン等"
@@ -1113,6 +1193,10 @@ msgstr "View wardrobe"
 msgid "ワードローブ分析"
 msgstr "Wardrobe Analysis"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "ワードローブ画面"
+msgstr "Wardrobe screen"
+
 #: src/lib/i18n-labels.ts
 msgid "ワンピース"
 msgstr "One-piece"
@@ -1171,6 +1255,10 @@ msgstr "Confirm without being here"
 msgid "他のユーザーや UI に表示されます。"
 msgstr "Shown to other users and in the UI."
 
+#: src/components/marketing/StepsSection.tsx
+msgid "以降はスキャンするだけ"
+msgstr "From here on, just scan"
+
 #: src/components/location/StorageCaseForm.tsx
 msgid "作成"
 msgstr "Create"
@@ -1178,6 +1266,10 @@ msgstr "Create"
 #: src/components/settings/api-key/ApiKeyList.tsx
 msgid "作成日時"
 msgstr "Created"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "使い方"
+msgstr "How it works"
 
 #: src/app/coordinates/[id]/page.tsx
 msgid "使用する服"
@@ -1283,13 +1375,25 @@ msgstr "Last used"
 msgid "最近のアイテム"
 msgstr "Recent items"
 
+#: src/components/marketing/FeatureGrid.tsx
+msgid "最近確認していない服を教えてくれる"
+msgstr "Surfaces clothes you haven't checked recently"
+
 #: src/components/garment/ImageUpload.tsx
 msgid "写真を追加"
 msgstr "Add photo"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "出し入れの度に場所の QR を読むだけで、居場所が常に最新の状態に保たれます。"
+msgstr "Just scan a location's QR each time you take something out or put it back; the records stay current."
+
 #: src/components/location/StorageCaseForm.tsx
 msgid "列数"
 msgstr "Columns"
+
+#: src/components/marketing/MarketingFooter.tsx
+#~ msgid "利用規約"
+#~ msgstr "Terms of Service"
 
 #: src/app/coordinates/[id]/page.tsx
 #: src/app/coordinates/[id]/page.tsx
@@ -1327,6 +1431,22 @@ msgstr "No QR codes selected for printing"
 msgid "収納"
 msgstr "Storage"
 
+#: src/components/marketing/FeatureGrid.tsx
+msgid "収納グリッドで一目で把握"
+msgstr "Grasp storage at a glance"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "収納グリッド画面"
+msgstr "Storage grid screen"
+
+#: src/components/marketing/MarketingFooter.tsx
+msgid "収納の答え合わせを、<0/>スキャン 1 回に。"
+msgstr "End the storage guesswork<0/>with a single scan."
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "収納を入れ替えたらズレる"
+msgstr "Storage shuffles throw it off"
+
 #: src/lib/i18n-labels.ts
 msgid "収納中"
 msgstr "Stored"
@@ -1347,6 +1467,14 @@ msgstr "No storage locations"
 #: src/components/garment/LocationPicker.tsx
 msgid "収納場所を選択"
 msgstr "Select storage location"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "取り出したまま忘れている服を検知"
+msgstr "Detects clothes left out and forgotten"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "取り出して何日も戻していない服を通知。「戻した／着せた／見つからない」の 3 択で片付きます。"
+msgstr "Get notified about clothes that have been out for days. Resolve with three choices: returned, dressed, or missing."
 
 #: src/components/garment/GarmentCard.tsx
 #: src/lib/i18n-labels.ts
@@ -1399,6 +1527,14 @@ msgstr "Search by name or tag..."
 msgid "圧縮中..."
 msgstr "Compressing..."
 
+#: src/components/marketing/FeatureGrid.tsx
+msgid "場所の QR → 服の QR を連続スキャンするだけ。どこに何をしまったかが、自動で残ります。"
+msgstr "Just scan the location's QR, then the clothes' QR — what went where is recorded automatically."
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "場所の QR をスキャンしたときに、しばらく見ていない服だけをその場でピックアップ。"
+msgstr "When you scan a location's QR, it picks out only the clothes you haven't seen in a while."
+
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "場所のQRをスキャンして、収納場所を設定してください"
 msgstr "Scan a location QR to set the storage location"
@@ -1432,6 +1568,10 @@ msgstr "You can issue API keys for external agents to connect"
 msgid "失効"
 msgstr "Revoke"
 
+#: src/components/marketing/MarketingHeader.tsx
+msgid "始める"
+msgstr "Get started"
+
 #: src/lib/i18n-labels.ts
 msgid "季節物 (90日)"
 msgstr "Seasonal (90 days)"
@@ -1460,9 +1600,17 @@ msgstr "Hats/Headdress"
 msgid "引き出し"
 msgstr "Drawer"
 
+#: src/components/marketing/FeatureGrid.tsx
+msgid "引き出しのマス目ごとに「今、何が入っているか」を図で確認できます。"
+msgstr "See exactly what's in each drawer cell at a glance."
+
 #: src/app/(public)/signin/page.tsx
 msgid "引き出しの中身を、いつでもどこでも"
 msgstr "Your drawers, anytime and anywhere"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "引き出しや服のタグに QR を貼るだけ。NFC シールでも代用できます（Android）。"
+msgstr "Just stick QR onto drawers and clothes tags. NFC stickers work too (Android)."
 
 #: src/components/location/StorageGrid.tsx
 msgid "引き出しを編集"
@@ -1575,10 +1723,26 @@ msgstr "Garment"
 msgid "服 ({0})"
 msgstr "Garments ({0})"
 
+#: src/components/marketing/ProblemSection.tsx
+msgid "服が増えるほど、<0/>管理が難しくなる"
+msgstr "The more clothes you have,<0/>the harder it gets"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "服が増えるほど、どの引き出しに何を入れたか思い出せなくなる。探すだけで時間が溶けていく。"
+msgstr "As clothes pile up, you lose track of which drawer holds what. Searching alone eats your time."
+
 #: src/app/garments/[id]/edit/page.tsx
 #: src/app/garments/[id]/page.tsx
 msgid "服が見つかりません"
 msgstr "Garment not found"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "服と場所の QR を順番にスキャン。「どこに、何を入れたか」が自動で記録されます。"
+msgstr "Scan the clothes' QR then the location's QR. \"What went where\" is recorded automatically."
+
+#: src/components/marketing/StepsSection.tsx
+msgid "服を QR と紐づけて収納"
+msgstr "Tag clothes with QR and store them"
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -1638,6 +1802,19 @@ msgstr "Next"
 msgid "毎週月曜日に自動生成されます"
 msgstr "Auto-generated every Monday"
 
+#: src/components/marketing/ProblemSection.tsx
+msgid "気づいたら行方不明"
+msgstr "Suddenly missing"
+
+#: src/components/marketing/Hero.tsx
+#: src/components/marketing/MarketingFooter.tsx
+msgid "無料で始める"
+msgstr "Get started for free"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "片付けの度に場所が変わり、アプリの記録と現実の居場所がすぐに合わなくなる。"
+msgstr "Each tidy-up shifts items, and the app's record drifts from reality."
+
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "状態"
 msgstr "Status"
@@ -1680,6 +1857,10 @@ msgstr "Register"
 #: src/components/garment/bulk/BulkRegistrationProgress.tsx
 msgid "登録できませんでした"
 msgstr "Registration failed"
+
+#: src/components/marketing/Hero.tsx
+msgid "登録は Google / X アカウントで 10 秒"
+msgstr "Sign up in 10 seconds with Google or X"
 
 #: src/components/auth/SignUpForm.tsx
 msgid "登録中…"
@@ -1850,6 +2031,7 @@ msgstr "Description"
 #: src/app/archive/page.tsx
 #: src/app/coordinates/[id]/page.tsx
 #: src/app/coordinates/page.tsx
+#: src/app/dashboard/page.tsx
 #: src/app/digest/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
 #: src/app/dolls/[id]/page.tsx
@@ -1860,7 +2042,6 @@ msgstr "Description"
 #: src/app/garments/page.tsx
 #: src/app/locations/[caseId]/page.tsx
 #: src/app/locations/page.tsx
-#: src/app/page.tsx
 msgid "読み込みに失敗しました"
 msgstr "Failed to load"
 
@@ -1876,11 +2057,19 @@ msgstr "Check your network connection and reload the page"
 msgid "通常 (30日)"
 msgstr "Normal (30 days)"
 
+#: src/components/marketing/FeatureGrid.tsx
+msgid "通知は月曜の朝 1 回だけ。通知疲れしない、穏やかな設計。"
+msgstr "Just one digest each Monday morning. No notification fatigue, gentle by design."
+
 #: src/app/garments/bulk/page.tsx
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
 msgid "連続撮影"
 msgstr "Burst capture"
+
+#: src/components/marketing/FeatureGrid.tsx
+msgid "週 1 回のダイジェスト"
+msgstr "Weekly digest"
 
 #: src/app/digest/page.tsx
 msgid "週間レポート"

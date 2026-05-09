@@ -545,14 +545,18 @@ crons = ["0 9 * * 1"]  # 毎週月曜 9:00 UTC
 
 - `next/navigation` → `setupNextNavigation`
 - `next/link` → 自動（`<a>` タグへ展開）
-- `@paralleldrive/cuid2` → `setupCuid2`
 - `jsqr` → `setupJsqr` / `createMockQRCode`
-- `@/hooks/useImageUpload` → `setupUseImageUpload`
-- `@/hooks/useNfcSupported` → `setupUseNfcSupported`
 - `@/hooks/useNfcReader` → `setupUseNfcReader`
 - `@/hooks/useColorExtraction` → `setupUseColorExtraction`
-- `@/hooks/useBrandSuggestions` → `setupUseBrandSuggestions`
-- `@/hooks/useOnlineSync` → 自動（noop）
+- `@/lib/image/compressImage` → 自動（`{file, width, height}` を即座に解決する `vi.fn()` モック。`vi.mocked(compressImage).mockImplementationOnce(...)` で個別テストの挙動を上書き可能）
+
+ID 生成・ブランド候補・画像アップロード・NFC capability・オンライン同期は集約モックを置かず、実装をそのまま使う:
+
+- `@paralleldrive/cuid2` の `createId()` は実 ID を返す。テストは固定値ではなく形式（`/^[a-z0-9]+$/i` 等）でアサートすること
+- `@/hooks/useImageUpload` は実フックを使い、`POST */api/images/upload/*` を `server.use(http.post(...))` で個別 MSW ハンドルする
+- `@/hooks/useNfcSupported` は実フックを使い、必要なら `vi.spyOn(nfcCapability, "isNfcSupported").mockReturnValue(...)` で切り替える
+- `@/hooks/useBrandSuggestions` は `garmentsAtom` から導出されるため、`testDb.garment.create({brand: "..."})` + `seedDbFromTestDb()` で投入する
+- `@/hooks/useOnlineSync` は実フックを使う（`sync.pull`/`sync.push` のデフォルトハンドラに依存する）
 
 新規に集約モックを追加する場合は `src/test/mocks/modules/` に factory + setup を作り、`setup.ts` に `vi.mock` 登録する。**個別テストファイルでの `vi.mock` は、そのテスト固有のローカル component をスタブ化する場合に限定する。**
 

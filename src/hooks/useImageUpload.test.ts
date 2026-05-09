@@ -4,8 +4,6 @@ import { useImageUpload } from "./useImageUpload";
 import { compressImage } from "@/lib/image/compressImage";
 import { IMAGE_UPLOAD } from "@/lib/constants";
 
-vi.unmock("@/hooks/useImageUpload");
-
 vi.mock("@/lib/image/compressImage", () => ({
   compressImage: vi.fn(),
 }));
