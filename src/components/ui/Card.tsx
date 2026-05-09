@@ -34,6 +34,8 @@ type ClickableProps = BaseProps & {
   readonly onClick?: React.MouseEventHandler<HTMLButtonElement>;
   readonly disabled?: boolean;
   readonly type?: "button" | "submit";
+  readonly ariaPressed?: boolean;
+  readonly ariaLabel?: string;
 };
 
 type Props = StaticProps | ClickableProps;
@@ -77,6 +79,8 @@ const Card = (props: Props) => {
         type={props.type ?? "button"}
         onClick={props.onClick}
         disabled={props.disabled}
+        aria-pressed={props.ariaPressed}
+        aria-label={props.ariaLabel}
         className={cardClassName({
           hoverable,
           padding,

@@ -39,7 +39,7 @@ const SignInInner = () => {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-7 px-5 pb-10 pt-6 lg:gap-8 lg:pt-10">
+    <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-5 pb-10 pt-6 lg:pt-10">
       <header className="flex flex-col items-center gap-2 pt-2 text-center">
         <div className="flex size-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-700 ring-1 ring-inset ring-primary-200">
           <Shirt className="size-6" />

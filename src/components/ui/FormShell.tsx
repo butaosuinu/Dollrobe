@@ -9,6 +9,7 @@ type Props = {
   >;
   readonly children: React.ReactNode;
   readonly className?: string;
+  readonly noValidate?: boolean;
 };
 
 const GAP_STYLES: Record<FormGap, string> = {
@@ -17,9 +18,16 @@ const GAP_STYLES: Record<FormGap, string> = {
   lg: "gap-6",
 };
 
-const FormShell = ({ gap = "md", onSubmit, children, className }: Props) => (
+const FormShell = ({
+  gap = "md",
+  onSubmit,
+  children,
+  className,
+  noValidate,
+}: Props) => (
   <form
     onSubmit={onSubmit}
+    noValidate={noValidate}
     className={clsx("flex flex-col", GAP_STYLES[gap], className)}
   >
     {children}

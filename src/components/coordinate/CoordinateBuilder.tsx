@@ -15,6 +15,8 @@ import {
 import { GARMENT_CATEGORY_LABEL } from "@/lib/i18n-labels";
 import type { Coordinate, Garment } from "@/types";
 import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import FormShell from "@/components/ui/FormShell";
 import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
@@ -139,15 +141,14 @@ const GarmentTile = ({
 }) => {
   const { i18n } = useLingui();
   return (
-    <button
-      type="button"
+    <Card
+      clickable
+      padding="sm"
       onClick={() => onToggle(garment.id)}
-      aria-pressed={selected}
+      ariaPressed={selected}
       className={clsx(
-        "flex w-full flex-col items-stretch gap-1 rounded-lg border p-2 text-left transition-colors",
-        selected
-          ? "border-primary-500 bg-primary-50"
-          : "border-border-default bg-surface-overlay hover:bg-primary-50",
+        "flex flex-col items-stretch gap-1 transition-colors",
+        selected ? "border-primary-500 bg-primary-50" : "hover:bg-primary-50",
       )}
     >
       <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-primary-50">
@@ -165,7 +166,7 @@ const GarmentTile = ({
       <span className="w-full truncate text-[10px] text-text-tertiary">
         {i18n._(GARMENT_CATEGORY_LABEL[garment.category])}
       </span>
-    </button>
+    </Card>
   );
 };
 
@@ -354,7 +355,7 @@ const CoordinateBuilder = ({
   const s = useCoordinateBuilder({ initial, onSubmit });
 
   return (
-    <form onSubmit={s.handleSubmit} className="flex flex-col gap-5">
+    <FormShell gap="md" onSubmit={s.handleSubmit}>
       <Input
         label={t`コーデ名`}
         placeholder={t`お出かけコーデ`}
@@ -427,7 +428,7 @@ const CoordinateBuilder = ({
           {submitLabel}
         </Button>
       </div>
-    </form>
+    </FormShell>
   );
 };
 

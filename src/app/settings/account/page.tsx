@@ -10,7 +10,7 @@ import DeleteAccountSection from "@/components/settings/account/DeleteAccountSec
 import EmailChangeForm from "@/components/settings/account/EmailChangeForm";
 import PasswordChangeForm from "@/components/settings/account/PasswordChangeForm";
 import ProfileForm from "@/components/settings/account/ProfileForm";
-import SectionCard from "@/components/settings/account/SectionCard";
+import SectionCard from "@/components/ui/SectionCard";
 
 const AccountSettingsPage = () => {
   const router = useRouter();

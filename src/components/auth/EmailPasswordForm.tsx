@@ -9,6 +9,7 @@ import { signInEmailSchema, signInWithEmail } from "@/lib/auth";
 import { refreshAuthAtom } from "@/stores/authAtoms";
 import Button from "@/components/ui/Button";
 import ErrorAlert from "@/components/ui/ErrorAlert";
+import FormShell from "@/components/ui/FormShell";
 import Input from "@/components/ui/Input";
 
 type FieldErrors = {
@@ -63,7 +64,7 @@ const EmailPasswordForm = ({ redirect }: Props = {}) => {
   };
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+    <FormShell gap="md" onSubmit={handleSubmit} noValidate>
       <Input
         type="email"
         label={t`メールアドレス`}
@@ -95,7 +96,7 @@ const EmailPasswordForm = ({ redirect }: Props = {}) => {
       >
         {isSubmitting ? <Trans>ログイン中…</Trans> : <Trans>ログイン</Trans>}
       </Button>
-    </form>
+    </FormShell>
   );
 };
 
