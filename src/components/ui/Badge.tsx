@@ -15,9 +15,9 @@ type Props = {
 const VARIANT_STYLES: Record<BadgeVariant, string> = {
   default: "bg-gray-100 text-text-secondary",
   primary: "bg-primary-100 text-primary-700",
-  confirmed: "bg-emerald-50 text-emerald-700",
-  uncertain: "bg-amber-50 text-amber-700",
-  unknown: "bg-orange-50 text-orange-700",
+  confirmed: "bg-confirmed/10 text-success",
+  uncertain: "bg-uncertain/15 text-text-primary",
+  unknown: "bg-unknown/10 text-danger",
 };
 
 const Badge = ({ variant = "default", children }: Props) => (
