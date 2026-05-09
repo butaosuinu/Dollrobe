@@ -51,10 +51,8 @@ const ScanSessionPanel = ({ locationName, onConfirmAll }: Props) => {
           </div>
         </div>
         <TextButton variant="muted" onClick={() => resetSession()}>
-          <span className="inline-flex items-center gap-1">
-            <RotateCcw className="size-3" />
-            <Trans>リセット</Trans>
-          </span>
+          <RotateCcw className="size-3" />
+          <Trans>リセット</Trans>
         </TextButton>
       </div>
 

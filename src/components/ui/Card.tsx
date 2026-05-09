@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
 
 type CardPadding = "sm" | "md" | "lg";
 type CardRadius = "md" | "lg";
@@ -24,19 +25,19 @@ type BaseProps = {
 
 type StaticProps = BaseProps & {
   readonly clickable?: false;
-  readonly onClick?: never;
-  readonly disabled?: never;
-  readonly type?: never;
-};
+} & Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "className" | "children" | keyof BaseProps
+  >;
 
 type ClickableProps = BaseProps & {
   readonly clickable: true;
-  readonly onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  readonly disabled?: boolean;
-  readonly type?: "button" | "submit";
-  readonly ariaPressed?: boolean;
-  readonly ariaLabel?: string;
-};
+} & Omit<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    "className" | "children" | "type" | keyof BaseProps
+  > & {
+    readonly type?: "button" | "submit";
+  };
 
 type Props = StaticProps | ClickableProps;
 
@@ -59,8 +60,7 @@ const cardClassName = ({
     RADIUS_STYLES[radius],
     hoverable &&
       "transition-all hover:-translate-y-0.5 hover:shadow-md active:translate-y-0",
-    clickable &&
-      "text-left w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+    clickable && clsx("text-left w-full", FOCUS_RING_CLASS),
     className,
   );
 
@@ -74,13 +74,10 @@ const Card = (props: Props) => {
   } = props;
 
   if (props.clickable === true) {
+    const { clickable: _c, type = "button", ...rest } = props;
     return (
       <button
-        type={props.type ?? "button"}
-        onClick={props.onClick}
-        disabled={props.disabled}
-        aria-pressed={props.ariaPressed}
-        aria-label={props.ariaLabel}
+        type={type}
         className={cardClassName({
           hoverable,
           padding,
@@ -88,12 +85,14 @@ const Card = (props: Props) => {
           clickable: true,
           className,
         })}
+        {...rest}
       >
         {children}
       </button>
     );
   }
 
+  const { clickable: _c, ...rest } = props;
   return (
     <div
       className={cardClassName({
@@ -103,6 +102,7 @@ const Card = (props: Props) => {
         clickable: false,
         className,
       })}
+      {...rest}
     >
       {children}
     </div>

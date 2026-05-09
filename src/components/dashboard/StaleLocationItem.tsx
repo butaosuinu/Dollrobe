@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { Clock, ChevronRight } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
+import clsx from "clsx";
 import type { StaleLocation } from "@/stores/dashboardAtoms";
+import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
 
 type Props = {
   readonly item: StaleLocation;
@@ -29,7 +31,10 @@ const StaleLocationItem = ({ item }: Props) => {
     <button
       type="button"
       onClick={handleClick}
-      className="flex w-full items-center gap-3 rounded-xl border border-border-default bg-surface-overlay p-4 text-left transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+      className={clsx(
+        "flex w-full items-center gap-3 rounded-xl border border-border-default bg-surface-overlay p-4 text-left transition-shadow hover:shadow-md",
+        FOCUS_RING_CLASS,
+      )}
     >
       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-50">
         <Clock className="size-5 text-primary-500" />

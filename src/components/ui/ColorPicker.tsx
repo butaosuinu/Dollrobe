@@ -3,6 +3,7 @@
 import { Plus, X } from "lucide-react";
 import clsx from "clsx";
 import { PRESET_COLORS } from "@/lib/color/presets";
+import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
 
 type Props = {
   readonly label?: string;
@@ -58,7 +59,7 @@ const ColorPicker = ({ label, colors, onChangeColors }: Props) => {
             }}
             className={clsx(
               "size-7 rounded-full border border-border-default transition-transform hover:scale-110",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+              FOCUS_RING_CLASS,
             )}
             style={{ backgroundColor: color }}
             aria-label={`${color}を追加`}

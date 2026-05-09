@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { Plus, Sparkles } from "lucide-react";
+import clsx from "clsx";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { coordinatesAtom } from "@/stores/coordinateAtoms";
@@ -58,7 +59,10 @@ const CoordinatesPage = () => (
       </h2>
       <Link
         href="/coordinates/new"
-        className={`hidden lg:inline-flex ${buttonClassName({ variant: "primary", size: "md" })}`}
+        className={clsx(
+          "hidden lg:inline-flex",
+          buttonClassName({ variant: "primary", size: "md" }),
+        )}
       >
         <Plus className="size-4" />
         <Trans>新規作成</Trans>

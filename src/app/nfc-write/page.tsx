@@ -112,10 +112,8 @@ const SelectItemStep = ({
   return (
     <div className="flex flex-col gap-4">
       <TextButton variant="muted" onClick={onBack}>
-        <span className="inline-flex items-center gap-1">
-          <ArrowLeft className="size-4" />
-          <Trans>戻る</Trans>
-        </span>
+        <ArrowLeft className="size-4" />
+        <Trans>戻る</Trans>
       </TextButton>
       <Select
         label={i18n._(
@@ -154,18 +152,16 @@ const ReadyToWriteStep = ({
 }: ReadyToWriteStepProps) => (
   <div className="flex flex-col gap-4">
     <TextButton variant="muted" onClick={onBack}>
-      <span className="inline-flex items-center gap-1">
-        <ArrowLeft className="size-4" />
-        <Trans>戻る</Trans>
-      </span>
+      <ArrowLeft className="size-4" />
+      <Trans>戻る</Trans>
     </TextButton>
-    <div className="rounded-xl border border-border-default bg-surface-overlay p-4">
+    <Card padding="md">
       <p className="text-sm text-text-secondary">
         <Trans>書き込み対象</Trans>
       </p>
       <p className="font-medium text-text-primary">{selectedName}</p>
       <p className="mt-1 font-mono text-xs text-text-tertiary">{scheme}</p>
-    </div>
+    </Card>
     <Button variant="primary" size="lg" fullWidth onClick={onStartWrite}>
       <SmartphoneNfc className="size-5" />
       <Trans>書き込む</Trans>

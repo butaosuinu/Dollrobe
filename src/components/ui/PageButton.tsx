@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
 
 type Props = {
   readonly page: number;
@@ -15,7 +16,7 @@ const PageButton = ({ page, currentPage, onClick }: Props) => {
       aria-current={active ? "page" : undefined}
       className={clsx(
         "size-8 rounded-lg text-xs font-medium transition-colors",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+        FOCUS_RING_CLASS,
         active
           ? "bg-primary-500 text-text-inverse"
           : "border border-border-default bg-surface-overlay text-text-secondary hover:bg-primary-50",

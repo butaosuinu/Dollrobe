@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
 
 type TextButtonVariant = "primary" | "secondary" | "muted";
 
@@ -26,8 +27,8 @@ const TextButton = ({
     onClick={onClick}
     disabled={disabled}
     className={clsx(
-      "text-sm font-medium transition-colors",
-      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+      "inline-flex items-center gap-1 text-sm font-medium transition-colors",
+      FOCUS_RING_CLASS,
       VARIANT_STYLES[variant],
       disabled && "pointer-events-none opacity-50",
     )}

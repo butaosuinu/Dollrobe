@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import clsx from "clsx";
+import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
 
 type Props = {
   readonly href?: string;
@@ -38,7 +39,7 @@ const MarketingCTA = ({
     href={href}
     className={clsx(
       "inline-flex items-center justify-center gap-2 rounded-full font-display font-bold transition-all",
-      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+      FOCUS_RING_CLASS,
       VARIANT_STYLES[variant],
       SIZE_STYLES[size],
       className,

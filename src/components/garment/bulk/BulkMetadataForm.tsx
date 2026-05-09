@@ -93,10 +93,8 @@ const BulkMetadataForm = () => {
       {!isFirst && (
         <div className="flex justify-center">
           <TextButton onClick={handleApplyPrevious}>
-            <span className="inline-flex items-center gap-2">
-              <Copy className="size-4" />
-              <Trans>前の値を適用</Trans>
-            </span>
+            <Copy className="size-4" />
+            <Trans>前の値を適用</Trans>
           </TextButton>
         </div>
       )}

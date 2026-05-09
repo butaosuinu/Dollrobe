@@ -66,7 +66,7 @@ const DeleteAccountSection = ({ currentEmail, hasPassword }: Props) => {
   return (
     <section
       aria-labelledby="danger-zone-title"
-      className="mt-4 rounded-2xl border border-danger/20 bg-danger/8 p-5"
+      className="mt-4 rounded-2xl border border-danger/20 bg-danger/10 p-5"
     >
       <header className="mb-4 flex items-start gap-3">
         <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-danger/15 text-danger">
