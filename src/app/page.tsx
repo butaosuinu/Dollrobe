@@ -10,7 +10,7 @@ import LandingAuthRedirect from "@/components/marketing/LandingAuthRedirect";
 /* eslint-disable lingui/no-unlocalized-strings -- OG/Twitter metadata is static
    ja_JP; per-locale variants would need full SSR routing which is out of scope */
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-const OG_TITLE = "Doll Wardrobe — ドール服が、どこにあるか分かる";
+const OG_TITLE = "Dollrobe — ドール服が、どこにあるか分かる";
 const OG_DESCRIPTION =
   "QR と NFC でドール服の収納を半自動管理する PWA。手入力なし、スキャンするだけで在庫が最新に。";
 
@@ -21,7 +21,7 @@ export const generateMetadata = (): Metadata => ({
   openGraph: {
     title: OG_TITLE,
     description: OG_DESCRIPTION,
-    siteName: "Doll Wardrobe",
+    siteName: "Dollrobe",
     locale: "ja_JP",
     type: "website",
   },

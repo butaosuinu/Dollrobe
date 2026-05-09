@@ -1,7 +1,7 @@
 /* eslint-disable lingui/no-unlocalized-strings -- static OG image (ja_JP) */
 import { ImageResponse } from "next/og";
 
-export const alt = "Doll Wardrobe — QR で、ドール服の収納を半自動管理";
+export const alt = "Dollrobe — QR で、ドール服の収納を半自動管理";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -62,7 +62,7 @@ const OpengraphImage = () =>
             letterSpacing: -1.5,
           }}
         >
-          DW
+          DR
         </div>
         <div
           style={{
@@ -72,7 +72,7 @@ const OpengraphImage = () =>
             letterSpacing: -1,
           }}
         >
-          Doll Wardrobe
+          Dollrobe
         </div>
       </div>
 
