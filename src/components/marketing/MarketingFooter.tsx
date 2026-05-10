@@ -37,9 +37,8 @@ const MarketingFooter = () => (
       <div className="mt-20 flex flex-col items-start gap-8 border-t border-border-default/60 pt-10 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
           <Logo size={32} />
-          {/* eslint-disable-next-line lingui/no-unlocalized-strings -- brand name */}
           <span className="font-display text-base font-bold text-primary-700">
-            Doll Wardrobe
+            Dollrobe
           </span>
         </div>
 
@@ -49,7 +48,7 @@ const MarketingFooter = () => (
       </div>
 
       {/* eslint-disable-next-line lingui/no-unlocalized-strings -- copyright + brand name */}
-      <p className="mt-8 text-xs text-text-tertiary">© 2026 Doll Wardrobe</p>
+      <p className="mt-8 text-xs text-text-tertiary">© 2026 Dollrobe</p>
     </div>
   </footer>
 );

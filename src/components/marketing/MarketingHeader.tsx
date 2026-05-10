@@ -14,9 +14,8 @@ const MarketingHeader = () => (
         className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
       >
         <Logo size={32} />
-        {/* eslint-disable-next-line lingui/no-unlocalized-strings -- brand name */}
         <span className="font-display text-lg font-bold tracking-tight text-primary-700">
-          Doll Wardrobe
+          Dollrobe
         </span>
       </Link>
       <div className="flex items-center gap-3">
