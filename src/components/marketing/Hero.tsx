@@ -12,22 +12,30 @@ const Hero = () => {
 
   return (
     <section className="relative overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <Image
+          src="/lp/photos/hero-bg.webp"
+          alt=""
+          fill
+          priority
+          unoptimized
+          className="object-cover object-center"
+        />
+      </div>
+
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 60% 50% at 20% 10%, oklch(0.92 0.08 350 / 0.55), transparent 60%), radial-gradient(ellipse 50% 45% at 85% 80%, oklch(0.88 0.09 290 / 0.45), transparent 65%)",
+            "linear-gradient(to right, oklch(0.985 0.005 85 / 0.95) 0%, oklch(0.985 0.005 85 / 0.7) 28%, oklch(0.985 0.005 85 / 0.18) 55%, oklch(0.985 0.005 85 / 0.45) 100%)",
         }}
       />
+
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div
           className="absolute -top-20 -left-24 size-96 rounded-full blur-3xl"
-          style={{ background: "oklch(0.85 0.1 350 / 0.35)" }}
-        />
-        <div
-          className="absolute bottom-0 right-0 size-[28rem] translate-x-1/3 translate-y-1/3 rounded-full blur-3xl"
-          style={{ background: "oklch(0.8 0.1 290 / 0.3)" }}
+          style={{ background: "oklch(0.85 0.1 350 / 0.25)" }}
         />
       </div>
 
@@ -66,10 +74,10 @@ const Hero = () => {
         <div className="relative mx-auto w-full max-w-md lg:max-w-none">
           <div
             aria-hidden
-            className="absolute -inset-8 rounded-[3rem] opacity-60 blur-2xl"
+            className="absolute -inset-10 rounded-[3rem] opacity-70 blur-3xl"
             style={{
               background:
-                "linear-gradient(135deg, oklch(0.72 0.14 350 / 0.4), oklch(0.65 0.14 290 / 0.35))",
+                "linear-gradient(135deg, oklch(0.985 0.005 85 / 0.7), oklch(0.72 0.14 350 / 0.35))",
             }}
           />
           <div className="relative mx-auto aspect-[9/19] w-full max-w-[320px] overflow-hidden rounded-[2.5rem] border-[10px] border-text-primary/90 bg-surface-base shadow-2xl lg:max-w-[360px]">
@@ -78,7 +86,6 @@ const Hero = () => {
               alt=""
               width={720}
               height={1520}
-              priority
               unoptimized
               className="size-full object-cover"
             />

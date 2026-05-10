@@ -956,6 +956,10 @@ msgstr "Password set"
 msgid "ピンク"
 msgstr "Pink"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "ピンセットでラベルを引き出しの縁に貼る場面"
+msgstr "Tweezers placing a label on the edge of a drawer"
+
 #: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "Filter"
@@ -1079,6 +1083,10 @@ msgstr "No garments yet"
 #: src/components/dashboard/StaleLocationItem.tsx
 msgid "まだ開けていません"
 msgstr "Not yet opened"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "ミニチュアの木製ラックに並ぶドール服と、中央の空のハンガー"
+msgstr "Doll garments on a miniature wooden rack with one empty hanger in the center"
 
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
@@ -1245,6 +1253,10 @@ msgstr "Unknown"
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "Sort"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "並んだ 2 つのコンパートメント引き出しに収まるドール服の俯瞰写真"
+msgstr "Top-down view of doll garments arranged in two side-by-side compartmented drawers"
 
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageGrid.tsx
@@ -1604,6 +1616,10 @@ msgstr "Drawer"
 msgid "引き出しのマス目ごとに「今、何が入っているか」を図で確認できます。"
 msgstr "See exactly what's in each drawer cell at a glance."
 
+#: src/components/marketing/ProblemSection.tsx
+msgid "引き出しの中に並ぶミニチュアのドール服の俯瞰写真"
+msgstr "Top-down view of miniature doll garments arranged inside a drawer"
+
 #: src/app/(public)/signin/page.tsx
 msgid "引き出しの中身を、いつでもどこでも"
 msgstr "Your drawers, anytime and anywhere"
@@ -1633,6 +1649,14 @@ msgstr "Back"
 #: src/components/coordinate/OriginBadge.tsx
 msgid "手動"
 msgstr "Manual"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "撮影台に並べたドール服とスマホの俯瞰写真"
+msgstr "Top-down view of doll garments and a smartphone laid out on a shooting surface"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "整然と整理された 12 コンパートメントの引き出し"
+msgstr "A neatly organized 12-compartment drawer"
 
 #: src/app/settings/api-keys/page.tsx
 msgid "新しい API キー"
@@ -2086,6 +2110,10 @@ msgstr "Selected garments"
 #: src/components/ui/BottomSheet.tsx
 msgid "閉じる"
 msgstr "Close"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "開いた引き出しの上にスマホを構えてスキャンする場面"
+msgstr "A smartphone held above an open drawer to scan"
 
 #: src/app/coordinates/[id]/page.tsx
 msgid "関連する服がありません（削除された可能性があります）"
