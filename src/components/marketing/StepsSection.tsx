@@ -16,32 +16,42 @@ import { useFadeInOnView } from "@/hooks/useFadeInOnView";
 const STEPS: ReadonlyArray<{
   readonly title: MessageDescriptor;
   readonly body: MessageDescriptor;
+  readonly photo: string;
+  readonly photoAlt: MessageDescriptor;
   readonly screenshot: ScreenshotName;
-  readonly alt: MessageDescriptor;
+  readonly screenshotAlt: MessageDescriptor;
 }> = [
   {
     title: msg`ドールと収納場所を登録`,
     body: msg`お迎えしたドールと、衣装を入れる引き出しやケースをアプリに追加します。`,
+    photo: "/lp/photos/step-1-register.webp",
+    photoAlt: msg`撮影台に並べたドール服とスマホの俯瞰写真`,
     screenshot: "dashboard",
-    alt: msg`ダッシュボード画面`,
+    screenshotAlt: msg`ダッシュボード画面`,
   },
   {
     title: msg`QR / NFC ラベルを印刷して貼る`,
     body: msg`引き出しや服のタグに QR を貼るだけ。NFC シールでも代用できます（Android）。`,
+    photo: "/lp/photos/step-2-label.webp",
+    photoAlt: msg`ピンセットでラベルを引き出しの縁に貼る場面`,
     screenshot: "locations",
-    alt: msg`収納グリッド画面`,
+    screenshotAlt: msg`収納グリッド画面`,
   },
   {
     title: msg`服を QR と紐づけて収納`,
     body: msg`服と場所の QR を順番にスキャン。「どこに、何を入れたか」が自動で記録されます。`,
+    photo: "/lp/photos/step-3-scan.webp",
+    photoAlt: msg`開いた引き出しの上にスマホを構えてスキャンする場面`,
     screenshot: "scan",
-    alt: msg`スキャン画面`,
+    screenshotAlt: msg`スキャン画面`,
   },
   {
     title: msg`以降はスキャンするだけ`,
     body: msg`出し入れの度に場所の QR を読むだけで、居場所が常に最新の状態に保たれます。`,
+    photo: "/lp/photos/step-4-routine.webp",
+    photoAlt: msg`整然と整理された 12 コンパートメントの引き出し`,
     screenshot: "garments",
-    alt: msg`ワードローブ画面`,
+    screenshotAlt: msg`ワードローブ画面`,
   },
 ];
 
@@ -75,7 +85,7 @@ const StepCard = ({
         </p>
       </div>
       <div className={isReversed ? "lg:order-1" : undefined}>
-        <div className="relative mx-auto w-full max-w-[280px]">
+        <div className="relative mx-auto w-full max-w-[480px] pb-16 sm:pb-24">
           <div
             aria-hidden
             className="absolute -inset-6 rounded-[3rem] opacity-40 blur-2xl"
@@ -84,15 +94,27 @@ const StepCard = ({
                 "linear-gradient(135deg, oklch(0.72 0.14 350 / 0.3), oklch(0.65 0.14 290 / 0.25))",
             }}
           />
-          <div className="relative aspect-[9/19] overflow-hidden rounded-[2rem] border-[8px] border-text-primary/90 bg-surface-base shadow-xl">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] shadow-xl">
             <Image
-              src={screenshotPath(locale, step.screenshot)}
-              alt={i18n._(step.alt)}
-              width={560}
-              height={1184}
+              src={step.photo}
+              alt={i18n._(step.photoAlt)}
+              width={1024}
+              height={1280}
               unoptimized
               className="size-full object-cover"
             />
+          </div>
+          <div className="absolute right-0 bottom-0 w-[58%] max-w-[240px] translate-x-3 translate-y-12 sm:translate-x-6 sm:translate-y-16">
+            <div className="aspect-[9/19] overflow-hidden rounded-[1.8rem] border-[8px] border-text-primary/90 bg-surface-base shadow-2xl">
+              <Image
+                src={screenshotPath(locale, step.screenshot)}
+                alt={i18n._(step.screenshotAlt)}
+                width={560}
+                height={1184}
+                unoptimized
+                className="size-full object-cover"
+              />
+            </div>
           </div>
         </div>
       </div>

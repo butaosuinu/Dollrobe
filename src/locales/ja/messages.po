@@ -956,6 +956,10 @@ msgstr "パスワードを設定しました"
 msgid "ピンク"
 msgstr "ピンク"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "ピンセットでラベルを引き出しの縁に貼る場面"
+msgstr "ピンセットでラベルを引き出しの縁に貼る場面"
+
 #: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "フィルター"
@@ -1079,6 +1083,10 @@ msgstr "まだ服がありません"
 #: src/components/dashboard/StaleLocationItem.tsx
 msgid "まだ開けていません"
 msgstr "まだ開けていません"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "ミニチュアの木製ラックに並ぶドール服と、中央の空のハンガー"
+msgstr "ミニチュアの木製ラックに並ぶドール服と、中央の空のハンガー"
 
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
@@ -1245,6 +1253,10 @@ msgstr "不明"
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "並び替え"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "並んだ 2 つのコンパートメント引き出しに収まるドール服の俯瞰写真"
+msgstr "並んだ 2 つのコンパートメント引き出しに収まるドール服の俯瞰写真"
 
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageGrid.tsx
@@ -1604,6 +1616,10 @@ msgstr "引き出し"
 msgid "引き出しのマス目ごとに「今、何が入っているか」を図で確認できます。"
 msgstr "引き出しのマス目ごとに「今、何が入っているか」を図で確認できます。"
 
+#: src/components/marketing/ProblemSection.tsx
+msgid "引き出しの中に並ぶミニチュアのドール服の俯瞰写真"
+msgstr "引き出しの中に並ぶミニチュアのドール服の俯瞰写真"
+
 #: src/app/(public)/signin/page.tsx
 msgid "引き出しの中身を、いつでもどこでも"
 msgstr "引き出しの中身を、いつでもどこでも"
@@ -1633,6 +1649,14 @@ msgstr "戻る"
 #: src/components/coordinate/OriginBadge.tsx
 msgid "手動"
 msgstr "手動"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "撮影台に並べたドール服とスマホの俯瞰写真"
+msgstr "撮影台に並べたドール服とスマホの俯瞰写真"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "整然と整理された 12 コンパートメントの引き出し"
+msgstr "整然と整理された 12 コンパートメントの引き出し"
 
 #: src/app/settings/api-keys/page.tsx
 msgid "新しい API キー"
@@ -2086,6 +2110,10 @@ msgstr "選択中の服"
 #: src/components/ui/BottomSheet.tsx
 msgid "閉じる"
 msgstr "閉じる"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "開いた引き出しの上にスマホを構えてスキャンする場面"
+msgstr "開いた引き出しの上にスマホを構えてスキャンする場面"
 
 #: src/app/coordinates/[id]/page.tsx
 msgid "関連する服がありません（削除された可能性があります）"

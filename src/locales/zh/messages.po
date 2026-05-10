@@ -956,6 +956,10 @@ msgstr "密码已设置"
 msgid "ピンク"
 msgstr "粉色"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "ピンセットでラベルを引き出しの縁に貼る場面"
+msgstr "用镊子将标签贴在抽屉边缘的场景"
+
 #: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "筛选"
@@ -1079,6 +1083,10 @@ msgstr "尚无衣服"
 #: src/components/dashboard/StaleLocationItem.tsx
 msgid "まだ開けていません"
 msgstr "尚未打开"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "ミニチュアの木製ラックに並ぶドール服と、中央の空のハンガー"
+msgstr "迷你木质衣架上排列的娃娃服装，中央有一个空衣架"
 
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
@@ -1245,6 +1253,10 @@ msgstr "未知"
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "排序"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "並んだ 2 つのコンパートメント引き出しに収まるドール服の俯瞰写真"
+msgstr "并排放置的两个分格抽屉中整齐摆放的娃娃服装俯视图"
 
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageGrid.tsx
@@ -1604,6 +1616,10 @@ msgstr "抽屉"
 msgid "引き出しのマス目ごとに「今、何が入っているか」を図で確認できます。"
 msgstr "按抽屉单元格清楚显示「现在装着什么」。"
 
+#: src/components/marketing/ProblemSection.tsx
+msgid "引き出しの中に並ぶミニチュアのドール服の俯瞰写真"
+msgstr "抽屉内排列的迷你娃娃服装俯视图"
+
 #: src/app/(public)/signin/page.tsx
 msgid "引き出しの中身を、いつでもどこでも"
 msgstr "随时随地查看抽屉里的物品"
@@ -1633,6 +1649,14 @@ msgstr "返回"
 #: src/components/coordinate/OriginBadge.tsx
 msgid "手動"
 msgstr "手动"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "撮影台に並べたドール服とスマホの俯瞰写真"
+msgstr "拍摄台上摆放的娃娃服装和手机的俯视图"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "整然と整理された 12 コンパートメントの引き出し"
+msgstr "整齐排列的 12 格抽屉"
 
 #: src/app/settings/api-keys/page.tsx
 msgid "新しい API キー"
@@ -2086,6 +2110,10 @@ msgstr "已选衣服"
 #: src/components/ui/BottomSheet.tsx
 msgid "閉じる"
 msgstr "关闭"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "開いた引き出しの上にスマホを構えてスキャンする場面"
+msgstr "在打开的抽屉上方握住手机进行扫描的场景"
 
 #: src/app/coordinates/[id]/page.tsx
 msgid "関連する服がありません（削除された可能性があります）"

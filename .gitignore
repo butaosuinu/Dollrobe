@@ -173,3 +173,5 @@ certificates/
 
 # dmux runtime metadata and worktrees
 .dmux/
+/docs/lp/photo-raw/
+.playwright-mcp/

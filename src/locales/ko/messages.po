@@ -956,6 +956,10 @@ msgstr "비밀번호가 설정되었습니다"
 msgid "ピンク"
 msgstr "핑크"
 
+#: src/components/marketing/StepsSection.tsx
+msgid "ピンセットでラベルを引き出しの縁に貼る場面"
+msgstr "서랍 가장자리에 라벨을 핀셋으로 붙이는 장면"
+
 #: src/components/ui/FilterToggleButton.tsx
 msgid "フィルター"
 msgstr "필터"
@@ -1079,6 +1083,10 @@ msgstr "아직 옷이 없습니다"
 #: src/components/dashboard/StaleLocationItem.tsx
 msgid "まだ開けていません"
 msgstr "아직 열지 않았습니다"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "ミニチュアの木製ラックに並ぶドール服と、中央の空のハンガー"
+msgstr "미니어처 나무 행거에 걸린 인형 옷과 중앙의 빈 옷걸이"
 
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
@@ -1245,6 +1253,10 @@ msgstr "불명"
 #: src/app/garments/page.tsx
 msgid "並び替え"
 msgstr "정렬"
+
+#: src/components/marketing/ProblemSection.tsx
+msgid "並んだ 2 つのコンパートメント引き出しに収まるドール服の俯瞰写真"
+msgstr "나란히 놓인 두 개의 칸막이 서랍에 정리된 인형 옷을 위에서 본 사진"
 
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageGrid.tsx
@@ -1604,6 +1616,10 @@ msgstr "서랍"
 msgid "引き出しのマス目ごとに「今、何が入っているか」を図で確認できます。"
 msgstr "서랍 칸별로 「지금 무엇이 들어 있는지」를 그림으로 확인할 수 있습니다."
 
+#: src/components/marketing/ProblemSection.tsx
+msgid "引き出しの中に並ぶミニチュアのドール服の俯瞰写真"
+msgstr "서랍 안에 정리된 미니어처 인형 옷을 위에서 본 사진"
+
 #: src/app/(public)/signin/page.tsx
 msgid "引き出しの中身を、いつでもどこでも"
 msgstr "서랍 속을 언제 어디서나"
@@ -1633,6 +1649,14 @@ msgstr "뒤로"
 #: src/components/coordinate/OriginBadge.tsx
 msgid "手動"
 msgstr "수동"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "撮影台に並べたドール服とスマホの俯瞰写真"
+msgstr "촬영대에 펼친 인형 옷과 스마트폰을 위에서 본 사진"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "整然と整理された 12 コンパートメントの引き出し"
+msgstr "단정하게 정리된 12칸 서랍"
 
 #: src/app/settings/api-keys/page.tsx
 msgid "新しい API キー"
@@ -2086,6 +2110,10 @@ msgstr "선택된 옷"
 #: src/components/ui/BottomSheet.tsx
 msgid "閉じる"
 msgstr "닫기"
+
+#: src/components/marketing/StepsSection.tsx
+msgid "開いた引き出しの上にスマホを構えてスキャンする場面"
+msgstr "열린 서랍 위에 스마트폰을 들고 스캔하는 장면"
 
 #: src/app/coordinates/[id]/page.tsx
 msgid "関連する服がありません（削除された可能性があります）"

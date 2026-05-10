@@ -1,44 +1,43 @@
 "use client";
 
+import Image from "next/image";
 import { msg } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
-import { PackageSearch, Shuffle, HelpCircle } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import type { MessageDescriptor } from "@lingui/core";
 import { useFadeInOnView } from "@/hooks/useFadeInOnView";
 
 const PROBLEMS: ReadonlyArray<{
-  readonly icon: LucideIcon;
+  readonly photo: string;
+  readonly photoAlt: MessageDescriptor;
   readonly title: MessageDescriptor;
   readonly body: MessageDescriptor;
 }> = [
   {
-    icon: PackageSearch,
+    photo: "/lp/photos/problem-where-is-it.webp",
+    photoAlt: msg`引き出しの中に並ぶミニチュアのドール服の俯瞰写真`,
     title: msg`どこにしまったか分からない`,
     body: msg`服が増えるほど、どの引き出しに何を入れたか思い出せなくなる。探すだけで時間が溶けていく。`,
   },
   {
-    icon: Shuffle,
+    photo: "/lp/photos/problem-shifted.webp",
+    photoAlt: msg`並んだ 2 つのコンパートメント引き出しに収まるドール服の俯瞰写真`,
     title: msg`収納を入れ替えたらズレる`,
     body: msg`片付けの度に場所が変わり、アプリの記録と現実の居場所がすぐに合わなくなる。`,
   },
   {
-    icon: HelpCircle,
+    photo: "/lp/photos/problem-missing.webp",
+    photoAlt: msg`ミニチュアの木製ラックに並ぶドール服と、中央の空のハンガー`,
     title: msg`気づいたら行方不明`,
     body: msg`しばらく着せていない服が、いつの間にか箱の底で見つからない服になっている。`,
   },
 ];
 
 const ProblemCard = ({
-  icon: Icon,
-  title,
-  body,
+  problem,
   index,
 }: {
-  readonly icon: LucideIcon;
-  readonly title: MessageDescriptor;
-  readonly body: MessageDescriptor;
+  readonly problem: (typeof PROBLEMS)[number];
   readonly index: number;
 }) => {
   const { i18n } = useLingui();
@@ -46,21 +45,30 @@ const ProblemCard = ({
   return (
     <div
       ref={fade.ref}
-      className={`flex flex-col gap-3 rounded-2xl bg-surface-raised/80 p-6 ring-1 ring-inset ring-border-default/60 backdrop-blur-sm ${fade.className}`}
+      className={`overflow-hidden rounded-2xl bg-surface-raised/80 ring-1 ring-inset ring-border-default/60 backdrop-blur-sm ${fade.className}`}
       style={{
         ...fade.style,
         transitionDelay: `${index * 100}ms`,
       }}
     >
-      <div className="flex size-12 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
-        <Icon className="size-6" />
+      <div className="aspect-square overflow-hidden">
+        <Image
+          src={problem.photo}
+          alt={i18n._(problem.photoAlt)}
+          width={1280}
+          height={1280}
+          unoptimized
+          className="size-full object-cover"
+        />
       </div>
-      <h3 className="font-display text-lg font-bold text-text-primary">
-        {i18n._(title)}
-      </h3>
-      <p className="text-sm leading-relaxed text-text-secondary">
-        {i18n._(body)}
-      </p>
+      <div className="flex flex-col gap-3 p-6">
+        <h3 className="font-display text-lg font-bold text-text-primary">
+          {i18n._(problem.title)}
+        </h3>
+        <p className="text-sm leading-relaxed text-text-secondary">
+          {i18n._(problem.body)}
+        </p>
+      </div>
     </div>
   );
 };
@@ -84,9 +92,7 @@ const ProblemSection = () => (
         {PROBLEMS.map((problem, index) => (
           <ProblemCard
             key={problem.title.id ?? String(index)}
-            icon={problem.icon}
-            title={problem.title}
-            body={problem.body}
+            problem={problem}
             index={index}
           />
         ))}
