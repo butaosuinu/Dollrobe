@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAtomValue, useSetAtom } from "jotai";
 import { LogOut, Settings } from "lucide-react";
-import { Trans } from "@lingui/react/macro";
-import { t } from "@lingui/core/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { authSessionUnwrappedAtom, signOutAtom } from "@/stores/authAtoms";
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import IconButton, { iconButtonClassName } from "@/components/ui/IconButton";
 import { buttonClassName } from "@/components/ui/Button";
 
 const UserMenu = () => {
+  const { t } = useLingui();
   const authState = useAtomValue(authSessionUnwrappedAtom);
   const signOut = useSetAtom(signOutAtom);
   const [isMounted, setIsMounted] = useState(false);
