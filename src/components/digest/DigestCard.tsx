@@ -2,7 +2,7 @@
 
 import { useSetAtom } from "jotai";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
-import { Trans } from "@lingui/react/macro";
+import { Plural, Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import { msg } from "@lingui/core/macro";
 import type { Digest } from "@/types";
@@ -108,7 +108,11 @@ const DigestCard = ({ digest }: Props) => {
 
       <div className="mt-3 border-t border-border-default pt-2">
         <p className="text-xs text-text-tertiary">
-          <Trans>管理中の服: {digest.totalGarments}着</Trans>
+          <Plural
+            value={digest.totalGarments}
+            one="管理中の服: #着"
+            other="管理中の服: #着"
+          />
         </p>
       </div>
     </Card>

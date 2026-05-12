@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Clock, ChevronRight } from "lucide-react";
-import { Trans } from "@lingui/react/macro";
+import { Plural, Trans } from "@lingui/react/macro";
 import clsx from "clsx";
 import type { StaleLocation } from "@/stores/dashboardAtoms";
 import { FOCUS_RING_CLASS } from "@/lib/uiClasses";
@@ -50,7 +50,11 @@ const StaleLocationItem = ({ item }: Props) => {
             <Trans>{daysSinceLastVisit}日前に最後に開けました</Trans>
           )}
           {" · "}
-          <Trans>未確認 {uncertainItemCount}着</Trans>
+          <Plural
+            value={uncertainItemCount}
+            one="未確認 #着"
+            other="未確認 #着"
+          />
         </p>
       </div>
       <ChevronRight className="size-4 shrink-0 text-text-tertiary" />
