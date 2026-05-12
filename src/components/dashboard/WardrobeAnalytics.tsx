@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useAtomValue } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
@@ -38,41 +38,33 @@ const WardrobeAnalytics = () => {
   const { i18n } = useLingui();
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("category");
 
-  const categoryItems: readonly BarItem[] = useMemo(
-    () =>
-      aggregateByCategory(garments).map((c) => ({
-        label: i18n._(GARMENT_CATEGORY_LABEL[c.category]),
-        value: c.count,
-      })),
-    [garments, i18n],
+  const categoryItems: readonly BarItem[] = aggregateByCategory(garments).map(
+    (c) => ({
+      label: i18n._(GARMENT_CATEGORY_LABEL[c.category]),
+      value: c.count,
+    }),
   );
 
-  const sizeItems: readonly BarItem[] = useMemo(
-    () =>
-      aggregateByDollSize(garments).map((s) => ({
-        label: i18n._(DOLL_SIZE_LABEL[s.dollSize]),
-        value: s.count,
-      })),
-    [garments, i18n],
+  const sizeItems: readonly BarItem[] = aggregateByDollSize(garments).map(
+    (s) => ({
+      label: i18n._(DOLL_SIZE_LABEL[s.dollSize]),
+      value: s.count,
+    }),
   );
 
-  const colorItems: readonly BarItem[] = useMemo(
-    () =>
-      aggregateByColor(garments).map((c) => ({
-        label: i18n._(COLOR_NAME_LABEL[c.colorName]),
-        value: c.count,
-        swatch: c.hsl,
-      })),
-    [garments, i18n],
+  const colorItems: readonly BarItem[] = aggregateByColor(garments).map(
+    (c) => ({
+      label: i18n._(COLOR_NAME_LABEL[c.colorName]),
+      value: c.count,
+      swatch: c.hsl,
+    }),
   );
 
-  const brandItems: readonly BarItem[] = useMemo(
-    () =>
-      aggregateByBrand({ garments }).map((b) => ({
-        label: b.brand,
-        value: b.count,
-      })),
-    [garments],
+  const brandItems: readonly BarItem[] = aggregateByBrand({ garments }).map(
+    (b) => ({
+      label: b.brand,
+      value: b.count,
+    }),
   );
 
   if (garments.length === 0) return undefined;
