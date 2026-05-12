@@ -58,7 +58,7 @@ type FormValues = {
 const DEFAULT_FORM_VALUES: FormValues = {
   name: "",
   category: "tops",
-  dollSizes: ["SD"],
+  dollSizes: [],
   colors: [],
   tags: [],
   brand: "",
@@ -163,11 +163,7 @@ const GarmentForm = ({ garment }: Props) => {
 
   const toggleDollSize = (size: DollSize) => {
     setDollSizes((prev) =>
-      prev.includes(size)
-        ? prev.length > 1
-          ? prev.filter((s) => s !== size)
-          : prev
-        : [...prev, size],
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
     );
   };
 
