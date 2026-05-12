@@ -924,6 +924,10 @@ msgstr "密码"
 msgid "パスワード（確認）"
 msgstr "密码（确认）"
 
+#: src/lib/auth.ts
+msgid "パスワードが一致しません"
+msgstr "两次输入的密码不一致"
+
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードが正しくないか、アカウントの削除に失敗しました"
 msgstr "密码不正确或删除账号失败"
@@ -931,6 +935,14 @@ msgstr "密码不正确或删除账号失败"
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードの設定に失敗しました"
 msgstr "设置密码失败"
+
+#: src/lib/auth.ts
+msgid "パスワードは 128 文字以内で入力してください"
+msgstr "密码请控制在 128 个字符以内"
+
+#: src/lib/auth.ts
+msgid "パスワードは 8 文字以上で入力してください"
+msgstr "密码至少需要 8 个字符"
 
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードを入力"
@@ -1822,6 +1834,10 @@ msgstr "下一页"
 msgid "次へ"
 msgstr "下一步"
 
+#: src/lib/auth.ts
+msgid "正しいメールアドレスを入力してください"
+msgstr "请输入有效的电子邮件地址"
+
 #: src/app/digest/page.tsx
 msgid "毎週月曜日に自動生成されます"
 msgstr "每周一自动生成"
@@ -2009,6 +2025,14 @@ msgstr "每页显示数"
 #: src/components/settings/account/ProfileForm.tsx
 msgid "表示名"
 msgstr "显示名称"
+
+#: src/lib/auth.ts
+msgid "表示名は 60 文字以内で入力してください"
+msgstr "显示名称请控制在 60 个字符以内"
+
+#: src/lib/auth.ts
+msgid "表示名を入力してください"
+msgstr "请输入显示名称"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/components/digest/DigestCard.tsx

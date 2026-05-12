@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { signUpEmailSchema, signUpWithEmail } from "@/lib/auth";
+import { useLingui } from "@lingui/react";
+import { createSignUpEmailSchema, signUpWithEmail } from "@/lib/auth";
 import { refreshAuthAtom } from "@/stores/authAtoms";
 import Button from "@/components/ui/Button";
 import ErrorAlert from "@/components/ui/ErrorAlert";
@@ -28,6 +29,8 @@ const EMPTY_ERRORS: FieldErrors = {
 const SignUpForm = () => {
   const router = useRouter();
   const refreshAuth = useSetAtom(refreshAuthAtom);
+  const { i18n } = useLingui();
+  const schema = useMemo(() => createSignUpEmailSchema(i18n), [i18n]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -38,7 +41,7 @@ const SignUpForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = () => {
-    const parsed = signUpEmailSchema.safeParse({
+    const parsed = schema.safeParse({
       name,
       email,
       password,
