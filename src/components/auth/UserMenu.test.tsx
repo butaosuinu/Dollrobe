@@ -1,12 +1,21 @@
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
+import { i18n } from "@lingui/core";
+import { messages as enMessages } from "@/locales/en/messages.mjs";
 import { server } from "@/test/mocks/server";
 import { unauthenticatedHandler } from "@/test/mocks/handlers";
 import { renderWithProviders } from "@/test/testUtils";
 import UserMenu from "./UserMenu";
 
 describe("UserMenu", () => {
+  afterEach(() => {
+    act(() => {
+      i18n.load("ja", {});
+      i18n.activate("ja");
+    });
+  });
+
   it("認証済みユーザーのイニシャルが表示される", async () => {
     await renderWithProviders(<UserMenu />);
 
@@ -72,5 +81,18 @@ describe("UserMenu", () => {
         screen.queryByRole("heading", { name: "ログアウトしますか？" }),
       ).toBeNull();
     });
+  });
+
+  it("locale を en に切替えると設定リンクの aria-label が Settings になる", async () => {
+    await renderWithProviders(<UserMenu />);
+
+    expect(await screen.findByLabelText("設定")).toBeInTheDocument();
+
+    act(() => {
+      i18n.load("en", enMessages);
+      i18n.activate("en");
+    });
+
+    expect(await screen.findByLabelText("Settings")).toBeInTheDocument();
   });
 });
