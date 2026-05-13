@@ -30,6 +30,19 @@ describe("服 CRUD シナリオ", () => {
       expect(fetched.confidenceDecayDays).toBe(30);
     });
 
+    it("空の dollSizes で作成しても get/list で 500 にならない", async () => {
+      const caller = getCaller();
+      const created = await caller.garment.create(
+        createTestGarmentInput({ dollSizes: [] }),
+      );
+
+      const fetched = await caller.garment.get({ id: created.id });
+      expect(fetched.dollSizes).toEqual([]);
+
+      const listed = await caller.garment.list({});
+      expect(listed.find((g) => g.id === created.id)?.dollSizes).toEqual([]);
+    });
+
     it("locationId なしで作成すると status が checked_out になる", async () => {
       const caller = getCaller();
       const created = await caller.garment.create(createTestGarmentInput());
