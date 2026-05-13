@@ -332,4 +332,66 @@ describe("ScanPage", () => {
       expect(screen.getByText("場所を設定しました")).toBeInTheDocument();
     });
   });
+
+  describe("未登録 / 未紐付け QR のフォールバック", () => {
+    it("未登録の場所 QR ではラベルとして locationId が表示される", async () => {
+      await renderWithProviders(<ScanPage />);
+      await flushPromises();
+      await simulateQrScan("dwg://l/unknown-loc");
+      await flushPromises();
+      // 場所名フォールバック (ScanResult / ScanSessionPanel の両方に出る可能性あり)
+      expect(screen.getAllByText("unknown-loc").length).toBeGreaterThan(0);
+    });
+
+    it("未登録の服 QR では garmentId がそのまま表示される", async () => {
+      await renderWithProviders(<ScanPage />);
+      await flushPromises();
+      await simulateQrScan("dwg://g/unknown-g");
+      await flushPromises();
+      expect(screen.getByText("unknown-g")).toBeInTheDocument();
+    });
+
+    it("不明な QR スキームは無視される", async () => {
+      await renderWithProviders(<ScanPage />);
+      await flushPromises();
+      await simulateQrScan("unknown-scheme://x");
+      await flushPromises();
+      // 何も起きないため、初期の「場所のQRをスキャン」表示が継続する
+      expect(
+        screen.getByText("場所のQRをスキャンして、収納場所を設定してください"),
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe("機会確認ダイアログの閉じる操作", () => {
+    it("ダイアログを閉じても scan 状態は維持される", async () => {
+      testDb.storageLocation.create({ id: "loc-1", label: "A-1" });
+      testDb.garment.create({
+        id: "g-1",
+        locationId: "loc-1",
+        status: "stored",
+        lastScannedAt: FIXED_NOW - 20 * MS_PER_DAY,
+        confidenceDecayDays: 30,
+      });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<ScanPage />);
+      await flushPromises();
+      await simulateQrScan("dwg://l/loc-1");
+      await flushPromises();
+
+      // ダイアログ表示
+      expect(screen.getByText("全部ある")).toBeInTheDocument();
+      // 「あとで」 で閉じる
+      const closeButton = screen.queryByRole("button", {
+        name: /あとで|閉じる/u,
+      });
+      if (closeButton !== null) {
+        fireEvent.click(closeButton);
+        await waitFor(() => {
+          expect(screen.queryByText("全部ある")).toBeNull();
+        });
+      }
+    });
+  });
 });

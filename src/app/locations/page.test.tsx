@@ -302,4 +302,76 @@ describe("LocationsPage CRUD操作", () => {
       expect(cases.length).toBe(0);
     });
   });
+
+  it("削除でケース内の服が取り出し中になる", async () => {
+    testDb.storageCase.create({ id: "case-1", name: "衣装ケース A" });
+    testDb.storageLocation.create({ id: "loc-1", caseId: "case-1" });
+    testDb.garment.create({
+      id: "g-1",
+      locationId: "loc-1",
+      status: "stored",
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<LocationsPage />);
+
+    fireEvent.click(screen.getByLabelText("削除"));
+    const deleteButtons = screen.getAllByRole("button", { name: "削除" });
+    const lastDeleteButton = deleteButtons[deleteButtons.length - 1];
+    expect(lastDeleteButton).toBeDefined();
+    if (lastDeleteButton === undefined) return;
+    fireEvent.click(lastDeleteButton);
+
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
+    await waitFor(async () => {
+      const g = await db.garments.get("g-1");
+      expect(g?.status).toBe("checked_out");
+      expect(g?.locationId).toBeUndefined();
+    });
+  });
+
+  it("ユニットケース (ボックス) として作成できる", async () => {
+    const user = userEvent.setup();
+    await renderWithProviders(<LocationsPage />);
+
+    fireEvent.click(screen.getByLabelText("ケースを追加"));
+    fireEvent.click(screen.getByRole("button", { name: "ボックス" }));
+    const nameInput = screen.getByLabelText("ケース名");
+    await user.clear(nameInput);
+    await user.type(nameInput, "押し入れ");
+    fireEvent.click(screen.getByRole("button", { name: "作成" }));
+
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
+    await waitFor(async () => {
+      const cases = await db.storageCases.toArray();
+      expect(cases.length).toBe(1);
+      expect(cases[0]?.type).toBe("unit");
+    });
+  });
+
+  it("ケース作成シートのキャンセルでシートが閉じる", async () => {
+    await renderWithProviders(<LocationsPage />);
+
+    fireEvent.click(screen.getByLabelText("ケースを追加"));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "キャンセル" }));
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
+
+  it("ケース名を空にすると作成ボタンが無効化される", async () => {
+    const user = userEvent.setup();
+    await renderWithProviders(<LocationsPage />);
+
+    fireEvent.click(screen.getByLabelText("ケースを追加"));
+    const nameInput = screen.getByLabelText("ケース名");
+    await user.clear(nameInput);
+
+    const submit = screen.getByRole("button", { name: "作成" });
+    expect(submit).toBeDisabled();
+  });
 });

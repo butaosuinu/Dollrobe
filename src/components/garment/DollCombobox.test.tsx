@@ -153,6 +153,18 @@ describe("DollCombobox", () => {
     expect(combobox).toHaveAttribute("aria-expanded", "true");
   });
 
+  it("閉じている状態で Enter を押しても開かれる", async () => {
+    const user = userEvent.setup();
+    const { combobox } = await renderCombobox();
+
+    await user.click(combobox);
+    await user.keyboard("{Escape}");
+    expect(combobox).toHaveAttribute("aria-expanded", "false");
+
+    await user.keyboard("{Enter}");
+    expect(combobox).toHaveAttribute("aria-expanded", "true");
+  });
+
   it("ArrowDown で末尾を超えると先頭に wrap-around する", async () => {
     const user = userEvent.setup();
     const { combobox } = await renderCombobox();

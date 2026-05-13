@@ -102,4 +102,88 @@ describe("ApiKeysPage", () => {
       expect(router.replace).toHaveBeenCalledWith("/signin");
     });
   });
+
+  it("API キー発行に失敗するとシートが閉じず生キー表示も出ない", async () => {
+    const { spies } = setupAuthClient({
+      apiKeys: [],
+      createShouldFail: true,
+    });
+    const user = userEvent.setup();
+    await renderWithProviders(<ApiKeysPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "新しい API キーを発行" }),
+    );
+    await user.type(await screen.findByLabelText("名前"), "agent-fail");
+    await user.click(screen.getByRole("button", { name: "発行" }));
+
+    await waitFor(() => {
+      expect(spies.createApiKey).toHaveBeenCalled();
+    });
+    expect(screen.queryByTestId("api-key-value")).toBeNull();
+  });
+
+  it("名前が空のとき発行ボタンは無効化される", async () => {
+    setupAuthClient({ apiKeys: [] });
+    const user = userEvent.setup();
+    await renderWithProviders(<ApiKeysPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "新しい API キーを発行" }),
+    );
+    const submitBtn = await screen.findByRole("button", { name: "発行" });
+    expect(submitBtn).toBeDisabled();
+  });
+
+  it("発行シートをキャンセルで閉じることができる", async () => {
+    setupAuthClient({ apiKeys: [] });
+    const user = userEvent.setup();
+    await renderWithProviders(<ApiKeysPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "新しい API キーを発行" }),
+    );
+    await user.type(await screen.findByLabelText("名前"), "tmp");
+    await user.click(screen.getByRole("button", { name: "キャンセル" }));
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText("名前")).toBeNull();
+    });
+  });
+
+  it("最終使用済みの API キーは最終使用日時が表示される", async () => {
+    setupAuthClient({
+      apiKeys: [
+        {
+          ...baseKey,
+          id: "key-used",
+          name: "agent-used",
+          lastRequestAt: new Date("2026-02-15T10:00:00Z").getTime(),
+        },
+      ],
+    });
+
+    await renderWithProviders(<ApiKeysPage />);
+
+    expect(await screen.findByText("agent-used")).toBeInTheDocument();
+    expect(screen.queryByText("未使用")).toBeNull();
+  });
+
+  it("失効処理が失敗した場合は一覧から消えない", async () => {
+    setupAuthClient({
+      apiKeys: [baseKey],
+      revokeShouldFail: true,
+    });
+    const user = userEvent.setup();
+    await renderWithProviders(<ApiKeysPage />);
+
+    expect(await screen.findByText("agent-existing")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "失効" }));
+    const confirmButtons = screen.getAllByRole("button", { name: "失効" });
+    await user.click(confirmButtons[confirmButtons.length - 1]!);
+
+    await waitFor(() => {
+      expect(screen.getByText("agent-existing")).toBeInTheDocument();
+    });
+  });
 });

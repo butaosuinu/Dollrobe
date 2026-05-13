@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- comprehensive sync workflow scenarios */
 import { createId } from "@paralleldrive/cuid2";
 import {
   createTestCaller,
@@ -498,6 +499,59 @@ describe("同期ワークフロー シナリオ", () => {
         })
         .catch((e: unknown) => e);
 
+      expectTRPCError(error, "BAD_REQUEST");
+    });
+
+    it("同じ priority の action は createdAt 昇順で処理される", async () => {
+      const caller = getCaller();
+      const first = createCasePayload({ name: "first" });
+      const second = createCasePayload({ name: "second" });
+      const result = await caller.sync.push({
+        items: [
+          {
+            type: "storageCase:create",
+            payload: { storageCase: second, locations: [] },
+            createdAt: 2_000,
+          },
+          {
+            type: "storageCase:create",
+            payload: { storageCase: first, locations: [] },
+            createdAt: 1_000,
+          },
+        ],
+      });
+      expect(result.processedCount).toBe(2);
+    });
+
+    it("空配列の push は BAD_REQUEST を返す (items min 1 制約)", async () => {
+      const caller = getCaller();
+      const error = await caller.sync
+        .push({ items: [] })
+        .catch((e: unknown) => e);
+      expectTRPCError(error, "BAD_REQUEST");
+    });
+
+    it("複数 action の中で 1 つが失敗するとそこで中断される", async () => {
+      const caller = getCaller();
+      const error = await caller.sync
+        .push({
+          items: [
+            {
+              type: "storageCase:create",
+              payload: {
+                storageCase: createCasePayload({ name: "valid" }),
+                locations: [],
+              },
+              createdAt: Date.now(),
+            },
+            {
+              type: "garment:create",
+              payload: { invalid: true },
+              createdAt: Date.now() + 1,
+            },
+          ],
+        })
+        .catch((e: unknown) => e);
       expectTRPCError(error, "BAD_REQUEST");
     });
   });

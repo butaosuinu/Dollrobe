@@ -457,4 +457,67 @@ describe("GarmentsPage", () => {
 
     expect(screen.getByText(/アゾン/)).toBeInTheDocument();
   });
+
+  it("アーカイブ件数が 1 以上のときアーカイブリンクが表示される", async () => {
+    testDb.garment.create({ id: "g-1", name: "現役ドレス" });
+    testDb.garment.create({
+      id: "g-2",
+      name: "アーカイブ済み",
+      archivedAt: FIXED_NOW - MS_PER_DAY,
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentsPage />);
+
+    expect(await screen.findByText("アーカイブ (1)")).toBeInTheDocument();
+  });
+
+  it("ソート: 信頼度の低い順 / 高い順を切り替えてもクラッシュしない", async () => {
+    const user = userEvent.setup();
+    testDb.garment.create({
+      id: "g-1",
+      name: "古いドレス",
+      lastScannedAt: FIXED_NOW - 28 * MS_PER_DAY,
+      confidenceDecayDays: 30,
+    });
+    testDb.garment.create({
+      id: "g-2",
+      name: "新しいドレス",
+      lastScannedAt: FIXED_NOW,
+      confidenceDecayDays: 30,
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentsPage />);
+
+    const sortSelect = await screen.findByRole("combobox", {
+      name: /並び替え/,
+    });
+    await user.selectOptions(sortSelect, "confidence_asc");
+    expect(screen.getByText("古いドレス")).toBeInTheDocument();
+    await user.selectOptions(sortSelect, "confidence_desc");
+    expect(screen.getByText("新しいドレス")).toBeInTheDocument();
+  });
+
+  it("検索クエリに対しタグがマッチする (大文字小文字を区別しない)", async () => {
+    const user = userEvent.setup();
+    testDb.garment.create({
+      id: "g-1",
+      name: "ドレス",
+      tags: ["Princess"],
+    });
+    testDb.garment.create({
+      id: "g-2",
+      name: "シャツ",
+      tags: ["casual"],
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentsPage />);
+
+    const input = await screen.findByPlaceholderText(/名前やタグで検索/);
+    await user.type(input, "princess");
+    expect(screen.getAllByText("ドレス").length).toBeGreaterThan(0);
+    expect(screen.queryByText("シャツ")).toBeNull();
+  });
 });

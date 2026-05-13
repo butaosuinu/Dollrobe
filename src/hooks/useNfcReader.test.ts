@@ -334,4 +334,79 @@ describe("useNfcReader", () => {
 
     expect(vibrateMock).toHaveBeenCalledWith(VIBRATION_DURATION_MS);
   });
+
+  it("readingerror で navigator.vibrate がエラーパターンで呼ばれる", async () => {
+    const onScan = vi.fn();
+    renderHook(() => useNfcReader({ onScan, isActive: true }));
+
+    await flushMicrotasks();
+
+    act(() => {
+      mockReaderRef.current.triggerReadingError(new Event("readingerror"));
+    });
+
+    expect(vibrateMock).toHaveBeenCalledWith([50, 100, 50]);
+  });
+
+  it("recordType=url で dwg:// 以外の URL は onScan を呼ばない", async () => {
+    const onScan = vi.fn();
+    renderHook(() => useNfcReader({ onScan, isActive: true }));
+
+    await flushMicrotasks();
+
+    const event = createReadingEvent({
+      recordType: "url",
+      data: "https://example.com/",
+    });
+
+    act(() => {
+      mockReaderRef.current.triggerReading(event);
+    });
+
+    expect(onScan).not.toHaveBeenCalled();
+  });
+
+  it("data 無しの NDEF record は無視される", async () => {
+    const onScan = vi.fn();
+    renderHook(() => useNfcReader({ onScan, isActive: true }));
+
+    await flushMicrotasks();
+
+    // data: undefined の record
+    const baseEvent = new Event("reading");
+    const event = Object.assign(baseEvent, {
+      serialNumber: "test",
+      message: {
+        records: [
+          {
+            recordType: "url",
+            mediaType: "",
+            id: "",
+            encoding: "",
+            lang: "",
+            data: undefined,
+            toRecords: () => [],
+          },
+        ],
+      },
+    }) as unknown as NDEFReadingEvent;
+
+    act(() => {
+      mockReaderRef.current.triggerReading(event);
+    });
+
+    expect(onScan).not.toHaveBeenCalled();
+  });
+
+  it("AbortError は無視され state は変わらない", async () => {
+    const onScan = vi.fn();
+    mockReaderRef.current.scanMock.mockRejectedValueOnce(
+      new DOMException("aborted", "AbortError"),
+    );
+    const { result } = renderHook(() =>
+      useNfcReader({ onScan, isActive: true }),
+    );
+    await flushMicrotasks();
+    expect(result.current.nfcState.status).toBe("idle");
+  });
 });

@@ -161,4 +161,63 @@ describe("SignInPage", () => {
     });
     expect(link).toHaveAttribute("href", "/");
   });
+
+  it("メールアドレス形式が不正な場合は signInWithEmail は呼ばれない", async () => {
+    server.use(unauthenticatedHandler);
+    const { spies } = setupAuthClient();
+    const user = userEvent.setup();
+    await renderWithProviders(<SignInPage />);
+
+    await user.type(
+      await screen.findByLabelText("メールアドレス"),
+      "not-email",
+    );
+    await user.type(screen.getByLabelText("パスワード"), "secret123");
+    await user.click(screen.getByRole("button", { name: "ログイン" }));
+
+    await waitFor(() => {
+      expect(spies.signInWithEmail).not.toHaveBeenCalled();
+    });
+  });
+
+  it("パスワード未入力の場合は signInWithEmail は呼ばれない", async () => {
+    server.use(unauthenticatedHandler);
+    const { spies } = setupAuthClient();
+    const user = userEvent.setup();
+    await renderWithProviders(<SignInPage />);
+
+    await user.type(
+      await screen.findByLabelText("メールアドレス"),
+      "user@example.com",
+    );
+    await user.click(screen.getByRole("button", { name: "ログイン" }));
+
+    await waitFor(() => {
+      expect(spies.signInWithEmail).not.toHaveBeenCalled();
+    });
+  });
+
+  it("redirect クエリつきでログイン成功するとそのパスへ遷移する", async () => {
+    server.use(unauthenticatedHandler);
+    const { spies } = setupAuthClient();
+    const { router } = setupNextNavigation({
+      searchParams: new URLSearchParams("redirect=/dashboard"),
+    });
+    const user = userEvent.setup();
+    await renderWithProviders(<SignInPage />);
+
+    await user.type(
+      await screen.findByLabelText("メールアドレス"),
+      "user@example.com",
+    );
+    await user.type(screen.getByLabelText("パスワード"), "secret123");
+    await user.click(screen.getByRole("button", { name: "ログイン" }));
+
+    await waitFor(() => {
+      expect(spies.signInWithEmail).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith("/dashboard");
+    });
+  });
 });

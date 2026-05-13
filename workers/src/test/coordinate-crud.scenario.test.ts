@@ -144,6 +144,22 @@ describe("コーデ CRUD シナリオ", () => {
 
       expectTRPCError(error, "NOT_FOUND");
     });
+
+    it("garmentIds を省略 (undefined) して update した場合は既存値が維持される", async () => {
+      const caller = getCaller();
+      const g1 = await caller.garment.create(createTestGarmentInput());
+      const created = await caller.coordinate.create(
+        createTestCoordinateInput({ garmentIds: [g1.id] }),
+      );
+
+      const updated = await caller.coordinate.update({
+        id: created.id,
+        name: "改名のみ",
+      });
+
+      expect(updated.name).toBe("改名のみ");
+      expect(updated.garmentIds).toEqual([g1.id]);
+    });
   });
 
   describe("コーデの削除", () => {

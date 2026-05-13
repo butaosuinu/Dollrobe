@@ -140,4 +140,82 @@ describe("DollDetailPage", () => {
 
     expect(screen.getByText("着用可能な服がありません")).toBeInTheDocument();
   });
+
+  it("画像が登録されているドールは img タグが描画される", async () => {
+    testDb.doll.create({
+      id: "doll-1",
+      name: "リナ",
+      imageUrl: "https://example.com/doll.png",
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<DollDetailPage />);
+
+    const img = screen.getByAltText("リナ");
+    expect(img).toHaveAttribute("src", "https://example.com/doll.png");
+  });
+
+  it("アーカイブ済みドールは復元 / 完全に削除ボタンが表示される", async () => {
+    testDb.doll.create({
+      id: "doll-1",
+      name: "リナ",
+      archivedAt: FIXED_NOW - 86_400_000,
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<DollDetailPage />);
+
+    expect(screen.getByText("復元")).toBeInTheDocument();
+    expect(screen.getByText("完全に削除")).toBeInTheDocument();
+  });
+
+  it("アーカイブ済みドールの復元ボタンで /dolls に戻る", async () => {
+    testDb.doll.create({
+      id: "doll-1",
+      name: "リナ",
+      archivedAt: FIXED_NOW - 86_400_000,
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<DollDetailPage />);
+
+    fireEvent.click(screen.getByText("復元"));
+
+    await waitFor(() => {
+      expect(navHandle.current.router.push).toHaveBeenCalledWith("/dolls");
+    });
+  });
+
+  it("アーカイブ済みドールの完全削除確認後に /archive に遷移する", async () => {
+    testDb.doll.create({
+      id: "doll-1",
+      name: "リナ",
+      archivedAt: FIXED_NOW - 86_400_000,
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<DollDetailPage />);
+
+    fireEvent.click(screen.getByText("完全に削除"));
+
+    const dialog = screen.getByRole("dialog");
+    const confirmButton = within(dialog).getByRole("button", {
+      name: "削除",
+    });
+    fireEvent.click(confirmButton);
+
+    await waitFor(() => {
+      expect(navHandle.current.router.push).toHaveBeenCalledWith("/archive");
+    });
+  });
+
+  it("存在しないドールで「一覧に戻る」を押すと /dolls に遷移する", async () => {
+    navHandle.current.setParams({ id: "non-existent" });
+
+    await renderWithProviders(<DollDetailPage />);
+
+    fireEvent.click(await screen.findByText("一覧に戻る"));
+
+    expect(navHandle.current.router.push).toHaveBeenCalledWith("/dolls");
+  });
 });

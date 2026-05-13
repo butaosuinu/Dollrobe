@@ -306,5 +306,16 @@ describe("スキャン操作シナリオ", () => {
 
       expectTRPCError(error, "NOT_FOUND");
     });
+
+    it("stored_back で locationId 未指定はバリデーションエラー", async () => {
+      const { caller, garment } = await setupOrphan();
+      const error = await caller.scan
+        .orphanResolve({
+          garmentId: garment.id,
+          resolution: "stored_back",
+        })
+        .catch((e: unknown) => e);
+      expectTRPCError(error, "BAD_REQUEST");
+    });
   });
 });
