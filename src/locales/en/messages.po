@@ -956,6 +956,10 @@ msgstr "Password"
 msgid "パスワード（確認）"
 msgstr "Password (Confirm)"
 
+#: src/lib/auth.ts
+msgid "パスワードが一致しません"
+msgstr "Passwords do not match"
+
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードが正しくないか、アカウントの削除に失敗しました"
 msgstr "Incorrect password, or failed to delete account"
@@ -963,6 +967,14 @@ msgstr "Incorrect password, or failed to delete account"
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードの設定に失敗しました"
 msgstr "Failed to set password"
+
+#: src/lib/auth.ts
+msgid "パスワードは 128 文字以内で入力してください"
+msgstr "Password must be 128 characters or fewer"
+
+#: src/lib/auth.ts
+msgid "パスワードは 8 文字以上で入力してください"
+msgstr "Password must be at least 8 characters"
 
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードを入力"
@@ -1854,6 +1866,10 @@ msgstr "Next page"
 msgid "次へ"
 msgstr "Next"
 
+#: src/lib/auth.ts
+msgid "正しいメールアドレスを入力してください"
+msgstr "Please enter a valid email address"
+
 #: src/app/digest/page.tsx
 msgid "毎週月曜日に自動生成されます"
 msgstr "Auto-generated every Monday"
@@ -2040,6 +2056,14 @@ msgstr "Items per page"
 #: src/components/settings/account/ProfileForm.tsx
 msgid "表示名"
 msgstr "Display Name"
+
+#: src/lib/auth.ts
+msgid "表示名は 60 文字以内で入力してください"
+msgstr "Display name must be 60 characters or fewer"
+
+#: src/lib/auth.ts
+msgid "表示名を入力してください"
+msgstr "Please enter a display name"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/components/digest/DigestCard.tsx

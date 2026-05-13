@@ -956,6 +956,10 @@ msgstr "비밀번호"
 msgid "パスワード（確認）"
 msgstr "비밀번호 (확인)"
 
+#: src/lib/auth.ts
+msgid "パスワードが一致しません"
+msgstr "비밀번호가 일치하지 않습니다"
+
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードが正しくないか、アカウントの削除に失敗しました"
 msgstr "비밀번호가 올바르지 않거나 계정 삭제에 실패했습니다"
@@ -963,6 +967,14 @@ msgstr "비밀번호가 올바르지 않거나 계정 삭제에 실패했습니�
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードの設定に失敗しました"
 msgstr "비밀번호 설정에 실패했습니다"
+
+#: src/lib/auth.ts
+msgid "パスワードは 128 文字以内で入力してください"
+msgstr "비밀번호는 128자 이하로 입력해 주세요"
+
+#: src/lib/auth.ts
+msgid "パスワードは 8 文字以上で入力してください"
+msgstr "비밀번호는 8자 이상으로 입력해 주세요"
 
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードを入力"
@@ -1854,6 +1866,10 @@ msgstr "다음 페이지"
 msgid "次へ"
 msgstr "다음"
 
+#: src/lib/auth.ts
+msgid "正しいメールアドレスを入力してください"
+msgstr "올바른 이메일 주소를 입력해 주세요"
+
 #: src/app/digest/page.tsx
 msgid "毎週月曜日に自動生成されます"
 msgstr "매주 월요일에 자동 생성됩니다"
@@ -2040,6 +2056,14 @@ msgstr "표시 건수"
 #: src/components/settings/account/ProfileForm.tsx
 msgid "表示名"
 msgstr "표시 이름"
+
+#: src/lib/auth.ts
+msgid "表示名は 60 文字以内で入力してください"
+msgstr "표시 이름은 60자 이하로 입력해 주세요"
+
+#: src/lib/auth.ts
+msgid "表示名を入力してください"
+msgstr "표시 이름을 입력해 주세요"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/components/digest/DigestCard.tsx
