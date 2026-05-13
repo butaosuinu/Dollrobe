@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { Shirt } from "lucide-react";
 import { t } from "@lingui/core/macro";
-import { Trans } from "@lingui/react/macro";
+import { Plural } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import type { DollSize } from "@/types";
 import { garmentsAtom } from "@/stores/garmentAtoms";
@@ -63,7 +63,11 @@ const CompatibleGarmentList = ({ dollBodySize }: Props) => {
         </Link>
       ))}
       <p className="text-center text-xs text-text-tertiary">
-        <Trans>{compatible.length}着の服が着用可能</Trans>
+        <Plural
+          value={compatible.length}
+          one="#着の服が着用可能"
+          other="#着の服が着用可能"
+        />
       </p>
     </div>
   );

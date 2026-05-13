@@ -1,7 +1,7 @@
 "use client";
 
 import { msg } from "@lingui/core/macro";
-import { Trans } from "@lingui/react/macro";
+import { Plural } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import { useAtomValue } from "jotai";
 import Card from "@/components/ui/Card";
@@ -57,7 +57,7 @@ const ConfidenceStats = ({ garments }: Props) => {
           <p className="text-xs font-medium opacity-70">{i18n._(label)}</p>
           <p className="font-display text-2xl font-bold">{value}</p>
           <p className="text-[10px] opacity-50">
-            <Trans>着</Trans>
+            <Plural value={value} one="着" other="着" />
           </p>
         </Card>
       ))}

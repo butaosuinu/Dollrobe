@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
-import { t } from "@lingui/core/macro";
+import { plural, t } from "@lingui/core/macro";
 import type { Garment, StorageCase, StorageLocation } from "@/types";
 import { getConfidence } from "@/lib/confidence";
 import {
@@ -86,9 +86,16 @@ const StorageCaseCard = ({
             </Trans>
           )}
         </span>
-        <Badge>{t`${caseGarments.length}着`}</Badge>
+        <Badge>
+          {plural(caseGarments.length, { one: "#着", other: "#着" })}
+        </Badge>
         {needsReviewCount > 0 && (
-          <Badge variant="uncertain">{t`${needsReviewCount}着 要確認`}</Badge>
+          <Badge variant="uncertain">
+            {plural(needsReviewCount, {
+              one: "#着 要確認",
+              other: "#着 要確認",
+            })}
+          </Badge>
         )}
       </div>
       {!isUnit && (

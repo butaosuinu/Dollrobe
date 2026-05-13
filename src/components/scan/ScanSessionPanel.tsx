@@ -2,7 +2,7 @@
 
 import { useAtomValue, useSetAtom } from "jotai";
 import { MapPin, RotateCcw } from "lucide-react";
-import { Trans } from "@lingui/react/macro";
+import { Plural, Trans } from "@lingui/react/macro";
 import {
   activeLocationIdAtom,
   scannedGarmentIdsAtom,
@@ -58,7 +58,11 @@ const ScanSessionPanel = ({ locationName, onConfirmAll }: Props) => {
 
       {scannedIds.length > 0 && (
         <p className="text-xs text-text-secondary">
-          <Trans>{scannedIds.length}着をスキャンしました</Trans>
+          <Plural
+            value={scannedIds.length}
+            one="#着をスキャンしました"
+            other="#着をスキャンしました"
+          />
         </p>
       )}
 
