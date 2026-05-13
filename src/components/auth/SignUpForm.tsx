@@ -30,7 +30,10 @@ const SignUpForm = () => {
   const router = useRouter();
   const refreshAuth = useSetAtom(refreshAuthAtom);
   const { i18n } = useLingui();
-  const schema = useMemo(() => createSignUpEmailSchema(i18n), [i18n]);
+  // i18n は singleton で activate しても reference が変わらないため、locale
+  // 文字列を dep に入れてロケール切替時に schema を再生成する。
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: i18n is singleton, locale string drives rebuild
+  const schema = useMemo(() => createSignUpEmailSchema(i18n), [i18n.locale]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
