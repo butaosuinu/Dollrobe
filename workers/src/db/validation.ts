@@ -118,7 +118,7 @@ export const createGarmentInputSchema = garmentInsertSchema
     updatedAt: true,
   })
   .extend({
-    dollSizes: z.array(dollSizeSchema).min(1),
+    dollSizes: z.array(dollSizeSchema),
     colors: z.array(z.string()).default([]),
     tags: z.array(z.string()).default([]),
     imageUrl: z.url().optional(),
@@ -145,7 +145,7 @@ export const updateGarmentInputSchema = z.object({
   id: cuidSchema,
   name: z.string().min(1).max(GARMENT_NAME_MAX_LENGTH).optional(),
   category: garmentCategorySchema.optional(),
-  dollSizes: z.array(dollSizeSchema).min(1).optional(),
+  dollSizes: z.array(dollSizeSchema).optional(),
   colors: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   imageUrl: z.url().optional(),
@@ -184,7 +184,7 @@ export const bulkCreateGarmentItemSchema = garmentInsertSchema
     locationId: true,
   })
   .extend({
-    dollSizes: z.array(dollSizeSchema).min(1),
+    dollSizes: z.array(dollSizeSchema),
     colors: z.array(z.string()).default([]),
     tags: z.array(z.string()).default([]),
     brand: z.string().max(GARMENT_NAME_MAX_LENGTH).optional(),

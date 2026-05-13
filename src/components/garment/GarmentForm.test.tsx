@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/mocks/server";
@@ -83,11 +83,58 @@ describe("GarmentForm", () => {
       expect(garments[0]?.id).toMatch(/^[a-z0-9]+$/);
       expect(garments[0]?.userId).toBe("user-1");
       expect(garments[0]?.category).toBe("tops");
-      expect(garments[0]?.dollSizes).toEqual(["SD"]);
+      expect(garments[0]?.dollSizes).toEqual([]);
       expect(garments[0]?.status).toBe("stored");
     });
     await waitFor(() => {
       expect(navHandle.router.push).toHaveBeenCalledWith("/garments");
+    });
+  });
+
+  it("初期表示ではどのドールサイズ Chip も選択されていない", async () => {
+    await renderWithProviders(<GarmentForm />);
+
+    const group = await screen.findByRole("group", { name: "ドールサイズ" });
+    const sizeButtons = within(group).getAllByRole("button");
+    expect(sizeButtons.length).toBeGreaterThan(0);
+    sizeButtons.forEach((btn) => {
+      expect(btn).toHaveAttribute("aria-pressed", "false");
+    });
+  });
+
+  it("サイズ Chip をクリックすると aria-pressed が切り替わり、再クリックで解除できる", async () => {
+    const user = userEvent.setup();
+    await renderWithProviders(<GarmentForm />);
+
+    const group = await screen.findByRole("group", { name: "ドールサイズ" });
+    const sdButton = within(group).getByRole("button", { name: "SD (~57cm)" });
+
+    expect(sdButton).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(sdButton);
+    expect(sdButton).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(sdButton);
+    expect(sdButton).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("選んだサイズだけが保存される（SD+MSD を選択）", async () => {
+    const user = userEvent.setup();
+    await renderWithProviders(<GarmentForm />);
+
+    const group = await screen.findByRole("group", { name: "ドールサイズ" });
+    await user.type(screen.getByLabelText("名前"), "二刀流ドレス");
+    await user.click(within(group).getByRole("button", { name: "SD (~57cm)" }));
+    await user.click(
+      within(group).getByRole("button", { name: "MSD (~43cm)" }),
+    );
+    await user.click(screen.getByRole("button", { name: "登録する" }));
+
+    const { getDb } = await import("@/lib/db/dexie");
+    const db = getDb();
+    await waitFor(async () => {
+      const garments = await db.garments.toArray();
+      expect(garments[0]?.dollSizes).toEqual(["SD", "MSD"]);
     });
   });
 
