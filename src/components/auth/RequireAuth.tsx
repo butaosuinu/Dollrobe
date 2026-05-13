@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { Trans } from "@lingui/react/macro";
 import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
@@ -18,10 +18,13 @@ type Props = {
 const RequireAuth = ({ children }: Props) => {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, isLoading, hasError } = useAtomValue(authSessionUnwrappedAtom);
   const [isOnline, setIsOnline] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const isPublicPath = PUBLIC_PATHS.has(pathname);
+  const search = searchParams.toString();
+  const redirectTo = search === "" ? pathname : `${pathname}?${search}`;
 
   useEffect(() => {
     setIsMounted(true);
@@ -47,9 +50,18 @@ const RequireAuth = ({ children }: Props) => {
       return;
     }
     if (isOnline) {
-      router.replace("/signin");
+      router.replace(`/signin?redirect=${encodeURIComponent(redirectTo)}`);
     }
-  }, [isPublicPath, isMounted, isLoading, user, hasError, isOnline, router]);
+  }, [
+    isPublicPath,
+    isMounted,
+    isLoading,
+    user,
+    hasError,
+    isOnline,
+    redirectTo,
+    router,
+  ]);
 
   if (isPublicPath) {
     return <>{children}</>;
