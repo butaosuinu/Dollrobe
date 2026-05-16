@@ -49,14 +49,26 @@ if [ -f "$WT_SETTINGS" ]; then
   # （マージなしで rm すると permission が失われるため）
   command -v jq >/dev/null 2>&1 || exit 0
   TMP="$(mktemp)"
+  # allow/deny/ask を独立に union すると、parent の deny と worktree の allow など
+  # 同一ルールが複数カテゴリに残って runtime で deny が勝ってしまう。worktree 側の
+  # 判断を新しいものとして優先するため、worktree のカテゴリと衝突する parent 側の
+  # エントリを各リストから除外する。
   if jq -s '
     .[0] as $a | .[1] as $b |
+    ($a.permissions // {}) as $ap |
+    ($b.permissions // {}) as $bp |
+    ($bp.allow // []) as $b_allow |
+    ($bp.deny  // []) as $b_deny  |
+    ($bp.ask   // []) as $b_ask   |
     ($a * $b) |
     .permissions = (
-      (($a.permissions // {}) * ($b.permissions // {}))
-      | .allow = ((($a.permissions.allow // []) + ($b.permissions.allow // [])) | unique)
-      | .deny  = ((($a.permissions.deny  // []) + ($b.permissions.deny  // [])) | unique)
-      | .ask   = ((($a.permissions.ask   // []) + ($b.permissions.ask   // [])) | unique)
+      ($ap * $bp) |
+      .allow = ((($ap.allow // []) + $b_allow) | unique
+                | map(select(IN($b_deny[], $b_ask[]) | not)))
+      | .deny = ((($ap.deny // []) + $b_deny) | unique
+                | map(select(IN($b_allow[], $b_ask[]) | not)))
+      | .ask  = ((($ap.ask  // []) + $b_ask)  | unique
+                | map(select(IN($b_allow[], $b_deny[]) | not)))
     )
   ' "$PARENT_SETTINGS" "$WT_SETTINGS" > "$TMP"; then
     # mv が成功した場合のみ worktree ファイルを削除する。
