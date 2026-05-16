@@ -37,9 +37,32 @@ describe("RequireAuth", () => {
     );
 
     await waitFor(() => {
-      expect(router.replace).toHaveBeenCalledWith("/signin");
+      expect(router.replace).toHaveBeenCalledWith(
+        "/signin?redirect=%2Fdashboard",
+      );
     });
     expect(screen.queryByTestId("protected-content")).not.toBeInTheDocument();
+  });
+
+  it("未認証時、検索クエリを含む現在 URL が redirect クエリに保持される", async () => {
+    server.use(unauthenticatedHandler);
+    const { router } = setupNextNavigation({
+      pathname: "/garments",
+      searchParams: new URLSearchParams("q=red"),
+    });
+
+    await renderWithProviders(
+      <RequireAuth>
+        <p data-testid="protected-content">秘匿ページ</p>
+      </RequireAuth>,
+    );
+
+    const expectedRedirect = `/signin?redirect=${encodeURIComponent(
+      `/garments?${new URLSearchParams("q=red").toString()}`,
+    )}`;
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith(expectedRedirect);
+    });
   });
 
   it("未認証 + オフラインのとき案内文が表示され redirect しない", async () => {

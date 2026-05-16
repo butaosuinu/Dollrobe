@@ -13,6 +13,29 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. placeholder {0}: caseGarments.length
+#. placeholder {0}: garments.length
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageCaseCard.tsx
+#: src/components/location/StorageCell.tsx
+msgid "{0, plural, one {#着} other {#着}}"
+msgstr "{0, plural, one {# item} other {# items}}"
+
+#. placeholder {0}: compatible.length
+#: src/components/doll/CompatibleGarmentList.tsx
+msgid "{0, plural, one {#着の服が着用可能} other {#着の服が着用可能}}"
+msgstr "{0, plural, one {# garment can be worn} other {# garments can be worn}}"
+
+#. placeholder {0}: scannedIds.length
+#: src/components/scan/ScanSessionPanel.tsx
+msgid "{0, plural, one {#着をスキャンしました} other {#着をスキャンしました}}"
+msgstr "{0, plural, one {# garment scanned} other {# garments scanned}}"
+
+#. placeholder {0}: digest.totalGarments
+#: src/components/digest/DigestCard.tsx
+msgid "{0, plural, one {管理中の服: #着} other {管理中の服: #着}}"
+msgstr "{0, plural, one {Managed garments: #} other {Managed garments: #}}"
+
 #. placeholder {0}: STEP_TITLES[step]
 #: src/app/garments/import/page.tsx
 msgid "{0}"
@@ -43,13 +66,11 @@ msgstr "{0} registrations failed"
 msgid "{0}件の登録に成功しました"
 msgstr "{0} registrations succeeded"
 
-#. placeholder {0}: caseGarments.length
-#. placeholder {0}: garments.length
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 #: src/components/location/StorageCell.tsx
-msgid "{0}着"
-msgstr "{0} items"
+#~ msgid "{0}着"
+#~ msgstr "{0} items"
 
 #: src/components/digest/DigestCard.tsx
 #~ msgid "{0}着が取り出されたままのようです"
@@ -59,19 +80,17 @@ msgstr "{0} items"
 #~ msgid "{0}着の服が3日以上取り出し中です"
 #~ msgstr "{0} garments have been checked out for over 3 days"
 
-#. placeholder {0}: compatible.length
 #: src/components/doll/CompatibleGarmentList.tsx
-msgid "{0}着の服が着用可能"
-msgstr "{0} garments can be worn"
+#~ msgid "{0}着の服が着用可能"
+#~ msgstr "{0} garments can be worn"
 
 #: src/components/dashboard/AlertPanel.tsx
 #~ msgid "{0}着の服を取り出し中"
 #~ msgstr "{0} garments checked out"
 
-#. placeholder {0}: scannedIds.length
 #: src/components/scan/ScanSessionPanel.tsx
-msgid "{0}着をスキャンしました"
-msgstr "{0} garments scanned"
+#~ msgid "{0}着をスキャンしました"
+#~ msgstr "{0} garments scanned"
 
 #. placeholder {0}: storageCase.rows
 #. placeholder {1}: storageCase.cols
@@ -102,8 +121,13 @@ msgstr "{errorCount} errors"
 
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
-msgid "{needsReviewCount}着 要確認"
-msgstr "{needsReviewCount} items need review"
+msgid "{needsReviewCount, plural, one {#着 要確認} other {#着 要確認}}"
+msgstr "{needsReviewCount, plural, one {# item needs review} other {# items need review}}"
+
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageCaseCard.tsx
+#~ msgid "{needsReviewCount}着 要確認"
+#~ msgstr "{needsReviewCount} items need review"
 
 #: src/components/digest/DigestCard.tsx
 msgid "{percent}% 正確"
@@ -112,6 +136,10 @@ msgstr "{percent}% accurate"
 #: src/components/ui/Pagination.tsx
 msgid "{size}件表示"
 msgstr "Show {size}"
+
+#: src/components/dashboard/StaleLocationItem.tsx
+msgid "{uncertainItemCount, plural, one {未確認 #着} other {未確認 #着}}"
+msgstr "{uncertainItemCount, plural, one {# item unconfirmed} other {# items unconfirmed}}"
 
 #: src/components/scan/CheckoutConfirmSheet.tsx
 msgid "{uncertainItemCount} 件が最後のスキャンから時間が経っています"
@@ -124,6 +152,10 @@ msgstr "{validCount} valid"
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件をインポート"
 msgstr "Import {validCount} items"
+
+#: src/components/confidence/ConfidenceStats.tsx
+msgid "{value, plural, one {着} other {着}}"
+msgstr "{value, plural, one {item} other {items}}"
 
 #. placeholder {0}: doll.name
 #. placeholder {0}: garment.name
@@ -924,6 +956,10 @@ msgstr "Password"
 msgid "パスワード（確認）"
 msgstr "Password (Confirm)"
 
+#: src/lib/auth.ts
+msgid "パスワードが一致しません"
+msgstr "Passwords do not match"
+
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードが正しくないか、アカウントの削除に失敗しました"
 msgstr "Incorrect password, or failed to delete account"
@@ -931,6 +967,14 @@ msgstr "Incorrect password, or failed to delete account"
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードの設定に失敗しました"
 msgstr "Failed to set password"
+
+#: src/lib/auth.ts
+msgid "パスワードは 128 文字以内で入力してください"
+msgstr "Password must be 128 characters or fewer"
+
+#: src/lib/auth.ts
+msgid "パスワードは 8 文字以上で入力してください"
+msgstr "Password must be at least 8 characters"
 
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードを入力"
@@ -1787,8 +1831,8 @@ msgid "未使用"
 msgstr "Not used"
 
 #: src/components/dashboard/StaleLocationItem.tsx
-msgid "未確認 {uncertainItemCount}着"
-msgstr "{uncertainItemCount} items unconfirmed"
+#~ msgid "未確認 {uncertainItemCount}着"
+#~ msgstr "{uncertainItemCount} items unconfirmed"
 
 #: src/components/digest/DigestCard.tsx
 msgid "未読"
@@ -1821,6 +1865,10 @@ msgstr "Next page"
 #: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "Next"
+
+#: src/lib/auth.ts
+msgid "正しいメールアドレスを入力してください"
+msgstr "Please enter a valid email address"
 
 #: src/app/digest/page.tsx
 msgid "毎週月曜日に自動生成されます"
@@ -1903,8 +1951,8 @@ msgid "白"
 msgstr "White"
 
 #: src/components/confidence/ConfidenceStats.tsx
-msgid "着"
-msgstr "items"
+#~ msgid "着"
+#~ msgstr "items"
 
 #: src/app/dolls/[id]/page.tsx
 msgid "着用可能な服"
@@ -1929,10 +1977,9 @@ msgstr "Confirm"
 #~ msgid "確認"
 #~ msgstr "Check"
 
-#. placeholder {0}: digest.totalGarments
 #: src/components/digest/DigestCard.tsx
-msgid "管理中の服: {0}着"
-msgstr "Managed garments: {0}"
+#~ msgid "管理中の服: {0}着"
+#~ msgstr "Managed garments: {0}"
 
 #: src/components/dashboard/CheckedOutSection.tsx
 #: src/lib/i18n-labels.ts
@@ -2009,6 +2056,14 @@ msgstr "Items per page"
 #: src/components/settings/account/ProfileForm.tsx
 msgid "表示名"
 msgstr "Display Name"
+
+#: src/lib/auth.ts
+msgid "表示名は 60 文字以内で入力してください"
+msgstr "Display name must be 60 characters or fewer"
+
+#: src/lib/auth.ts
+msgid "表示名を入力してください"
+msgstr "Please enter a display name"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/components/digest/DigestCard.tsx

@@ -1,5 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 import { apiKeyClient } from "@better-auth/api-key/client";
+import type { I18n } from "@lingui/core";
+import { msg } from "@lingui/core/macro";
 import { z } from "zod";
 import { WORKERS_URL_FOR_FETCH } from "@/lib/workersUrl";
 
@@ -87,17 +89,35 @@ export const signInEmailSchema = z.object({
   password: z.string().min(1),
 });
 
-export const signUpEmailSchema = z
-  .object({
-    name: nameField,
-    email: emailField,
-    password: passwordField,
-    passwordConfirm: passwordField,
-  })
-  .refine((v) => v.password === v.passwordConfirm, {
-    path: ["passwordConfirm"],
-    message: "パスワードが一致しません",
-  });
+export const createSignUpEmailSchema = (i18n: I18n) => {
+  const localizedName = z
+    .string()
+    .trim()
+    .min(1, i18n._(msg`表示名を入力してください`))
+    .max(NAME_MAX, i18n._(msg`表示名は 60 文字以内で入力してください`));
+  const localizedEmail = z
+    .string()
+    .trim()
+    .pipe(z.email(i18n._(msg`正しいメールアドレスを入力してください`)));
+  const localizedPassword = z
+    .string()
+    .min(PASSWORD_MIN, i18n._(msg`パスワードは 8 文字以上で入力してください`))
+    .max(
+      PASSWORD_MAX,
+      i18n._(msg`パスワードは 128 文字以内で入力してください`),
+    );
+  return z
+    .object({
+      name: localizedName,
+      email: localizedEmail,
+      password: localizedPassword,
+      passwordConfirm: localizedPassword,
+    })
+    .refine((v) => v.password === v.passwordConfirm, {
+      path: ["passwordConfirm"],
+      message: i18n._(msg`パスワードが一致しません`),
+    });
+};
 
 export const updateProfileSchema = z.object({
   name: nameField,
@@ -135,7 +155,9 @@ export const deleteAccountSchema = z.object({
 });
 
 export type SignInEmailInput = z.infer<typeof signInEmailSchema>;
-export type SignUpEmailInput = z.infer<typeof signUpEmailSchema>;
+export type SignUpEmailInput = z.infer<
+  ReturnType<typeof createSignUpEmailSchema>
+>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangeEmailInput = z.infer<typeof changeEmailSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

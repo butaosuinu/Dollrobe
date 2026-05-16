@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Trans } from "@lingui/react/macro";
+import { Plural } from "@lingui/react/macro";
 import type { Garment, StorageLocation } from "@/types";
 import { getConfidence, getConfidenceLabel } from "@/lib/confidence";
 import { GARMENT_STATUS } from "@/lib/constants";
@@ -55,7 +55,7 @@ const StorageCell = ({ location, garments, onClick, isSelected }: Props) => {
       )}
       {garments.length > 0 && (
         <span className="mt-0.5 text-[10px] text-text-secondary">
-          <Trans>{garments.length}着</Trans>
+          <Plural value={garments.length} one="#着" other="#着" />
         </span>
       )}
     </button>

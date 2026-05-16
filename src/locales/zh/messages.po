@@ -13,6 +13,29 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#. placeholder {0}: caseGarments.length
+#. placeholder {0}: garments.length
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageCaseCard.tsx
+#: src/components/location/StorageCell.tsx
+msgid "{0, plural, one {#着} other {#着}}"
+msgstr "{0, plural, one {#件} other {#件}}"
+
+#. placeholder {0}: compatible.length
+#: src/components/doll/CompatibleGarmentList.tsx
+msgid "{0, plural, one {#着の服が着用可能} other {#着の服が着用可能}}"
+msgstr "{0, plural, one {#件衣服可穿着} other {#件衣服可穿着}}"
+
+#. placeholder {0}: scannedIds.length
+#: src/components/scan/ScanSessionPanel.tsx
+msgid "{0, plural, one {#着をスキャンしました} other {#着をスキャンしました}}"
+msgstr "{0, plural, one {已扫描#件} other {已扫描#件}}"
+
+#. placeholder {0}: digest.totalGarments
+#: src/components/digest/DigestCard.tsx
+msgid "{0, plural, one {管理中の服: #着} other {管理中の服: #着}}"
+msgstr "{0, plural, one {管理中的衣服：#件} other {管理中的衣服：#件}}"
+
 #. placeholder {0}: STEP_TITLES[step]
 #: src/app/garments/import/page.tsx
 msgid "{0}"
@@ -43,13 +66,11 @@ msgstr "{0}项登记失败"
 msgid "{0}件の登録に成功しました"
 msgstr "{0}项登记成功"
 
-#. placeholder {0}: caseGarments.length
-#. placeholder {0}: garments.length
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
 #: src/components/location/StorageCell.tsx
-msgid "{0}着"
-msgstr "{0}件"
+#~ msgid "{0}着"
+#~ msgstr "{0}件"
 
 #: src/components/digest/DigestCard.tsx
 #~ msgid "{0}着が取り出されたままのようです"
@@ -59,19 +80,17 @@ msgstr "{0}件"
 #~ msgid "{0}着の服が3日以上取り出し中です"
 #~ msgstr "{0}件衣服已取出超过3天"
 
-#. placeholder {0}: compatible.length
 #: src/components/doll/CompatibleGarmentList.tsx
-msgid "{0}着の服が着用可能"
-msgstr "{0}件衣服可穿着"
+#~ msgid "{0}着の服が着用可能"
+#~ msgstr "{0}件衣服可穿着"
 
 #: src/components/dashboard/AlertPanel.tsx
 #~ msgid "{0}着の服を取り出し中"
 #~ msgstr "{0}件衣服取出中"
 
-#. placeholder {0}: scannedIds.length
 #: src/components/scan/ScanSessionPanel.tsx
-msgid "{0}着をスキャンしました"
-msgstr "已扫描{0}件"
+#~ msgid "{0}着をスキャンしました"
+#~ msgstr "已扫描{0}件"
 
 #. placeholder {0}: storageCase.rows
 #. placeholder {1}: storageCase.cols
@@ -102,8 +121,13 @@ msgstr "{errorCount}项错误"
 
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageCaseCard.tsx
-msgid "{needsReviewCount}着 要確認"
-msgstr "{needsReviewCount}件 待确认"
+msgid "{needsReviewCount, plural, one {#着 要確認} other {#着 要確認}}"
+msgstr "{needsReviewCount, plural, one {#件 待确认} other {#件 待确认}}"
+
+#: src/app/locations/[caseId]/page.tsx
+#: src/components/location/StorageCaseCard.tsx
+#~ msgid "{needsReviewCount}着 要確認"
+#~ msgstr "{needsReviewCount}件 待确认"
 
 #: src/components/digest/DigestCard.tsx
 msgid "{percent}% 正確"
@@ -112,6 +136,10 @@ msgstr "{percent}% 准确"
 #: src/components/ui/Pagination.tsx
 msgid "{size}件表示"
 msgstr "显示{size}项"
+
+#: src/components/dashboard/StaleLocationItem.tsx
+msgid "{uncertainItemCount, plural, one {未確認 #着} other {未確認 #着}}"
+msgstr "{uncertainItemCount, plural, one {未确认 #件} other {未确认 #件}}"
 
 #: src/components/scan/CheckoutConfirmSheet.tsx
 msgid "{uncertainItemCount} 件が最後のスキャンから時間が経っています"
@@ -124,6 +152,10 @@ msgstr "{validCount}项有效"
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "{validCount}件をインポート"
 msgstr "导入{validCount}项"
+
+#: src/components/confidence/ConfidenceStats.tsx
+msgid "{value, plural, one {着} other {着}}"
+msgstr "{value, plural, one {件} other {件}}"
 
 #. placeholder {0}: doll.name
 #. placeholder {0}: garment.name
@@ -924,6 +956,10 @@ msgstr "密码"
 msgid "パスワード（確認）"
 msgstr "密码（确认）"
 
+#: src/lib/auth.ts
+msgid "パスワードが一致しません"
+msgstr "两次输入的密码不一致"
+
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードが正しくないか、アカウントの削除に失敗しました"
 msgstr "密码不正确或删除账号失败"
@@ -931,6 +967,14 @@ msgstr "密码不正确或删除账号失败"
 #: src/components/settings/account/PasswordChangeForm.tsx
 msgid "パスワードの設定に失敗しました"
 msgstr "设置密码失败"
+
+#: src/lib/auth.ts
+msgid "パスワードは 128 文字以内で入力してください"
+msgstr "密码请控制在 128 个字符以内"
+
+#: src/lib/auth.ts
+msgid "パスワードは 8 文字以上で入力してください"
+msgstr "密码至少需要 8 个字符"
 
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "パスワードを入力"
@@ -1787,8 +1831,8 @@ msgid "未使用"
 msgstr "未使用"
 
 #: src/components/dashboard/StaleLocationItem.tsx
-msgid "未確認 {uncertainItemCount}着"
-msgstr "未确认 {uncertainItemCount}件"
+#~ msgid "未確認 {uncertainItemCount}着"
+#~ msgstr "未确认 {uncertainItemCount}件"
 
 #: src/components/digest/DigestCard.tsx
 msgid "未読"
@@ -1821,6 +1865,10 @@ msgstr "下一页"
 #: src/components/ui/Pagination.tsx
 msgid "次へ"
 msgstr "下一步"
+
+#: src/lib/auth.ts
+msgid "正しいメールアドレスを入力してください"
+msgstr "请输入有效的电子邮件地址"
 
 #: src/app/digest/page.tsx
 msgid "毎週月曜日に自動生成されます"
@@ -1903,8 +1951,8 @@ msgid "白"
 msgstr "白色"
 
 #: src/components/confidence/ConfidenceStats.tsx
-msgid "着"
-msgstr "件"
+#~ msgid "着"
+#~ msgstr "件"
 
 #: src/app/dolls/[id]/page.tsx
 msgid "着用可能な服"
@@ -1929,10 +1977,9 @@ msgstr "确认"
 #~ msgid "確認"
 #~ msgstr "确认"
 
-#. placeholder {0}: digest.totalGarments
 #: src/components/digest/DigestCard.tsx
-msgid "管理中の服: {0}着"
-msgstr "管理中的衣服：{0}件"
+#~ msgid "管理中の服: {0}着"
+#~ msgstr "管理中的衣服：{0}件"
 
 #: src/components/dashboard/CheckedOutSection.tsx
 #: src/lib/i18n-labels.ts
@@ -2009,6 +2056,14 @@ msgstr "每页显示数"
 #: src/components/settings/account/ProfileForm.tsx
 msgid "表示名"
 msgstr "显示名称"
+
+#: src/lib/auth.ts
+msgid "表示名は 60 文字以内で入力してください"
+msgstr "显示名称请控制在 60 个字符以内"
+
+#: src/lib/auth.ts
+msgid "表示名を入力してください"
+msgstr "请输入显示名称"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #: src/components/digest/DigestCard.tsx

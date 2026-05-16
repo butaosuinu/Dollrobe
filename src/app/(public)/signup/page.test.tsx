@@ -66,6 +66,29 @@ describe("SignUpPage", () => {
     });
   });
 
+  it("空のまま送信すると各フィールドに日本語バリデーションメッセージが表示される", async () => {
+    server.use(unauthenticatedHandler);
+    const { spies } = setupAuthClient();
+
+    const user = userEvent.setup();
+    await renderWithProviders(<SignUpPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "アカウント作成" }),
+    );
+
+    expect(spies.signUpWithEmail).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText("表示名を入力してください"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("正しいメールアドレスを入力してください"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText("パスワードは 8 文字以上で入力してください").length,
+    ).toBeGreaterThanOrEqual(2);
+  });
+
   it("パスワード不一致でバリデーションエラーが表示され送信されない", async () => {
     server.use(unauthenticatedHandler);
     const { spies } = setupAuthClient();
