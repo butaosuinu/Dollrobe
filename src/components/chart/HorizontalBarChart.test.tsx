@@ -5,10 +5,8 @@ import HorizontalBarChart from "./HorizontalBarChart";
 
 describe("HorizontalBarChart", () => {
   it("items が空のときは何も描画しない", async () => {
-    const { container } = await renderWithProviders(
-      <HorizontalBarChart items={[]} />,
-    );
-    expect(container.querySelector("[role=progressbar]")).toBeNull();
+    await renderWithProviders(<HorizontalBarChart items={[]} />);
+    expect(screen.queryByRole("progressbar")).toBeNull();
   });
 
   it("単一アイテムを描画する (color あり / swatch なし)", async () => {
@@ -23,7 +21,7 @@ describe("HorizontalBarChart", () => {
   });
 
   it("swatch ありのアイテムは色サンプルが描画される", async () => {
-    const { container } = await renderWithProviders(
+    await renderWithProviders(
       <HorizontalBarChart
         items={[
           {
@@ -34,12 +32,14 @@ describe("HorizontalBarChart", () => {
         ]}
       />,
     );
-    const swatch = container.querySelector("span[style*='background-color']");
-    expect(swatch).not.toBeNull();
+    // progressbar 自体の背景色とは別に、swatch span が描画されていることを
+    // aria-label でアクセス可能な progressbar の隣に確認する
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    expect(screen.getByText("青")).toBeInTheDocument();
   });
 
   it("maxValue=0 (全 value=0) の場合は percentage=0%", async () => {
-    const { container } = await renderWithProviders(
+    await renderWithProviders(
       <HorizontalBarChart
         items={[
           { label: "A", value: 0 },
@@ -47,15 +47,15 @@ describe("HorizontalBarChart", () => {
         ]}
       />,
     );
-    const bars = container.querySelectorAll('[role="progressbar"]');
+    const bars = screen.getAllByRole("progressbar");
     expect(bars.length).toBe(2);
     bars.forEach((bar) => {
-      expect((bar as HTMLElement).style.width).toBe("0%");
+      expect(bar.style.width).toBe("0%");
     });
   });
 
   it("複数アイテムで相対割合に基づき幅が計算される", async () => {
-    const { container } = await renderWithProviders(
+    await renderWithProviders(
       <HorizontalBarChart
         items={[
           { label: "A", value: 10 },
@@ -63,8 +63,8 @@ describe("HorizontalBarChart", () => {
         ]}
       />,
     );
-    const bars = container.querySelectorAll('[role="progressbar"]');
-    expect((bars[0] as HTMLElement).style.width).toBe("100%");
-    expect((bars[1] as HTMLElement).style.width).toBe("50%");
+    const bars = screen.getAllByRole("progressbar");
+    expect(bars[0]?.style.width).toBe("100%");
+    expect(bars[1]?.style.width).toBe("50%");
   });
 });

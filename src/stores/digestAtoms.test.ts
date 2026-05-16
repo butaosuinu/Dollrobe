@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createStore } from "jotai";
 import { server } from "@/test/mocks/server";
 import { trpcMutation, trpcQuery } from "@/test/mocks/trpc/handlerFactory";
@@ -81,30 +81,22 @@ describe("digestAtoms", () => {
 
   it("markDigestReadAtom が trpc mutation を発火する", async () => {
     const store = createStore();
-    const receivedHolder: { current: unknown } = { current: undefined };
-    server.use(
-      trpcMutation("digest.markRead", async ({ input }) => {
-        Object.assign(receivedHolder, { current: input });
-        return await Promise.resolve({ success: true });
-      }),
-    );
+    const handler = vi.fn(async () => await Promise.resolve({ success: true }));
+    server.use(trpcMutation("digest.markRead", handler));
     await store.set(markDigestReadAtom, "d-1");
-    expect(receivedHolder.current).toEqual({ id: "d-1" });
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ input: { id: "d-1" } }),
+    );
   });
 
   it("refreshDigestAtom が trigger を進める (再 query される)", async () => {
     const store = createStore();
-    const counter = { current: 0 };
-    server.use(
-      trpcQuery("digest.list", () => {
-        Object.assign(counter, { current: counter.current + 1 });
-        return [];
-      }),
-    );
+    const handler = vi.fn(() => []);
+    server.use(trpcQuery("digest.list", handler));
     await store.get(digestListAtom);
-    expect(counter.current).toBe(1);
+    expect(handler).toHaveBeenCalledTimes(1);
     store.set(refreshDigestAtom);
     await store.get(digestListAtom);
-    expect(counter.current).toBe(2);
+    expect(handler).toHaveBeenCalledTimes(2);
   });
 });

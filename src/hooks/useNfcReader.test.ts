@@ -57,11 +57,12 @@ const createReadingEvent = ({
   encoding,
 }: {
   readonly recordType: string;
-  readonly data: string;
+  readonly data: string | undefined;
   readonly encoding?: string;
 }): NDEFReadingEvent => {
   const encoder = new TextEncoder();
-  const dataView = new DataView(encoder.encode(data).buffer);
+  const dataView =
+    data === undefined ? undefined : new DataView(encoder.encode(data).buffer);
 
   const baseEvent = new Event("reading");
   return Object.assign(baseEvent, {
@@ -372,24 +373,10 @@ describe("useNfcReader", () => {
 
     await flushMicrotasks();
 
-    // data: undefined の record
-    const baseEvent = new Event("reading");
-    const event = Object.assign(baseEvent, {
-      serialNumber: "test",
-      message: {
-        records: [
-          {
-            recordType: "url",
-            mediaType: "",
-            id: "",
-            encoding: "",
-            lang: "",
-            data: undefined,
-            toRecords: () => [],
-          },
-        ],
-      },
-    }) as unknown as NDEFReadingEvent;
+    const event = createReadingEvent({
+      recordType: "url",
+      data: undefined,
+    });
 
     act(() => {
       mockReaderRef.current.triggerReading(event);

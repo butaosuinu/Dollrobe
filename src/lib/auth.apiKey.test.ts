@@ -2,25 +2,26 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.unmock("@/lib/auth");
 
-const mockClient = () => ({
-  getSession: vi.fn(),
-  listAccounts: vi.fn(),
-  signIn: { email: vi.fn(), social: vi.fn() },
-  signUp: { email: vi.fn() },
-  signOut: vi.fn(),
-  updateUser: vi.fn(),
-  changeEmail: vi.fn(),
-  changePassword: vi.fn(),
-  $fetch: vi.fn(),
-  apiKey: { create: vi.fn(), list: vi.fn(), delete: vi.fn() },
-});
-
-const clientHolder: { current: ReturnType<typeof mockClient> } = {
-  current: mockClient(),
-};
+// vi.mock factory は hoist されるため client も vi.hoisted で巻き上げる。
+// client 参照は immutable のまま、各テストで vi.fn の mockResolvedValue を
+// 上書きして使う (vi.resetAllMocks で履歴と return 値をリセット)。
+const { client } = vi.hoisted(() => ({
+  client: {
+    getSession: vi.fn(),
+    listAccounts: vi.fn(),
+    signIn: { email: vi.fn(), social: vi.fn() },
+    signUp: { email: vi.fn() },
+    signOut: vi.fn(),
+    updateUser: vi.fn(),
+    changeEmail: vi.fn(),
+    changePassword: vi.fn(),
+    $fetch: vi.fn(),
+    apiKey: { create: vi.fn(), list: vi.fn(), delete: vi.fn() },
+  },
+}));
 
 vi.mock("better-auth/react", () => ({
-  createAuthClient: () => clientHolder.current,
+  createAuthClient: () => client,
 }));
 
 vi.mock("@better-auth/api-key/client", () => ({
@@ -33,13 +34,13 @@ vi.mock("@/lib/workersUrl", () => ({
 
 describe("@/lib/auth API キー操作", () => {
   beforeEach(() => {
-    clientHolder.current = mockClient();
+    vi.resetAllMocks();
     vi.resetModules();
   });
 
   it("createApiKey 成功時に正規化されたオブジェクトを返す (read-write)", async () => {
     const createdAt = new Date("2026-01-01T00:00:00Z");
-    clientHolder.current.apiKey.create.mockResolvedValue({
+    client.apiKey.create.mockResolvedValue({
       data: {
         id: "k-1",
         name: "agent",
@@ -61,7 +62,7 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("createApiKey: name 欠落時は input.name を fallback", async () => {
-    clientHolder.current.apiKey.create.mockResolvedValue({
+    client.apiKey.create.mockResolvedValue({
       data: { id: "k-1", name: null, enabled: true, createdAt: 0, key: "raw" },
       error: null,
     });
@@ -74,7 +75,7 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("createApiKey: error 時 throw", async () => {
-    clientHolder.current.apiKey.create.mockResolvedValue({
+    client.apiKey.create.mockResolvedValue({
       data: null,
       error: { message: "no" },
     });
@@ -85,7 +86,7 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("createApiKey: error.message 無しは既定 throw", async () => {
-    clientHolder.current.apiKey.create.mockResolvedValue({
+    client.apiKey.create.mockResolvedValue({
       data: null,
       error: {},
     });
@@ -96,7 +97,7 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("listApiKeys: permissions の write を含む場合は read-write", async () => {
-    clientHolder.current.apiKey.list.mockResolvedValue({
+    client.apiKey.list.mockResolvedValue({
       data: {
         apiKeys: [
           {
@@ -118,7 +119,7 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("listApiKeys: name 無いと空文字、permissions 無いと read-only", async () => {
-    clientHolder.current.apiKey.list.mockResolvedValue({
+    client.apiKey.list.mockResolvedValue({
       data: {
         apiKeys: [
           {
@@ -141,7 +142,7 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("listApiKeys: permissions が無効な形式の場合も read-only にフォールバック", async () => {
-    clientHolder.current.apiKey.list.mockResolvedValue({
+    client.apiKey.list.mockResolvedValue({
       data: {
         apiKeys: [
           {
@@ -164,7 +165,7 @@ describe("@/lib/auth API キー操作", () => {
   it("listApiKeys: createdAt が ISO 文字列でも数値に変換される", async () => {
     const iso = "2026-03-10T12:00:00Z";
     const expected = new Date(iso).getTime();
-    clientHolder.current.apiKey.list.mockResolvedValue({
+    client.apiKey.list.mockResolvedValue({
       data: {
         apiKeys: [
           {
@@ -185,7 +186,7 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("listApiKeys: error 時 throw", async () => {
-    clientHolder.current.apiKey.list.mockResolvedValue({
+    client.apiKey.list.mockResolvedValue({
       data: null,
       error: { message: "boom" },
     });
@@ -194,7 +195,7 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("listApiKeys: error.message 無しは既定 throw", async () => {
-    clientHolder.current.apiKey.list.mockResolvedValue({
+    client.apiKey.list.mockResolvedValue({
       data: null,
       error: {},
     });
@@ -203,13 +204,13 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("revokeApiKey: 成功", async () => {
-    clientHolder.current.apiKey.delete.mockResolvedValue({ error: null });
+    client.apiKey.delete.mockResolvedValue({ error: null });
     const { revokeApiKey } = await import("@/lib/auth");
     await expect(revokeApiKey("k-1")).resolves.toBeUndefined();
   });
 
   it("revokeApiKey: error", async () => {
-    clientHolder.current.apiKey.delete.mockResolvedValue({
+    client.apiKey.delete.mockResolvedValue({
       error: { message: "no" },
     });
     const { revokeApiKey } = await import("@/lib/auth");
@@ -217,7 +218,7 @@ describe("@/lib/auth API キー操作", () => {
   });
 
   it("revokeApiKey: 既定 error", async () => {
-    clientHolder.current.apiKey.delete.mockResolvedValue({ error: {} });
+    client.apiKey.delete.mockResolvedValue({ error: {} });
     const { revokeApiKey } = await import("@/lib/auth");
     await expect(revokeApiKey("k-1")).rejects.toThrow(
       "Failed to revoke API key",

@@ -382,16 +382,11 @@ describe("ScanPage", () => {
 
       // ダイアログ表示
       expect(screen.getByText("全部ある")).toBeInTheDocument();
-      // 「あとで」 で閉じる
-      const closeButton = screen.queryByRole("button", {
-        name: /あとで|閉じる/u,
+      // BottomSheet の「閉じる」アイコンボタン経由でダイアログを閉じる
+      fireEvent.click(screen.getByLabelText("閉じる"));
+      await waitFor(() => {
+        expect(screen.queryByText("全部ある")).toBeNull();
       });
-      if (closeButton !== null) {
-        fireEvent.click(closeButton);
-        await waitFor(() => {
-          expect(screen.queryByText("全部ある")).toBeNull();
-        });
-      }
     });
   });
 });
