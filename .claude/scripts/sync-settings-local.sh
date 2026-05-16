@@ -24,13 +24,28 @@ WT_SETTINGS="$TOP/.claude/settings.local.json"
 
 [ -L "$WT_SETTINGS" ] && exit 0
 
+# 並行 Stop hook の read-modify-write 競合を防ぐため parent 側に排他ロックを取る。
+# mkdir はアトミックなので flock 非依存（macOS/Linux 共通）。
+mkdir -p "$PARENT_ROOT/.claude"
+LOCK_DIR="$PARENT_ROOT/.claude/.settings-local.lock"
+LOCK_ACQUIRED=0
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do
+  if mkdir "$LOCK_DIR" 2>/dev/null; then
+    LOCK_ACQUIRED=1
+    trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT INT TERM
+    break
+  fi
+  sleep 0.2
+done
+# 6 秒待ってもロックが取れなければ諦める（次回 Stop で再試行される）。
+[ "$LOCK_ACQUIRED" = "1" ] || exit 0
+
 if [ -f "$WT_SETTINGS" ]; then
   if [ ! -f "$PARENT_SETTINGS" ]; then
-    mkdir -p "$(dirname "$PARENT_SETTINGS")"
     printf '{}\n' > "$PARENT_SETTINGS"
   fi
 
-  # jq が無い、または merge に失敗した場合は worktree のファイルを保持して終了。
+  # jq が無い、または merge / mv に失敗した場合は worktree のファイルを保持して終了。
   # （マージなしで rm すると permission が失われるため）
   command -v jq >/dev/null 2>&1 || exit 0
   TMP="$(mktemp)"
@@ -44,8 +59,13 @@ if [ -f "$WT_SETTINGS" ]; then
       | .ask   = ((($a.permissions.ask   // []) + ($b.permissions.ask   // [])) | unique)
     )
   ' "$PARENT_SETTINGS" "$WT_SETTINGS" > "$TMP"; then
-    mv "$TMP" "$PARENT_SETTINGS"
-    rm -f "$WT_SETTINGS"
+    # mv が成功した場合のみ worktree ファイルを削除する。
+    if mv "$TMP" "$PARENT_SETTINGS"; then
+      rm -f "$WT_SETTINGS"
+    else
+      rm -f "$TMP"
+      exit 0
+    fi
   else
     rm -f "$TMP"
     exit 0
