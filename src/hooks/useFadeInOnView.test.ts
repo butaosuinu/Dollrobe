@@ -60,12 +60,15 @@ describe("useFadeInOnView", () => {
       return r;
     });
 
-    const last = list.at(-1);
-    if (last !== undefined) {
-      act(() => {
-        last.cb([{ isIntersecting: false }]);
+    // observer が確実に登録されていることを pre-condition として確認。
+    // ref に node がセットされた後の effect で IntersectionObserver が
+    // 1 つだけ生成されるはず。これが守られなければテストとして無意味。
+    expect(list).toHaveLength(1);
+    act(() => {
+      list.forEach((o) => {
+        o.cb([{ isIntersecting: false }]);
       });
-    }
+    });
     expect(result.current.className).toContain("opacity-0");
   });
 
