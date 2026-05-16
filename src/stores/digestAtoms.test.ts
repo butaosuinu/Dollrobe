@@ -81,7 +81,9 @@ describe("digestAtoms", () => {
 
   it("markDigestReadAtom が trpc mutation を発火する", async () => {
     const store = createStore();
-    const handler = vi.fn(async () => await Promise.resolve({ success: true }));
+    const handler = vi.fn(
+      async () => await Promise.resolve({ success: true as const }),
+    );
     server.use(trpcMutation("digest.markRead", handler));
     await store.set(markDigestReadAtom, "d-1");
     expect(handler).toHaveBeenCalledWith(
