@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- comprehensive sync workflow scenarios */
 import { createId } from "@paralleldrive/cuid2";
 import {
   createTestCaller,
@@ -498,6 +499,70 @@ describe("同期ワークフロー シナリオ", () => {
         })
         .catch((e: unknown) => e);
 
+      expectTRPCError(error, "BAD_REQUEST");
+    });
+
+    it("同じ priority の action は createdAt 昇順で処理される", async () => {
+      const caller = getCaller();
+      // 同じ id を持つ 2 件の create を、入力では createdAt 降順で並べる。
+      // storageCases.id は upsert の conflict target なので、後勝ち
+      // (last-write-wins) の name が最終状態として観測できる。
+      const sharedId = createId();
+      const earlier = createCasePayload({ id: sharedId, name: "earlier" });
+      const later = createCasePayload({ id: sharedId, name: "later" });
+      const result = await caller.sync.push({
+        items: [
+          // 入力順は逆 (createdAt: 2000 が先)。sort されないと later が
+          // 先に書かれ、earlier に上書きされて最終 name = "earlier" になる。
+          {
+            type: "storageCase:create",
+            payload: { storageCase: later, locations: [] },
+            createdAt: 2_000,
+          },
+          {
+            type: "storageCase:create",
+            payload: { storageCase: earlier, locations: [] },
+            createdAt: 1_000,
+          },
+        ],
+      });
+      expect(result.processedCount).toBe(2);
+
+      // createdAt 昇順で sort されていれば: earlier (1000) → later (2000)
+      // → 最終 name は "later" になる。
+      const detail = await caller.location.getCase(sharedId);
+      expect(detail.storageCase.name).toBe("later");
+    });
+
+    it("空配列の push は BAD_REQUEST を返す (items min 1 制約)", async () => {
+      const caller = getCaller();
+      const error = await caller.sync
+        .push({ items: [] })
+        .catch((e: unknown) => e);
+      expectTRPCError(error, "BAD_REQUEST");
+    });
+
+    it("複数 action の中で 1 つが失敗するとそこで中断される", async () => {
+      const caller = getCaller();
+      const error = await caller.sync
+        .push({
+          items: [
+            {
+              type: "storageCase:create",
+              payload: {
+                storageCase: createCasePayload({ name: "valid" }),
+                locations: [],
+              },
+              createdAt: Date.now(),
+            },
+            {
+              type: "garment:create",
+              payload: { invalid: true },
+              createdAt: Date.now() + 1,
+            },
+          ],
+        })
+        .catch((e: unknown) => e);
       expectTRPCError(error, "BAD_REQUEST");
     });
   });

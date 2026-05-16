@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- multiple integration scenarios for garment detail page */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -372,6 +373,241 @@ describe("GarmentDetailPage", () => {
       expect(garment?.status).toBe("stored");
       expect(garment?.lastScannedAt).toBe(FIXED_NOW);
       expect(garment?.checkedOutAt).toBeUndefined();
+    });
+
+    it("複数ケース (grid + unit) で unit ケースをクリックすると即座にその location が選ばれる", async () => {
+      const user = userEvent.setup();
+      testDb.storageCase.create({
+        id: "case-grid",
+        name: "引き出し",
+        type: "grid",
+        rows: 1,
+        cols: 1,
+      });
+      testDb.storageLocation.create({
+        id: "loc-grid",
+        caseId: "case-grid",
+        label: "A-1",
+        row: 0,
+        col: 0,
+      });
+      testDb.storageCase.create({
+        id: "case-unit",
+        name: "ボックスケース",
+        type: "unit",
+        rows: 1,
+        cols: 1,
+      });
+      testDb.storageLocation.create({
+        id: "loc-unit",
+        caseId: "case-unit",
+        label: "ボックスケース",
+        row: 0,
+        col: 0,
+      });
+      testDb.garment.create({
+        id: "garment-1",
+        status: "checked_out",
+      });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<GarmentDetailPage />);
+      await user.click(screen.getByRole("button", { name: /場所を設定/ }));
+
+      const dialog = screen.getByRole("dialog");
+      // ケース一覧から "ボックスケース" をクリックすると即座に locationId が確定
+      await user.click(within(dialog).getByText("ボックスケース"));
+
+      const { getDb } = await import("@/lib/db/dexie");
+      const db = getDb();
+      await waitFor(async () => {
+        const g = await db.garments.get("garment-1");
+        expect(g?.locationId).toBe("loc-unit");
+      });
+    });
+
+    it("複数行 grid を LocationPicker で開くと row 順に並ぶ", async () => {
+      const user = userEvent.setup();
+      testDb.storageCase.create({
+        id: "case-1",
+        name: "ケース",
+        rows: 2,
+        cols: 1,
+      });
+      testDb.storageLocation.create({
+        id: "loc-2",
+        caseId: "case-1",
+        label: "B-1",
+        row: 1,
+        col: 0,
+      });
+      testDb.storageLocation.create({
+        id: "loc-1",
+        caseId: "case-1",
+        label: "A-1",
+        row: 0,
+        col: 0,
+      });
+      testDb.garment.create({
+        id: "garment-1",
+        status: "checked_out",
+      });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<GarmentDetailPage />);
+      await user.click(screen.getByRole("button", { name: /場所を設定/ }));
+
+      const dialog = screen.getByRole("dialog");
+      // 投入順は B-1 → A-1 だが、LocationPicker は row 昇順で並べるはず。
+      // 単に両 label が存在することだけでなく、DOM 順序まで確認する。
+      const labels = within(dialog).getAllByText(/^[AB]-1$/u);
+      expect(labels.map((el) => el.textContent)).toEqual(["A-1", "B-1"]);
+    });
+
+    it("unit 型ケースを LocationPicker で選択できる", async () => {
+      const user = userEvent.setup();
+      testDb.storageCase.create({
+        id: "case-unit",
+        name: "押入れ",
+        type: "unit",
+        rows: 1,
+        cols: 1,
+      });
+      testDb.storageLocation.create({
+        id: "loc-unit",
+        caseId: "case-unit",
+        label: "押入れ",
+        row: 0,
+        col: 0,
+      });
+      testDb.garment.create({
+        id: "garment-1",
+        status: "checked_out",
+      });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<GarmentDetailPage />);
+
+      await user.click(screen.getByRole("button", { name: /場所を設定/ }));
+      const dialog = screen.getByRole("dialog");
+      // unit 型は "ボックス" ラベルが付く
+      expect(within(dialog).getByText("ボックス")).toBeInTheDocument();
+    });
+
+    it("lost 状態の服は '紛失' ラベルのバッジで表示される", async () => {
+      testDb.garment.create({
+        id: "garment-1",
+        name: "紛失中ドレス",
+        status: "lost",
+        locationId: undefined,
+      });
+      await seedDbFromTestDb();
+      await renderWithProviders(<GarmentDetailPage />);
+      expect(screen.getByText("紛失中ドレス")).toBeInTheDocument();
+      // GARMENT_STATUS_LABEL.lost = msg`紛失` (Badge の text として描画される)。
+      // "ステータス" ラベル横にこの文字列が表示されることで lost 経路を直接検証。
+      expect(screen.getByText("紛失")).toBeInTheDocument();
+    });
+
+    it("ブランドが設定された服はブランド情報行が描画される", async () => {
+      testDb.garment.create({
+        id: "garment-1",
+        name: "セット服",
+        brand: "メーカーX",
+      });
+      await seedDbFromTestDb();
+      await renderWithProviders(<GarmentDetailPage />);
+      expect(screen.getByText("セット服")).toBeInTheDocument();
+      expect(screen.getByText("メーカーX")).toBeInTheDocument();
+    });
+
+    it("画像 URL がある服は img タグが描画される", async () => {
+      testDb.garment.create({
+        id: "garment-1",
+        name: "白いドレス",
+        imageUrl: "https://example.com/g.png",
+      });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<GarmentDetailPage />);
+
+      const img = screen.getByAltText("白いドレス");
+      expect(img).toHaveAttribute("src", "https://example.com/g.png");
+    });
+
+    it("ブランドが設定されている服はブランド名が表示される", async () => {
+      testDb.garment.create({
+        id: "garment-1",
+        name: "白いドレス",
+        brand: "アゾン",
+      });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<GarmentDetailPage />);
+
+      expect(screen.getByText("アゾン")).toBeInTheDocument();
+    });
+
+    it("アーカイブ済み服は復元 / 完全に削除ボタンを表示する", async () => {
+      testDb.garment.create({
+        id: "garment-1",
+        name: "白いドレス",
+        archivedAt: FIXED_NOW - 86_400_000,
+      });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<GarmentDetailPage />);
+
+      expect(screen.getByText("復元")).toBeInTheDocument();
+      expect(screen.getByText("完全に削除")).toBeInTheDocument();
+    });
+
+    it("アーカイブ済み服の復元ボタンで /garments に戻る", async () => {
+      testDb.garment.create({
+        id: "garment-1",
+        archivedAt: FIXED_NOW - 86_400_000,
+      });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<GarmentDetailPage />);
+
+      fireEvent.click(screen.getByText("復元"));
+
+      await waitFor(() => {
+        expect(navHandle.current.router.push).toHaveBeenCalledWith("/garments");
+      });
+    });
+
+    it("アーカイブ済み服の完全削除確認後に /archive に遷移する", async () => {
+      testDb.garment.create({
+        id: "garment-1",
+        archivedAt: FIXED_NOW - 86_400_000,
+      });
+      await seedDbFromTestDb();
+
+      await renderWithProviders(<GarmentDetailPage />);
+
+      fireEvent.click(screen.getByText("完全に削除"));
+
+      const dialog = screen.getByRole("dialog");
+      const confirmButton = within(dialog).getByRole("button", {
+        name: "削除",
+      });
+      fireEvent.click(confirmButton);
+
+      await waitFor(() => {
+        expect(navHandle.current.router.push).toHaveBeenCalledWith("/archive");
+      });
+    });
+
+    it("存在しない服で「一覧に戻る」を押すと /garments に遷移する", async () => {
+      navHandle.current.setParams({ id: "non-existent" });
+
+      await renderWithProviders(<GarmentDetailPage />);
+
+      fireEvent.click(await screen.findByText("一覧に戻る"));
+
+      expect(navHandle.current.router.push).toHaveBeenCalledWith("/garments");
     });
 
     it("「未配置にする」クリックで garment が checked_out に更新される", async () => {

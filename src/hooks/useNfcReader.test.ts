@@ -57,11 +57,12 @@ const createReadingEvent = ({
   encoding,
 }: {
   readonly recordType: string;
-  readonly data: string;
+  readonly data: string | undefined;
   readonly encoding?: string;
 }): NDEFReadingEvent => {
   const encoder = new TextEncoder();
-  const dataView = new DataView(encoder.encode(data).buffer);
+  const dataView =
+    data === undefined ? undefined : new DataView(encoder.encode(data).buffer);
 
   const baseEvent = new Event("reading");
   return Object.assign(baseEvent, {
@@ -333,5 +334,66 @@ describe("useNfcReader", () => {
     });
 
     expect(vibrateMock).toHaveBeenCalledWith(VIBRATION_DURATION_MS);
+  });
+
+  it("readingerror で navigator.vibrate がエラーパターンで呼ばれる", async () => {
+    const onScan = vi.fn();
+    renderHook(() => useNfcReader({ onScan, isActive: true }));
+
+    await flushMicrotasks();
+
+    act(() => {
+      mockReaderRef.current.triggerReadingError(new Event("readingerror"));
+    });
+
+    expect(vibrateMock).toHaveBeenCalledWith([50, 100, 50]);
+  });
+
+  it("recordType=url で dwg:// 以外の URL は onScan を呼ばない", async () => {
+    const onScan = vi.fn();
+    renderHook(() => useNfcReader({ onScan, isActive: true }));
+
+    await flushMicrotasks();
+
+    const event = createReadingEvent({
+      recordType: "url",
+      data: "https://example.com/",
+    });
+
+    act(() => {
+      mockReaderRef.current.triggerReading(event);
+    });
+
+    expect(onScan).not.toHaveBeenCalled();
+  });
+
+  it("data 無しの NDEF record は無視される", async () => {
+    const onScan = vi.fn();
+    renderHook(() => useNfcReader({ onScan, isActive: true }));
+
+    await flushMicrotasks();
+
+    const event = createReadingEvent({
+      recordType: "url",
+      data: undefined,
+    });
+
+    act(() => {
+      mockReaderRef.current.triggerReading(event);
+    });
+
+    expect(onScan).not.toHaveBeenCalled();
+  });
+
+  it("AbortError は無視され state は変わらない", async () => {
+    const onScan = vi.fn();
+    mockReaderRef.current.scanMock.mockRejectedValueOnce(
+      new DOMException("aborted", "AbortError"),
+    );
+    const { result } = renderHook(() =>
+      useNfcReader({ onScan, isActive: true }),
+    );
+    await flushMicrotasks();
+    expect(result.current.nfcState.status).toBe("idle");
   });
 });

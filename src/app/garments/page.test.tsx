@@ -457,4 +457,77 @@ describe("GarmentsPage", () => {
 
     expect(screen.getByText(/アゾン/)).toBeInTheDocument();
   });
+
+  it("アーカイブ件数が 1 以上のときアーカイブリンクが表示される", async () => {
+    testDb.garment.create({ id: "g-1", name: "現役ドレス" });
+    testDb.garment.create({
+      id: "g-2",
+      name: "アーカイブ済み",
+      archivedAt: FIXED_NOW - MS_PER_DAY,
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentsPage />);
+
+    expect(await screen.findByText("アーカイブ (1)")).toBeInTheDocument();
+  });
+
+  it("ソート: 信頼度 asc / desc で並び順が切り替わる", async () => {
+    const user = userEvent.setup();
+    testDb.garment.create({
+      id: "g-1",
+      name: "古いドレス",
+      lastScannedAt: FIXED_NOW - 28 * MS_PER_DAY,
+      confidenceDecayDays: 30,
+    });
+    testDb.garment.create({
+      id: "g-2",
+      name: "新しいドレス",
+      lastScannedAt: FIXED_NOW,
+      confidenceDecayDays: 30,
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentsPage />);
+
+    const sortSelect = await screen.findByRole("combobox", {
+      name: /並び替え/,
+    });
+
+    // 信頼度 asc: 信頼度低い (= 古いドレス) が先に来るはず
+    await user.selectOptions(sortSelect, "confidence_asc");
+    const ascNames = screen
+      .getAllByText(/^(?:古いドレス|新しいドレス)$/u)
+      .map((el) => el.textContent);
+    expect(ascNames).toEqual(["古いドレス", "新しいドレス"]);
+
+    // 信頼度 desc: 信頼度高い (= 新しいドレス) が先に来るはず
+    await user.selectOptions(sortSelect, "confidence_desc");
+    const descNames = screen
+      .getAllByText(/^(?:古いドレス|新しいドレス)$/u)
+      .map((el) => el.textContent);
+    expect(descNames).toEqual(["新しいドレス", "古いドレス"]);
+  });
+
+  it("検索クエリに対しタグがマッチする (大文字小文字を区別しない)", async () => {
+    const user = userEvent.setup();
+    testDb.garment.create({
+      id: "g-1",
+      name: "ドレス",
+      tags: ["Princess"],
+    });
+    testDb.garment.create({
+      id: "g-2",
+      name: "シャツ",
+      tags: ["casual"],
+    });
+    await seedDbFromTestDb();
+
+    await renderWithProviders(<GarmentsPage />);
+
+    const input = await screen.findByPlaceholderText(/名前やタグで検索/);
+    await user.type(input, "princess");
+    expect(screen.getAllByText("ドレス").length).toBeGreaterThan(0);
+    expect(screen.queryByText("シャツ")).toBeNull();
+  });
 });

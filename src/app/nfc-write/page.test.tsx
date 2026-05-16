@@ -179,6 +179,67 @@ describe("NfcWritePage", () => {
     );
   });
 
+  it("中止 (aborted) 時に専用エラーメッセージを表示する", async () => {
+    setNfcSupported(true);
+    mockWriteNfcTag.mockResolvedValueOnce({
+      ok: false,
+      errorKind: "aborted",
+      message: "aborted",
+    });
+    testDb.garment.create({ id: "g-1", name: "白いドレス" });
+    await seedDbFromTestDb();
+    const user = userEvent.setup();
+    await renderWithProviders(<NfcWritePage />);
+
+    await user.click(screen.getByText("服"));
+    await user.selectOptions(screen.getByRole("combobox"), "g-1");
+    await user.click(screen.getByRole("button", { name: "次へ" }));
+    await user.click(screen.getByRole("button", { name: "書き込む" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("書き込みがキャンセルされました"),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("書き込み準備画面から「戻る」でアイテム選択画面に戻る", async () => {
+    setNfcSupported(true);
+    testDb.garment.create({ id: "g-1", name: "白いドレス" });
+    await seedDbFromTestDb();
+    const user = userEvent.setup();
+    await renderWithProviders(<NfcWritePage />);
+
+    await user.click(screen.getByText("服"));
+    await user.selectOptions(screen.getByRole("combobox"), "g-1");
+    await user.click(screen.getByRole("button", { name: "次へ" }));
+    // ready_to_write 状態
+    expect(screen.getByText("書き込み対象")).toBeInTheDocument();
+
+    // 戻る → select_item
+    await user.click(screen.getByText("戻る"));
+    expect(screen.getByText("書き込む服を選択")).toBeInTheDocument();
+  });
+
+  it("収納場所で case がないラベルでも fallback として caseId が表示される", async () => {
+    setNfcSupported(true);
+    testDb.storageLocation.create({
+      id: "loc-1",
+      caseId: "missing-case",
+      label: "A-1",
+    });
+    await seedDbFromTestDb();
+    const user = userEvent.setup();
+    await renderWithProviders(<NfcWritePage />);
+
+    await user.click(screen.getByText("収納場所"));
+    expect(screen.getByText("書き込む収納場所を選択")).toBeInTheDocument();
+    // option ラベル = "missing-case - A-1"
+    await user.selectOptions(screen.getByRole("combobox"), "loc-1");
+    await user.click(screen.getByRole("button", { name: "次へ" }));
+    expect(screen.getByText("dwg://l/loc-1")).toBeInTheDocument();
+  });
+
   it("「もう1枚書き込む」でタイプ選択に戻る", async () => {
     setNfcSupported(true);
     mockWriteNfcTag.mockResolvedValueOnce({ ok: true });

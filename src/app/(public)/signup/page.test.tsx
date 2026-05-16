@@ -138,4 +138,42 @@ describe("SignUpPage", () => {
       expect(router.replace).toHaveBeenCalledWith("/");
     });
   });
+
+  it("メールアドレス形式が不正な場合はバリデーションエラーで送信されない", async () => {
+    server.use(unauthenticatedHandler);
+    const { spies } = setupAuthClient();
+
+    const user = userEvent.setup();
+    await renderWithProviders(<SignUpPage />);
+
+    await user.type(await screen.findByLabelText("表示名"), "佐藤");
+    await user.type(screen.getByLabelText("メールアドレス"), "not-email");
+    await user.type(screen.getByLabelText("パスワード"), "secret123");
+    await user.type(screen.getByLabelText("パスワード（確認）"), "secret123");
+    await user.click(screen.getByRole("button", { name: "アカウント作成" }));
+
+    await waitFor(() => {
+      expect(spies.signUpWithEmail).not.toHaveBeenCalled();
+    });
+  });
+
+  it("名前未入力でバリデーションエラーになる", async () => {
+    server.use(unauthenticatedHandler);
+    const { spies } = setupAuthClient();
+
+    const user = userEvent.setup();
+    await renderWithProviders(<SignUpPage />);
+
+    await user.type(
+      await screen.findByLabelText("メールアドレス"),
+      "ok@example.com",
+    );
+    await user.type(screen.getByLabelText("パスワード"), "secret123");
+    await user.type(screen.getByLabelText("パスワード（確認）"), "secret123");
+    await user.click(screen.getByRole("button", { name: "アカウント作成" }));
+
+    await waitFor(() => {
+      expect(spies.signUpWithEmail).not.toHaveBeenCalled();
+    });
+  });
 });

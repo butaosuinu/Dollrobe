@@ -42,6 +42,20 @@ describe("収納場所管理シナリオ", () => {
       expect(detail.locations).toHaveLength(1);
       expect(detail.locations[0]!.label).toBe("A-1");
     });
+
+    it("unit 型ケースを作成すると 1x1 として 1 個の location が生成される", async () => {
+      const caller = getCaller();
+      const caseResult = await caller.location.createCase({
+        name: "押入れ",
+        type: "unit",
+      });
+
+      const detail = await caller.location.getCase(caseResult.id);
+      expect(detail.storageCase.type).toBe("unit");
+      expect(detail.locations).toHaveLength(1);
+      // unit の location ラベルはケース名と同じ
+      expect(detail.locations[0]!.label).toBe("押入れ");
+    });
   });
 
   describe("ケース一覧", () => {
