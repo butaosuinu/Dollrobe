@@ -472,7 +472,7 @@ describe("GarmentsPage", () => {
     expect(await screen.findByText("アーカイブ (1)")).toBeInTheDocument();
   });
 
-  it("ソート: 信頼度の低い順 / 高い順を切り替えてもクラッシュしない", async () => {
+  it("ソート: 信頼度 asc / desc で並び順が切り替わる", async () => {
     const user = userEvent.setup();
     testDb.garment.create({
       id: "g-1",
@@ -493,10 +493,20 @@ describe("GarmentsPage", () => {
     const sortSelect = await screen.findByRole("combobox", {
       name: /並び替え/,
     });
+
+    // 信頼度 asc: 信頼度低い (= 古いドレス) が先に来るはず
     await user.selectOptions(sortSelect, "confidence_asc");
-    expect(screen.getByText("古いドレス")).toBeInTheDocument();
+    const ascNames = screen
+      .getAllByText(/^(?:古いドレス|新しいドレス)$/u)
+      .map((el) => el.textContent);
+    expect(ascNames).toEqual(["古いドレス", "新しいドレス"]);
+
+    // 信頼度 desc: 信頼度高い (= 新しいドレス) が先に来るはず
     await user.selectOptions(sortSelect, "confidence_desc");
-    expect(screen.getByText("新しいドレス")).toBeInTheDocument();
+    const descNames = screen
+      .getAllByText(/^(?:古いドレス|新しいドレス)$/u)
+      .map((el) => el.textContent);
+    expect(descNames).toEqual(["新しいドレス", "古いドレス"]);
   });
 
   it("検索クエリに対しタグがマッチする (大文字小文字を区別しない)", async () => {

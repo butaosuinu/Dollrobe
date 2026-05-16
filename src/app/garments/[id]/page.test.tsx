@@ -458,8 +458,10 @@ describe("GarmentDetailPage", () => {
       await user.click(screen.getByRole("button", { name: /場所を設定/ }));
 
       const dialog = screen.getByRole("dialog");
-      expect(within(dialog).getByText("A-1")).toBeInTheDocument();
-      expect(within(dialog).getByText("B-1")).toBeInTheDocument();
+      // 投入順は B-1 → A-1 だが、LocationPicker は row 昇順で並べるはず。
+      // 単に両 label が存在することだけでなく、DOM 順序まで確認する。
+      const labels = within(dialog).getAllByText(/^[AB]-1$/u);
+      expect(labels.map((el) => el.textContent)).toEqual(["A-1", "B-1"]);
     });
 
     it("unit 型ケースを LocationPicker で選択できる", async () => {
