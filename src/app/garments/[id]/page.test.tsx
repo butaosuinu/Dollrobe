@@ -494,7 +494,7 @@ describe("GarmentDetailPage", () => {
       expect(within(dialog).getByText("ボックス")).toBeInTheDocument();
     });
 
-    it("lost 状態の服は 'unknown' バリアントのバッジで表示される", async () => {
+    it("lost 状態の服は '紛失' ラベルのバッジで表示される", async () => {
       testDb.garment.create({
         id: "garment-1",
         name: "紛失中ドレス",
@@ -504,6 +504,9 @@ describe("GarmentDetailPage", () => {
       await seedDbFromTestDb();
       await renderWithProviders(<GarmentDetailPage />);
       expect(screen.getByText("紛失中ドレス")).toBeInTheDocument();
+      // GARMENT_STATUS_LABEL.lost = msg`紛失` (Badge の text として描画される)。
+      // "ステータス" ラベル横にこの文字列が表示されることで lost 経路を直接検証。
+      expect(screen.getByText("紛失")).toBeInTheDocument();
     });
 
     it("ブランドが設定された服はブランド情報行が描画される", async () => {

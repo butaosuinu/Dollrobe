@@ -152,13 +152,14 @@ describe("ApiKeysPage", () => {
   });
 
   it("最終使用済みの API キーは最終使用日時が表示される", async () => {
+    const lastRequestAt = new Date("2026-02-15T10:00:00Z").getTime();
     setupAuthClient({
       apiKeys: [
         {
           ...baseKey,
           id: "key-used",
           name: "agent-used",
-          lastRequestAt: new Date("2026-02-15T10:00:00Z").getTime(),
+          lastRequestAt,
         },
       ],
     });
@@ -167,6 +168,13 @@ describe("ApiKeysPage", () => {
 
     expect(await screen.findByText("agent-used")).toBeInTheDocument();
     expect(screen.queryByText("未使用")).toBeNull();
+    // ApiKeyList は ja locale で `yyyy/MM/dd HH:mm` パターンで描画する。
+    // 環境ローカル TZ に左右されない年月部分 (2026/02) を assert することで
+    // formatDateTime 経路が実際に呼ばれていることを確認する。
+    const visibleDate = await screen.findByText(
+      /2026\/02\/\d{2}\s+\d{2}:\d{2}/u,
+    );
+    expect(visibleDate).toBeInTheDocument();
   });
 
   it("失効処理が失敗した場合は一覧から消えない", async () => {

@@ -21,7 +21,7 @@ describe("HorizontalBarChart", () => {
   });
 
   it("swatch ありのアイテムは色サンプルが描画される", async () => {
-    await renderWithProviders(
+    const { container } = await renderWithProviders(
       <HorizontalBarChart
         items={[
           {
@@ -32,10 +32,24 @@ describe("HorizontalBarChart", () => {
         ]}
       />,
     );
-    // progressbar 自体の背景色とは別に、swatch span が描画されていることを
-    // aria-label でアクセス可能な progressbar の隣に確認する
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
-    expect(screen.getByText("青")).toBeInTheDocument();
+    // swatch span は label 直前に inline 描画される。
+    // background-color が item.swatch と一致することを直接確認する。
+    const swatches = container.querySelectorAll(
+      "span.rounded-full[style*='background-color']",
+    );
+    expect(swatches.length).toBe(1);
+    // happy-dom が style 文字列を正規化してスペースを挿入する点に注意
+    expect(swatches[0]?.getAttribute("style")).toContain("hsl(240, 100%, 50%)");
+  });
+
+  it("swatch 無しのアイテムは色サンプル span が描画されない", async () => {
+    const { container } = await renderWithProviders(
+      <HorizontalBarChart items={[{ label: "ラベル", value: 1 }]} />,
+    );
+    const swatches = container.querySelectorAll(
+      "span.rounded-full[style*='background-color']",
+    );
+    expect(swatches.length).toBe(0);
   });
 
   it("maxValue=0 (全 value=0) の場合は percentage=0%", async () => {
