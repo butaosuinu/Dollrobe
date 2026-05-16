@@ -17,6 +17,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": ".claude/scripts/sync-settings-local.sh"
+          },
+          {
+            "type": "command",
             "command": "pnpm precheck:full"
           }
         ]
