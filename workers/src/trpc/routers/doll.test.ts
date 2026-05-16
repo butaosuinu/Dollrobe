@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createTestCaller, resetDatabase, getTestDb } from "../../test/helpers";
+import {
+  createTestCaller,
+  resetDatabase,
+  getTestDb,
+  expectTRPCError,
+} from "../../test/helpers";
 import { insertDoll } from "../../../test/helpers/factories";
 
 const db = getTestDb();
@@ -40,9 +45,10 @@ describe("dollRouter", () => {
     });
 
     it("存在しない id は NOT_FOUND エラーを投げる", async () => {
-      await expect(
-        caller.doll.get({ id: "ckxx0000000000000000000z" }),
-      ).rejects.toThrow();
+      const error = await caller.doll
+        .get({ id: "ckxx0000000000000000000z" })
+        .catch((e: unknown) => e);
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 
@@ -81,9 +87,10 @@ describe("dollRouter", () => {
     });
 
     it("存在しないドールは NOT_FOUND を投げる", async () => {
-      await expect(
-        caller.doll.update({ id: "ckxx0000000000000000000z", name: "x" }),
-      ).rejects.toThrow();
+      const error = await caller.doll
+        .update({ id: "ckxx0000000000000000000z", name: "x" })
+        .catch((e: unknown) => e);
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 
@@ -98,9 +105,10 @@ describe("dollRouter", () => {
     });
 
     it("存在しない id で削除した場合は NOT_FOUND を返す", async () => {
-      await expect(
-        caller.doll.delete({ id: "ckxx0000000000000000000z" }),
-      ).rejects.toThrow();
+      const error = await caller.doll
+        .delete({ id: "ckxx0000000000000000000z" })
+        .catch((e: unknown) => e);
+      expectTRPCError(error, "NOT_FOUND");
     });
   });
 });
