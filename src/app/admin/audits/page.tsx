@@ -31,7 +31,9 @@ const AuditsContent = () => {
   const setPage = useSetAtom(setAdminAuditsPageAtom);
   const setPageSize = useSetAtom(setAdminAuditsPageSizeAtom);
 
-  if (result.items.length === 0) {
+  // total=0 でしか empty state を出さない。items.length === 0 だが total > 0 の
+  // ときは「offset が範囲外」状態。Pagination を残して別ページに戻れるようにする。
+  if (result.total === 0) {
     return (
       <EmptyState
         icon={ScrollText}
@@ -47,7 +49,13 @@ const AuditsContent = () => {
 
   return (
     <div className="flex flex-col gap-3">
-      <AuditLogTable logs={result.items} />
+      {result.items.length === 0 ? (
+        <p className="py-8 text-center text-sm text-text-tertiary">
+          <Trans>このページには表示するログがありません</Trans>
+        </p>
+      ) : (
+        <AuditLogTable logs={result.items} />
+      )}
       <Pagination
         pagination={{
           currentPage,

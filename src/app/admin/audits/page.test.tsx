@@ -111,6 +111,26 @@ describe("AdminAuditsPage", () => {
     });
   });
 
+  it("items が空でも total > 0 なら Pagination を残し EmptyState は出さない (offset 範囲外回避)", async () => {
+    server.use(
+      trpcQuery("admin.audits.list", () => ({ items: [], total: 60 })),
+    );
+
+    await renderWithProviders(
+      <HydratedAdminAuditsPage initialQuery={{ limit: 20, offset: 80 }} />,
+    );
+
+    expect(
+      await screen.findByText("このページには表示するログがありません"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("監査ログはまだありません"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: "前のページ" }).length,
+    ).toBeGreaterThan(0);
+  });
+
   it("Pagination で表示件数を変えると limit が更新され offset が 0 にリセットされる", async () => {
     const user = userEvent.setup();
     const resolver = vi.fn(() => ({

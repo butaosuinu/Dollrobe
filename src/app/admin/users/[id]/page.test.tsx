@@ -3,7 +3,11 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/mocks/server";
 import { adminSessionHandler, sessionHandler } from "@/test/mocks/handlers";
-import { trpcMutation, trpcQuery } from "@/test/mocks/trpc/handlerFactory";
+import {
+  mockTRPCError,
+  trpcMutation,
+  trpcQuery,
+} from "@/test/mocks/trpc/handlerFactory";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import UserDetailPage from "./page";
@@ -148,13 +152,14 @@ describe("UserDetailPage", () => {
     });
   });
 
-  it("ユーザーが見つからないとき not found メッセージが出る", async () => {
+  it("ユーザーが見つからない (NOT_FOUND) とき not found メッセージが出る", async () => {
     server.use(
-      // 詳細 query が rejection を返すケース。adminAtoms 側で .catch して
-      // undefined にダウングレードする経路を踏む。
+      // NOT_FOUND は adminUserDetailAtomFamily 側で .catch → undefined に
+      // ダウングレードされ、Detail page が「このユーザーは見つかりません」を表示する。
       trpcQuery(
         "admin.users.detail",
-        async () => await Promise.reject(new Error("NOT_FOUND")),
+        async () =>
+          await Promise.reject(mockTRPCError("NOT_FOUND", "User not found")),
       ),
     );
 
@@ -163,6 +168,42 @@ describe("UserDetailPage", () => {
     expect(
       await screen.findByText("このユーザーは見つかりません"),
     ).toBeInTheDocument();
+  });
+
+  it("詳細取得が transient エラー (INTERNAL_SERVER_ERROR) のとき ErrorBoundary fallback が出る", async () => {
+    // React が ErrorBoundary 経由でエラーを console.error にも吐くため、
+    // happy-dom の util.inspect 経路で HTMLAnchorElement の private member
+    // アクセスが落ちる既知バグを踏む。意図的に suppress する。
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    server.use(
+      // NOT_FOUND 以外のエラーは re-throw され、ErrorBoundary に到達する。
+      // not-found 状態としてマスクされないことを確認する回帰テスト。
+      trpcQuery(
+        "admin.users.detail",
+        async () =>
+          await Promise.reject(
+            mockTRPCError("INTERNAL_SERVER_ERROR", "database down"),
+          ),
+      ),
+    );
+
+    await renderWithProviders(<UserDetailPage {...pageParams("u-target")} />);
+
+    expect(
+      await screen.findByText(
+        "ユーザー詳細の読み込みに失敗しました",
+        {},
+        { timeout: 3000 },
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("このユーザーは見つかりません"),
+    ).not.toBeInTheDocument();
+
+    consoleErrorSpy.mockRestore();
   });
 
   it("UserDataTabs の初期タブで garments の空メッセージが表示される", async () => {

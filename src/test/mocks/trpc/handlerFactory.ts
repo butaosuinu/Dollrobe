@@ -77,13 +77,48 @@ const resolveByPath = (
 ): WideResolver | undefined =>
   overrideRegistry[kind].get(path) ?? defaultRegistry[kind].get(path);
 
-const errorEntry = (message: string) => ({
+// resolver が trpcError(...) を throw すると `data.code` を保持して errorEntry に
+// 反映する。CLAUDE.md「class 禁止」を守るため、Error インスタンスに追加プロパティを
+// 持たせるタグオブジェクト方式で識別する。
+const MOCK_TRPC_ERROR_TAG = Symbol.for("mock-trpc-error");
+
+type MockTRPCErrorTagged = Error & {
+  readonly [MOCK_TRPC_ERROR_TAG]: true;
+  readonly trpcCode: string;
+  readonly httpStatus: number;
+};
+
+const isMockTRPCError = (error: unknown): error is MockTRPCErrorTagged =>
+  error instanceof Error && MOCK_TRPC_ERROR_TAG in error;
+
+const DEFAULT_HTTP_STATUS = 500;
+
+export const mockTRPCError = (
+  code: string,
+  message: string,
+  httpStatus = DEFAULT_HTTP_STATUS,
+): MockTRPCErrorTagged =>
+  // Object.assign の戻り値型は intersection なので、Error にタグ + 追加プロパティを
+  // 載せた型として推論される。明示的な type assertion を使わずに済む。
+  Object.assign(new Error(message), {
+    [MOCK_TRPC_ERROR_TAG]: true as const,
+    trpcCode: code,
+    httpStatus,
+  });
+
+const TRPC_ERROR_CODE_INTERNAL = -32603;
+
+const errorEntry = (
+  message: string,
+  code = "INTERNAL_SERVER_ERROR",
+  httpStatus = DEFAULT_HTTP_STATUS,
+) => ({
   error: {
     message,
-    code: -32603,
+    code: TRPC_ERROR_CODE_INTERNAL,
     data: {
-      code: "INTERNAL_SERVER_ERROR",
-      httpStatus: 500,
+      code,
+      httpStatus,
     },
   },
 });
@@ -113,7 +148,12 @@ const parsePostInputs = async (
 
 type ResolverOutcome =
   | { readonly kind: "ok"; readonly value: unknown }
-  | { readonly kind: "error"; readonly message: string };
+  | {
+      readonly kind: "error";
+      readonly message: string;
+      readonly code: string;
+      readonly httpStatus: number;
+    };
 
 const runResolver = async (
   resolver: WideResolver,
@@ -128,9 +168,19 @@ const runResolver = async (
   }));
   if (typeof value === "object" && value !== null && errorSentinel in value) {
     const error: unknown = Reflect.get(value, errorSentinel);
+    if (isMockTRPCError(error)) {
+      return {
+        kind: "error",
+        message: error.message,
+        code: error.trpcCode,
+        httpStatus: error.httpStatus,
+      };
+    }
     return {
       kind: "error",
       message: error instanceof Error ? error.message : String(error),
+      code: "INTERNAL_SERVER_ERROR",
+      httpStatus: DEFAULT_HTTP_STATUS,
     };
   }
   return { kind: "ok", value };
@@ -151,7 +201,7 @@ const dispatch = async (
       const { [String(i)]: input } = inputs;
       const outcome = await runResolver(resolver, input, request);
       if (outcome.kind === "error") {
-        return errorEntry(outcome.message);
+        return errorEntry(outcome.message, outcome.code, outcome.httpStatus);
       }
       return successEntry(outcome.value);
     }),

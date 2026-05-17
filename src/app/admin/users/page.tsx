@@ -58,7 +58,9 @@ const UsersListContent = () => {
   const setPage = useSetAtom(setAdminUsersPageAtom);
   const setPageSize = useSetAtom(setAdminUsersPageSizeAtom);
 
-  if (result.items.length === 0) {
+  // total=0 でしか empty state を出さない。items.length === 0 だが total > 0 の
+  // ときは「offset が範囲外」状態。Pagination を残して別ページに戻れるようにする。
+  if (result.total === 0) {
     return (
       <EmptyState
         icon={UsersIcon}
@@ -69,13 +71,18 @@ const UsersListContent = () => {
   }
 
   const pageSize = normalizePageSize(query.limit);
-  // ceil で末尾の余り行ぶんを 1 ページ確保する。total=0 のとき empty branch に入るのでここは items.length>0 が保証されている。
   const totalPages = Math.max(1, Math.ceil(result.total / query.limit));
   const currentPage = Math.floor(query.offset / query.limit) + 1;
 
   return (
     <div className="flex flex-col gap-3">
-      <UserTable users={result.items} />
+      {result.items.length === 0 ? (
+        <p className="py-8 text-center text-sm text-text-tertiary">
+          <Trans>このページには表示するユーザーがいません</Trans>
+        </p>
+      ) : (
+        <UserTable users={result.items} />
+      )}
       <Pagination
         pagination={{
           currentPage,

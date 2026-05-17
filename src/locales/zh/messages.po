@@ -678,6 +678,14 @@ msgstr "此 API 密钥仅显示一次。请在关闭前务必复制。"
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "此设备不支持NFC写入。请使用Android Chrome。"
 
+#: src/app/admin/users/page.tsx
+msgid "このページには表示するユーザーがいません"
+msgstr "本页没有可显示的用户"
+
+#: src/app/admin/audits/page.tsx
+msgid "このページには表示するログがありません"
+msgstr "本页没有可显示的日志"
+
 #: src/app/locations/[caseId]/page.tsx
 msgid "このボックスには服がありません"
 msgstr "这个盒子里没有衣服"

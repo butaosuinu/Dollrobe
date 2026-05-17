@@ -678,6 +678,14 @@ msgstr "この API キーは一度だけ表示されます。閉じる前に必�
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 
+#: src/app/admin/users/page.tsx
+msgid "このページには表示するユーザーがいません"
+msgstr "このページには表示するユーザーがいません"
+
+#: src/app/admin/audits/page.tsx
+msgid "このページには表示するログがありません"
+msgstr "このページには表示するログがありません"
+
 #: src/app/locations/[caseId]/page.tsx
 msgid "このボックスには服がありません"
 msgstr "このボックスには服がありません"

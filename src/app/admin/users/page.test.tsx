@@ -365,6 +365,28 @@ describe("AdminUsersPage", () => {
     });
   });
 
+  it("items が空でも total > 0 なら Pagination を残し EmptyState は出さない (offset 範囲外回避)", async () => {
+    // total: 60 だが items: [] のとき (offset がページ範囲外で空ページを返したケース)。
+    // 過去の実装は items.length === 0 で EmptyState を出していたため admin が
+    // 別ページに戻れなくなる問題があった。
+    server.use(trpcQuery("admin.users.list", () => ({ items: [], total: 60 })));
+
+    await renderWithProviders(
+      <HydratedAdminUsersPage initialQuery={{ limit: 20, offset: 80 }} />,
+    );
+
+    expect(
+      await screen.findByText("このページには表示するユーザーがいません"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("該当するユーザーがいません"),
+    ).not.toBeInTheDocument();
+    // Pagination の「前のページ」ボタンが残っていることを確認 (= 戻れる)
+    expect(
+      screen.getAllByRole("button", { name: "前のページ" }).length,
+    ).toBeGreaterThan(0);
+  });
+
   it("Pagination で表示件数を変えると limit が更新され offset が 0 にリセットされる", async () => {
     const user = userEvent.setup();
     const resolver = vi.fn(() => ({
