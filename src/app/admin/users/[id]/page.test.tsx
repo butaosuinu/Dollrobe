@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/mocks/server";
@@ -95,15 +95,13 @@ describe("UserDetailPage", () => {
 
   it("凍結ボタンを押すと confirm sheet が出て、確定すると freeze mutation が呼ばれる", async () => {
     const user = userEvent.setup();
-    const callRef: { current: { targetUserId: string } | undefined } = {
-      current: undefined,
-    };
+    const freezeResolver = vi.fn(() => ({
+      ok: true as const,
+      noop: false,
+    }));
     server.use(
       trpcQuery("admin.users.detail", () => buildUser({ id: "u-target" })),
-      trpcMutation("admin.users.freeze", ({ input }) => {
-        callRef.current = input as { targetUserId: string };
-        return { ok: true as const, noop: false };
-      }),
+      trpcMutation("admin.users.freeze", freezeResolver),
     );
 
     await renderWithProviders(<UserDetailPage {...pageParams("u-target")} />);
@@ -114,23 +112,25 @@ describe("UserDetailPage", () => {
     await user.click(within(dialog).getByRole("button", { name: "凍結する" }));
 
     await waitFor(() => {
-      expect(callRef.current?.targetUserId).toBe("u-target");
+      expect(freezeResolver).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({ targetUserId: "u-target" }),
+        }),
+      );
     });
   });
 
   it("凍結済みユーザーには 解凍する ボタンが出て、確定すると unfreeze mutation が呼ばれる", async () => {
     const user = userEvent.setup();
-    const callRef: { current: { targetUserId: string } | undefined } = {
-      current: undefined,
-    };
+    const unfreezeResolver = vi.fn(() => ({
+      ok: true as const,
+      noop: false,
+    }));
     server.use(
       trpcQuery("admin.users.detail", () =>
         buildUser({ id: "u-target", frozen: true }),
       ),
-      trpcMutation("admin.users.unfreeze", ({ input }) => {
-        callRef.current = input as { targetUserId: string };
-        return { ok: true as const, noop: false };
-      }),
+      trpcMutation("admin.users.unfreeze", unfreezeResolver),
     );
 
     await renderWithProviders(<UserDetailPage {...pageParams("u-target")} />);
@@ -140,7 +140,11 @@ describe("UserDetailPage", () => {
     await user.click(within(dialog).getByRole("button", { name: "解凍する" }));
 
     await waitFor(() => {
-      expect(callRef.current?.targetUserId).toBe("u-target");
+      expect(unfreezeResolver).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({ targetUserId: "u-target" }),
+        }),
+      );
     });
   });
 
@@ -179,15 +183,10 @@ describe("UserDetailPage", () => {
 
   it("収納タブに切り替えると location 用のクエリが発火する", async () => {
     const user = userEvent.setup();
-    const callRef: { current: { userId: string } | undefined } = {
-      current: undefined,
-    };
+    const locationsResolver = vi.fn(() => []);
     server.use(
       trpcQuery("admin.users.detail", () => buildUser({ id: "u-target" })),
-      trpcQuery("admin.userDataView.locations", ({ input }) => {
-        callRef.current = input as { userId: string };
-        return [];
-      }),
+      trpcQuery("admin.userDataView.locations", locationsResolver),
     );
 
     await renderWithProviders(<UserDetailPage {...pageParams("u-target")} />);
@@ -196,21 +195,20 @@ describe("UserDetailPage", () => {
     await user.click(screen.getByRole("button", { name: "収納" }));
 
     await waitFor(() => {
-      expect(callRef.current?.userId).toBe("u-target");
+      expect(locationsResolver).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({ userId: "u-target" }),
+        }),
+      );
     });
   });
 
   it("コーデタブに切り替えると coordinates クエリが発火する", async () => {
     const user = userEvent.setup();
-    const callRef: { current: { userId: string } | undefined } = {
-      current: undefined,
-    };
+    const coordinatesResolver = vi.fn(() => ({ items: [], total: 0 }));
     server.use(
       trpcQuery("admin.users.detail", () => buildUser({ id: "u-target" })),
-      trpcQuery("admin.userDataView.coordinates", ({ input }) => {
-        callRef.current = input as { userId: string };
-        return { items: [], total: 0 };
-      }),
+      trpcQuery("admin.userDataView.coordinates", coordinatesResolver),
     );
 
     await renderWithProviders(<UserDetailPage {...pageParams("u-target")} />);
@@ -219,7 +217,11 @@ describe("UserDetailPage", () => {
     await user.click(screen.getByRole("button", { name: "コーデ" }));
 
     await waitFor(() => {
-      expect(callRef.current?.userId).toBe("u-target");
+      expect(coordinatesResolver).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({ userId: "u-target" }),
+        }),
+      );
     });
   });
 

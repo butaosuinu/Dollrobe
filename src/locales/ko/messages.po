@@ -1577,6 +1577,10 @@ msgstr "동결하기"
 msgid "凍結すると現在のセッションは即時失効し、再ログインも拒否されます。データは保持されます。"
 msgstr "동결하면 현재 세션이 즉시 만료되고 재로그인도 차단됩니다. 데이터는 보존됩니다."
 
+#: src/components/admin/UserFreezeButton.tsx
+msgid "凍結に失敗しました。時間をおいて再度お試しください"
+msgstr "동결에 실패했습니다. 잠시 후 다시 시도해 주세요"
+
 #: src/app/admin/users/[id]/page.tsx
 #: src/components/admin/UserTable.tsx
 msgid "凍結中"
@@ -2352,6 +2356,10 @@ msgstr "해동하기"
 #: src/components/admin/UserFreezeButton.tsx
 msgid "解凍すると再びログインできるようになります。データは保持されます。"
 msgstr "해동하면 다시 로그인할 수 있게 됩니다. 데이터는 보존됩니다."
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "解凍に失敗しました。時間をおいて再度お試しください"
+msgstr "해동에 실패했습니다. 잠시 후 다시 시도해 주세요"
 
 #: src/components/settings/LocaleSelector.tsx
 msgid "言語"

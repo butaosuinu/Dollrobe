@@ -9,6 +9,7 @@ import { useLingui } from "@lingui/react";
 import type { I18n } from "@lingui/core";
 import Button from "@/components/ui/Button";
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
+import { addToastAtom } from "@/stores/toastAtoms";
 import { freezeUserAtom, unfreezeUserAtom } from "@/stores/adminAtoms";
 
 type Props = {
@@ -23,6 +24,7 @@ type DialogCopy = {
   readonly message: string;
   readonly confirmLabel: string;
   readonly confirmVariant: "primary" | "danger";
+  readonly errorMessage: string;
 };
 
 const buildDialogCopy = (i18n: I18n, frozen: boolean): DialogCopy =>
@@ -34,6 +36,9 @@ const buildDialogCopy = (i18n: I18n, frozen: boolean): DialogCopy =>
         ),
         confirmLabel: i18n._(t`解凍する`),
         confirmVariant: "primary",
+        errorMessage: i18n._(
+          t`解凍に失敗しました。時間をおいて再度お試しください`,
+        ),
       }
     : {
         title: i18n._(t`このユーザーを凍結しますか？`),
@@ -42,7 +47,14 @@ const buildDialogCopy = (i18n: I18n, frozen: boolean): DialogCopy =>
         ),
         confirmLabel: i18n._(t`凍結する`),
         confirmVariant: "danger",
+        errorMessage: i18n._(
+          t`凍結に失敗しました。時間をおいて再度お試しください`,
+        ),
       };
+
+// mutate が reject されたかを判別する sentinel。await の値が success/failure
+// どちらも void なので、try/catch を使わず .catch のみで判別するために使う。
+const FAIL_SENTINEL = Symbol("user-freeze-fail");
 
 const UserFreezeButton = ({
   targetUserId,
@@ -52,15 +64,19 @@ const UserFreezeButton = ({
 }: Props) => {
   const freezeUser = useSetAtom(freezeUserAtom);
   const unfreezeUser = useSetAtom(unfreezeUserAtom);
+  const addToast = useSetAtom(addToastAtom);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const { i18n } = useLingui();
 
-  const handleConfirm = () => {
-    const fire = frozen ? unfreezeUser : freezeUser;
-    fire({ targetUserId });
-  };
-
   const copy = buildDialogCopy(i18n, frozen);
+
+  const handleConfirm = async () => {
+    const fire = frozen ? unfreezeUser : freezeUser;
+    const outcome = await fire({ targetUserId }).catch(() => FAIL_SENTINEL);
+    if (outcome === FAIL_SENTINEL) {
+      addToast({ message: copy.errorMessage });
+    }
+  };
 
   return (
     <div className="flex flex-col gap-1">
@@ -79,7 +95,9 @@ const UserFreezeButton = ({
       <ConfirmSheet
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleConfirm}
+        onConfirm={() => {
+          void handleConfirm();
+        }}
         title={copy.title}
         message={copy.message}
         confirmLabel={copy.confirmLabel}

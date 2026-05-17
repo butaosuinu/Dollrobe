@@ -1577,6 +1577,10 @@ msgstr "Freeze"
 msgid "凍結すると現在のセッションは即時失効し、再ログインも拒否されます。データは保持されます。"
 msgstr "Freezing immediately invalidates the current session and blocks re-login. Data is retained."
 
+#: src/components/admin/UserFreezeButton.tsx
+msgid "凍結に失敗しました。時間をおいて再度お試しください"
+msgstr "Failed to freeze the user. Please try again in a moment"
+
 #: src/app/admin/users/[id]/page.tsx
 #: src/components/admin/UserTable.tsx
 msgid "凍結中"
@@ -2352,6 +2356,10 @@ msgstr "Unfreeze"
 #: src/components/admin/UserFreezeButton.tsx
 msgid "解凍すると再びログインできるようになります。データは保持されます。"
 msgstr "Unfreezing lets the user sign in again. Data is retained."
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "解凍に失敗しました。時間をおいて再度お試しください"
+msgstr "Failed to unfreeze the user. Please try again in a moment"
 
 #: src/components/settings/LocaleSelector.tsx
 msgid "言語"

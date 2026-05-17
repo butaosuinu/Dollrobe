@@ -1,11 +1,21 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { server } from "@/test/mocks/server";
 import { trpcMutation } from "@/test/mocks/trpc/handlerFactory";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
+import ToastContainer from "@/components/ui/Toast";
 import UserFreezeButton from "./UserFreezeButton";
+
+// Toast は本番では AppShell 配下で描画されるため、テストでも一緒に mount しないと
+// addToast が atom を更新しても画面に出ない。
+const WithToast = ({ children }: { readonly children: React.ReactNode }) => (
+  <>
+    {children}
+    <ToastContainer />
+  </>
+);
 
 describe("UserFreezeButton", () => {
   beforeEach(() => {
@@ -60,13 +70,8 @@ describe("UserFreezeButton", () => {
 
   it("ConfirmSheet で キャンセル を押すと mutation は呼ばれない", async () => {
     const user = userEvent.setup();
-    const callRef: { current: boolean } = { current: false };
-    server.use(
-      trpcMutation("admin.users.freeze", () => {
-        callRef.current = true;
-        return { ok: true as const, noop: false };
-      }),
-    );
+    const resolver = vi.fn(() => ({ ok: true as const, noop: false }));
+    server.use(trpcMutation("admin.users.freeze", resolver));
 
     await renderWithProviders(
       <UserFreezeButton targetUserId="u-target" frozen={false} />,
@@ -82,7 +87,59 @@ describe("UserFreezeButton", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
-    expect(callRef.current).toBe(false);
+    expect(resolver).not.toHaveBeenCalled();
+  });
+
+  it("freeze mutation が reject されたとき toast でエラーを表示する", async () => {
+    const user = userEvent.setup();
+    server.use(
+      trpcMutation(
+        "admin.users.freeze",
+        async () => await Promise.reject(new Error("FORBIDDEN: admin->admin")),
+      ),
+    );
+
+    await renderWithProviders(
+      <WithToast>
+        <UserFreezeButton targetUserId="u-target" frozen={false} />
+      </WithToast>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /凍結する/ }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "凍結する" }));
+
+    expect(
+      await screen.findByText(
+        "凍結に失敗しました。時間をおいて再度お試しください",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("unfreeze mutation が reject されたとき 解凍失敗 toast を表示する", async () => {
+    const user = userEvent.setup();
+    server.use(
+      trpcMutation(
+        "admin.users.unfreeze",
+        async () => await Promise.reject(new Error("INTERNAL_ERROR")),
+      ),
+    );
+
+    await renderWithProviders(
+      <WithToast>
+        <UserFreezeButton targetUserId="u-target" frozen={true} />
+      </WithToast>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /解凍する/ }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "解凍する" }));
+
+    expect(
+      await screen.findByText(
+        "解凍に失敗しました。時間をおいて再度お試しください",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("frozen=true の場合は 解凍する ラベルと message が出る", async () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useHydrateAtoms } from "jotai/utils";
@@ -20,14 +20,6 @@ const HydratedAdminAuditsPage = ({
 }) => {
   useHydrateAtoms([[adminAuditsQueryAtom, initialQuery]]);
   return <AdminAuditsPage />;
-};
-
-type AuditsInput = {
-  readonly action?: string;
-  readonly actorUserId?: string;
-  readonly targetUserId?: string;
-  readonly limit: number;
-  readonly offset: number;
 };
 
 const sampleLog = (
@@ -90,17 +82,12 @@ describe("AdminAuditsPage", () => {
 
   it("Pagination の 次へ ボタンで limit ぶん offset を進めて再 fetch する", async () => {
     const user = userEvent.setup();
-    const calls: AuditsInput[] = [];
     // 1 ページぶんの件数 + 全 total を返して 2 ページ以上ある状態にする
     const page1Items = Array.from({ length: 20 }, (_, i) =>
       sampleLog({ id: `log-${i}`, action: "user.freeze" }),
     );
-    server.use(
-      trpcQuery("admin.audits.list", ({ input }) => {
-        calls.push(input as AuditsInput);
-        return { items: page1Items, total: 60 };
-      }),
-    );
+    const resolver = vi.fn(() => ({ items: page1Items, total: 60 }));
+    server.use(trpcQuery("admin.audits.list", resolver));
 
     await renderWithProviders(
       <HydratedAdminAuditsPage initialQuery={{ limit: 20, offset: 0 }} />,
@@ -116,21 +103,21 @@ describe("AdminAuditsPage", () => {
     await user.click(firstNextButton);
 
     await waitFor(() => {
-      const lastCall = calls.at(-1);
-      expect(lastCall?.offset).toBe(20);
-      expect(lastCall?.limit).toBe(20);
+      expect(resolver).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({ limit: 20, offset: 20 }),
+        }),
+      );
     });
   });
 
   it("Pagination で表示件数を変えると limit が更新され offset が 0 にリセットされる", async () => {
     const user = userEvent.setup();
-    const calls: AuditsInput[] = [];
-    server.use(
-      trpcQuery("admin.audits.list", ({ input }) => {
-        calls.push(input as AuditsInput);
-        return { items: [sampleLog({ id: "log-only" })], total: 60 };
-      }),
-    );
+    const resolver = vi.fn(() => ({
+      items: [sampleLog({ id: "log-only" })],
+      total: 60,
+    }));
+    server.use(trpcQuery("admin.audits.list", resolver));
 
     await renderWithProviders(
       <HydratedAdminAuditsPage initialQuery={{ limit: 20, offset: 40 }} />,
@@ -140,9 +127,11 @@ describe("AdminAuditsPage", () => {
     await user.selectOptions(sizeSelect, "50");
 
     await waitFor(() => {
-      const lastCall = calls.at(-1);
-      expect(lastCall?.limit).toBe(50);
-      expect(lastCall?.offset).toBe(0);
+      expect(resolver).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({ limit: 50, offset: 0 }),
+        }),
+      );
     });
   });
 });
