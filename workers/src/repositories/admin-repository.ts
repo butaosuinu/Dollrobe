@@ -218,6 +218,10 @@ export const getMetricsSummary = async ({
   };
 };
 
+// 並行 freeze/unfreeze の race を吸収するため、UPDATE と副作用 (DELETE
+// sessions, INSERT audit) を 2 段階に分ける。サービス層の事前 check と
+// UPDATE の WHERE 条件の間に他リクエストが状態を flip した場合、UPDATE は
+// 0 行になり副作用も走らず、audit が誤って二重記録されない。
 export const freezeUserBatch = async ({
   drizzleDb,
   actorUserId,
@@ -232,13 +236,19 @@ export const freezeUserBatch = async ({
   readonly reason: string | undefined;
   readonly now: number;
   readonly logger: Logger;
-}): Promise<void> => {
+}): Promise<{ readonly changed: boolean }> => {
+  const updateResult = await drizzleDb
+    .update(users)
+    .set({ frozen: true, updatedAt: now })
+    .where(and(eq(users.id, targetUserId), eq(users.frozen, false)))
+    .catch(wrapDbError({ context: "freeze user update", logger }));
+
+  if (Number(updateResult.meta.changes) === 0) {
+    return { changed: false };
+  }
+
   await drizzleDb
     .batch([
-      drizzleDb
-        .update(users)
-        .set({ frozen: true, updatedAt: now })
-        .where(and(eq(users.id, targetUserId), eq(users.frozen, false))),
       drizzleDb.delete(sessions).where(eq(sessions.userId, targetUserId)),
       drizzleDb.insert(adminAuditLogs).values({
         id: createId(),
@@ -249,7 +259,9 @@ export const freezeUserBatch = async ({
         createdAt: now,
       }),
     ])
-    .catch(wrapDbError({ context: "freeze user batch", logger }));
+    .catch(wrapDbError({ context: "freeze user side-effects", logger }));
+
+  return { changed: true };
 };
 
 export const unfreezeUserBatch = async ({
@@ -266,21 +278,28 @@ export const unfreezeUserBatch = async ({
   readonly reason: string | undefined;
   readonly now: number;
   readonly logger: Logger;
-}): Promise<void> => {
+}): Promise<{ readonly changed: boolean }> => {
+  const updateResult = await drizzleDb
+    .update(users)
+    .set({ frozen: false, updatedAt: now })
+    .where(and(eq(users.id, targetUserId), eq(users.frozen, true)))
+    .catch(wrapDbError({ context: "unfreeze user update", logger }));
+
+  if (Number(updateResult.meta.changes) === 0) {
+    return { changed: false };
+  }
+
   await drizzleDb
-    .batch([
-      drizzleDb
-        .update(users)
-        .set({ frozen: false, updatedAt: now })
-        .where(and(eq(users.id, targetUserId), eq(users.frozen, true))),
-      drizzleDb.insert(adminAuditLogs).values({
-        id: createId(),
-        actorUserId,
-        action: "user.unfreeze",
-        targetUserId,
-        metadata: JSON.stringify({ reason: reason ?? null }),
-        createdAt: now,
-      }),
-    ])
-    .catch(wrapDbError({ context: "unfreeze user batch", logger }));
+    .insert(adminAuditLogs)
+    .values({
+      id: createId(),
+      actorUserId,
+      action: "user.unfreeze",
+      targetUserId,
+      metadata: JSON.stringify({ reason: reason ?? null }),
+      createdAt: now,
+    })
+    .catch(wrapDbError({ context: "unfreeze user audit insert", logger }));
+
+  return { changed: true };
 };

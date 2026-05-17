@@ -166,6 +166,45 @@ describe("adminService.freezeUser", () => {
     });
     expect(audits[0]?.metadata).toContain("spam");
   });
+
+  it("並行 freeze の race: 後発リクエストは noop=true + audit を書かない", async () => {
+    // 2 つの admin から user-1 への freeze を並行発行。事前 check は両方とも
+    // target.frozen===false を見るが、最初の UPDATE で frozen=true に flip
+    // されたあと、後発の UPDATE は 0 行になり audit も書かれないこと。
+    await insertTestUser({ db: env.DB, id: "admin-1", role: "admin" });
+    await insertTestUser({ db: env.DB, id: "admin-2", role: "admin" });
+    await insertTestUser({ db: env.DB, id: "user-1", role: "user" });
+
+    const [first, second] = await Promise.all([
+      adminService.freezeUser({
+        drizzleDb,
+        actorUserId: "admin-1",
+        targetUserId: "user-1",
+        reason: "first",
+        logger,
+      }),
+      adminService.freezeUser({
+        drizzleDb,
+        actorUserId: "admin-2",
+        targetUserId: "user-1",
+        reason: "second",
+        logger,
+      }),
+    ]);
+
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(true);
+
+    const noops = [first, second].map((r) => (r.ok ? r.data.noop : "error"));
+    // ちょうど 1 つが noop=false (実際に flip した)、もう 1 つは noop=true
+    expect(noops.filter((n) => n === false)).toHaveLength(1);
+    expect(noops.filter((n) => n === true)).toHaveLength(1);
+
+    // audit は 1 件だけ
+    const audits = await drizzleDb.select().from(adminAuditLogs);
+    expect(audits).toHaveLength(1);
+    expect(audits[0]?.action).toBe("user.freeze");
+  });
 });
 
 describe("adminService.unfreezeUser", () => {
@@ -258,6 +297,45 @@ describe("adminService.unfreezeUser", () => {
       action: "user.unfreeze",
       targetUserId: "user-frozen",
     });
+  });
+
+  it("並行 unfreeze の race: 後発リクエストは noop=true + audit を書かない", async () => {
+    await insertTestUser({ db: env.DB, id: "admin-1", role: "admin" });
+    await insertTestUser({ db: env.DB, id: "admin-2", role: "admin" });
+    await insertTestUser({
+      db: env.DB,
+      id: "user-frozen",
+      role: "user",
+      frozen: true,
+    });
+
+    const [first, second] = await Promise.all([
+      adminService.unfreezeUser({
+        drizzleDb,
+        actorUserId: "admin-1",
+        targetUserId: "user-frozen",
+        reason: "first",
+        logger,
+      }),
+      adminService.unfreezeUser({
+        drizzleDb,
+        actorUserId: "admin-2",
+        targetUserId: "user-frozen",
+        reason: "second",
+        logger,
+      }),
+    ]);
+
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(true);
+
+    const noops = [first, second].map((r) => (r.ok ? r.data.noop : "error"));
+    expect(noops.filter((n) => n === false)).toHaveLength(1);
+    expect(noops.filter((n) => n === true)).toHaveLength(1);
+
+    const audits = await drizzleDb.select().from(adminAuditLogs);
+    expect(audits).toHaveLength(1);
+    expect(audits[0]?.action).toBe("user.unfreeze");
   });
 });
 

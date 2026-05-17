@@ -114,7 +114,9 @@ export const freezeUser = async ({
     return serviceOk({ ok: true, noop: true });
   }
 
-  await adminRepo.freezeUserBatch({
+  // 並行リクエストが先にフリーズを成立させていた race を弾くため、
+  // UPDATE 実行後の changes を確認して noop を判定する。
+  const result = await adminRepo.freezeUserBatch({
     drizzleDb,
     actorUserId,
     targetUserId,
@@ -123,7 +125,7 @@ export const freezeUser = async ({
     logger,
   });
 
-  return serviceOk({ ok: true, noop: false });
+  return serviceOk({ ok: true, noop: !result.changed });
 };
 
 export const unfreezeUser = async ({
@@ -155,7 +157,7 @@ export const unfreezeUser = async ({
     return serviceOk({ ok: true, noop: true });
   }
 
-  await adminRepo.unfreezeUserBatch({
+  const result = await adminRepo.unfreezeUserBatch({
     drizzleDb,
     actorUserId,
     targetUserId,
@@ -164,7 +166,7 @@ export const unfreezeUser = async ({
     logger,
   });
 
-  return serviceOk({ ok: true, noop: false });
+  return serviceOk({ ok: true, noop: !result.changed });
 };
 
 export const getMetricsSummary = async ({
