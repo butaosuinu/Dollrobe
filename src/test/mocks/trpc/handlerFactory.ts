@@ -6,30 +6,32 @@ import type { AppRouter } from "../../../../workers/src/trpc/router";
 type RouterInputsRaw = inferRouterInputs<AppRouter>;
 type RouterOutputsRaw = inferRouterOutputs<AppRouter>;
 
-export type ProcedurePath = {
-  [R in keyof RouterInputsRaw]: {
-    [P in keyof RouterInputsRaw[R]]: `${R & string}.${P & string}`;
-  }[keyof RouterInputsRaw[R]];
-}[keyof RouterInputsRaw];
+// 入力/出力が plain object なら procedure leaf、それ以外 (ネストされた router の object) は再帰。
+// tRPC の inferRouterInputs では procedure の input は record か void/undefined になる。
+// 厳密な leaf 判定は難しいので、`object` を再帰し、`void`/`undefined`/primitives を leaf とみなす。
+// admin.users.list のように 3 階層まで対応。
+type FlattenPath<T, Prefix extends string = ""> = {
+  [K in keyof T & string]: T[K] extends Record<string, unknown>
+    ? `${Prefix}${K}` | FlattenPath<T[K], `${Prefix}${K}.`>
+    : `${Prefix}${K}`;
+}[keyof T & string];
+
+export type ProcedurePath = FlattenPath<RouterInputsRaw>;
+
+type GetByPath<T, P extends string> = P extends `${infer Head}.${infer Tail}`
+  ? Head extends keyof T
+    ? GetByPath<T[Head], Tail>
+    : never
+  : P extends keyof T
+    ? T[P]
+    : never;
 
 export type RouterInputs = {
-  [P in ProcedurePath]: P extends `${infer R}.${infer K}`
-    ? R extends keyof RouterInputsRaw
-      ? K extends keyof RouterInputsRaw[R]
-        ? RouterInputsRaw[R][K]
-        : never
-      : never
-    : never;
+  [P in ProcedurePath]: GetByPath<RouterInputsRaw, P>;
 };
 
 export type RouterOutputs = {
-  [P in ProcedurePath]: P extends `${infer R}.${infer K}`
-    ? R extends keyof RouterOutputsRaw
-      ? K extends keyof RouterOutputsRaw[R]
-        ? RouterOutputsRaw[R][K]
-        : never
-      : never
-    : never;
+  [P in ProcedurePath]: GetByPath<RouterOutputsRaw, P>;
 };
 
 export type Resolver<P extends ProcedurePath> = (args: {

@@ -4,22 +4,57 @@ import { trpcDispatcherHandlers } from "./trpc/handlerFactory";
 
 registerDefaultTrpcHandlers();
 
+type SessionUserRole = "admin" | "user";
+
+type MockSessionUser = {
+  readonly id: string;
+  readonly name: string;
+  readonly email: string;
+  readonly image: string | null;
+  readonly emailVerified: boolean;
+  readonly role: SessionUserRole;
+  readonly frozen: boolean;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+};
+
+const DEFAULT_SESSION_USER: MockSessionUser = {
+  id: "user-1",
+  name: "テストユーザー",
+  email: "test@example.com",
+  image: null,
+  emailVerified: false,
+  role: "user",
+  frozen: false,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+
 export const handlers = [
   http.get("*/api/auth/get-session", () =>
-    HttpResponse.json({
-      user: {
-        id: "user-1",
-        name: "テストユーザー",
-        email: "test@example.com",
-        image: null,
-        emailVerified: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    }),
+    HttpResponse.json({ user: DEFAULT_SESSION_USER }),
   ),
   ...trpcDispatcherHandlers,
 ];
+
+export const adminSessionHandler = http.get("*/api/auth/get-session", () =>
+  HttpResponse.json({
+    user: { ...DEFAULT_SESSION_USER, id: "admin-1", role: "admin" },
+  }),
+);
+
+export const frozenSessionHandler = http.get("*/api/auth/get-session", () =>
+  HttpResponse.json({
+    user: { ...DEFAULT_SESSION_USER, frozen: true },
+  }),
+);
+
+type SessionOverrides = Partial<MockSessionUser>;
+
+export const sessionHandler = (overrides: SessionOverrides) =>
+  http.get("*/api/auth/get-session", () =>
+    HttpResponse.json({ user: { ...DEFAULT_SESSION_USER, ...overrides } }),
+  );
 
 export const unauthenticatedHandler = http.get("*/api/auth/get-session", () =>
   HttpResponse.json(null),

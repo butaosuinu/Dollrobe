@@ -3,7 +3,7 @@
 import { atom } from "jotai";
 import { unwrap } from "jotai/utils";
 import { getSession, signOut as authSignOut } from "@/lib/auth";
-import type { SessionResponse } from "@/lib/auth";
+import type { SessionResponse, UserRole } from "@/lib/auth";
 import { getDb } from "@/lib/db/dexie";
 
 type AuthUser = {
@@ -11,6 +11,8 @@ type AuthUser = {
   readonly name: string;
   readonly email: string;
   readonly image: string | undefined;
+  readonly role: UserRole;
+  readonly frozen: boolean;
 };
 
 type AuthState = {
@@ -27,6 +29,8 @@ const extractUser = (
   session: SessionResponse | undefined,
 ): AuthUser | undefined => {
   const user = session?.data?.user;
+  // SessionUser 側 (src/lib/auth.ts) で getSession のレスポンスを必ず
+  // { role, frozen } 込みに正規化しているため、ここでは安全に展開する。
   return user === undefined
     ? undefined
     : {
@@ -34,6 +38,8 @@ const extractUser = (
         name: user.name,
         email: user.email,
         image: user.image ?? undefined,
+        role: user.role,
+        frozen: user.frozen,
       };
 };
 
