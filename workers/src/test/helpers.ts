@@ -66,6 +66,60 @@ export const resetDatabase = async (db: D1Database) => {
   await db.exec("DELETE FROM storage_cases");
   await db.exec("DELETE FROM coordinates");
   await db.exec("DELETE FROM dolls");
+  await db.exec("DELETE FROM admin_audit_logs");
+  await db.exec("DELETE FROM session");
+  await db.exec(`DELETE FROM "user"`);
+};
+
+export const insertTestUser = async ({
+  db,
+  id,
+  role = "user",
+  frozen = false,
+  email,
+}: {
+  readonly db: D1Database;
+  readonly id: string;
+  readonly role?: "admin" | "user";
+  readonly frozen?: boolean;
+  readonly email?: string;
+}): Promise<void> => {
+  const now = Date.now();
+  await db
+    .prepare(
+      `INSERT INTO "user" (id, name, email, emailVerified, image, role, frozen, createdAt, updatedAt)
+       VALUES (?, ?, ?, 0, NULL, ?, ?, ?, ?)`,
+    )
+    .bind(
+      id,
+      `Name ${id}`,
+      email ?? `${id}@example.com`,
+      role,
+      frozen ? 1 : 0,
+      now,
+      now,
+    )
+    .run();
+};
+
+export const insertTestSession = async ({
+  db,
+  id,
+  userId,
+}: {
+  readonly db: D1Database;
+  readonly id: string;
+  readonly userId: string;
+}): Promise<void> => {
+  const now = Date.now();
+  const oneHour = 60 * 60 * 1000;
+  await db
+    .prepare(
+      `INSERT INTO "session" (id, userId, token, expiresAt, ipAddress, userAgent, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, NULL, NULL, ?, ?)`,
+    )
+    .bind(id, userId, `token-${id}`, now + oneHour, now, now)
+    .run();
 };
 
 export const createTestGarmentInput = (
