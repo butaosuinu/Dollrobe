@@ -222,4 +222,40 @@ describe("UserDetailPage", () => {
       expect(callRef.current?.userId).toBe("u-target");
     });
   });
+
+  it("garments が 1 件以上あるとき名前・カテゴリ・件数フッターが表示される", async () => {
+    server.use(
+      trpcQuery("admin.users.detail", () => buildUser({ id: "u-target" })),
+      trpcQuery("admin.userDataView.garments", () => ({
+        items: [
+          {
+            id: "g-1",
+            userId: "u-target",
+            name: "黒ワンピ",
+            category: "onepiece" as const,
+            dollSizes: ["MSD" as const],
+            colors: [],
+            tags: [],
+            imageUrl: undefined,
+            locationId: undefined,
+            status: "stored" as const,
+            lastScannedAt: 0,
+            confidenceDecayDays: 30,
+            brand: undefined,
+            checkedOutAt: undefined,
+            recentCheckoutCount: 0,
+            createdAt: 0,
+            updatedAt: 0,
+          },
+        ],
+        total: 1,
+      })),
+    );
+
+    await renderWithProviders(<UserDetailPage {...pageParams("u-target")} />);
+
+    expect(await screen.findByText("黒ワンピ")).toBeInTheDocument();
+    expect(screen.getByText("onepiece")).toBeInTheDocument();
+    expect(screen.getByText(/1 \/ 1件表示/)).toBeInTheDocument();
+  });
 });
