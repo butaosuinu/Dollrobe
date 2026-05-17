@@ -59,7 +59,11 @@ export const mcpHandler = async (c: McpHonoContext): Promise<Response> => {
   const baseLogger = c.get("logger").child({ route: "mcp" });
   const auth = c.get("auth");
 
-  const mcpAuth = await resolveMcpAuth({ auth, headers: c.req.raw.headers });
+  const mcpAuth = await resolveMcpAuth({
+    auth,
+    db: c.env.DB,
+    headers: c.req.raw.headers,
+  });
   if (mcpAuth === undefined) {
     baseLogger.warn("mcp auth rejected");
     return unauthorized(c);

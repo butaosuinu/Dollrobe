@@ -19,6 +19,7 @@ imageRoutes.post("/upload/:garmentId", async (c) => {
 
   const userId = await resolveAuthenticatedUserId({
     auth: c.get("auth"),
+    db: c.env.DB,
     headers: c.req.raw.headers,
   });
   if (userId === undefined) {

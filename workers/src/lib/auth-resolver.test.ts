@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { env } from "cloudflare:test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { extractBearerKey, resolveAuthenticatedUserId } from "./auth-resolver";
 import type { Auth } from "../auth";
 
@@ -6,6 +7,15 @@ type SessionShape = { readonly user: { readonly id: string } } | null;
 type VerifyShape =
   | { readonly valid: true; readonly key?: { readonly referenceId?: string } }
   | { readonly valid: false };
+
+const TEST_USER_IDS = [
+  "u-1",
+  "u-cookie",
+  "u-bearer",
+  "u-frozen-session",
+  "u-frozen-bearer",
+  "u-active-session",
+];
 
 const makeAuth = ({
   session,
@@ -28,6 +38,32 @@ const makeAuth = ({
       ),
     },
   }) as unknown as Auth;
+
+const insertUser = async ({
+  id,
+  frozen,
+}: {
+  readonly id: string;
+  readonly frozen: boolean;
+}): Promise<void> => {
+  const now = Date.now();
+  await env.DB.prepare(
+    `INSERT INTO "user" (id, name, email, emailVerified, image, role, frozen, createdAt, updatedAt)
+     VALUES (?, ?, ?, 0, NULL, 'user', ?, ?, ?)`,
+  )
+    .bind(id, `Name ${id}`, `${id}@example.com`, frozen ? 1 : 0, now, now)
+    .run();
+};
+
+const cleanupUsers = async (): Promise<void> => {
+  const placeholders = TEST_USER_IDS.map(() => "?").join(", ");
+  await env.DB.prepare(`DELETE FROM "user" WHERE id IN (${placeholders})`)
+    .bind(...TEST_USER_IDS)
+    .run();
+};
+
+beforeEach(cleanupUsers);
+afterEach(cleanupUsers);
 
 describe("extractBearerKey", () => {
   it("authorization が無いとき undefined", () => {
@@ -65,14 +101,20 @@ describe("resolveAuthenticatedUserId", () => {
       verify: { valid: true, key: { referenceId: "u-1" } },
     });
     const headers = new Headers({ authorization: "Bearer dwk_x" });
-    const result = await resolveAuthenticatedUserId({ auth, headers });
+    const result = await resolveAuthenticatedUserId({
+      auth,
+      db: env.DB,
+      headers,
+    });
     expect(result).toBe("u-1");
   });
 
   it("Bearer 経路で verifyApiKey が valid:false → undefined", async () => {
     const auth = makeAuth({ verify: { valid: false } });
     const headers = new Headers({ authorization: "Bearer dwk_x" });
-    expect(await resolveAuthenticatedUserId({ auth, headers })).toBeUndefined();
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
   });
 
   it("Bearer 経路で referenceId が空文字 → undefined", async () => {
@@ -80,13 +122,17 @@ describe("resolveAuthenticatedUserId", () => {
       verify: { valid: true, key: { referenceId: "" } },
     });
     const headers = new Headers({ authorization: "Bearer dwk_x" });
-    expect(await resolveAuthenticatedUserId({ auth, headers })).toBeUndefined();
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
   });
 
   it("Bearer 経路で verifyApiKey が throw → undefined", async () => {
     const auth = makeAuth({ verify: new Error("network") });
     const headers = new Headers({ authorization: "Bearer dwk_x" });
-    expect(await resolveAuthenticatedUserId({ auth, headers })).toBeUndefined();
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
   });
 
   it("Cookie あり Bearer あり → session 優先", async () => {
@@ -98,9 +144,9 @@ describe("resolveAuthenticatedUserId", () => {
       authorization: "Bearer dwk_x",
       cookie: "session=abc",
     });
-    expect(await resolveAuthenticatedUserId({ auth, headers })).toBe(
-      "u-cookie",
-    );
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBe("u-cookie");
   });
 
   it("Cookie あり session が null → Bearer fallback", async () => {
@@ -112,26 +158,76 @@ describe("resolveAuthenticatedUserId", () => {
       authorization: "Bearer dwk_x",
       cookie: "session=abc",
     });
-    expect(await resolveAuthenticatedUserId({ auth, headers })).toBe(
-      "u-bearer",
-    );
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBe("u-bearer");
   });
 
   it("Cookie あり Bearer 無しで session も無効 → undefined", async () => {
     const auth = makeAuth({ session: null });
     const headers = new Headers({ cookie: "session=abc" });
-    expect(await resolveAuthenticatedUserId({ auth, headers })).toBeUndefined();
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
   });
 
   it("Cookie あり getSession が throw → undefined にフォールバック", async () => {
     const auth = makeAuth({ session: new Error("oops") });
     const headers = new Headers({ cookie: "session=abc" });
-    expect(await resolveAuthenticatedUserId({ auth, headers })).toBeUndefined();
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
   });
 
   it("Cookie あり session.user.id が空文字 → undefined", async () => {
     const auth = makeAuth({ session: { user: { id: "" } } });
     const headers = new Headers({ cookie: "session=abc" });
-    expect(await resolveAuthenticatedUserId({ auth, headers })).toBeUndefined();
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
+  });
+
+  it("session 経路で解決した userId が frozen=true なら undefined", async () => {
+    await insertUser({ id: "u-frozen-session", frozen: true });
+    const auth = makeAuth({ session: { user: { id: "u-frozen-session" } } });
+    const headers = new Headers({ cookie: "session=abc" });
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
+  });
+
+  it("session 経路で解決した userId が frozen=false なら通過する", async () => {
+    await insertUser({ id: "u-active-session", frozen: false });
+    const auth = makeAuth({ session: { user: { id: "u-active-session" } } });
+    const headers = new Headers({ cookie: "session=abc" });
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBe("u-active-session");
+  });
+
+  it("Bearer 経路で解決した userId が frozen=true なら undefined", async () => {
+    await insertUser({ id: "u-frozen-bearer", frozen: true });
+    const auth = makeAuth({
+      verify: { valid: true, key: { referenceId: "u-frozen-bearer" } },
+    });
+    const headers = new Headers({ authorization: "Bearer dwk_x" });
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
+  });
+
+  it("session が無効で Bearer fallback した userId が frozen=true なら undefined", async () => {
+    await insertUser({ id: "u-frozen-bearer", frozen: true });
+    const auth = makeAuth({
+      session: null,
+      verify: { valid: true, key: { referenceId: "u-frozen-bearer" } },
+    });
+    const headers = new Headers({
+      authorization: "Bearer dwk_x",
+      cookie: "session=abc",
+    });
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
   });
 });
