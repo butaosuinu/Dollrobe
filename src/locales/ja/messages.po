@@ -47,10 +47,22 @@ msgstr "{0}"
 msgid "{0} {1}"
 msgstr "{0} {1}"
 
+#. placeholder {0}: result.items.length
+#. placeholder {1}: result.total
+#: src/components/admin/UserDataTabs.tsx
+#: src/components/admin/UserDataTabs.tsx
+msgid "{0} / {1}件表示"
+msgstr "{0} / {1}件表示"
+
 #. placeholder {0}: i18n._(DOLL_SIZE_LABEL[dollBodySize])
 #: src/components/doll/CompatibleGarmentList.tsx
 msgid "{0} サイズ対応の服を登録すると、ここに表示されます"
 msgstr "{0} サイズ対応の服を登録すると、ここに表示されます"
+
+#. placeholder {0}: c.garmentIds.length
+#: src/components/admin/UserDataTabs.tsx
+msgid "{0}件の服"
+msgstr "{0}件の服"
 
 #. placeholder {0}: result.failed
 #. placeholder {0}: status.failed
@@ -628,6 +640,7 @@ msgid "ケース詳細"
 msgstr "ケース詳細"
 
 #: src/app/coordinates/page.tsx
+#: src/components/admin/UserDataTabs.tsx
 #: src/lib/nav-items.ts
 msgid "コーデ"
 msgstr "コーデ"
@@ -649,6 +662,10 @@ msgstr "コーデを削除"
 msgid "コーデ名"
 msgstr "コーデ名"
 
+#: src/app/admin/page.tsx
+msgid "コーデ数"
+msgstr "コーデ数"
+
 #: src/app/coordinates/[id]/page.tsx
 msgid "コーデ詳細"
 msgstr "コーデ詳細"
@@ -664,6 +681,30 @@ msgstr "このデバイスは NFC 書き込みに対応していません。Andr
 #: src/app/locations/[caseId]/page.tsx
 msgid "このボックスには服がありません"
 msgstr "このボックスには服がありません"
+
+#: src/components/admin/UserDataTabs.tsx
+msgid "このユーザーのコーデはまだ登録されていません"
+msgstr "このユーザーのコーデはまだ登録されていません"
+
+#: src/components/admin/UserDataTabs.tsx
+msgid "このユーザーの収納場所はまだ登録されていません"
+msgstr "このユーザーの収納場所はまだ登録されていません"
+
+#: src/components/admin/UserDataTabs.tsx
+msgid "このユーザーの服はまだ登録されていません"
+msgstr "このユーザーの服はまだ登録されていません"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "このユーザーは見つかりません"
+msgstr "このユーザーは見つかりません"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "このユーザーを凍結しますか？"
+msgstr "このユーザーを凍結しますか？"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "このユーザーを解凍しますか？"
+msgstr "このユーザーを解凍しますか？"
 
 #: src/components/location/StorageGrid.tsx
 msgid "この場所には服がありません"
@@ -785,6 +826,7 @@ msgstr "すべて見る"
 msgid "ズレを直す"
 msgstr "ズレを直す"
 
+#: src/components/admin/AdminGuard.tsx
 #: src/components/auth/RequireAuth.tsx
 msgid "セッションを確認できませんでした"
 msgstr "セッションを確認できませんでした"
@@ -1137,6 +1179,10 @@ msgstr "ミニチュアの木製ラックに並ぶドール服と、中央の空
 msgid "メーカー"
 msgstr "メーカー"
 
+#: src/components/admin/UserTable.tsx
+msgid "メール"
+msgstr "メール"
+
 #: src/app/settings/account/page.tsx
 #: src/components/auth/EmailPasswordForm.tsx
 #: src/components/auth/SignUpForm.tsx
@@ -1155,6 +1201,10 @@ msgstr "メールアドレスの変更に失敗しました"
 msgid "メールアドレスまたはパスワードが正しくありません"
 msgstr "メールアドレスまたはパスワードが正しくありません"
 
+#: src/app/admin/users/page.tsx
+msgid "メールアドレスや名前で検索..."
+msgstr "メールアドレスや名前で検索..."
+
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "メールアドレスを再入力"
 msgstr "メールアドレスを再入力"
@@ -1166,6 +1216,22 @@ msgstr "メールアドレスを変更"
 #: src/components/settings/account/EmailChangeForm.tsx
 msgid "メールアドレスを変更しました"
 msgstr "メールアドレスを変更しました"
+
+#: src/components/admin/AuditLogTable.tsx
+msgid "メタデータ"
+msgstr "メタデータ"
+
+#: src/components/admin/AdminSideNav.tsx
+msgid "メトリクス"
+msgstr "メトリクス"
+
+#: src/app/admin/page.tsx
+msgid "メトリクスサマリ"
+msgstr "メトリクスサマリ"
+
+#: src/app/admin/page.tsx
+msgid "メトリクスの読み込みに失敗しました"
+msgstr "メトリクスの読み込みに失敗しました"
 
 #: src/app/coordinates/[id]/page.tsx
 #: src/components/coordinate/CoordinateBuilder.tsx
@@ -1180,6 +1246,40 @@ msgstr "メモ"
 msgid "もう1枚書き込む"
 msgstr "もう1枚書き込む"
 
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/AdminSideNav.tsx
+msgid "ユーザー"
+msgstr "ユーザー"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "ユーザーID"
+msgstr "ユーザーID"
+
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserDataTabs.tsx
+msgid "ユーザーデータ閲覧"
+msgstr "ユーザーデータ閲覧"
+
+#: src/app/admin/users/page.tsx
+msgid "ユーザー一覧の読み込みに失敗しました"
+msgstr "ユーザー一覧の読み込みに失敗しました"
+
+#: src/app/admin/users/page.tsx
+msgid "ユーザー管理"
+msgstr "ユーザー管理"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "ユーザー詳細"
+msgstr "ユーザー詳細"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "ユーザー詳細の読み込みに失敗しました"
+msgstr "ユーザー詳細の読み込みに失敗しました"
+
+#: src/components/admin/UserTable.tsx
+msgid "ユーザー詳細を開く"
+msgstr "ユーザー詳細を開く"
+
 #: src/lib/i18n-labels.ts
 msgid "よく着る服 (14日)"
 msgstr "よく着る服 (14日)"
@@ -1192,6 +1292,10 @@ msgstr "ライブラリから選択"
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "ラベル: {0}"
 msgstr "ラベル: {0}"
+
+#: src/app/admin/page.tsx
+msgid "リアルタイムの集計値です。サンプル数の少ない指標は今後のスナップショットで補完します。"
+msgstr "リアルタイムの集計値です。サンプル数の少ない指標は今後のスナップショットで補完します。"
 
 #: src/components/ui/ViewToggle.tsx
 msgid "リスト表示"
@@ -1265,6 +1369,15 @@ msgstr "一致するドールが見つかりません"
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "一致する服が見つかりません"
 msgstr "一致する服が見つかりません"
+
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "一般"
+msgstr "一般"
+
+#: src/app/admin/users/page.tsx
+msgid "一般のみ"
+msgstr "一般のみ"
 
 #: src/app/coordinates/[id]/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
@@ -1402,6 +1515,14 @@ msgstr "先に収納場所を作成してください"
 msgid "全ドール"
 msgstr "全ドール"
 
+#: src/app/admin/users/page.tsx
+msgid "全権限"
+msgstr "全権限"
+
+#: src/app/admin/users/page.tsx
+msgid "全状態"
+msgstr "全状態"
+
 #: src/components/scan/CheckoutConfirmSheet.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "全部ある"
@@ -1427,6 +1548,10 @@ msgstr "最初のドール服を登録してみましょう"
 msgid "最終使用日時"
 msgstr "最終使用日時"
 
+#: src/app/admin/users/[id]/page.tsx
+msgid "最終更新"
+msgstr "最終更新"
+
 #: src/components/dashboard/RecentItems.tsx
 msgid "最近のアイテム"
 msgstr "最近のアイテム"
@@ -1438,6 +1563,32 @@ msgstr "最近確認していない服を教えてくれる"
 #: src/components/garment/ImageUpload.tsx
 msgid "写真を追加"
 msgstr "写真を追加"
+
+#: src/app/admin/audits/page.tsx
+msgid "凍結・解凍などの書き込み操作を行うとここに表示されます"
+msgstr "凍結・解凍などの書き込み操作を行うとここに表示されます"
+
+#: src/components/admin/UserFreezeButton.tsx
+#: src/components/admin/UserFreezeButton.tsx
+msgid "凍結する"
+msgstr "凍結する"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "凍結すると現在のセッションは即時失効し、再ログインも拒否されます。データは保持されます。"
+msgstr "凍結すると現在のセッションは即時失効し、再ログインも拒否されます。データは保持されます。"
+
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "凍結中"
+msgstr "凍結中"
+
+#: src/app/admin/users/page.tsx
+msgid "凍結中のみ"
+msgstr "凍結中のみ"
+
+#: src/app/admin/page.tsx
+msgid "凍結中ユーザー"
+msgstr "凍結中ユーザー"
 
 #: src/components/marketing/StepsSection.tsx
 msgid "出し入れの度に場所の QR を読むだけで、居場所が常に最新の状態に保たれます。"
@@ -1483,6 +1634,7 @@ msgstr "印刷"
 msgid "印刷する QR コードが選択されていません"
 msgstr "印刷する QR コードが選択されていません"
 
+#: src/components/admin/UserDataTabs.tsx
 #: src/lib/nav-items.ts
 msgid "収納"
 msgstr "収納"
@@ -1524,6 +1676,10 @@ msgstr "収納場所がありません"
 msgid "収納場所を選択"
 msgstr "収納場所を選択"
 
+#: src/app/admin/page.tsx
+msgid "収納場所数"
+msgstr "収納場所数"
+
 #: src/components/marketing/FeatureGrid.tsx
 msgid "取り出したまま忘れている服を検知"
 msgstr "取り出したまま忘れている服を検知"
@@ -1554,6 +1710,7 @@ msgstr "古い順"
 msgid "合計"
 msgstr "合計"
 
+#: src/components/admin/UserTable.tsx
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
@@ -1648,6 +1805,14 @@ msgstr "完全に削除"
 msgid "定期的な更新を推奨します。"
 msgstr "定期的な更新を推奨します。"
 
+#: src/components/admin/AuditLogTable.tsx
+msgid "実行者"
+msgstr "実行者"
+
+#: src/components/admin/AuditLogTable.tsx
+msgid "対象"
+msgstr "対象"
+
 #: src/lib/i18n-labels.ts
 msgid "帽子/ヘッドドレス"
 msgstr "帽子/ヘッドドレス"
@@ -1697,6 +1862,11 @@ msgstr "手動"
 #: src/components/marketing/StepsSection.tsx
 msgid "撮影台に並べたドール服とスマホの俯瞰写真"
 msgstr "撮影台に並べたドール服とスマホの俯瞰写真"
+
+#: src/components/admin/AuditLogTable.tsx
+#: src/components/admin/UserTable.tsx
+msgid "操作"
+msgstr "操作"
 
 #: src/components/marketing/StepsSection.tsx
 msgid "整然と整理された 12 コンパートメントの引き出し"
@@ -1766,6 +1936,10 @@ msgstr "書き込みに失敗しました"
 msgid "書き込み対象"
 msgstr "書き込み対象"
 
+#: src/app/admin/audits/page.tsx
+msgid "書き込み操作 (凍結 / 解凍 等) のみが記録されます。閲覧操作は記録されません。"
+msgstr "書き込み操作 (凍結 / 解凍 等) のみが記録されます。閲覧操作は記録されません。"
+
 #: src/app/nfc-write/page.tsx
 msgid "書き込む"
 msgstr "書き込む"
@@ -1782,7 +1956,17 @@ msgstr "書き込む対象を選択してください"
 msgid "書き込む服を選択"
 msgstr "書き込む服を選択"
 
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "有効"
+msgstr "有効"
+
+#: src/app/admin/users/page.tsx
+msgid "有効のみ"
+msgstr "有効のみ"
+
 #: src/app/nfc-write/page.tsx
+#: src/components/admin/UserDataTabs.tsx
 msgid "服"
 msgstr "服"
 
@@ -1850,6 +2034,19 @@ msgstr "未配置にする"
 msgid "本当に削除しますか？"
 msgstr "本当に削除しますか？"
 
+#: src/app/admin/users/page.tsx
+msgid "検索条件を変更してもう一度お試しください"
+msgstr "検索条件を変更してもう一度お試しください"
+
+#: src/app/admin/users/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "権限"
+msgstr "権限"
+
+#: src/components/admin/AdminGuard.tsx
+msgid "権限のあるアカウントで再ログインしてください"
+msgstr "権限のあるアカウントで再ログインしてください"
+
 #: src/components/digest/DigestCard.tsx
 msgid "次に引き出しを開けたときに自動で確認されます"
 msgstr "次に引き出しを開けたときに自動で確認されます"
@@ -1887,6 +2084,8 @@ msgstr "無料で始める"
 msgid "片付けの度に場所が変わり、アプリの記録と現実の居場所がすぐに合わなくなる。"
 msgstr "片付けの度に場所が変わり、アプリの記録と現実の居場所がすぐに合わなくなる。"
 
+#: src/app/admin/users/page.tsx
+#: src/components/admin/UserTable.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "状態"
 msgstr "状態"
@@ -1909,9 +2108,17 @@ msgstr "生キーは発行直後の一度しか表示されません。安全な
 msgid "画像をアップロードしています ({0}/{1})"
 msgstr "画像をアップロードしています ({0}/{1})"
 
+#: src/components/admin/AuditLogTable.tsx
+msgid "発生日時"
+msgstr "発生日時"
+
 #: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 msgid "発行"
 msgstr "発行"
+
+#: src/app/admin/page.tsx
+msgid "登録された服"
+msgstr "登録された服"
 
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "登録された服がありません"
@@ -1942,6 +2149,11 @@ msgstr "登録中…"
 msgid "登録完了"
 msgstr "登録完了"
 
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "登録日"
+msgstr "登録日"
+
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "登録開始"
 msgstr "登録開始"
@@ -1949,6 +2161,23 @@ msgstr "登録開始"
 #: src/lib/i18n-labels.ts
 msgid "白"
 msgstr "白"
+
+#: src/app/admin/audits/page.tsx
+#: src/components/admin/AdminSideNav.tsx
+msgid "監査ログ"
+msgstr "監査ログ"
+
+#: src/app/admin/audits/page.tsx
+msgid "監査ログの読み込みに失敗しました"
+msgstr "監査ログの読み込みに失敗しました"
+
+#: src/app/admin/audits/page.tsx
+msgid "監査ログはまだありません"
+msgstr "監査ログはまだありません"
+
+#: src/app/admin/page.tsx
+msgid "直近7日のサインアップ"
+msgstr "直近7日のサインアップ"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #~ msgid "着"
@@ -1977,9 +2206,39 @@ msgstr "確定する"
 #~ msgid "確認"
 #~ msgstr "確認"
 
+#: src/components/admin/AdminSideNav.tsx
+#: src/lib/nav-items.ts
+msgid "管理"
+msgstr "管理"
+
 #: src/components/digest/DigestCard.tsx
 #~ msgid "管理中の服: {0}着"
 #~ msgstr "管理中の服: {0}着"
+
+#: src/app/admin/layout.tsx
+msgid "管理画面"
+msgstr "管理画面"
+
+#: src/components/admin/AdminSideNav.tsx
+msgid "管理画面ナビゲーション"
+msgstr "管理画面ナビゲーション"
+
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "管理者"
+msgstr "管理者"
+
+#: src/app/admin/users/page.tsx
+msgid "管理者のみ"
+msgstr "管理者のみ"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "管理者の凍結は MVP では未対応です"
+msgstr "管理者の凍結は MVP では未対応です"
+
+#: src/components/admin/AdminGuard.tsx
+msgid "管理者権限が必要です"
+msgstr "管理者権限が必要です"
 
 #: src/components/dashboard/CheckedOutSection.tsx
 #: src/lib/i18n-labels.ts
@@ -2006,6 +2265,10 @@ msgstr "続けてインポート"
 msgid "続けて撮影する"
 msgstr "続けて撮影する"
 
+#: src/app/admin/page.tsx
+msgid "総ユーザー数"
+msgstr "総ユーザー数"
+
 #: src/lib/i18n-labels.ts
 msgid "緑"
 msgstr "緑"
@@ -2017,6 +2280,10 @@ msgstr "緑"
 #: src/components/location/StorageGrid.tsx
 msgid "編集"
 msgstr "編集"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "自分自身は凍結できません"
+msgstr "自分自身は凍結できません"
 
 #: src/components/doll/DollForm.tsx
 msgid "自由にメモを入力..."
@@ -2077,6 +2344,15 @@ msgstr "要確認"
 msgid "要確認のアイテム（{0}件）"
 msgstr "要確認のアイテム（{0}件）"
 
+#: src/components/admin/UserFreezeButton.tsx
+#: src/components/admin/UserFreezeButton.tsx
+msgid "解凍する"
+msgstr "解凍する"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "解凍すると再びログインできるようになります。データは保持されます。"
+msgstr "解凍すると再びログインできるようになります。データは保持されます。"
+
 #: src/components/settings/LocaleSelector.tsx
 msgid "言語"
 msgstr "言語"
@@ -2091,8 +2367,13 @@ msgstr "設定"
 msgid "該当するドールがありません"
 msgstr "該当するドールがありません"
 
+#: src/app/admin/users/page.tsx
+msgid "該当するユーザーがいません"
+msgstr "該当するユーザーがいません"
+
 #: src/app/dolls/[id]/page.tsx
 #: src/app/garments/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "詳細"
 msgstr "詳細"
@@ -2121,6 +2402,7 @@ msgstr "説明"
 #: src/app/garments/page.tsx
 #: src/app/locations/[caseId]/page.tsx
 #: src/app/locations/page.tsx
+#: src/components/admin/UserDataTabs.tsx
 msgid "読み込みに失敗しました"
 msgstr "読み込みに失敗しました"
 
@@ -2128,6 +2410,7 @@ msgstr "読み込みに失敗しました"
 msgid "赤"
 msgstr "赤"
 
+#: src/components/admin/AdminGuard.tsx
 #: src/components/auth/RequireAuth.tsx
 msgid "通信状況を確認してから再読み込みしてください"
 msgstr "通信状況を確認してから再読み込みしてください"
@@ -2173,6 +2456,10 @@ msgstr "開いた引き出しの上にスマホを構えてスキャンする場
 #: src/app/coordinates/[id]/page.tsx
 msgid "関連する服がありません（削除された可能性があります）"
 msgstr "関連する服がありません（削除された可能性があります）"
+
+#: src/components/admin/UserDataTabs.tsx
+msgid "閲覧専用"
+msgstr "閲覧専用"
 
 #: src/lib/i18n-labels.ts
 msgid "青"
