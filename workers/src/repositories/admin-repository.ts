@@ -1,14 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq, gte, like, or, sql } from "drizzle-orm";
 import type { DrizzleDB } from "../db/client";
-import {
-  adminAuditLogs,
-  coordinates,
-  garments,
-  sessions,
-  storageLocations,
-  users,
-} from "../db/schema";
+import { coordinates, garments, storageLocations, users } from "../db/schema";
 import { wrapDbError } from "../trpc/lib/d1-helpers";
 import type { Logger } from "../lib/logger";
 
@@ -218,10 +211,39 @@ export const getMetricsSummary = async ({
   };
 };
 
-// 並行 freeze/unfreeze の race を吸収するため、UPDATE と副作用 (DELETE
-// sessions, INSERT audit) を 2 段階に分ける。サービス層の事前 check と
-// UPDATE の WHERE 条件の間に他リクエストが状態を flip した場合、UPDATE は
-// 0 行になり副作用も走らず、audit が誤って二重記録されない。
+// freeze / unfreeze は D1 native batch で atomic に実行する。
+//
+// 1. UPDATE: `WHERE frozen = ?` で先客の race を吸収 (changes()=0 になる)
+// 2. INSERT audit: `INSERT ... SELECT ... WHERE changes() > 0` で直前
+//    UPDATE が実際に行を flip したときだけ走る。SQLite の changes() は
+//    同一コネクション内の直前 UPDATE/INSERT/DELETE の影響行数を返し、
+//    D1 batch は同一コネクション・1 トランザクションで sequential 実行
+//    されるため、UPDATE → INSERT...SELECT の順番なら changes() は
+//    UPDATE の値を保持する
+// 3. DELETE sessions: idempotent。flip 成立時にのみ意味があるが、二重実行
+//    でも該当 user の session が消えるだけで害はない
+//
+// この組み立てなら「UPDATE 成功・副作用失敗」で frozen のまま session が
+// 残るような不整合は起きない (batch 全体が atomic に rollback)。
+//
+// 注: drizzle の batch() は raw `sql\`\`` の bind 解決に対応していないため
+// (SQLiteRaw に stmt プロパティが無く `Cannot read properties of undefined
+// (reading 'bind')` で死ぬ)、ここは drizzleDb.$client.batch() を直接叩く。
+// JSON.stringify({ reason }) は reason=undefined のとき "{}" を返すので、
+// `null` リテラル直書きは不要 (CLAUDE.md「値の扱い」)。
+
+const FREEZE_INSERT_AUDIT_SQL = `
+  INSERT INTO admin_audit_logs (id, actor_user_id, action, target_user_id, metadata, created_at)
+  SELECT ?, ?, 'user.freeze', ?, ?, ?
+  WHERE changes() > 0
+`;
+
+const UNFREEZE_INSERT_AUDIT_SQL = `
+  INSERT INTO admin_audit_logs (id, actor_user_id, action, target_user_id, metadata, created_at)
+  SELECT ?, ?, 'user.unfreeze', ?, ?, ?
+  WHERE changes() > 0
+`;
+
 export const freezeUserBatch = async ({
   drizzleDb,
   actorUserId,
@@ -237,31 +259,25 @@ export const freezeUserBatch = async ({
   readonly now: number;
   readonly logger: Logger;
 }): Promise<{ readonly changed: boolean }> => {
-  const updateResult = await drizzleDb
-    .update(users)
-    .set({ frozen: true, updatedAt: now })
-    .where(and(eq(users.id, targetUserId), eq(users.frozen, false)))
-    .catch(wrapDbError({ context: "freeze user update", logger }));
+  const d1 = drizzleDb.$client;
+  const metadataJson = JSON.stringify({ reason });
 
-  if (Number(updateResult.meta.changes) === 0) {
-    return { changed: false };
-  }
-
-  await drizzleDb
+  const [updateResult] = await d1
     .batch([
-      drizzleDb.delete(sessions).where(eq(sessions.userId, targetUserId)),
-      drizzleDb.insert(adminAuditLogs).values({
-        id: createId(),
-        actorUserId,
-        action: "user.freeze",
-        targetUserId,
-        metadata: JSON.stringify({ reason: reason ?? null }),
-        createdAt: now,
-      }),
+      d1
+        .prepare(
+          `UPDATE "user" SET frozen = 1, "updatedAt" = ? WHERE id = ? AND frozen = 0`,
+        )
+        .bind(now, targetUserId),
+      d1
+        .prepare(FREEZE_INSERT_AUDIT_SQL)
+        .bind(createId(), actorUserId, targetUserId, metadataJson, now),
+      d1.prepare(`DELETE FROM "session" WHERE "userId" = ?`).bind(targetUserId),
     ])
-    .catch(wrapDbError({ context: "freeze user side-effects", logger }));
+    .catch(wrapDbError({ context: "freeze user batch", logger }));
 
-  return { changed: true };
+  const updateChanges = updateResult?.meta.changes ?? 0;
+  return { changed: updateChanges > 0 };
 };
 
 export const unfreezeUserBatch = async ({
@@ -279,27 +295,22 @@ export const unfreezeUserBatch = async ({
   readonly now: number;
   readonly logger: Logger;
 }): Promise<{ readonly changed: boolean }> => {
-  const updateResult = await drizzleDb
-    .update(users)
-    .set({ frozen: false, updatedAt: now })
-    .where(and(eq(users.id, targetUserId), eq(users.frozen, true)))
-    .catch(wrapDbError({ context: "unfreeze user update", logger }));
+  const d1 = drizzleDb.$client;
+  const metadataJson = JSON.stringify({ reason });
 
-  if (Number(updateResult.meta.changes) === 0) {
-    return { changed: false };
-  }
+  const [updateResult] = await d1
+    .batch([
+      d1
+        .prepare(
+          `UPDATE "user" SET frozen = 0, "updatedAt" = ? WHERE id = ? AND frozen = 1`,
+        )
+        .bind(now, targetUserId),
+      d1
+        .prepare(UNFREEZE_INSERT_AUDIT_SQL)
+        .bind(createId(), actorUserId, targetUserId, metadataJson, now),
+    ])
+    .catch(wrapDbError({ context: "unfreeze user batch", logger }));
 
-  await drizzleDb
-    .insert(adminAuditLogs)
-    .values({
-      id: createId(),
-      actorUserId,
-      action: "user.unfreeze",
-      targetUserId,
-      metadata: JSON.stringify({ reason: reason ?? null }),
-      createdAt: now,
-    })
-    .catch(wrapDbError({ context: "unfreeze user audit insert", logger }));
-
-  return { changed: true };
+  const updateChanges = updateResult?.meta.changes ?? 0;
+  return { changed: updateChanges > 0 };
 };

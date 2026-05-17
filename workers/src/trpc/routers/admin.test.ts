@@ -184,6 +184,65 @@ describe("adminRouter.userDataView", () => {
     });
     expect(result).toEqual([]);
   });
+
+  it("garments の limit/offset が DB レベルで適用される", async () => {
+    await insertTestUser({ db: env.DB, id: "admin-1", role: "admin" });
+    const totalCount = 5;
+    await Promise.all(
+      Array.from({ length: totalCount }, async (_, i) => {
+        await insertGarment({
+          db: env.DB,
+          overrides: { name: `garment-${i}` },
+        });
+      }),
+    );
+
+    const caller = callAsAdmin();
+    const page1 = await caller.admin.userDataView.garments({
+      userId: "test-user-001",
+      limit: 2,
+      offset: 0,
+    });
+    expect(page1.total).toBe(totalCount);
+    expect(page1.items).toHaveLength(2);
+
+    const page2 = await caller.admin.userDataView.garments({
+      userId: "test-user-001",
+      limit: 2,
+      offset: 2,
+    });
+    expect(page2.total).toBe(totalCount);
+    expect(page2.items).toHaveLength(2);
+
+    const lastPage = await caller.admin.userDataView.garments({
+      userId: "test-user-001",
+      limit: 2,
+      offset: 4,
+    });
+    expect(lastPage.items).toHaveLength(1);
+  });
+
+  it("coordinates の limit/offset が DB レベルで適用される", async () => {
+    await insertTestUser({ db: env.DB, id: "admin-1", role: "admin" });
+    const totalCount = 4;
+    await Promise.all(
+      Array.from({ length: totalCount }, async (_, i) => {
+        await insertCoordinate({
+          db: env.DB,
+          overrides: { name: `coord-${i}` },
+        });
+      }),
+    );
+
+    const caller = callAsAdmin();
+    const page1 = await caller.admin.userDataView.coordinates({
+      userId: "test-user-001",
+      limit: 2,
+      offset: 0,
+    });
+    expect(page1.total).toBe(totalCount);
+    expect(page1.items).toHaveLength(2);
+  });
 });
 
 describe("adminRouter ガード", () => {

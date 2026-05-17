@@ -218,15 +218,6 @@ export const listAudits = async ({
   return serviceOk(result);
 };
 
-const paginate = <T>(
-  items: readonly T[],
-  limit: number,
-  offset: number,
-): { readonly items: readonly T[]; readonly total: number } => ({
-  items: items.slice(offset, offset + limit),
-  total: items.length,
-});
-
 export const getUserGarments = async ({
   drizzleDb,
   userId,
@@ -245,13 +236,16 @@ export const getUserGarments = async ({
     readonly total: number;
   }>
 > => {
-  const items = await garmentRepo.findGarments({
+  // DB 側で LIMIT/OFFSET を効かせる。userId が 2000-3000 件 garments 持ちでも
+  // Workers 経由で全件 fetch しないよう、専用の paged リポジトリを使う。
+  const result = await garmentRepo.findGarmentsByUserPaged({
     drizzleDb,
     userId,
-    filters: {},
+    limit,
+    offset,
     logger,
   });
-  return serviceOk(paginate(items, limit, offset));
+  return serviceOk(result);
 };
 
 export const getUserLocations = async ({
@@ -289,11 +283,12 @@ export const getUserCoordinates = async ({
     readonly total: number;
   }>
 > => {
-  const items = await coordinateRepo.findCoordinates({
+  const result = await coordinateRepo.findCoordinatesByUserPaged({
     drizzleDb,
     userId,
-    filters: {},
+    limit,
+    offset,
     logger,
   });
-  return serviceOk(paginate(items, limit, offset));
+  return serviceOk(result);
 };
