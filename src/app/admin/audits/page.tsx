@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { ScrollText } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -9,14 +9,27 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
 import Skeleton from "@/components/ui/Skeleton";
+import type { PageSize } from "@/lib/constants";
+import { PAGE_SIZES } from "@/lib/constants";
 import AuditLogTable from "@/components/admin/AuditLogTable";
-import usePagination from "@/hooks/usePagination";
-import { adminAuditsAtom } from "@/stores/adminAtoms";
+import {
+  adminAuditsAtom,
+  adminAuditsQueryAtom,
+  setAdminAuditsPageAtom,
+  setAdminAuditsPageSizeAtom,
+} from "@/stores/adminAtoms";
+
+const isPageSize = (value: number): value is PageSize =>
+  (PAGE_SIZES as readonly number[]).includes(value);
+
+const normalizePageSize = (limit: number): PageSize =>
+  isPageSize(limit) ? limit : PAGE_SIZES[0];
 
 const AuditsContent = () => {
   const result = useAtomValue(adminAuditsAtom);
-  const { paginatedItems, onChangePage, onChangePageSize, ...pagination } =
-    usePagination({ items: result.items });
+  const query = useAtomValue(adminAuditsQueryAtom);
+  const setPage = useSetAtom(setAdminAuditsPageAtom);
+  const setPageSize = useSetAtom(setAdminAuditsPageSizeAtom);
 
   if (result.items.length === 0) {
     return (
@@ -28,13 +41,22 @@ const AuditsContent = () => {
     );
   }
 
+  const pageSize = normalizePageSize(query.limit);
+  const totalPages = Math.max(1, Math.ceil(result.total / query.limit));
+  const currentPage = Math.floor(query.offset / query.limit) + 1;
+
   return (
     <div className="flex flex-col gap-3">
-      <AuditLogTable logs={paginatedItems} />
+      <AuditLogTable logs={result.items} />
       <Pagination
-        pagination={pagination}
-        onChangePage={onChangePage}
-        onChangePageSize={onChangePageSize}
+        pagination={{
+          currentPage,
+          totalPages,
+          pageSize,
+          totalCount: result.total,
+        }}
+        onChangePage={setPage}
+        onChangePageSize={setPageSize}
       />
     </div>
   );

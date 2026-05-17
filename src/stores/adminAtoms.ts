@@ -2,6 +2,8 @@
 
 import { atom } from "jotai";
 import { trpcClient } from "@/lib/trpc";
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
+import type { PageSize } from "@/lib/constants";
 
 const adminRefreshTriggerAtom = atom(0);
 
@@ -69,11 +71,34 @@ export type AdminUsersResult = {
 };
 
 const DEFAULT_USERS_QUERY: AdminUsersQuery = {
-  limit: 50,
+  limit: DEFAULT_PAGE_SIZE,
   offset: 0,
 };
 
 export const adminUsersQueryAtom = atom<AdminUsersQuery>(DEFAULT_USERS_QUERY);
+
+// Pagination ボタン用の write-only atom。limit を固定して offset のみ更新する。
+// `(page - 1) * limit` で offset を導出するため、ページ 1 = offset 0。
+export const setAdminUsersPageAtom = atom(
+  undefined,
+  (get, set, page: number) => {
+    const current = get(adminUsersQueryAtom);
+    const safePage = Math.max(1, page);
+    set(adminUsersQueryAtom, {
+      ...current,
+      offset: (safePage - 1) * current.limit,
+    });
+  },
+);
+
+// pageSize 切り替え用。limit を更新して offset を 0 にリセット (現在ページ位置を失わせる)。
+export const setAdminUsersPageSizeAtom = atom(
+  undefined,
+  (get, set, size: PageSize) => {
+    const current = get(adminUsersQueryAtom);
+    set(adminUsersQueryAtom, { ...current, limit: size, offset: 0 });
+  },
+);
 
 export const adminUsersAtom = atom(async (get): Promise<AdminUsersResult> => {
   if (typeof window === "undefined") {
@@ -118,12 +143,32 @@ export type AdminAuditsResult = {
 };
 
 const DEFAULT_AUDITS_QUERY: AdminAuditsQuery = {
-  limit: 50,
+  limit: DEFAULT_PAGE_SIZE,
   offset: 0,
 };
 
 export const adminAuditsQueryAtom =
   atom<AdminAuditsQuery>(DEFAULT_AUDITS_QUERY);
+
+export const setAdminAuditsPageAtom = atom(
+  undefined,
+  (get, set, page: number) => {
+    const current = get(adminAuditsQueryAtom);
+    const safePage = Math.max(1, page);
+    set(adminAuditsQueryAtom, {
+      ...current,
+      offset: (safePage - 1) * current.limit,
+    });
+  },
+);
+
+export const setAdminAuditsPageSizeAtom = atom(
+  undefined,
+  (get, set, size: PageSize) => {
+    const current = get(adminAuditsQueryAtom);
+    set(adminAuditsQueryAtom, { ...current, limit: size, offset: 0 });
+  },
+);
 
 export const adminAuditsAtom = atom(async (get): Promise<AdminAuditsResult> => {
   if (typeof window === "undefined") {

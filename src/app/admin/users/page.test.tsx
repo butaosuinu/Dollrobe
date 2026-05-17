@@ -343,4 +343,70 @@ describe("AdminUsersPage", () => {
       expect(lastCall?.role).toBeUndefined();
     });
   });
+
+  it("Pagination の 次へ ボタンで limit ぶん offset を進めて再 fetch する", async () => {
+    const user = userEvent.setup();
+    const calls: ListInput[] = [];
+    // 1 ページぶんの件数 + 全 total を返して 2 ページ以上ある状態にする
+    const page1Items = Array.from({ length: 20 }, (_, i) =>
+      buildUser({ id: `u-${i}`, name: `User ${i}` }),
+    );
+    server.use(
+      trpcQuery("admin.users.list", ({ input }) => {
+        calls.push(input as ListInput);
+        return { items: page1Items, total: 60 };
+      }),
+    );
+
+    await renderWithProviders(
+      <HydratedAdminUsersPage initialQuery={{ limit: 20, offset: 0 }} />,
+    );
+
+    expect(await screen.findByText("User 0")).toBeInTheDocument();
+
+    // モバイル / lg 両方のレイアウトに同じ aria-label が付くので、片方の
+    // "次のページ" を押せば atom が更新されて再 fetch が走る。
+    const nextButtons = await screen.findAllByRole("button", {
+      name: "次のページ",
+    });
+    const firstNextButton = nextButtons.at(0);
+    expect(firstNextButton).toBeInstanceOf(HTMLElement);
+    if (firstNextButton === undefined) return;
+    await user.click(firstNextButton);
+
+    await waitFor(() => {
+      const lastCall = calls.at(-1);
+      expect(lastCall?.offset).toBe(20);
+      expect(lastCall?.limit).toBe(20);
+    });
+  });
+
+  it("Pagination で表示件数を変えると limit が更新され offset が 0 にリセットされる", async () => {
+    const user = userEvent.setup();
+    const calls: ListInput[] = [];
+    server.use(
+      trpcQuery("admin.users.list", ({ input }) => {
+        calls.push(input as ListInput);
+        return {
+          items: [buildUser({ id: "u-only", name: "Only" })],
+          total: 60,
+        };
+      }),
+    );
+
+    await renderWithProviders(
+      <HydratedAdminUsersPage initialQuery={{ limit: 20, offset: 40 }} />,
+    );
+
+    await screen.findByText("Only");
+
+    const sizeSelect = await screen.findByLabelText("表示件数");
+    await user.selectOptions(sizeSelect, "50");
+
+    await waitFor(() => {
+      const lastCall = calls.at(-1);
+      expect(lastCall?.limit).toBe(50);
+      expect(lastCall?.offset).toBe(0);
+    });
+  });
 });

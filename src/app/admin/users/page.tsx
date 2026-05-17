@@ -11,12 +11,15 @@ import ChipGroup from "@/components/ui/ChipGroup";
 import Skeleton from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
+import type { PageSize } from "@/lib/constants";
+import { PAGE_SIZES } from "@/lib/constants";
 import { Users as UsersIcon } from "lucide-react";
 import UserTable from "@/components/admin/UserTable";
-import usePagination from "@/hooks/usePagination";
 import {
   adminUsersAtom,
   adminUsersQueryAtom,
+  setAdminUsersPageAtom,
+  setAdminUsersPageSizeAtom,
   type AdminUserRole,
 } from "@/stores/adminAtoms";
 
@@ -43,10 +46,17 @@ const toFrozenQuery = (value: FrozenFilter): boolean | undefined => {
   return value === "frozen";
 };
 
+const isPageSize = (value: number): value is PageSize =>
+  (PAGE_SIZES as readonly number[]).includes(value);
+
+const normalizePageSize = (limit: number): PageSize =>
+  isPageSize(limit) ? limit : PAGE_SIZES[0];
+
 const UsersListContent = () => {
   const result = useAtomValue(adminUsersAtom);
-  const { paginatedItems, onChangePage, onChangePageSize, ...pagination } =
-    usePagination({ items: result.items });
+  const query = useAtomValue(adminUsersQueryAtom);
+  const setPage = useSetAtom(setAdminUsersPageAtom);
+  const setPageSize = useSetAtom(setAdminUsersPageSizeAtom);
 
   if (result.items.length === 0) {
     return (
@@ -58,13 +68,23 @@ const UsersListContent = () => {
     );
   }
 
+  const pageSize = normalizePageSize(query.limit);
+  // ceil で末尾の余り行ぶんを 1 ページ確保する。total=0 のとき empty branch に入るのでここは items.length>0 が保証されている。
+  const totalPages = Math.max(1, Math.ceil(result.total / query.limit));
+  const currentPage = Math.floor(query.offset / query.limit) + 1;
+
   return (
     <div className="flex flex-col gap-3">
-      <UserTable users={paginatedItems} />
+      <UserTable users={result.items} />
       <Pagination
-        pagination={pagination}
-        onChangePage={onChangePage}
-        onChangePageSize={onChangePageSize}
+        pagination={{
+          currentPage,
+          totalPages,
+          pageSize,
+          totalCount: result.total,
+        }}
+        onChangePage={setPage}
+        onChangePageSize={setPageSize}
       />
     </div>
   );
