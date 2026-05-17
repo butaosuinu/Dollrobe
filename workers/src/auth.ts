@@ -11,6 +11,7 @@ import {
   storageCases,
   storageLocations,
 } from "./db/schema";
+import { isUserFrozen } from "./lib/user-status";
 
 export const createAuth = ({ env }: { readonly env: Env }) =>
   betterAuth({
@@ -36,6 +37,20 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
       },
     },
     user: {
+      additionalFields: {
+        role: {
+          type: "string",
+          required: true,
+          input: false,
+          defaultValue: "user",
+        },
+        frozen: {
+          type: "boolean",
+          required: true,
+          input: false,
+          defaultValue: false,
+        },
+      },
       changeEmail: {
         enabled: true,
         // emailVerified が false のユーザー (今回はメール検証を要求しないため
@@ -63,6 +78,19 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
             drizzleDb.delete(dolls).where(eq(dolls.userId, user.id)),
             drizzleDb.delete(digests).where(eq(digests.userId, user.id)),
           ]);
+        },
+      },
+    },
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (session) => {
+            const frozen = await isUserFrozen({
+              db: env.DB,
+              userId: session.userId,
+            });
+            return frozen ? false : undefined;
+          },
         },
       },
     },
