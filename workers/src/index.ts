@@ -12,6 +12,7 @@ import { createAuth } from "./auth";
 import type { Auth } from "./auth";
 import { createLogger, DEFAULT_LOG_LEVEL } from "./lib/logger";
 import type { Logger, LogLevel } from "./lib/logger";
+import { isUserFrozen } from "./lib/user-status";
 import { imageRoutes } from "./routes/image";
 import * as imageService from "./services/image-service";
 import { handleDigestCron } from "./scheduled/digest-cron";
@@ -68,6 +69,36 @@ app.use("*", async (c, next) => {
 
 app.use("*", async (c, next) => {
   c.set("auth", createAuth({ env: c.env }));
+  await next();
+});
+
+// /api/auth/* の入口で frozen ユーザーを 403 で塞ぐ。
+// databaseHooks.session.create.before は新規 session 発行のみ防ぐため、
+// フリーズ前に発行された session cookie で set-password / delete-user 等
+// の mutation を打ち続けられる穴を、session 存在時にのみ frozen を再評価
+// することで埋める。session が存在しない sign-in / sign-up / sign-out 等は
+// そのまま通し、better-auth 側のロジックに委ねる。
+app.use("/api/auth/*", async (c, next) => {
+  const auth = c.get("auth");
+  // getSession を Promise.resolve でラップしておくと、テスト spy が同期的に
+  // undefined を返したケースでも .catch が AbruptCompletion せずに済む。
+  const session = await Promise.resolve(
+    auth.api.getSession({ headers: c.req.raw.headers }),
+  ).catch((): null => null);
+
+  // session != null は null と undefined を同時に弾く意図的なパターン。
+  // 本番では getSession は null | object を返すが、テスト spy で undefined
+  // が返るケースも安全に通すため二値判定にする。
+  if (session != null) {
+    const frozen = await isUserFrozen({
+      db: c.env.DB,
+      userId: session.user.id,
+    });
+    if (frozen) {
+      return c.json({ message: "Account is frozen" }, 403);
+    }
+  }
+
   await next();
 });
 

@@ -1,4 +1,6 @@
+import type { D1Database } from "@cloudflare/workers-types";
 import type { Auth } from "../auth";
+import { isUserFrozen } from "./user-status";
 
 const BEARER_PREFIX = "bearer ";
 
@@ -32,28 +34,51 @@ const verifyBearer = async ({
   return userId !== undefined && userId !== "" ? userId : undefined;
 };
 
+// frozen=true のユーザーは、既存 session / 事前発行 API key を持っていても
+// すべての認証経路で「未認証扱い」に丸める。session.create.before での拒否は
+// 新規 sign-in を防ぐだけで、フリーズ前に発行済みの credential はそのままでは
+// 通ってしまうため、resolve の出口で必ず frozen を弾く。
+const rejectIfFrozen = async ({
+  db,
+  userId,
+}: {
+  readonly db: D1Database;
+  readonly userId: string;
+}): Promise<string | undefined> => {
+  const frozen = await isUserFrozen({ db, userId });
+  return frozen ? undefined : userId;
+};
+
 export const resolveAuthenticatedUserId = async ({
   auth,
+  db,
   headers,
 }: {
   readonly auth: Auth;
+  readonly db: D1Database;
   readonly headers: Headers;
 }): Promise<string | undefined> => {
   const bearer = extractBearerKey(headers);
   const hasCookie = headers.get("cookie") !== null;
 
   if (bearer !== undefined && !hasCookie) {
-    return await verifyBearer({ auth, key: bearer });
+    const userId = await verifyBearer({ auth, key: bearer });
+    return userId === undefined
+      ? undefined
+      : await rejectIfFrozen({ db, userId });
   }
 
   const session = await auth.api.getSession({ headers }).catch(() => undefined);
   const sessionUserId = session?.user.id;
   if (sessionUserId !== undefined && sessionUserId !== "") {
-    return sessionUserId;
+    return await rejectIfFrozen({ db, userId: sessionUserId });
   }
 
   if (bearer === undefined) {
     return undefined;
   }
-  return await verifyBearer({ auth, key: bearer });
+  const userId = await verifyBearer({ auth, key: bearer });
+  return userId === undefined
+    ? undefined
+    : await rejectIfFrozen({ db, userId });
 };

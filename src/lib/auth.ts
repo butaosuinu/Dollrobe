@@ -15,12 +15,38 @@ const client = createAuthClient({
   plugins: [apiKeyClient()],
 });
 
+export const USER_ROLE = Object.freeze({
+  ADMIN: "admin",
+  USER: "user",
+} as const);
+
+export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE];
+
+const sessionUserExtrasSchema = z.object({
+  role: z.enum([USER_ROLE.ADMIN, USER_ROLE.USER]).optional(),
+  frozen: z.boolean().optional(),
+});
+
+const parseSessionUserExtras = (
+  user: unknown,
+): { readonly role: UserRole; readonly frozen: boolean } => {
+  const parsed = sessionUserExtrasSchema.safeParse(user);
+  return {
+    role: parsed.success
+      ? (parsed.data.role ?? USER_ROLE.USER)
+      : USER_ROLE.USER,
+    frozen: parsed.success ? (parsed.data.frozen ?? false) : false,
+  };
+};
+
 export type SessionUser = {
   readonly id: string;
   readonly name: string;
   readonly email: string;
   readonly emailVerified: boolean;
   readonly image: string | undefined;
+  readonly role: UserRole;
+  readonly frozen: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 };
@@ -41,19 +67,23 @@ export const signOut = clientSignOut;
 
 export const getSession = async (): Promise<SessionResponse> => {
   const { data: rawData, error } = await client.getSession();
-  return error === null
-    ? {
-        data:
-          rawData === null
-            ? undefined
-            : {
-                user: {
-                  ...rawData.user,
-                  image: rawData.user.image ?? undefined,
-                },
-              },
-      }
-    : fail(error.message ?? "セッション取得に失敗しました");
+  if (error !== null) {
+    return fail(error.message ?? "セッション取得に失敗しました");
+  }
+  if (rawData === null) {
+    return { data: undefined };
+  }
+  const extras = parseSessionUserExtras(rawData.user);
+  return {
+    data: {
+      user: {
+        ...rawData.user,
+        image: rawData.user.image ?? undefined,
+        role: extras.role,
+        frozen: extras.frozen,
+      },
+    },
+  };
 };
 
 export type LinkedAccount = {

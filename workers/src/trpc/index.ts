@@ -48,6 +48,7 @@ const authMiddleware = t.middleware(async ({ ctx, next }) => {
 
   const userId = await resolveAuthenticatedUserId({
     auth: ctx.auth,
+    db: ctx.env.DB,
     headers: ctx.honoContext.req.raw.headers,
   });
 

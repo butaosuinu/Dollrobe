@@ -1,5 +1,7 @@
+import type { D1Database } from "@cloudflare/workers-types";
 import type { Auth } from "../auth";
 import { extractBearerKey } from "../lib/auth-resolver";
+import { isUserFrozen } from "../lib/user-status";
 import { parsePermissions, type McpScope } from "./scopes";
 
 export type McpAuth = {
@@ -9,9 +11,11 @@ export type McpAuth = {
 
 export const resolveMcpAuth = async ({
   auth,
+  db,
   headers,
 }: {
   readonly auth: Auth;
+  readonly db: D1Database;
   readonly headers: Headers;
 }): Promise<McpAuth | undefined> => {
   const key = extractBearerKey(headers);
@@ -28,6 +32,14 @@ export const resolveMcpAuth = async ({
 
   const userId = result.key?.referenceId;
   if (userId === undefined || userId === "") {
+    return undefined;
+  }
+
+  // frozen ユーザーの API key は revoke するまで使い続けられないように、
+  // 認証成立直前で必ず弾く。session.create.before は新規 sign-in しか
+  // 防がないため、ここで二重ガードする。
+  const frozen = await isUserFrozen({ db, userId });
+  if (frozen) {
     return undefined;
   }
 

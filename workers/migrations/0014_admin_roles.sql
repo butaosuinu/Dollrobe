@@ -1,0 +1,5 @@
+ALTER TABLE "user" ADD COLUMN role TEXT NOT NULL DEFAULT 'user';
+ALTER TABLE "user" ADD COLUMN frozen INTEGER NOT NULL DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS idx_user_role ON "user"(role);
+CREATE INDEX IF NOT EXISTS idx_user_frozen ON "user"(frozen);

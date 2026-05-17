@@ -139,3 +139,66 @@ export const digests = sqliteTable(
     index("idx_digests_generated_at").on(table.generatedAt),
   ],
 );
+
+// "user" / "session" は better-auth がカラム生成を所有する shadow 定義。
+// better-auth 側の additionalFields / 公式マイグレーション (workers/migrations/0002_auth.sql,
+// 0014_admin_roles.sql) と整合する形で定義する。`drizzle-kit generate` に
+// このテーブルの DDL を委ねないこと。Drizzle からは read / 限定的な update のみ使う。
+export const users = sqliteTable(
+  "user",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    emailVerified: integer("emailVerified", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    image: text("image"),
+    role: text("role").notNull().default("user"),
+    frozen: integer("frozen", { mode: "boolean" }).notNull().default(false),
+    createdAt: integer("createdAt").notNull(),
+    updatedAt: integer("updatedAt").notNull(),
+  },
+  (table) => [
+    index("idx_user_email").on(table.email),
+    index("idx_user_role").on(table.role),
+    index("idx_user_frozen").on(table.frozen),
+  ],
+);
+
+export const sessions = sqliteTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expiresAt: integer("expiresAt").notNull(),
+    ipAddress: text("ipAddress"),
+    userAgent: text("userAgent"),
+    createdAt: integer("createdAt").notNull(),
+    updatedAt: integer("updatedAt").notNull(),
+  },
+  (table) => [
+    index("idx_session_userId").on(table.userId),
+    index("idx_session_token").on(table.token),
+  ],
+);
+
+export const adminAuditLogs = sqliteTable(
+  "admin_audit_logs",
+  {
+    id: text("id").primaryKey(),
+    actorUserId: text("actor_user_id").notNull(),
+    action: text("action").notNull(),
+    targetUserId: text("target_user_id"),
+    metadata: text("metadata"),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [
+    index("idx_admin_audit_logs_actor").on(table.actorUserId),
+    index("idx_admin_audit_logs_target").on(table.targetUserId),
+    index("idx_admin_audit_logs_created_at").on(table.createdAt),
+  ],
+);
