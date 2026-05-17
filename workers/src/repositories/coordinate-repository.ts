@@ -51,6 +51,40 @@ export const findCoordinates = async ({
   return rows.map(toCoordinate);
 };
 
+export const findCoordinatesByUserPaged = async ({
+  drizzleDb,
+  userId,
+  limit,
+  offset,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly limit: number;
+  readonly offset: number;
+  readonly logger: Logger;
+}): Promise<{
+  readonly items: readonly Coordinate[];
+  readonly total: number;
+}> => {
+  const where = eq(coordinates.userId, userId);
+
+  const rows = await drizzleDb
+    .select()
+    .from(coordinates)
+    .where(where)
+    .orderBy(desc(coordinates.updatedAt))
+    .limit(limit)
+    .offset(offset)
+    .catch(wrapDbError({ context: "fetch coordinates paged", logger }));
+
+  const total = await drizzleDb
+    .$count(coordinates, where)
+    .catch(wrapDbError({ context: "count coordinates paged", logger }));
+
+  return { items: rows.map(toCoordinate), total };
+};
+
 export const findCoordinateById = async ({
   drizzleDb,
   id,

@@ -5,7 +5,8 @@ type ServiceErrorCode =
   | "NOT_FOUND"
   | "CONFLICT"
   | "INTERNAL_ERROR"
-  | "BAD_REQUEST";
+  | "BAD_REQUEST"
+  | "FORBIDDEN";
 
 export type ServiceError = {
   readonly code: ServiceErrorCode;
@@ -34,6 +35,7 @@ const SERVICE_TO_TRPC_CODE = Object.freeze({
   CONFLICT: "CONFLICT",
   INTERNAL_ERROR: "INTERNAL_SERVER_ERROR",
   BAD_REQUEST: "BAD_REQUEST",
+  FORBIDDEN: "FORBIDDEN",
 } as const satisfies Record<ServiceErrorCode, TRPC_ERROR_CODE_KEY>);
 
 export const throwIfError = <T>(result: ServiceResult<T>): T => {

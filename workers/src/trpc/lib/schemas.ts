@@ -84,3 +84,61 @@ export const orphanResolveInputSchema = z
       path: ["locationId"],
     },
   );
+
+const ADMIN_LIST_DEFAULT_LIMIT = 50;
+const ADMIN_LIST_MAX_LIMIT = 200;
+const ADMIN_REASON_MAX_LENGTH = 500;
+
+const adminUserIdSchema = z.string().min(1);
+
+export const adminUserRoleSchema = z.enum(["admin", "user"]);
+
+export const adminListUsersInputSchema = z.object({
+  search: z.string().max(ADMIN_REASON_MAX_LENGTH).optional(),
+  role: adminUserRoleSchema.optional(),
+  frozen: z.boolean().optional(),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(ADMIN_LIST_MAX_LIMIT)
+    .default(ADMIN_LIST_DEFAULT_LIMIT),
+  offset: z.number().int().min(0).default(0),
+});
+
+export const adminUserDetailInputSchema = z.object({
+  id: adminUserIdSchema,
+});
+
+export const adminFreezeInputSchema = z.object({
+  targetUserId: adminUserIdSchema,
+  reason: z.string().max(ADMIN_REASON_MAX_LENGTH).optional(),
+});
+
+export const adminListAuditsInputSchema = z.object({
+  action: z.string().max(ADMIN_REASON_MAX_LENGTH).optional(),
+  actorUserId: adminUserIdSchema.optional(),
+  targetUserId: adminUserIdSchema.optional(),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(ADMIN_LIST_MAX_LIMIT)
+    .default(ADMIN_LIST_DEFAULT_LIMIT),
+  offset: z.number().int().min(0).default(0),
+});
+
+export const adminUserDataPagedInputSchema = z.object({
+  userId: adminUserIdSchema,
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(ADMIN_LIST_MAX_LIMIT)
+    .default(ADMIN_LIST_DEFAULT_LIMIT),
+  offset: z.number().int().min(0).default(0),
+});
+
+export const adminUserDataInputSchema = z.object({
+  userId: adminUserIdSchema,
+});

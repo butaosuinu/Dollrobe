@@ -1,4 +1,5 @@
 import { router } from "./index";
+import { adminRouter } from "./routers/admin";
 import { garmentRouter } from "./routers/garment";
 import { locationRouter } from "./routers/location";
 import { scanRouter } from "./routers/scan";
@@ -8,6 +9,7 @@ import { coordinateRouter } from "./routers/coordinate";
 import { dollRouter } from "./routers/doll";
 
 export const appRouter = router({
+  admin: adminRouter,
   garment: garmentRouter,
   location: locationRouter,
   scan: scanRouter,

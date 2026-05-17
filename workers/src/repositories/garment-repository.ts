@@ -138,6 +138,40 @@ export const findGarments = async ({
   return rows.map(toGarment);
 };
 
+export const findGarmentsByUserPaged = async ({
+  drizzleDb,
+  userId,
+  limit,
+  offset,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly limit: number;
+  readonly offset: number;
+  readonly logger: Logger;
+}): Promise<{
+  readonly items: readonly Garment[];
+  readonly total: number;
+}> => {
+  const where = eq(garments.userId, userId);
+
+  const rows = await drizzleDb
+    .select()
+    .from(garments)
+    .where(where)
+    .orderBy(desc(garments.updatedAt))
+    .limit(limit)
+    .offset(offset)
+    .catch(wrapDbError({ context: "fetch garments paged", logger }));
+
+  const total = await drizzleDb
+    .$count(garments, where)
+    .catch(wrapDbError({ context: "count garments paged", logger }));
+
+  return { items: rows.map(toGarment), total };
+};
+
 export const findGarmentsByIds = async ({
   drizzleDb,
   ids,
