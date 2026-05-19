@@ -2,13 +2,17 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useAtomValue } from "jotai";
 import clsx from "clsx";
 import { useLingui } from "@lingui/react";
-import { NAV_ITEMS } from "@/lib/nav-items";
+import { getNavItems } from "@/lib/nav-items";
+import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
 
 const BottomNav = () => {
   const pathname = usePathname();
   const { i18n } = useLingui();
+  const { user } = useAtomValue(authSessionUnwrappedAtom);
+  const navItems = getNavItems(user?.role);
 
   return (
     <nav
@@ -16,7 +20,7 @@ const BottomNav = () => {
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="flex h-16 items-center justify-around">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === "/" ? pathname === "/" : pathname.startsWith(href);
           const isScan = href === "/scan";

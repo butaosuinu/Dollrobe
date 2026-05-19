@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import { server } from "@/test/mocks/server";
+import { adminSessionHandler } from "@/test/mocks/handlers";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
 import BottomNav from "./BottomNav";
@@ -135,5 +137,25 @@ describe("BottomNav", () => {
 
     expect(getNavLink("/locations").className).toContain(ACTIVE_CLASS);
     expect(getNavLink("/dashboard").className).toContain(INACTIVE_CLASS);
+  });
+
+  it("一般ユーザーには /admin リンクが表示されない", async () => {
+    setPathname("/dashboard");
+    await renderNav();
+
+    const adminLinks = screen
+      .getAllByRole("link")
+      .filter((el) => el.getAttribute("href") === "/admin");
+    expect(adminLinks).toHaveLength(0);
+  });
+
+  it("admin ユーザーには /admin リンクが追加表示される", async () => {
+    server.use(adminSessionHandler);
+    setPathname("/dashboard");
+    await renderNav();
+
+    await waitFor(() => {
+      expect(getNavLink("/admin")).toBeInTheDocument();
+    });
   });
 });

@@ -7,8 +7,9 @@ import { Cloud, CloudOff, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { useLingui } from "@lingui/react";
 import { syncStatusAtom } from "@/stores/syncAtoms";
+import { authSessionUnwrappedAtom } from "@/stores/authAtoms";
 import { APP_NAME, SYNC_STATUS } from "@/lib/constants";
-import { NAV_ITEMS } from "@/lib/nav-items";
+import { getNavItems } from "@/lib/nav-items";
 import { useOnlineSync } from "@/hooks/useOnlineSync";
 import LocaleSelector from "@/components/settings/LocaleSelector";
 import UserMenu from "@/components/auth/UserMenu";
@@ -31,6 +32,8 @@ const TopBar = () => {
   useOnlineSync();
   const pathname = usePathname();
   const { i18n } = useLingui();
+  const { user } = useAtomValue(authSessionUnwrappedAtom);
+  const navItems = getNavItems(user?.role);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border-default bg-surface-overlay/80 backdrop-blur-xl">
@@ -40,7 +43,7 @@ const TopBar = () => {
             {APP_NAME}
           </h1>
           <nav className="hidden items-center gap-1 lg:flex">
-            {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+            {navItems.map(({ href, label, icon: Icon }) => {
               const isActive =
                 href === "/" ? pathname === "/" : pathname.startsWith(href);
 

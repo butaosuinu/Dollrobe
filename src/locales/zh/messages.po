@@ -47,10 +47,22 @@ msgstr "{0}"
 msgid "{0} {1}"
 msgstr "{0} {1}"
 
+#. placeholder {0}: result.items.length
+#. placeholder {1}: result.total
+#: src/components/admin/UserDataTabs.tsx
+#: src/components/admin/UserDataTabs.tsx
+msgid "{0} / {1}件表示"
+msgstr "已显示 {0} / {1}"
+
 #. placeholder {0}: i18n._(DOLL_SIZE_LABEL[dollBodySize])
 #: src/components/doll/CompatibleGarmentList.tsx
 msgid "{0} サイズ対応の服を登録すると、ここに表示されます"
 msgstr "登记兼容{0}尺寸的衣服后，将在此处显示"
+
+#. placeholder {0}: c.garmentIds.length
+#: src/components/admin/UserDataTabs.tsx
+msgid "{0}件の服"
+msgstr "{0} 件衣服"
 
 #. placeholder {0}: result.failed
 #. placeholder {0}: status.failed
@@ -628,6 +640,7 @@ msgid "ケース詳細"
 msgstr "收纳箱详情"
 
 #: src/app/coordinates/page.tsx
+#: src/components/admin/UserDataTabs.tsx
 #: src/lib/nav-items.ts
 msgid "コーデ"
 msgstr "搭配"
@@ -649,6 +662,10 @@ msgstr "删除搭配"
 msgid "コーデ名"
 msgstr "搭配名称"
 
+#: src/app/admin/page.tsx
+msgid "コーデ数"
+msgstr "搭配数"
+
 #: src/app/coordinates/[id]/page.tsx
 msgid "コーデ詳細"
 msgstr "搭配详情"
@@ -661,9 +678,41 @@ msgstr "此 API 密钥仅显示一次。请在关闭前务必复制。"
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "此设备不支持NFC写入。请使用Android Chrome。"
 
+#: src/app/admin/users/page.tsx
+msgid "このページには表示するユーザーがいません"
+msgstr "本页没有可显示的用户"
+
+#: src/app/admin/audits/page.tsx
+msgid "このページには表示するログがありません"
+msgstr "本页没有可显示的日志"
+
 #: src/app/locations/[caseId]/page.tsx
 msgid "このボックスには服がありません"
 msgstr "这个盒子里没有衣服"
+
+#: src/components/admin/UserDataTabs.tsx
+msgid "このユーザーのコーデはまだ登録されていません"
+msgstr "该用户尚未登记任何搭配"
+
+#: src/components/admin/UserDataTabs.tsx
+msgid "このユーザーの収納場所はまだ登録されていません"
+msgstr "该用户尚未登记任何收纳位置"
+
+#: src/components/admin/UserDataTabs.tsx
+msgid "このユーザーの服はまだ登録されていません"
+msgstr "该用户尚未登记任何衣服"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "このユーザーは見つかりません"
+msgstr "未找到该用户"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "このユーザーを凍結しますか？"
+msgstr "要冻结该用户吗？"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "このユーザーを解凍しますか？"
+msgstr "要解冻该用户吗？"
 
 #: src/components/location/StorageGrid.tsx
 msgid "この場所には服がありません"
@@ -785,6 +834,7 @@ msgstr "查看全部"
 msgid "ズレを直す"
 msgstr "修正偏差"
 
+#: src/components/admin/AdminGuard.tsx
 #: src/components/auth/RequireAuth.tsx
 msgid "セッションを確認できませんでした"
 msgstr "无法验证会话"
@@ -1137,6 +1187,10 @@ msgstr "迷你木质衣架上排列的娃娃服装，中央有一个空衣架"
 msgid "メーカー"
 msgstr "厂商"
 
+#: src/components/admin/UserTable.tsx
+msgid "メール"
+msgstr "邮箱"
+
 #: src/app/settings/account/page.tsx
 #: src/components/auth/EmailPasswordForm.tsx
 #: src/components/auth/SignUpForm.tsx
@@ -1155,6 +1209,10 @@ msgstr "修改邮箱失败"
 msgid "メールアドレスまたはパスワードが正しくありません"
 msgstr "邮箱或密码不正确"
 
+#: src/app/admin/users/page.tsx
+msgid "メールアドレスや名前で検索..."
+msgstr "按邮箱或姓名搜索..."
+
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "メールアドレスを再入力"
 msgstr "重新输入邮箱地址"
@@ -1166,6 +1224,22 @@ msgstr "修改邮箱"
 #: src/components/settings/account/EmailChangeForm.tsx
 msgid "メールアドレスを変更しました"
 msgstr "邮箱已修改"
+
+#: src/components/admin/AuditLogTable.tsx
+msgid "メタデータ"
+msgstr "元数据"
+
+#: src/components/admin/AdminSideNav.tsx
+msgid "メトリクス"
+msgstr "指标"
+
+#: src/app/admin/page.tsx
+msgid "メトリクスサマリ"
+msgstr "指标摘要"
+
+#: src/app/admin/page.tsx
+msgid "メトリクスの読み込みに失敗しました"
+msgstr "加载指标失败"
 
 #: src/app/coordinates/[id]/page.tsx
 #: src/components/coordinate/CoordinateBuilder.tsx
@@ -1180,6 +1254,40 @@ msgstr "备注"
 msgid "もう1枚書き込む"
 msgstr "再写入一张"
 
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/AdminSideNav.tsx
+msgid "ユーザー"
+msgstr "用户"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "ユーザーID"
+msgstr "用户 ID"
+
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserDataTabs.tsx
+msgid "ユーザーデータ閲覧"
+msgstr "用户数据查看"
+
+#: src/app/admin/users/page.tsx
+msgid "ユーザー一覧の読み込みに失敗しました"
+msgstr "加载用户列表失败"
+
+#: src/app/admin/users/page.tsx
+msgid "ユーザー管理"
+msgstr "用户管理"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "ユーザー詳細"
+msgstr "用户详情"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "ユーザー詳細の読み込みに失敗しました"
+msgstr "加载用户详情失败"
+
+#: src/components/admin/UserTable.tsx
+msgid "ユーザー詳細を開く"
+msgstr "打开用户详情"
+
 #: src/lib/i18n-labels.ts
 msgid "よく着る服 (14日)"
 msgstr "常穿衣服 (14天)"
@@ -1192,6 +1300,10 @@ msgstr "从相册选择"
 #: src/components/location/StorageLocationEditForm.tsx
 msgid "ラベル: {0}"
 msgstr "标签: {0}"
+
+#: src/app/admin/page.tsx
+msgid "リアルタイムの集計値です。サンプル数の少ない指標は今後のスナップショットで補完します。"
+msgstr "这些是实时聚合值。样本量较少的指标将通过后续快照补充。"
 
 #: src/components/ui/ViewToggle.tsx
 msgid "リスト表示"
@@ -1265,6 +1377,15 @@ msgstr "没有找到匹配的娃娃"
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "一致する服が見つかりません"
 msgstr "未找到匹配的衣服"
+
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "一般"
+msgstr "普通"
+
+#: src/app/admin/users/page.tsx
+msgid "一般のみ"
+msgstr "仅普通"
 
 #: src/app/coordinates/[id]/page.tsx
 #: src/app/dolls/[id]/edit/page.tsx
@@ -1402,6 +1523,14 @@ msgstr "请先创建收纳位置"
 msgid "全ドール"
 msgstr "所有娃娃"
 
+#: src/app/admin/users/page.tsx
+msgid "全権限"
+msgstr "全部权限"
+
+#: src/app/admin/users/page.tsx
+msgid "全状態"
+msgstr "全部状态"
+
 #: src/components/scan/CheckoutConfirmSheet.tsx
 #: src/components/scan/OpportunisticReviewDialog.tsx
 msgid "全部ある"
@@ -1427,6 +1556,10 @@ msgstr "来登记你的第一件娃衣吧"
 msgid "最終使用日時"
 msgstr "最后使用时间"
 
+#: src/app/admin/users/[id]/page.tsx
+msgid "最終更新"
+msgstr "最近更新"
+
 #: src/components/dashboard/RecentItems.tsx
 msgid "最近のアイテム"
 msgstr "最近的物品"
@@ -1438,6 +1571,36 @@ msgstr "提醒你最近没确认过的衣服"
 #: src/components/garment/ImageUpload.tsx
 msgid "写真を追加"
 msgstr "添加照片"
+
+#: src/app/admin/audits/page.tsx
+msgid "凍結・解凍などの書き込み操作を行うとここに表示されます"
+msgstr "执行冻结、解冻等写入操作后将显示在此处"
+
+#: src/components/admin/UserFreezeButton.tsx
+#: src/components/admin/UserFreezeButton.tsx
+msgid "凍結する"
+msgstr "冻结"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "凍結すると現在のセッションは即時失効し、再ログインも拒否されます。データは保持されます。"
+msgstr "冻结后当前会话立即失效，且会拒绝再次登录。数据将保留。"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "凍結に失敗しました。時間をおいて再度お試しください"
+msgstr "冻结失败。请稍后再试"
+
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "凍結中"
+msgstr "已冻结"
+
+#: src/app/admin/users/page.tsx
+msgid "凍結中のみ"
+msgstr "仅已冻结"
+
+#: src/app/admin/page.tsx
+msgid "凍結中ユーザー"
+msgstr "已冻结用户"
 
 #: src/components/marketing/StepsSection.tsx
 msgid "出し入れの度に場所の QR を読むだけで、居場所が常に最新の状態に保たれます。"
@@ -1483,6 +1646,7 @@ msgstr "打印"
 msgid "印刷する QR コードが選択されていません"
 msgstr "未选择要打印的QR码"
 
+#: src/components/admin/UserDataTabs.tsx
 #: src/lib/nav-items.ts
 msgid "収納"
 msgstr "收纳"
@@ -1524,6 +1688,10 @@ msgstr "没有收纳位置"
 msgid "収納場所を選択"
 msgstr "选择收纳位置"
 
+#: src/app/admin/page.tsx
+msgid "収納場所数"
+msgstr "收纳位置数"
+
 #: src/components/marketing/FeatureGrid.tsx
 msgid "取り出したまま忘れている服を検知"
 msgstr "检测拿出后被遗忘的衣服"
@@ -1554,6 +1722,7 @@ msgstr "最旧优先"
 msgid "合計"
 msgstr "合计"
 
+#: src/components/admin/UserTable.tsx
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/bulk/BulkMetadataFormFields.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
@@ -1648,6 +1817,14 @@ msgstr "永久删除"
 msgid "定期的な更新を推奨します。"
 msgstr "建议定期更新。"
 
+#: src/components/admin/AuditLogTable.tsx
+msgid "実行者"
+msgstr "执行者"
+
+#: src/components/admin/AuditLogTable.tsx
+msgid "対象"
+msgstr "对象"
+
 #: src/lib/i18n-labels.ts
 msgid "帽子/ヘッドドレス"
 msgstr "帽子/头饰"
@@ -1697,6 +1874,11 @@ msgstr "手动"
 #: src/components/marketing/StepsSection.tsx
 msgid "撮影台に並べたドール服とスマホの俯瞰写真"
 msgstr "拍摄台上摆放的娃娃服装和手机的俯视图"
+
+#: src/components/admin/AuditLogTable.tsx
+#: src/components/admin/UserTable.tsx
+msgid "操作"
+msgstr "操作"
 
 #: src/components/marketing/StepsSection.tsx
 msgid "整然と整理された 12 コンパートメントの引き出し"
@@ -1766,6 +1948,10 @@ msgstr "写入失败"
 msgid "書き込み対象"
 msgstr "写入对象"
 
+#: src/app/admin/audits/page.tsx
+msgid "書き込み操作 (凍結 / 解凍 等) のみが記録されます。閲覧操作は記録されません。"
+msgstr "仅记录写入操作（冻结 / 解冻 等）。查看操作不会被记录。"
+
 #: src/app/nfc-write/page.tsx
 msgid "書き込む"
 msgstr "写入"
@@ -1782,7 +1968,17 @@ msgstr "请选择要写入的对象"
 msgid "書き込む服を選択"
 msgstr "选择要写入的衣服"
 
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "有効"
+msgstr "有效"
+
+#: src/app/admin/users/page.tsx
+msgid "有効のみ"
+msgstr "仅有效"
+
 #: src/app/nfc-write/page.tsx
+#: src/components/admin/UserDataTabs.tsx
 msgid "服"
 msgstr "衣服"
 
@@ -1850,6 +2046,19 @@ msgstr "取消分配"
 msgid "本当に削除しますか？"
 msgstr "确定要删除吗？"
 
+#: src/app/admin/users/page.tsx
+msgid "検索条件を変更してもう一度お試しください"
+msgstr "请修改搜索条件后重试"
+
+#: src/app/admin/users/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "権限"
+msgstr "权限"
+
+#: src/components/admin/AdminGuard.tsx
+msgid "権限のあるアカウントで再ログインしてください"
+msgstr "请使用具有权限的账户重新登录"
+
 #: src/components/digest/DigestCard.tsx
 msgid "次に引き出しを開けたときに自動で確認されます"
 msgstr "下次打开抽屉时将自动确认"
@@ -1887,6 +2096,8 @@ msgstr "免费开始"
 msgid "片付けの度に場所が変わり、アプリの記録と現実の居場所がすぐに合わなくなる。"
 msgstr "每次整理位置都会变,应用的记录很快与现实脱节。"
 
+#: src/app/admin/users/page.tsx
+#: src/components/admin/UserTable.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "状態"
 msgstr "状态"
@@ -1909,9 +2120,17 @@ msgstr "原始密钥仅在签发后显示一次。请妥善保管。"
 msgid "画像をアップロードしています ({0}/{1})"
 msgstr "正在上传图片 ({0}/{1})"
 
+#: src/components/admin/AuditLogTable.tsx
+msgid "発生日時"
+msgstr "发生时间"
+
 #: src/components/settings/api-key/ApiKeyCreateSheet.tsx
 msgid "発行"
 msgstr "签发"
+
+#: src/app/admin/page.tsx
+msgid "登録された服"
+msgstr "已登记衣服"
 
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "登録された服がありません"
@@ -1942,6 +2161,11 @@ msgstr "注册中…"
 msgid "登録完了"
 msgstr "登记完成"
 
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "登録日"
+msgstr "注册日期"
+
 #: src/components/garment/bulk/BulkMetadataForm.tsx
 msgid "登録開始"
 msgstr "开始登记"
@@ -1949,6 +2173,23 @@ msgstr "开始登记"
 #: src/lib/i18n-labels.ts
 msgid "白"
 msgstr "白色"
+
+#: src/app/admin/audits/page.tsx
+#: src/components/admin/AdminSideNav.tsx
+msgid "監査ログ"
+msgstr "审计日志"
+
+#: src/app/admin/audits/page.tsx
+msgid "監査ログの読み込みに失敗しました"
+msgstr "加载审计日志失败"
+
+#: src/app/admin/audits/page.tsx
+msgid "監査ログはまだありません"
+msgstr "尚无审计日志"
+
+#: src/app/admin/page.tsx
+msgid "直近7日のサインアップ"
+msgstr "近 7 天注册"
 
 #: src/components/confidence/ConfidenceStats.tsx
 #~ msgid "着"
@@ -1977,9 +2218,39 @@ msgstr "确认"
 #~ msgid "確認"
 #~ msgstr "确认"
 
+#: src/components/admin/AdminSideNav.tsx
+#: src/lib/nav-items.ts
+msgid "管理"
+msgstr "管理"
+
 #: src/components/digest/DigestCard.tsx
 #~ msgid "管理中の服: {0}着"
 #~ msgstr "管理中的衣服：{0}件"
+
+#: src/app/admin/layout.tsx
+msgid "管理画面"
+msgstr "管理控制台"
+
+#: src/components/admin/AdminSideNav.tsx
+msgid "管理画面ナビゲーション"
+msgstr "管理控制台导航"
+
+#: src/app/admin/users/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
+msgid "管理者"
+msgstr "管理员"
+
+#: src/app/admin/users/page.tsx
+msgid "管理者のみ"
+msgstr "仅管理员"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "管理者の凍結は MVP では未対応です"
+msgstr "MVP 暂不支持冻结管理员"
+
+#: src/components/admin/AdminGuard.tsx
+msgid "管理者権限が必要です"
+msgstr "需要管理员权限"
 
 #: src/components/dashboard/CheckedOutSection.tsx
 #: src/lib/i18n-labels.ts
@@ -2006,6 +2277,10 @@ msgstr "继续导入"
 msgid "続けて撮影する"
 msgstr "继续拍摄"
 
+#: src/app/admin/page.tsx
+msgid "総ユーザー数"
+msgstr "用户总数"
+
 #: src/lib/i18n-labels.ts
 msgid "緑"
 msgstr "绿色"
@@ -2017,6 +2292,10 @@ msgstr "绿色"
 #: src/components/location/StorageGrid.tsx
 msgid "編集"
 msgstr "编辑"
+
+#: src/app/admin/users/[id]/page.tsx
+msgid "自分自身は凍結できません"
+msgstr "不能冻结自己"
 
 #: src/components/doll/DollForm.tsx
 msgid "自由にメモを入力..."
@@ -2077,6 +2356,19 @@ msgstr "待确认"
 msgid "要確認のアイテム（{0}件）"
 msgstr "待确认的物品（{0}件）"
 
+#: src/components/admin/UserFreezeButton.tsx
+#: src/components/admin/UserFreezeButton.tsx
+msgid "解凍する"
+msgstr "解冻"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "解凍すると再びログインできるようになります。データは保持されます。"
+msgstr "解冻后该用户可重新登录。数据将保留。"
+
+#: src/components/admin/UserFreezeButton.tsx
+msgid "解凍に失敗しました。時間をおいて再度お試しください"
+msgstr "解冻失败。请稍后再试"
+
 #: src/components/settings/LocaleSelector.tsx
 msgid "言語"
 msgstr "语言"
@@ -2091,8 +2383,13 @@ msgstr "设置"
 msgid "該当するドールがありません"
 msgstr "没有匹配的娃娃"
 
+#: src/app/admin/users/page.tsx
+msgid "該当するユーザーがいません"
+msgstr "没有符合条件的用户"
+
 #: src/app/dolls/[id]/page.tsx
 #: src/app/garments/[id]/page.tsx
+#: src/components/admin/UserTable.tsx
 #: src/components/garment/csv/CsvPreviewTable.tsx
 msgid "詳細"
 msgstr "详情"
@@ -2121,6 +2418,7 @@ msgstr "说明"
 #: src/app/garments/page.tsx
 #: src/app/locations/[caseId]/page.tsx
 #: src/app/locations/page.tsx
+#: src/components/admin/UserDataTabs.tsx
 msgid "読み込みに失敗しました"
 msgstr "加载失败"
 
@@ -2128,6 +2426,7 @@ msgstr "加载失败"
 msgid "赤"
 msgstr "红色"
 
+#: src/components/admin/AdminGuard.tsx
 #: src/components/auth/RequireAuth.tsx
 msgid "通信状況を確認してから再読み込みしてください"
 msgstr "请检查网络连接后重新加载页面"
@@ -2173,6 +2472,10 @@ msgstr "在打开的抽屉上方握住手机进行扫描的场景"
 #: src/app/coordinates/[id]/page.tsx
 msgid "関連する服がありません（削除された可能性があります）"
 msgstr "没有关联的衣服（可能已被删除）。"
+
+#: src/components/admin/UserDataTabs.tsx
+msgid "閲覧専用"
+msgstr "仅查看"
 
 #: src/lib/i18n-labels.ts
 msgid "青"
