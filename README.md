@@ -68,6 +68,28 @@ pnpm dev
 pnpm dev:workers
 ```
 
+## 管理者（admin）の付与
+
+`/admin` 配下の管理画面（ユーザー一覧・凍結・メトリクス・監査ログ）は `role = "admin"` を持つユーザーのみアクセスできる。初期 admin は D1 を直接更新して付与する。
+
+### ローカル環境
+
+```bash
+pnpm wrangler d1 execute doll-wardrobe-db --local \
+  --command "UPDATE \"user\" SET role='admin' WHERE email = 'you@example.com';"
+```
+
+### 本番環境
+
+```bash
+pnpm wrangler d1 execute doll-wardrobe-db --remote \
+  --command "UPDATE \"user\" SET role='admin' WHERE email = 'you@example.com';"
+```
+
+`role` を `'user'` に戻すと admin 権限を剥奪できる。`frozen = 1` を立てるとログイン拒否＋既存セッション失効になる（運用は `/admin` の凍結 UI から行う）。
+
+> better-auth が管理する `user` テーブルの `role` / `frozen` カラムを直接更新する運用。スクリプト化は MVP 段階では行わない。
+
 ## スクリプト一覧
 
 | コマンド                | 説明                             |
