@@ -1,0 +1,102 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment (production by default)"
+        type: choice
+        options:
+          - production
+          - staging
+        default: production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.event_name == 'push' && 'staging' || inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Resolve target environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      target_env: ${{ steps.resolve.outputs.target_env }}
+    steps:
+      # push -> staging を自動デプロイ / workflow_dispatch -> 既定 production (Environment の required reviewers で承認待ちになる)
+      - id: resolve
+        run: echo "target_env=${{ github.event_name == 'push' && 'staging' || inputs.environment }}" >> "$GITHUB_OUTPUT"
+
+  migrate-d1:
+    name: Apply D1 migrations
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ needs.preflight.outputs.target_env }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # TODO(#233): expand & contract 運用に置き換える (前方互換マイグレーション + ロールアウトゲート)
+      # TODO(#230): wrangler.jsonc に [env.staging] / [env.production] が入るまで `--env` ターゲットは存在しない
+      - name: Apply D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply doll-wardrobe-db --remote --env ${{ needs.preflight.outputs.target_env }}
+
+  deploy-api:
+    name: Deploy API Worker
+    needs: [preflight, migrate-d1]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ needs.preflight.outputs.target_env }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # TODO(#230): ルート wrangler.toml に env split を入れるまで `--env` ターゲットは存在しない
+      - name: Deploy API Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env ${{ needs.preflight.outputs.target_env }}
+
+  deploy-web:
+    name: Deploy Web Worker
+    needs: [preflight, deploy-api]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ needs.preflight.outputs.target_env }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm i18n:compile
+      # TODO(#231): @opennextjs/cloudflare で web Worker をビルドし、専用 wrangler config を `--config` で指定
+      # TODO(#234): preCommands に `npx sentry-cli sourcemaps upload` を差し込んでソースマップを Sentry にアップロード
+      - name: Deploy Web Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env ${{ needs.preflight.outputs.target_env }}
