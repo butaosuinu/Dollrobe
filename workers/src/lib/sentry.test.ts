@@ -33,10 +33,15 @@ describe("buildSentryOptions", () => {
     const options = buildSentryOptions({});
 
     expect(options.dsn).toBeUndefined();
-    expect(options.environment).toBe("local");
-    expect(options.release).toBeUndefined();
     expect(options.tracesSampleRate).toBe(0.05);
     expect(options.integrations).toHaveLength(1);
+  });
+
+  it("SENTRY_ENVIRONMENT / SENTRY_RELEASE が未設定ならキーごと生やさない (SDK の自動解決に委ねる)", () => {
+    const options = buildSentryOptions({});
+
+    expect("environment" in options).toBe(false);
+    expect("release" in options).toBe(false);
   });
 
   it("DSN / environment / release を env から拾う", () => {
