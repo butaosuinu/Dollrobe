@@ -38,15 +38,15 @@ pnpm install
 
 ### 2. Cloudflare リソースの設定
 
-`wrangler.toml` の以下のプレースホルダーを実際の値に置き換える。
+`wrangler.jsonc` 内の以下のプレースホルダーを Cloudflare ダッシュボードから取得した実 ID に置き換える。staging / production 用のリソースは `env.staging` / `env.production` セクションで同じ binding 名（`DB` / `BUCKET` / `KV` / `QUEUE`）に別 ID を割り当てる。
 
-```toml
-[[d1_databases]]
-database_id = "YOUR_D1_ID"   # ← Cloudflare ダッシュボードから取得
+| 場所                                  | D1 `database_id`        | KV `id`                 |
+| ------------------------------------- | ----------------------- | ----------------------- |
+| トップレベル（`pnpm dev:workers` 用） | `YOUR_D1_ID`            | `YOUR_KV_ID`            |
+| `env.staging`                         | `YOUR_STAGING_D1_ID`    | `YOUR_STAGING_KV_ID`    |
+| `env.production`                      | `YOUR_PRODUCTION_D1_ID` | `YOUR_PRODUCTION_KV_ID` |
 
-[[kv_namespaces]]
-id = "YOUR_KV_ID"            # ← Cloudflare ダッシュボードから取得
-```
+R2 バケット名と Queue 名も env 毎に `-staging` / `-production` サフィックスで分離されている。`TRUSTED_ORIGINS` / `ALLOWED_ORIGINS` の実ドメインも `env.staging` / `env.production` の `vars` で上書きする。
 
 ローカル開発のみであれば、Wrangler がローカル D1/KV/R2 を自動で作成するためこの手順はスキップできる。
 
@@ -177,14 +177,18 @@ pnpm format
 │   │   └── repositories/ # データアクセス層
 │   └── migrations/       # D1 マイグレーション SQL
 ├── public/               # 静的ファイル・PWA マニフェスト
-├── wrangler.toml         # Cloudflare Workers 設定
+├── wrangler.jsonc        # Cloudflare Workers 設定（staging / production env を物理分離）
 └── drizzle.config.ts     # Drizzle Kit 設定
 ```
 
 ## デプロイ
 
 ```bash
-pnpm deploy:workers
+# staging
+pnpm deploy:workers:staging
+
+# production
+pnpm deploy:workers:production
 ```
 
-Cloudflare Workers へデプロイする。事前に `wrangler login` で認証が必要。
+Cloudflare Workers へデプロイする。事前に `wrangler login` で認証が必要。`pnpm cf-typegen` で `wrangler types` を実行すると `worker-configuration.d.ts` に staging / production 両方のバインディング型が生成される。
