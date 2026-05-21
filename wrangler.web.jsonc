@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "doll-wardrobe-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "env": {
+    "staging": {
+      "name": "doll-wardrobe-web-staging",
+    },
+    "production": {
+      "name": "doll-wardrobe-web",
+    },
+  },
+}

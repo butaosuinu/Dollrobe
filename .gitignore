@@ -152,6 +152,9 @@ next-env.d.ts
 .wrangler/
 .dev.vars
 
+# OpenNext (Cloudflare adapter for Next.js)
+.open-next/
+
 # macOS
 .DS_Store
 

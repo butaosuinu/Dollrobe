@@ -41,6 +41,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async headers() {
+    return [
+      {
+        source: "/serwist/:path*",
+        headers: [{ key: "Cache-Control", value: "no-cache" }],
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(withSerwist(nextConfig), {
