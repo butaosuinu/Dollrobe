@@ -111,22 +111,24 @@ DELETE FROM \"session\" WHERE userId IN (SELECT id FROM \"user\" WHERE email='ta
 
 ## スクリプト一覧
 
-| コマンド                | 説明                             |
-| ----------------------- | -------------------------------- |
-| `pnpm dev`              | Next.js 開発サーバー (Turbopack) |
-| `pnpm dev:workers`      | Workers ローカルサーバー         |
-| `pnpm build`            | Next.js プロダクションビルド     |
-| `pnpm build:workers`    | Workers ビルド（ドライラン）     |
-| `pnpm test`             | 全テスト実行                     |
-| `pnpm test:watch`       | テスト（ウォッチモード）         |
-| `pnpm test:workers`     | Workers テストのみ               |
-| `pnpm typecheck`        | TypeScript 型チェック            |
-| `pnpm lint`             | OxLint + ESLint                  |
-| `pnpm format`           | OxFmt フォーマット               |
-| `pnpm format:check`     | フォーマットチェック             |
-| `pnpm db:migrate`       | D1 マイグレーション（本番）      |
-| `pnpm db:migrate:local` | D1 マイグレーション（ローカル）  |
-| `pnpm deploy:workers`   | Workers デプロイ                 |
+| コマンド                         | 説明                                |
+| -------------------------------- | ----------------------------------- |
+| `pnpm dev`                       | Next.js 開発サーバー (Turbopack)    |
+| `pnpm dev:workers`               | Workers ローカルサーバー            |
+| `pnpm build`                     | Next.js プロダクションビルド        |
+| `pnpm build:workers`             | Workers ビルド（ドライラン）        |
+| `pnpm test`                      | 全テスト実行                        |
+| `pnpm test:watch`                | テスト（ウォッチモード）            |
+| `pnpm test:workers`              | Workers テストのみ                  |
+| `pnpm typecheck`                 | TypeScript 型チェック               |
+| `pnpm lint`                      | OxLint + ESLint                     |
+| `pnpm format`                    | OxFmt フォーマット                  |
+| `pnpm format:check`              | フォーマットチェック                |
+| `pnpm db:migrate`                | D1 マイグレーション（本番）         |
+| `pnpm db:migrate:local`          | D1 マイグレーション（ローカル）     |
+| `pnpm deploy:workers:staging`    | Workers デプロイ（staging 環境）    |
+| `pnpm deploy:workers:production` | Workers デプロイ（production 環境） |
+| `pnpm cf-typegen`                | `worker-configuration.d.ts` 生成    |
 
 ## テスト
 
