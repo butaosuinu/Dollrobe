@@ -20,4 +20,7 @@ export type Env = {
   readonly TRUSTED_ORIGINS: string;
   readonly ALLOWED_ORIGINS: string;
   readonly LOG_LEVEL?: string;
+  readonly SENTRY_DSN?: string;
+  readonly SENTRY_ENVIRONMENT?: string;
+  readonly SENTRY_RELEASE?: string;
 };

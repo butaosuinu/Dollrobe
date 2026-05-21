@@ -75,6 +75,11 @@
 
 - `gh` コマンドを使用して issue や PR にアクセスすること
 
+## Cloudflare Operations
+
+- 障害対応・ロールバック・gradual deployments の運用ルールは [`docs/cloudflare-runbook.md`](docs/cloudflare-runbook.md) を参照
+- Sentry へのエラー転送は `workers/src/lib/sentry.ts` 経由で `Sentry.withSentry` でラップ済み
+
 ---
 
 ## プロジェクト概要

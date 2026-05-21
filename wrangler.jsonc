@@ -54,6 +54,7 @@
         "TRUSTED_ORIGINS": "https://staging.dollrobe.example",
         "ALLOWED_ORIGINS": "https://staging.dollrobe.example",
         "LOG_LEVEL": "debug",
+        "SENTRY_ENVIRONMENT": "staging",
       },
     },
     "production": {
@@ -86,6 +87,7 @@
         "TRUSTED_ORIGINS": "https://dollrobe.example",
         "ALLOWED_ORIGINS": "https://dollrobe.example",
         "LOG_LEVEL": "info",
+        "SENTRY_ENVIRONMENT": "production",
       },
     },
   },

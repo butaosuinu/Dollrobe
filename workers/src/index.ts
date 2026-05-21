@@ -5,6 +5,7 @@ import { requestId } from "hono/request-id";
 import { timing } from "hono/timing";
 import { trpcServer } from "@hono/trpc-server";
 import { APIError } from "better-auth/api";
+import * as Sentry from "@sentry/cloudflare";
 import { appRouter } from "./trpc/router";
 import type { TRPCContext } from "./trpc/index";
 import type { Env } from "./types";
@@ -13,6 +14,7 @@ import type { Auth } from "./auth";
 import { createLogger, DEFAULT_LOG_LEVEL } from "./lib/logger";
 import type { Logger, LogLevel } from "./lib/logger";
 import { isUserFrozen } from "./lib/user-status";
+import { buildSentryOptions, captureTrpcError } from "./lib/sentry";
 import { imageRoutes } from "./routes/image";
 import * as imageService from "./services/image-service";
 import { handleDigestCron } from "./scheduled/digest-cron";
@@ -242,13 +244,14 @@ app.use(
           errorMessage: error.message,
         });
       }
+      captureTrpcError({ error, path });
     },
   }),
 );
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-export default {
+const handler = {
   async fetch(
     request: Request,
     env: Env,
@@ -279,3 +282,8 @@ export default {
     await handleDigestQueue({ batch, env, logger: queueLogger });
   },
 } satisfies ExportedHandler<Env>;
+
+export default Sentry.withSentry(
+  (env: Env) => buildSentryOptions(env),
+  handler,
+);
