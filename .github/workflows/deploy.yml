@@ -38,6 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: ${{ needs.preflight.outputs.target_env }}
+    # #230 で wrangler.toml に [env.staging] / [env.production] が入るまで `--env` ターゲットは解決できないため既定で skip する。
+    # #230 マージ後、リポジトリ変数 `DEPLOY_ENABLED=true` を設定して有効化する。
+    if: vars.DEPLOY_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -61,6 +64,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: ${{ needs.preflight.outputs.target_env }}
+    # #230 で wrangler.toml に [env.staging] / [env.production] が入るまで `--env` ターゲットは解決できないため既定で skip する。
+    # #230 マージ後、リポジトリ変数 `DEPLOY_ENABLED=true` を設定して有効化する。
+    if: vars.DEPLOY_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -83,9 +89,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: ${{ needs.preflight.outputs.target_env }}
-    # #231 で専用 wrangler config が用意されるまで、本ジョブはルート wrangler.toml (= API worker) を指してしまうため既定で skip する。
-    # #231 マージ後、リポジトリ変数 `WEB_DEPLOY_ENABLED=true` を設定して有効化する。
-    if: vars.WEB_DEPLOY_ENABLED == 'true'
+    # #230 + #231 が揃うまで本ジョブはルート wrangler.toml (= API worker) を指し、かつ `--env` ターゲットも解決できないため既定で skip する。
+    # #230 マージで `DEPLOY_ENABLED=true`、#231 マージで `WEB_DEPLOY_ENABLED=true` をリポジトリ変数として設定して有効化する。
+    if: vars.DEPLOY_ENABLED == 'true' && vars.WEB_DEPLOY_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
