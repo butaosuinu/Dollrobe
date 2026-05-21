@@ -34,14 +34,16 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.local/bin/sentry-cli
-        key: sentry-cli-${{ runner.os }}-latest
+        key: sentry-cli-${{ runner.os }}-2.40.0
 
     - name: Install sentry-cli (if cache miss)
       shell: bash
+      env:
+        SENTRY_CLI_VERSION: "2.40.0"
       run: |
         if [ ! -x "$HOME/.local/bin/sentry-cli" ]; then
           mkdir -p "$HOME/.local/bin"
-          curl -sL https://sentry.io/get-cli/ | INSTALL_DIR="$HOME/.local/bin" bash
+          curl -sL https://sentry.io/get-cli/ | INSTALL_DIR="$HOME/.local/bin" SENTRY_CLI_VERSION="$SENTRY_CLI_VERSION" bash
         fi
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
@@ -71,6 +73,7 @@ runs:
         sentry-cli sourcemaps upload \
           --release="${{ inputs.release }}" \
           --url-prefix="${{ inputs.url_prefix }}" \
+          --strict \
           "${{ inputs.sourcemap_path }}"
 
     - name: Finalize release and attach deploy
