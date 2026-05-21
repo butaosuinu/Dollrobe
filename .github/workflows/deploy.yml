@@ -83,6 +83,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: ${{ needs.preflight.outputs.target_env }}
+    # #231 で専用 wrangler config が用意されるまで、本ジョブはルート wrangler.toml (= API worker) を指してしまうため既定で skip する。
+    # #231 マージ後、リポジトリ変数 `WEB_DEPLOY_ENABLED=true` を設定して有効化する。
+    if: vars.WEB_DEPLOY_ENABLED == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
