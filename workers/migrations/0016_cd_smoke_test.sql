@@ -1,0 +1,3 @@
+-- Smoke test for D1 CD pipeline (#233).
+-- Intentionally empty: verifies that `wrangler d1 migrations apply` reaches
+-- the remote database and records this migration in the d1_migrations table.
