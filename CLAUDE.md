@@ -109,7 +109,7 @@ QR スキャンで物理的な収納場所とデジタル在庫を紐づけ、�
 ```
 /
 ├── CLAUDE.md
-├── wrangler.toml
+├── wrangler.jsonc
 ├── drizzle.config.ts          # Drizzle Kit マイグレーション設定
 ├── src/
 │   ├── app/                   # Next.js App Router
@@ -414,37 +414,72 @@ export type Env = {
 
 ---
 
-## wrangler.toml 最小構成
+## wrangler.jsonc 構成（staging / production 物理分離）
 
-```toml
-name = "doll-wardrobe-api"
-main = "workers/src/index.ts"
-compatibility_date = "2025-01-01"
+トップレベルは `pnpm dev:workers` / `pnpm build:workers --dry-run` 用のローカル既定値。実デプロイは `--env staging` / `--env production` で別 D1 / R2 / KV / Queue にバインドされる。週次ダイジェスト用 `triggers.crons` は production のみ。
 
-[[d1_databases]]
-binding = "DB"
-database_name = "doll-wardrobe-db"
-database_id = "YOUR_D1_ID"
-
-[[r2_buckets]]
-binding = "BUCKET"
-bucket_name = "doll-wardrobe-images"
-
-[[kv_namespaces]]
-binding = "KV"
-id = "YOUR_KV_ID"
-
-[[queues.producers]]
-binding = "QUEUE"
-queue = "doll-wardrobe-digest"
-
-[[queues.consumers]]
-queue = "doll-wardrobe-digest"
-max_batch_size = 10
-
-[triggers]
-crons = ["0 9 * * 1"]  # 毎週月曜 9:00 UTC
+```jsonc
+{
+  "name": "doll-wardrobe-api",
+  "main": "workers/src/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "upload_source_maps": true,
+  // ローカル既定値
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "doll-wardrobe-db",
+      "database_id": "YOUR_D1_ID",
+      "migrations_dir": "workers/migrations",
+    },
+  ],
+  "r2_buckets": [
+    { "binding": "BUCKET", "bucket_name": "doll-wardrobe-images" },
+  ],
+  "kv_namespaces": [{ "binding": "KV", "id": "YOUR_KV_ID" }],
+  "queues": {
+    "producers": [{ "binding": "QUEUE", "queue": "doll-wardrobe-digest" }],
+    "consumers": [{ "queue": "doll-wardrobe-digest", "max_batch_size": 10 }],
+  },
+  "env": {
+    "staging": {
+      "name": "doll-wardrobe-api-staging",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "doll-wardrobe-db-staging",
+          "database_id": "YOUR_STAGING_D1_ID",
+          "migrations_dir": "workers/migrations",
+        },
+      ],
+      "r2_buckets": [
+        { "binding": "BUCKET", "bucket_name": "doll-wardrobe-images-staging" },
+      ],
+      "kv_namespaces": [{ "binding": "KV", "id": "YOUR_STAGING_KV_ID" }],
+      "queues": {
+        "producers": [
+          { "binding": "QUEUE", "queue": "doll-wardrobe-digest-staging" },
+        ],
+        "consumers": [
+          { "queue": "doll-wardrobe-digest-staging", "max_batch_size": 10 },
+        ],
+      },
+      "vars": {
+        "TRUSTED_ORIGINS": "https://staging.dollrobe.example",
+        "ALLOWED_ORIGINS": "https://staging.dollrobe.example",
+        "LOG_LEVEL": "debug",
+      },
+    },
+    "production": {
+      /* staging と同形。リソース名・ID を -production に差し替え、triggers.crons を追加 */
+      "triggers": { "crons": ["0 9 * * 1"] },
+    },
+  },
+}
 ```
+
+デプロイは `pnpm deploy:workers:staging` / `pnpm deploy:workers:production`。型は `pnpm cf-typegen` で `worker-configuration.d.ts` に生成される（gitignore 済み）。
 
 ---
 
