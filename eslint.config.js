@@ -27,6 +27,7 @@ export default tseslint.config(
       "src/locales/**/*.mjs",
       ".wrangler/",
       ".open-next/",
+      "worker-configuration.d.ts",
       "vitest.workspace.ts",
       "vitest.config.workers.ts",
       "drizzle.config.ts",
