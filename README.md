@@ -189,12 +189,26 @@ pnpm format
 
 ## デプロイ
 
+### API Worker
+
 ```bash
 # staging
 pnpm deploy:workers:staging
 
 # production
 pnpm deploy:workers:production
+```
+
+### Web Worker (Next.js / OpenNext)
+
+`NEXT_PUBLIC_WORKERS_URL` はビルド時にクライアントバンドルへ埋め込まれるため、`deploy:web:*` 実行前に **必ず** 環境変数として API Worker の公開 URL を設定する。未設定の場合スクリプトは即時失敗する。
+
+```bash
+# staging
+NEXT_PUBLIC_WORKERS_URL=https://api-staging.dollrobe.example pnpm deploy:web:staging
+
+# production
+NEXT_PUBLIC_WORKERS_URL=https://api.dollrobe.example pnpm deploy:web:production
 ```
 
 Cloudflare Workers へデプロイする。事前に `wrangler login` で認証が必要。`pnpm cf-typegen` で `wrangler types` を実行すると `worker-configuration.d.ts` に staging / production 両方のバインディング型が生成される。
