@@ -3,14 +3,6 @@ name: Deploy
 on:
   push:
     branches: [main]
-    paths:
-      - "workers/migrations/**"
-      - "workers/src/**"
-      - "src/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "wrangler.jsonc"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 jobs:
