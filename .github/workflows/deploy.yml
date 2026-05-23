@@ -40,7 +40,8 @@ jobs:
     environment: ${{ needs.preflight.outputs.target_env }}
     # #230 で wrangler.toml に [env.staging] / [env.production] が入るまで `--env` ターゲットは解決できないため既定で skip する。
     # #230 マージ後、リポジトリ変数 `DEPLOY_ENABLED=true` を設定して有効化する。
-    if: vars.DEPLOY_ENABLED == 'true'
+    # `workflow_dispatch` で main 以外のブランチが選択された場合の暴発を防ぐため `github.ref` で main 限定にする。
+    if: vars.DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -66,7 +67,8 @@ jobs:
     environment: ${{ needs.preflight.outputs.target_env }}
     # #230 で wrangler.toml に [env.staging] / [env.production] が入るまで `--env` ターゲットは解決できないため既定で skip する。
     # #230 マージ後、リポジトリ変数 `DEPLOY_ENABLED=true` を設定して有効化する。
-    if: vars.DEPLOY_ENABLED == 'true'
+    # `workflow_dispatch` で main 以外のブランチが選択された場合の暴発を防ぐため `github.ref` で main 限定にする。
+    if: vars.DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -91,7 +93,8 @@ jobs:
     environment: ${{ needs.preflight.outputs.target_env }}
     # #230 + #231 が揃うまで本ジョブはルート wrangler.toml (= API worker) を指し、かつ `--env` ターゲットも解決できないため既定で skip する。
     # #230 マージで `DEPLOY_ENABLED=true`、#231 マージで `WEB_DEPLOY_ENABLED=true` をリポジトリ変数として設定して有効化する。
-    if: vars.DEPLOY_ENABLED == 'true' && vars.WEB_DEPLOY_ENABLED == 'true'
+    # `workflow_dispatch` で main 以外のブランチが選択された場合の暴発を防ぐため `github.ref` で main 限定にする。
+    if: vars.DEPLOY_ENABLED == 'true' && vars.WEB_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
