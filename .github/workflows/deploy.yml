@@ -3,45 +3,29 @@ name: Deploy
 on:
   push:
     branches: [main]
+    paths:
+      - "workers/migrations/**"
+      - "workers/src/**"
+      - "src/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "wrangler.jsonc"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Target environment (production by default)"
-        type: choice
-        options:
-          - production
-          - staging
-        default: production
-
-permissions:
-  contents: read
-
-concurrency:
-  group: deploy-${{ github.event_name == 'push' && 'staging' || inputs.environment }}
-  cancel-in-progress: false
 
 jobs:
-  preflight:
-    name: Resolve target environment
-    runs-on: ubuntu-latest
-    timeout-minutes: 1
-    outputs:
-      target_env: ${{ steps.resolve.outputs.target_env }}
-    steps:
-      # push -> staging を自動デプロイ / workflow_dispatch -> 既定 production (Environment の required reviewers で承認待ちになる)
-      - id: resolve
-        run: echo "target_env=${{ github.event_name == 'push' && 'staging' || inputs.environment }}" >> "$GITHUB_OUTPUT"
-
-  migrate-d1:
-    name: Apply D1 migrations
-    needs: preflight
+  migrate-d1-staging:
+    name: D1 migrate (staging)
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: ${{ needs.preflight.outputs.target_env }}
-    # #230 で wrangler.toml に [env.staging] / [env.production] が入るまで `--env` ターゲットは解決できないため既定で skip する。
-    # #230 マージ後、リポジトリ変数 `DEPLOY_ENABLED=true` を設定して有効化する。
-    # `workflow_dispatch` で main 以外のブランチが選択された場合の暴発を防ぐため `github.ref` で main 限定にする。
-    if: vars.DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main'
+    environment: staging
+    concurrency:
+      group: d1-migrate-staging
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -50,25 +34,21 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # TODO(#233): expand & contract 運用に置き換える (前方互換マイグレーション + ロールアウトゲート)
-      # TODO(#230): wrangler.jsonc に [env.staging] / [env.production] が入るまで `--env` ターゲットは存在しない
       - name: Apply D1 migrations
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply doll-wardrobe-db --remote --env ${{ needs.preflight.outputs.target_env }}
+        run: pnpm wrangler d1 migrations apply doll-wardrobe-db-staging --remote --env staging
 
-  deploy-api:
-    name: Deploy API Worker
-    needs: [preflight, migrate-d1]
+  migrate-d1-production:
+    name: D1 migrate (production)
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: ${{ needs.preflight.outputs.target_env }}
-    # #230 で wrangler.toml に [env.staging] / [env.production] が入るまで `--env` ターゲットは解決できないため既定で skip する。
-    # #230 マージ後、リポジトリ変数 `DEPLOY_ENABLED=true` を設定して有効化する。
-    # `workflow_dispatch` で main 以外のブランチが選択された場合の暴発を防ぐため `github.ref` で main 限定にする。
-    if: vars.DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main'
+    environment: production
+    concurrency:
+      group: d1-migrate-production
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -77,24 +57,72 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # TODO(#230): ルート wrangler.toml に env split を入れるまで `--env` ターゲットは存在しない
-      - name: Deploy API Worker
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --env ${{ needs.preflight.outputs.target_env }}
+      - name: Apply D1 migrations
+        run: pnpm wrangler d1 migrations apply doll-wardrobe-db-production --remote --env production
 
-  deploy-web:
-    name: Deploy Web Worker
-    needs: [preflight, deploy-api]
+  deploy-api-staging:
+    name: Deploy API Worker (staging)
+    needs: migrate-d1-staging
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    concurrency:
+      group: deploy-api-staging
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Deploy API Worker
+        run: pnpm wrangler deploy --env staging
+
+  deploy-api-production:
+    name: Deploy API Worker (production)
+    needs: migrate-d1-production
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    concurrency:
+      group: deploy-api-production
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Deploy API Worker
+        run: pnpm wrangler deploy --env production
+
+  deploy-web-staging:
+    name: Deploy Web Worker (staging)
+    needs: deploy-api-staging
+    # #231 で @opennextjs/cloudflare の web 用 wrangler config が用意されるまでルート wrangler.jsonc (= API worker) を指してしまうため既定で skip する。
+    # #231 マージ後、リポジトリ変数 `WEB_DEPLOY_ENABLED=true` を設定して有効化する。
+    if: github.event_name == 'push' && vars.WEB_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: ${{ needs.preflight.outputs.target_env }}
-    # #230 + #231 が揃うまで本ジョブはルート wrangler.toml (= API worker) を指し、かつ `--env` ターゲットも解決できないため既定で skip する。
-    # #230 マージで `DEPLOY_ENABLED=true`、#231 マージで `WEB_DEPLOY_ENABLED=true` をリポジトリ変数として設定して有効化する。
-    # `workflow_dispatch` で main 以外のブランチが選択された場合の暴発を防ぐため `github.ref` で main 限定にする。
-    if: vars.DEPLOY_ENABLED == 'true' && vars.WEB_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main'
+    environment: staging
+    concurrency:
+      group: deploy-web-staging
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -105,10 +133,35 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm i18n:compile
       # TODO(#231): @opennextjs/cloudflare で web Worker をビルドし、専用 wrangler config を `--config` で指定
-      # TODO(#234): preCommands に `npx sentry-cli sourcemaps upload` を差し込んでソースマップを Sentry にアップロード
+      # TODO(#234): `npx sentry-cli sourcemaps upload` を差し込んでソースマップを Sentry にアップロード
       - name: Deploy Web Worker
-        uses: cloudflare/wrangler-action@v3
+        run: pnpm wrangler deploy --env staging
+
+  deploy-web-production:
+    name: Deploy Web Worker (production)
+    needs: deploy-api-production
+    # #231 で @opennextjs/cloudflare の web 用 wrangler config が用意されるまでルート wrangler.jsonc (= API worker) を指してしまうため既定で skip する。
+    # #231 マージ後、リポジトリ変数 `WEB_DEPLOY_ENABLED=true` を設定して有効化する。
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && vars.WEB_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    concurrency:
+      group: deploy-web-production
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --env ${{ needs.preflight.outputs.target_env }}
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm i18n:compile
+      # TODO(#231): @opennextjs/cloudflare で web Worker をビルドし、専用 wrangler config を `--config` で指定
+      # TODO(#234): `npx sentry-cli sourcemaps upload` を差し込んでソースマップを Sentry にアップロード
+      - name: Deploy Web Worker
+        run: pnpm wrangler deploy --env production

@@ -1,0 +1,92 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "doll-wardrobe-api",
+  "main": "workers/src/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "tsconfig": "tsconfig.workers.json",
+  "upload_source_maps": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "doll-wardrobe-db",
+      "database_id": "YOUR_D1_ID",
+      "migrations_dir": "workers/migrations",
+    },
+  ],
+  "r2_buckets": [
+    { "binding": "BUCKET", "bucket_name": "doll-wardrobe-images" },
+  ],
+  "kv_namespaces": [{ "binding": "KV", "id": "YOUR_KV_ID" }],
+  "queues": {
+    "producers": [{ "binding": "QUEUE", "queue": "doll-wardrobe-digest" }],
+    "consumers": [{ "queue": "doll-wardrobe-digest", "max_batch_size": 10 }],
+  },
+  "vars": {
+    "TRUSTED_ORIGINS": "http://localhost:3000,http://localhost:3001",
+    "ALLOWED_ORIGINS": "http://localhost:3000,http://localhost:3001",
+    "LOG_LEVEL": "info",
+  },
+  "env": {
+    "staging": {
+      "name": "doll-wardrobe-api-staging",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "doll-wardrobe-db-staging",
+          "database_id": "YOUR_STAGING_D1_ID",
+          "migrations_dir": "workers/migrations",
+        },
+      ],
+      "r2_buckets": [
+        { "binding": "BUCKET", "bucket_name": "doll-wardrobe-images-staging" },
+      ],
+      "kv_namespaces": [{ "binding": "KV", "id": "YOUR_STAGING_KV_ID" }],
+      "queues": {
+        "producers": [
+          { "binding": "QUEUE", "queue": "doll-wardrobe-digest-staging" },
+        ],
+        "consumers": [
+          { "queue": "doll-wardrobe-digest-staging", "max_batch_size": 10 },
+        ],
+      },
+      "vars": {
+        "TRUSTED_ORIGINS": "https://staging.dollrobe.example",
+        "ALLOWED_ORIGINS": "https://staging.dollrobe.example",
+        "LOG_LEVEL": "debug",
+      },
+    },
+    "production": {
+      "name": "doll-wardrobe-api-production",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "doll-wardrobe-db-production",
+          "database_id": "YOUR_PRODUCTION_D1_ID",
+          "migrations_dir": "workers/migrations",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "doll-wardrobe-images-production",
+        },
+      ],
+      "kv_namespaces": [{ "binding": "KV", "id": "YOUR_PRODUCTION_KV_ID" }],
+      "queues": {
+        "producers": [
+          { "binding": "QUEUE", "queue": "doll-wardrobe-digest-production" },
+        ],
+        "consumers": [
+          { "queue": "doll-wardrobe-digest-production", "max_batch_size": 10 },
+        ],
+      },
+      "triggers": { "crons": ["0 9 * * 1"] },
+      "vars": {
+        "TRUSTED_ORIGINS": "https://dollrobe.example",
+        "ALLOWED_ORIGINS": "https://dollrobe.example",
+        "LOG_LEVEL": "info",
+      },
+    },
+  },
+}
