@@ -3,9 +3,6 @@ name: Deploy
 on:
   push:
     branches: [main]
-    paths:
-      - "workers/migrations/**"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 jobs:
@@ -54,3 +51,109 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Apply D1 migrations
         run: pnpm wrangler d1 migrations apply doll-wardrobe-db-production --remote --env production
+
+  deploy-api-staging:
+    name: Deploy API Worker (staging)
+    needs: migrate-d1-staging
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    concurrency:
+      group: deploy-api-staging
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Deploy API Worker
+        run: pnpm wrangler deploy --env staging
+
+  deploy-api-production:
+    name: Deploy API Worker (production)
+    needs: migrate-d1-production
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    concurrency:
+      group: deploy-api-production
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Deploy API Worker
+        run: pnpm wrangler deploy --env production
+
+  deploy-web-staging:
+    name: Deploy Web Worker (staging)
+    needs: deploy-api-staging
+    # #231 で @opennextjs/cloudflare の web 用 wrangler config が用意されるまでルート wrangler.jsonc (= API worker) を指してしまうため既定で skip する。
+    # #231 マージ後、リポジトリ変数 `WEB_DEPLOY_ENABLED=true` を設定して有効化する。
+    if: github.event_name == 'push' && vars.WEB_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    concurrency:
+      group: deploy-web-staging
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm i18n:compile
+      # TODO(#231): @opennextjs/cloudflare で web Worker をビルドし、専用 wrangler config を `--config` で指定
+      # TODO(#234): `npx sentry-cli sourcemaps upload` を差し込んでソースマップを Sentry にアップロード
+      - name: Deploy Web Worker
+        run: pnpm wrangler deploy --env staging
+
+  deploy-web-production:
+    name: Deploy Web Worker (production)
+    needs: deploy-api-production
+    # #231 で @opennextjs/cloudflare の web 用 wrangler config が用意されるまでルート wrangler.jsonc (= API worker) を指してしまうため既定で skip する。
+    # #231 マージ後、リポジトリ変数 `WEB_DEPLOY_ENABLED=true` を設定して有効化する。
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && vars.WEB_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    concurrency:
+      group: deploy-web-production
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm i18n:compile
+      # TODO(#231): @opennextjs/cloudflare で web Worker をビルドし、専用 wrangler config を `--config` で指定
+      # TODO(#234): `npx sentry-cli sourcemaps upload` を差し込んでソースマップを Sentry にアップロード
+      - name: Deploy Web Worker
+        run: pnpm wrangler deploy --env production
