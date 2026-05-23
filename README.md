@@ -129,6 +129,9 @@ DELETE FROM \"session\" WHERE userId IN (SELECT id FROM \"user\" WHERE email='ta
 | `pnpm db:migrate:local`          | D1 マイグレーション（ローカル）        |
 | `pnpm deploy:workers:staging`    | Workers デプロイ（staging 環境）       |
 | `pnpm deploy:workers:production` | Workers デプロイ（production 環境）    |
+| `pnpm build:web`                 | Next.js を OpenNext で Worker 化ビルド |
+| `pnpm deploy:web:staging`        | Web Worker デプロイ（staging 環境）    |
+| `pnpm deploy:web:production`     | Web Worker デプロイ（production 環境） |
 | `pnpm cf-typegen`                | `worker-configuration.d.ts` 生成       |
 
 ## テスト
@@ -186,12 +189,26 @@ pnpm format
 
 ## デプロイ
 
+### API Worker
+
 ```bash
 # staging
 pnpm deploy:workers:staging
 
 # production
 pnpm deploy:workers:production
+```
+
+### Web Worker (Next.js / OpenNext)
+
+`NEXT_PUBLIC_WORKERS_URL` はビルド時にクライアントバンドルへ埋め込まれるため、`deploy:web:*` 実行前に **必ず** 環境変数として API Worker の公開 URL を設定する。未設定の場合スクリプトは即時失敗する。
+
+```bash
+# staging
+NEXT_PUBLIC_WORKERS_URL=https://api-staging.dollrobe.example pnpm deploy:web:staging
+
+# production
+NEXT_PUBLIC_WORKERS_URL=https://api.dollrobe.example pnpm deploy:web:production
 ```
 
 Cloudflare Workers へデプロイする。事前に `wrangler login` で認証が必要。`pnpm cf-typegen` で `wrangler types` を実行すると `worker-configuration.d.ts` に staging / production 両方のバインディング型が生成される。

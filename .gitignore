@@ -153,6 +153,9 @@ next-env.d.ts
 .dev.vars
 worker-configuration.d.ts
 
+# OpenNext (Cloudflare adapter for Next.js)
+.open-next/
+
 # macOS
 .DS_Store
 
