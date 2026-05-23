@@ -33,3 +33,21 @@ crons = ["0 9 * * 1"]
 TRUSTED_ORIGINS = "http://localhost:3000,http://localhost:3001"
 ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001"
 LOG_LEVEL = "info"
+
+[env.staging]
+name = "doll-wardrobe-api-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "doll-wardrobe-db"
+database_id = "YOUR_D1_STAGING_ID"
+migrations_dir = "workers/migrations"
+
+[env.production]
+name = "doll-wardrobe-api-production"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "doll-wardrobe-db"
+database_id = "YOUR_D1_PRODUCTION_ID"
+migrations_dir = "workers/migrations"
