@@ -258,6 +258,7 @@ export type Coordinate = {
 - バリデーションスキーマは `workers/src/db/validation.ts` で drizzle-zod により自動生成
 - JSON 配列カラム（colors, tags, garmentIds）は `db/helpers.ts` の `jsonArrayColumn` customType で SQLite TEXT ↔ `string[]` をマッピング
 - リポジトリ層は raw SQL ではなく Drizzle query builder を使用
+- マイグレーション運用は **expand & contract**（列追加・データ移行・列削除を別 PR）。詳細・CD フロー・ロールバック手順は [`docs/cloudflare-deploy.md`](docs/cloudflare-deploy.md) を参照
 
 ---
 
