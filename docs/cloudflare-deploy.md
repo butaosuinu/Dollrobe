@@ -11,13 +11,13 @@ Dollrobe の Cloudflare D1 / Workers デプロイと **D1 マイグレーショ�
 
 ## Environments と secrets
 
-| 環境        | D1 database name                                      | Wrangler env      |
-| ----------- | ----------------------------------------------------- | ----------------- |
-| local (dev) | `doll-wardrobe-db` (Miniflare)                        | (なし、`--local`) |
-| staging     | `doll-wardrobe-db` (Cloudflare 上の staging リソース) | `staging`         |
-| production  | `doll-wardrobe-db` (同 production リソース)           | `production`      |
+| 環境        | D1 database name                                                    | Wrangler env      |
+| ----------- | ------------------------------------------------------------------- | ----------------- |
+| local (dev) | `doll-wardrobe-db` (Miniflare)                                      | (なし、`--local`) |
+| staging     | `doll-wardrobe-db-staging` (Cloudflare 上の staging リソース)       | `staging`         |
+| production  | `doll-wardrobe-db-production` (Cloudflare 上の production リソース) | `production`      |
 
-**重要**: D1 の指定は **database name** (`doll-wardrobe-db`) で行う。`wrangler.toml` の binding 名 (`DB`) は env 設定変更で変わり得るが、database name は不変。
+**重要**: D1 database name は env 別に物理分離されている (`wrangler.jsonc` の `env.staging.d1_databases` / `env.production.d1_databases` 参照)。binding 名 (`DB`) は全 env で共通だが、`database_name` / `database_id` は env ごとに異なる。
 
 ### 必要な GitHub Secrets
 
@@ -84,14 +84,14 @@ CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... pnpm db:migrate:production
 ### 適用状況の確認
 
 ```bash
-pnpm wrangler d1 migrations list doll-wardrobe-db --remote --env staging
-pnpm wrangler d1 migrations list doll-wardrobe-db --remote --env production
+pnpm wrangler d1 migrations list doll-wardrobe-db-staging --remote --env staging
+pnpm wrangler d1 migrations list doll-wardrobe-db-production --remote --env production
 ```
 
 ### アドホッククエリ
 
 ```bash
-pnpm wrangler d1 execute doll-wardrobe-db --remote --env staging --command "SELECT * FROM d1_migrations ORDER BY id DESC LIMIT 5"
+pnpm wrangler d1 execute doll-wardrobe-db-staging --remote --env staging --command "SELECT * FROM d1_migrations ORDER BY id DESC LIMIT 5"
 ```
 
 ## 失敗時のロールバック
@@ -130,4 +130,4 @@ PR を出す前に確認:
 - `workers/migrations/` — D1 マイグレーション SQL（連番）
 - `workers/src/db/schema.ts` — Drizzle テーブル定義（source of truth）
 - `drizzle.config.ts` — drizzle-kit 設定
-- `wrangler.toml` — Wrangler / Cloudflare バインディング定義
+- `wrangler.jsonc` — Wrangler / Cloudflare バインディング定義

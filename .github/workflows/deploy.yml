@@ -30,7 +30,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Apply D1 migrations
-        run: pnpm wrangler d1 migrations apply doll-wardrobe-db --remote --env staging
+        run: pnpm wrangler d1 migrations apply doll-wardrobe-db-staging --remote --env staging
 
   migrate-d1-production:
     name: D1 migrate (production)
@@ -53,4 +53,4 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Apply D1 migrations
-        run: pnpm wrangler d1 migrations apply doll-wardrobe-db --remote --env production
+        run: pnpm wrangler d1 migrations apply doll-wardrobe-db-production --remote --env production
