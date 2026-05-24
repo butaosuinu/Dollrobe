@@ -14,7 +14,12 @@ inputs:
     description: Sentry project slug (e.g. dollrobe-api, dollrobe-web)
     required: true
   release:
-    description: Release identifier (commonly the git SHA)
+    description: >-
+      Base release identifier (commonly the git SHA). The action namespaces it
+      per project as "<project>@<release>" so Web / API uploads sharing the same
+      SHA never collide on a single org-level Sentry release. The runtime
+      SENTRY_RELEASE must be set to this same "<project>@<release>" value so
+      events match the uploaded artifacts.
     required: true
   sourcemap_path:
     description: Directory containing the .js / .js.map files to upload
@@ -47,13 +52,21 @@ runs:
         fi
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
+    - name: Compute project-scoped release
+      id: release
+      shell: bash
+      env:
+        PROJECT: ${{ inputs.project }}
+        RELEASE: ${{ inputs.release }}
+      run: echo "name=${PROJECT}@${RELEASE}" >> "$GITHUB_OUTPUT"
+
     - name: Create Sentry release
       shell: bash
       env:
         SENTRY_AUTH_TOKEN: ${{ inputs.auth_token }}
         SENTRY_ORG: ${{ inputs.org }}
         SENTRY_PROJECT: ${{ inputs.project }}
-      run: sentry-cli releases new "${{ inputs.release }}"
+      run: sentry-cli releases new "${{ steps.release.outputs.name }}"
 
     - name: Inject release identifier into bundles
       shell: bash
@@ -71,7 +84,7 @@ runs:
         SENTRY_PROJECT: ${{ inputs.project }}
       run: |
         sentry-cli sourcemaps upload \
-          --release="${{ inputs.release }}" \
+          --release="${{ steps.release.outputs.name }}" \
           --url-prefix="${{ inputs.url_prefix }}" \
           --strict \
           "${{ inputs.sourcemap_path }}"
@@ -83,6 +96,6 @@ runs:
         SENTRY_ORG: ${{ inputs.org }}
         SENTRY_PROJECT: ${{ inputs.project }}
       run: |
-        sentry-cli releases finalize "${{ inputs.release }}"
-        sentry-cli releases deploys "${{ inputs.release }}" new \
+        sentry-cli releases finalize "${{ steps.release.outputs.name }}"
+        sentry-cli releases deploys "${{ steps.release.outputs.name }}" new \
           --env "${{ inputs.environment }}"

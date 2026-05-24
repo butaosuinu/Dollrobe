@@ -156,10 +156,10 @@ wrangler versions deploy <new-id>@100% --name doll-wardrobe-api
 
 ### 5.1 release タグでエラーを絞り込み
 
-deploy 時に CI が `SENTRY_RELEASE` (git SHA) を注入します。Sentry の Issues 画面で:
+deploy 時に CI が `SENTRY_RELEASE` を注入します。release 名は Web / API でアーティファクトが混ざらないよう `<project>@<git-sha>` 形式で namespace されます (例: `dollrobe-api@<git-sha>`)。Sentry の Issues 画面で:
 
 ```
-release:<git-sha>
+release:dollrobe-api@<git-sha>
 ```
 
 で検索すると、その deploy 由来のエラーだけが表示されます。
@@ -168,11 +168,11 @@ release:<git-sha>
 
 source map は CI の `.github/actions/sentry-sourcemap-upload` composite action 経由でアップロードされます (子 Issue #232 の deploy.yml 完成後に有効化)。Sentry の Issue 詳細ページで minify されたフレームの右側に「View source map」のアイコンが出ます。
 
-> **トラブルシューティング**: スタックトレースが minified のままなら、`SENTRY_RELEASE` と CI で upload したときの `--release` が一致しているか確認。
+> **トラブルシューティング**: スタックトレースが minified のままなら、ランタイムの `SENTRY_RELEASE` と CI で upload したときの `--release` (どちらも `<project>@<git-sha>` 形式) が一致しているか確認。
 
 ### 5.3 環境タグ
 
-`environment:production` / `environment:staging` で絞り込めます。`SENTRY_ENVIRONMENT` env var (wrangler の `[vars]` または `[env.production.vars]`) で設定。
+`environment:production` / `environment:staging` で絞り込めます。`SENTRY_ENVIRONMENT` env var は `wrangler.jsonc` の各 `env.staging.vars` / `env.production.vars` で設定 (top-level `vars` には置かない。未設定の環境が local 扱いになるのを防ぐため)。
 
 ---
 
