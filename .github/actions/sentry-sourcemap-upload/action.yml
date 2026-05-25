@@ -1,0 +1,101 @@
+name: Sentry sourcemap upload
+description: >-
+  Upload source maps to Sentry as part of a release. Designed to be called from
+  the Web / API deploy jobs once they exist (see issue #232).
+
+inputs:
+  auth_token:
+    description: Sentry auth token (typically from secrets.SENTRY_AUTH_TOKEN)
+    required: true
+  org:
+    description: Sentry organization slug
+    required: true
+  project:
+    description: Sentry project slug (e.g. dollrobe-api, dollrobe-web)
+    required: true
+  release:
+    description: >-
+      Base release identifier (commonly the git SHA). The action namespaces it
+      per project as "<project>@<release>" so Web / API uploads sharing the same
+      SHA never collide on a single org-level Sentry release. The runtime
+      SENTRY_RELEASE must be set to this same "<project>@<release>" value so
+      events match the uploaded artifacts.
+    required: true
+  sourcemap_path:
+    description: Directory containing the .js / .js.map files to upload
+    required: true
+  url_prefix:
+    description: URL prefix Sentry should use when matching frames (e.g. "~/_next" for Next.js, "~/" for Workers)
+    required: false
+    default: "~/"
+  environment:
+    description: Deployment environment (staging / production)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Cache sentry-cli
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/bin/sentry-cli
+        key: sentry-cli-${{ runner.os }}-2.40.0
+
+    - name: Install sentry-cli (if cache miss)
+      shell: bash
+      env:
+        SENTRY_CLI_VERSION: "2.40.0"
+      run: |
+        if [ ! -x "$HOME/.local/bin/sentry-cli" ]; then
+          mkdir -p "$HOME/.local/bin"
+          curl -sL https://sentry.io/get-cli/ | INSTALL_DIR="$HOME/.local/bin" SENTRY_CLI_VERSION="$SENTRY_CLI_VERSION" bash
+        fi
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Compute project-scoped release
+      id: release
+      shell: bash
+      env:
+        PROJECT: ${{ inputs.project }}
+        RELEASE: ${{ inputs.release }}
+      run: echo "name=${PROJECT}@${RELEASE}" >> "$GITHUB_OUTPUT"
+
+    - name: Create Sentry release
+      shell: bash
+      env:
+        SENTRY_AUTH_TOKEN: ${{ inputs.auth_token }}
+        SENTRY_ORG: ${{ inputs.org }}
+        SENTRY_PROJECT: ${{ inputs.project }}
+      run: sentry-cli releases new "${{ steps.release.outputs.name }}"
+
+    - name: Inject release identifier into bundles
+      shell: bash
+      env:
+        SENTRY_AUTH_TOKEN: ${{ inputs.auth_token }}
+        SENTRY_ORG: ${{ inputs.org }}
+        SENTRY_PROJECT: ${{ inputs.project }}
+      run: sentry-cli sourcemaps inject "${{ inputs.sourcemap_path }}"
+
+    - name: Upload source maps
+      shell: bash
+      env:
+        SENTRY_AUTH_TOKEN: ${{ inputs.auth_token }}
+        SENTRY_ORG: ${{ inputs.org }}
+        SENTRY_PROJECT: ${{ inputs.project }}
+      run: |
+        sentry-cli sourcemaps upload \
+          --release="${{ steps.release.outputs.name }}" \
+          --url-prefix="${{ inputs.url_prefix }}" \
+          --strict \
+          "${{ inputs.sourcemap_path }}"
+
+    - name: Finalize release and attach deploy
+      shell: bash
+      env:
+        SENTRY_AUTH_TOKEN: ${{ inputs.auth_token }}
+        SENTRY_ORG: ${{ inputs.org }}
+        SENTRY_PROJECT: ${{ inputs.project }}
+      run: |
+        sentry-cli releases finalize "${{ steps.release.outputs.name }}"
+        sentry-cli releases deploys "${{ steps.release.outputs.name }}" new \
+          --env "${{ inputs.environment }}"
