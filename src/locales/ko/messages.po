@@ -207,6 +207,10 @@ msgstr "\"{0}\"을(를) 분실로 표시합니다. 수납 위치 정보는 지�
 msgid "← サービス紹介に戻る"
 msgstr "← 서비스 소개로 돌아가기"
 
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "3 択で答えるだけで記録が最新になります"
+msgstr "세 가지 선택지 중 하나로 답하면 기록이 최신 상태가 됩니다"
+
 #: src/app/(public)/signup/page.tsx
 msgid "30 秒で、最初の引き出しを開けられます"
 msgstr "30초 만에 첫 번째 서랍을 열 수 있어요"
@@ -305,6 +309,10 @@ msgstr "Google로 로그인"
 msgid "https://..."
 msgstr "https://..."
 
+#: src/components/marketing/FAQSection.tsx
+msgid "iPhone でも使えますか？"
+msgstr "iPhone에서도 사용할 수 있나요?"
+
 #: src/lib/i18n-labels.ts
 msgid "MDD L胸 (~40cm)"
 msgstr "MDD L버스트 (~40cm)"
@@ -329,6 +337,10 @@ msgstr "new@example.com"
 msgid "NFC タグにタッチしてください..."
 msgstr "NFC 태그에 터치해 주세요..."
 
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "NFC タグへのタッチでも記録できます（Android）"
+msgstr "NFC 태그를 터치해도 기록할 수 있습니다 (Android)"
+
 #: src/app/nfc-write/page.tsx
 msgid "NFC タグへの書き込みが完了しました"
 msgstr "NFC 태그 쓰기가 완료되었습니다"
@@ -338,8 +350,8 @@ msgid "NFC タグ書き込み"
 msgstr "NFC 태그 쓰기"
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "NFC にも対応"
-msgstr "NFC도 지원"
+#~ msgid "NFC にも対応"
+#~ msgstr "NFC도 지원"
 
 #: src/app/nfc-write/page.tsx
 #: src/components/scan/NfcReader.tsx
@@ -363,20 +375,40 @@ msgid "QR / NFC ラベルを印刷して貼る"
 msgstr "QR / NFC 라벨을 인쇄해 붙이기"
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "QR スキャンで収納記録"
-msgstr "QR 스캔으로 보관 기록"
+#~ msgid "QR スキャンで収納記録"
+#~ msgstr "QR 스캔으로 보관 기록"
 
-#: src/components/marketing/FeatureGrid.tsx
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "QR スキャン画面のスクリーンショット"
+msgstr "QR 스캔 화면 스크린샷"
+
+#: src/components/marketing/FeatureShowcase.tsx
 msgid "QR と NFC で、<0/>収納を半自動化する"
 msgstr "QR과 NFC로<0/>보관을 반자동화"
 
 #: src/components/marketing/Hero.tsx
-msgid "QR と NFC で、ドール服の収納を半自動で管理。手入力は一切なし。スキャンするだけで、 どこに何があるかが常に最新の状態になります。"
-msgstr "QR과 NFC로 인형 옷 보관을 반자동 관리. 직접 입력 없이 스캔만 하면 어디에 무엇이 있는지 항상 최신 상태가 됩니다."
+#~ msgid "QR と NFC で、ドール服の収納を半自動で管理。手入力は一切なし。スキャンするだけで、 どこに何があるかが常に最新の状態になります。"
+#~ msgstr "QR과 NFC로 인형 옷 보관을 반자동 관리. 직접 입력 없이 스캔만 하면 어디에 무엇이 있는지 항상 최신 상태가 됩니다."
+
+#: src/components/marketing/Hero.tsx
+#~ msgid "QR と NFC で、ドール服の収納を半自動で管理。手入力は一切なし。どの引き出しに何があるかが、 常に最新の状態に保たれます。"
+#~ msgstr "QR과 NFC로 인형 옷 수납을 반자동으로 관리합니다. 수동 입력은 전혀 없습니다. 어느 서랍에 무엇이 있는지 항상 최신 상태로 유지됩니다."
+
+#: src/components/marketing/Hero.tsx
+msgid "QR と NFC で、ドール服の収納を半自動で管理。手入力は一切なし。どの引き出しに何があるかが、常に最新の状態に保たれます。"
+msgstr "QR과 NFC로 인형 옷 수납을 반자동으로 관리합니다. 수동 입력은 전혀 없습니다. 어느 서랍에 무엇이 있는지 항상 최신 상태로 유지됩니다."
+
+#: src/components/marketing/FAQSection.tsx
+msgid "QR ラベルはどうやって用意しますか？"
+msgstr "QR 라벨은 어떻게 준비하나요?"
 
 #: src/app/print/page.tsx
 msgid "QR ラベル印刷"
 msgstr "QR 라벨 인쇄"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "QR を順番にスキャンするだけで、収納を記録"
+msgstr "QR을 순서대로 스캔하기만 하면 수납이 기록됩니다"
 
 #: src/app/locations/[caseId]/page.tsx
 #: src/components/location/StorageGrid.tsx
@@ -410,6 +442,10 @@ msgstr "read-write (읽기＋쓰기)"
 #: src/lib/i18n-labels.ts
 msgid "SD (~57cm)"
 msgstr "SD (~57cm)"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "SD / MSD などサイズ別に絞り込み"
+msgstr "SD / MSD 등 사이즈별로 필터링"
 
 #: src/lib/i18n-labels.ts
 msgid "SD13 (~57cm)"
@@ -515,12 +551,24 @@ msgid "あなたの在庫状況"
 msgstr "재고 상태"
 
 #: src/components/marketing/Hero.tsx
-msgid "あの服、どこにしまったっけ？<0/><1>を、終わらせる。</1>"
-msgstr "그 옷, 어디에 뒀더라?<0/><1>를, 끝내자.</1>"
+#~ msgid "あの服、どこにしまったっけ？<0/><1>を、終わらせる。</1>"
+#~ msgstr "그 옷, 어디에 뒀더라?<0/><1>를, 끝내자.</1>"
+
+#: src/components/marketing/FAQSection.tsx
+msgid "アプリのインストールは必要ですか？"
+msgstr "앱 설치가 필요한가요?"
+
+#: src/components/marketing/FAQSection.tsx
+msgid "アプリの印刷ページから、登録した場所や服の QR ラベルをまとめて生成できます。シール用紙に印刷して、引き出しや服のタグに貼るだけです。"
+msgstr "앱의 인쇄 페이지에서 등록한 장소와 옷의 QR 라벨을 한꺼번에 생성할 수 있습니다. 스티커 용지에 인쇄해서 서랍이나 옷 태그에 붙이기만 하면 됩니다."
 
 #: src/components/scan/ReviewItemRow.tsx
 msgid "ある"
 msgstr "있음"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "インストール不要の PWA"
+msgstr "설치가 필요 없는 PWA"
 
 #: src/lib/i18n-labels.ts
 msgid "インナー"
@@ -541,6 +589,14 @@ msgstr "가발"
 #: src/app/dashboard/page.tsx
 msgid "おかえりなさい"
 msgstr "다녀오셨습니까"
+
+#: src/components/marketing/FAQSection.tsx
+msgid "オフラインでも使えますか？"
+msgstr "오프라인에서도 사용할 수 있나요?"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "オフラインでも見られる"
+msgstr "오프라인에서도 볼 수 있어요"
 
 #: src/lib/i18n-labels.ts
 msgid "オレンジ"
@@ -610,6 +666,10 @@ msgstr "그리드 보기"
 #: src/app/locations/[caseId]/page.tsx
 msgid "ケースが見つかりません"
 msgstr "케이스를 찾을 수 없습니다"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "ケースの行 × 列は自由に設定できます"
+msgstr "케이스의 행 × 열은 자유롭게 설정할 수 있습니다"
 
 #: src/app/locations/page.tsx
 msgid "ケースを削除"
@@ -768,9 +828,21 @@ msgstr "한동안 입히지 않은 옷이 어느새 상자 깊은 곳에서 사�
 #~ msgid "しばらく確認していない服が{0}着あります"
 #~ msgstr "한동안 확인하지 않은 옷이 {0}벌 있습니다"
 
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "しばらく開けていないマスには印が付きます"
+msgstr "한동안 열지 않은 칸에는 표시가 붙습니다"
+
 #: src/components/dashboard/StaleLocationsCard.tsx
 msgid "しばらく開けていない場所"
 msgstr "한동안 열지 않은 위치"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "しばらく開けていない場所をリストアップ"
+msgstr "한동안 열지 않은 장소를 목록으로 보여줍니다"
+
+#: src/components/marketing/FAQSection.tsx
+msgid "しません。通知は週 1 回、月曜の朝のダイジェストだけ。個別のプッシュ通知で急かさない設計です。"
+msgstr "아니요. 알림은 주 1회 월요일 아침의 다이제스트뿐입니다. 개별 푸시 알림으로 재촉하지 않는 설계입니다."
 
 #: src/components/dashboard/CheckedOutSection.tsx
 msgid "しまった"
@@ -792,6 +864,14 @@ msgstr "스캔"
 #: src/app/scan/page.tsx
 msgid "スキャンしました"
 msgstr "스캔 완료"
+
+#: src/components/marketing/Hero.tsx
+msgid "スキャンするだけで、<0/>ドール服の場所が<1/><2>ぜんぶ分かる。</2>"
+msgstr "스캔만 하면<0/>인형 옷이 어디 있는지<1/><2>전부 알 수 있어요.</2>"
+
+#: src/components/marketing/Hero.tsx
+#~ msgid "スキャンするだけで、<0/>ドール服の場所が<1>ぜんぶ分かる。</1>"
+#~ msgstr "스캔만 하면 <0/>인형 옷이 어디 있는지 <1>전부 알 수 있어요.</1>"
 
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "スキャン中の場所"
@@ -880,8 +960,8 @@ msgid "タグ"
 msgstr "태그"
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "タグに触れるだけで場所を記録。QR が読みづらい現場でもスムーズ（Android）。"
-msgstr "태그에 대기만 해도 위치 기록. QR이 읽기 어려운 환경에서도 매끄럽게 (Android)."
+#~ msgid "タグに触れるだけで場所を記録。QR が読みづらい現場でもスムーズ（Android）。"
+#~ msgstr "태그에 대기만 해도 위치 기록. QR이 읽기 어려운 환경에서도 매끄럽게 (Android)."
 
 #: src/app/dashboard/page.tsx
 msgid "ダッシュボード"
@@ -891,6 +971,10 @@ msgstr "대시보드"
 msgid "ダッシュボード画面"
 msgstr "대시보드 화면"
 
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "ダッシュボード画面のスクリーンショット"
+msgstr "대시보드 화면 스크린샷"
+
 #: src/components/digest/DigestBanner.tsx
 msgid "タップして確認する"
 msgstr "탭하여 확인하기"
@@ -899,7 +983,12 @@ msgstr "탭하여 확인하기"
 msgid "データがありません"
 msgstr "데이터가 없습니다"
 
-#: src/components/marketing/FeatureGrid.tsx
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "データは端末にも保存。電波の届かない部屋でも一覧を確認でき、オンラインに戻ると自動で同期します。"
+msgstr "데이터는 기기에도 저장됩니다. 전파가 닿지 않는 방에서도 목록을 확인할 수 있고, 온라인으로 돌아오면 자동으로 동기화됩니다."
+
+#: src/components/marketing/FeatureShowcase.tsx
+#: src/components/marketing/MarketingNavLinks.tsx
 msgid "できること"
 msgstr "할 수 있는 일"
 
@@ -979,6 +1068,10 @@ msgstr "어디에 뒀는지 모르겠다"
 msgid "トップス"
 msgstr "상의"
 
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "どの引き出しに何着あるか、図で見える"
+msgstr "어느 서랍에 몇 벌 있는지 그림으로 보입니다"
+
 #: src/lib/i18n-labels.ts
 msgid "ドレス"
 msgstr "드레스"
@@ -994,6 +1087,10 @@ msgstr "없음"
 #: src/components/marketing/StepsSection.tsx
 msgid "はじめの 4 ステップ"
 msgstr "시작하는 4 단계"
+
+#: src/components/marketing/FAQSection.tsx
+msgid "はじめる前の、気になるところ"
+msgstr "시작하기 전에 궁금한 점"
 
 #: src/app/settings/account/page.tsx
 #: src/components/auth/EmailPasswordForm.tsx
@@ -1062,6 +1159,10 @@ msgstr "필터"
 #~ msgid "プライバシーポリシー"
 #~ msgstr "개인정보 처리방침"
 
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "ブラウザで開いて、ホーム画面に追加するだけ。アプリストアからのダウンロードは不要です。"
+msgstr "브라우저에서 열고 홈 화면에 추가하기만 하면 됩니다. 앱 스토어 다운로드는 필요 없습니다."
+
 #: src/components/garment/GarmentForm.tsx
 msgid "ブラウス、スカート、リボン等"
 msgstr "블라우스, 스커트, 리본 등"
@@ -1103,6 +1204,10 @@ msgstr "페이지네이션"
 #: src/app/print/page.tsx
 msgid "ページの読み込みに失敗しました"
 msgstr "페이지 로딩에 실패했습니다"
+
+#: src/components/marketing/MarketingHeader.tsx
+msgid "ページ内ナビゲーション"
+msgstr "페이지 내 내비게이션"
 
 #: src/components/doll/DollDetailInfoCard.tsx
 #: src/components/doll/DollForm.tsx
@@ -1288,6 +1393,11 @@ msgstr "사용자 상세 정보를 불러오지 못했습니다"
 msgid "ユーザー詳細を開く"
 msgstr "사용자 상세 열기"
 
+#: src/components/marketing/FAQSection.tsx
+#: src/components/marketing/MarketingNavLinks.tsx
+msgid "よくある質問"
+msgstr "자주 묻는 질문"
+
 #: src/lib/i18n-labels.ts
 msgid "よく着る服 (14日)"
 msgstr "자주 입는 옷 (14일)"
@@ -1361,6 +1471,10 @@ msgstr "워드로브 분석"
 msgid "ワードローブ画面"
 msgstr "워드로브 화면"
 
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "ワードローブ画面のスクリーンショット"
+msgstr "워드로브 화면 스크린샷"
+
 #: src/lib/i18n-labels.ts
 msgid "ワンピース"
 msgstr "원피스"
@@ -1414,6 +1528,10 @@ msgstr "아래로"
 msgid "不明"
 msgstr "불명"
 
+#: src/components/marketing/FAQSection.tsx
+msgid "不要です。Dollrobe は PWA なので、ブラウザで開いてそのまま使えます。ホーム画面に追加すれば、アプリのように起動できます。"
+msgstr "필요 없습니다. Dollrobe는 PWA라서 브라우저에서 열어 바로 사용할 수 있습니다. 홈 화면에 추가하면 앱처럼 실행됩니다."
+
 #: src/app/dolls/page.tsx
 #: src/app/garments/page.tsx
 msgid "並び替え"
@@ -1444,9 +1562,18 @@ msgstr "생성"
 msgid "作成日時"
 msgstr "생성일시"
 
+#: src/components/marketing/MarketingNavLinks.tsx
 #: src/components/marketing/StepsSection.tsx
 msgid "使い方"
 msgstr "사용 방법"
+
+#: src/components/marketing/FAQSection.tsx
+msgid "使えます。QR スキャンはブラウザのカメラだけで動くので、iPhone / Android どちらでも OK。NFC タッチは Android Chrome のみの対応なので、収納場所には QR と NFC の両方を貼っておく運用がおすすめです。"
+msgstr "사용할 수 있습니다. QR 스캔은 브라우저 카메라만으로 작동하므로 iPhone / Android 모두 OK입니다. NFC 터치는 Android Chrome에서만 지원되므로, 수납 장소에는 QR과 NFC를 모두 붙여 두는 것을 추천합니다."
+
+#: src/components/marketing/FAQSection.tsx
+msgid "使えます。データは端末にも保存されるので、電波の届かない部屋でも一覧や収納グリッドを確認できます。オンラインに戻ったときに自動で同期します。"
+msgstr "사용할 수 있습니다. 데이터는 기기에도 저장되므로 전파가 닿지 않는 방에서도 목록과 수납 그리드를 확인할 수 있습니다. 온라인으로 돌아오면 자동으로 동기화됩니다."
 
 #: src/app/coordinates/[id]/page.tsx
 msgid "使用する服"
@@ -1565,8 +1692,8 @@ msgid "最近のアイテム"
 msgstr "최근 아이템"
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "最近確認していない服を教えてくれる"
-msgstr "최근 확인하지 않은 옷을 알려줌"
+#~ msgid "最近確認していない服を教えてくれる"
+#~ msgstr "최근 확인하지 않은 옷을 알려줌"
 
 #: src/components/garment/ImageUpload.tsx
 msgid "写真を追加"
@@ -1601,6 +1728,10 @@ msgstr "동결됨만"
 #: src/app/admin/page.tsx
 msgid "凍結中ユーザー"
 msgstr "동결된 사용자"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "出しっぱなし・しまいっぱなしを、そっと教えてくれる"
+msgstr "꺼내 둔 옷, 오래 묵힌 옷을 살며시 알려줍니다"
 
 #: src/components/marketing/StepsSection.tsx
 msgid "出し入れの度に場所の QR を読むだけで、居場所が常に最新の状態に保たれます。"
@@ -1652,12 +1783,16 @@ msgid "収納"
 msgstr "수납"
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "収納グリッドで一目で把握"
-msgstr "보관 그리드로 한눈에 파악"
+#~ msgid "収納グリッドで一目で把握"
+#~ msgstr "보관 그리드로 한눈에 파악"
 
 #: src/components/marketing/StepsSection.tsx
 msgid "収納グリッド画面"
 msgstr "보관 그리드 화면"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "収納グリッド画面のスクリーンショット"
+msgstr "수납 그리드 화면 스크린샷"
 
 #: src/components/marketing/MarketingFooter.tsx
 msgid "収納の答え合わせを、<0/>スキャン 1 回に。"
@@ -1693,12 +1828,16 @@ msgid "収納場所数"
 msgstr "수납 장소 수"
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "取り出したまま忘れている服を検知"
-msgstr "꺼낸 채 잊고 있는 옷을 감지"
+#~ msgid "取り出したまま忘れている服を検知"
+#~ msgstr "꺼낸 채 잊고 있는 옷을 감지"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "取り出したまま戻していない服や、しばらく開けていない場所をダッシュボードに表示。「しまった／使用中／紛失」の 3 択で答えるだけで片付きます。"
+msgstr "꺼낸 채 돌려놓지 않은 옷이나 한동안 열지 않은 장소를 대시보드에 표시합니다. 「수납함 / 사용 중 / 분실」 세 가지 중 하나로 답하기만 하면 정리됩니다."
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "取り出して何日も戻していない服を通知。「戻した／着せた／見つからない」の 3 択で片付きます。"
-msgstr "꺼내서 며칠째 돌려놓지 않은 옷을 알림. 「되돌렸다 / 입혔다 / 찾을 수 없다」의 3가지 선택지로 정리됩니다."
+#~ msgid "取り出して何日も戻していない服を通知。「戻した／着せた／見つからない」の 3 択で片付きます。"
+#~ msgstr "꺼내서 며칠째 돌려놓지 않은 옷을 알림. 「되돌렸다 / 입혔다 / 찾을 수 없다」의 3가지 선택지로 정리됩니다."
 
 #: src/components/garment/GarmentCard.tsx
 #: src/lib/i18n-labels.ts
@@ -1708,6 +1847,10 @@ msgstr "꺼낸 중"
 #: src/components/dashboard/CheckedOutSection.tsx
 msgid "取り出し中の服"
 msgstr "꺼낸 의상"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "取り出し中の服にはバッジが付きます"
+msgstr "꺼내 둔 옷에는 배지가 붙습니다"
 
 #: src/stores/pendingArchiveAtoms.ts
 msgid "取り消す"
@@ -1752,13 +1895,17 @@ msgstr "이름이나 태그로 검색..."
 msgid "圧縮中..."
 msgstr "압축 중..."
 
-#: src/components/marketing/FeatureGrid.tsx
-msgid "場所の QR → 服の QR を連続スキャンするだけ。どこに何をしまったかが、自動で残ります。"
-msgstr "장소 QR → 옷 QR을 연속 스캔하기만 하면 됩니다. 어디에 무엇을 넣었는지 자동으로 남습니다."
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "場所の QR → 服の QR と続けて読み取ると、「どこに、何をしまったか」が自動で記録されます。手で入力する項目はありません。"
+msgstr "장소 QR → 옷 QR을 연이어 읽으면 「어디에 무엇을 넣었는지」가 자동으로 기록됩니다. 손으로 입력할 항목은 없습니다."
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "場所の QR をスキャンしたときに、しばらく見ていない服だけをその場でピックアップ。"
-msgstr "장소 QR을 스캔할 때, 한동안 보지 않았던 옷만 그 자리에서 골라냅니다."
+#~ msgid "場所の QR → 服の QR を連続スキャンするだけ。どこに何をしまったかが、自動で残ります。"
+#~ msgstr "장소 QR → 옷 QR을 연속 스캔하기만 하면 됩니다. 어디에 무엇을 넣었는지 자동으로 남습니다."
+
+#: src/components/marketing/FeatureGrid.tsx
+#~ msgid "場所の QR をスキャンしたときに、しばらく見ていない服だけをその場でピックアップ。"
+#~ msgstr "장소 QR을 스캔할 때, 한동안 보지 않았던 옷만 그 자리에서 골라냅니다."
 
 #: src/components/scan/ScanSessionPanel.tsx
 msgid "場所のQRをスキャンして、収納場所を設定してください"
@@ -1771,6 +1918,10 @@ msgstr "장소 설정"
 #: src/app/scan/page.tsx
 msgid "場所を設定しました"
 msgstr "장소가 설정되었습니다"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "増えた服も、検索とフィルタですぐ見つかる"
+msgstr "옷이 늘어나도 검색과 필터로 바로 찾을 수 있어요"
 
 #: src/components/garment/GarmentLocationRow.tsx
 msgid "変更"
@@ -1834,8 +1985,8 @@ msgid "引き出し"
 msgstr "서랍"
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "引き出しのマス目ごとに「今、何が入っているか」を図で確認できます。"
-msgstr "서랍 칸별로 「지금 무엇이 들어 있는지」를 그림으로 확인할 수 있습니다."
+#~ msgid "引き出しのマス目ごとに「今、何が入っているか」を図で確認できます。"
+#~ msgstr "서랍 칸별로 「지금 무엇이 들어 있는지」를 그림으로 확인할 수 있습니다."
 
 #: src/components/marketing/ProblemSection.tsx
 msgid "引き出しの中に並ぶミニチュアのドール服の俯瞰写真"
@@ -1968,6 +2119,10 @@ msgstr "쓸 대상을 선택해 주세요"
 msgid "書き込む服を選択"
 msgstr "쓸 옷 선택"
 
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "月曜の朝にダイジェストが届くだけ。個別のプッシュ通知で急かさない、穏やかな設計です。"
+msgstr "월요일 아침에 다이제스트가 도착할 뿐입니다. 개별 푸시 알림으로 재촉하지 않는 차분한 설계입니다."
+
 #: src/app/admin/users/[id]/page.tsx
 #: src/components/admin/UserTable.tsx
 msgid "有効"
@@ -2007,6 +2162,10 @@ msgstr "옷과 장소의 QR을 차례로 스캔. 「어디에, 무엇을 넣었�
 #: src/components/marketing/StepsSection.tsx
 msgid "服を QR と紐づけて収納"
 msgstr "옷을 QR과 연결해 보관"
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "服を出すとき・戻すときもスキャン 1 回"
+msgstr "옷을 꺼낼 때・되돌릴 때도 스캔 한 번"
 
 #: src/app/garments/new/page.tsx
 #: src/app/garments/page.tsx
@@ -2087,6 +2246,14 @@ msgstr "매주 월요일에 자동 생성됩니다"
 msgid "気づいたら行方不明"
 msgstr "어느새 행방불명"
 
+#: src/components/marketing/FAQSection.tsx
+msgid "無料で使えます。Google または X アカウントでログインするだけで、すべての機能をそのまま利用できます。"
+msgstr "무료로 사용할 수 있습니다. Google 또는 X 계정으로 로그인하기만 하면 모든 기능을 그대로 이용할 수 있습니다."
+
+#: src/components/marketing/FAQSection.tsx
+msgid "無料で使えますか？"
+msgstr "무료로 사용할 수 있나요?"
+
 #: src/components/marketing/Hero.tsx
 #: src/components/marketing/MarketingFooter.tsx
 msgid "無料で始める"
@@ -2139,6 +2306,10 @@ msgstr "등록된 옷이 없습니다."
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "登録した服・収納場所・コーデ・ドールはすべて削除され、復元できません。"
 msgstr "등록한 옷·보관 장소·코디·인형은 모두 삭제되며 복구할 수 없습니다."
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "登録した服はワードローブに一覧表示。カテゴリ・ドールサイズ・ブランドで絞り込めるので、何百着あっても目的の 1 着にたどり着けます。"
+msgstr "등록한 옷은 워드로브에 목록으로 표시됩니다. 카테고리・인형 사이즈・브랜드로 좁힐 수 있어 수백 벌이 있어도 원하는 한 벌에 도달할 수 있습니다."
 
 #: src/components/doll/DollForm.tsx
 #: src/components/garment/GarmentForm.tsx
@@ -2319,6 +2490,10 @@ msgstr "행"
 msgid "行数"
 msgstr "행 수"
 
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "衣装ケースをマス目のグリッドで表示。マスごとの服の数がひと目で分かるので、「あの服はケース A の右上」がすぐ思い出せます。"
+msgstr "의상 케이스를 칸 단위 그리드로 표시합니다. 칸마다 옷의 수가 한눈에 보여서 「그 옷은 케이스 A의 오른쪽 위」를 바로 떠올릴 수 있습니다."
+
 #: src/app/locations/page.tsx
 msgid "衣装ケースを追加して、服の収納場所を管理しましょう"
 msgstr "의상 케이스를 추가하여 옷의 수납 장소를 관리하세요"
@@ -2435,9 +2610,17 @@ msgstr "네트워크 연결을 확인한 후 페이지를 다시 로드하세요
 msgid "通常 (30日)"
 msgstr "보통 (30일)"
 
+#: src/components/marketing/FAQSection.tsx
+msgid "通知がたくさん来たりしませんか？"
+msgstr "알림이 너무 많이 오지 않나요?"
+
 #: src/components/marketing/FeatureGrid.tsx
-msgid "通知は月曜の朝 1 回だけ。通知疲れしない、穏やかな設計。"
-msgstr "알림은 월요일 아침 1회만. 알림 피로 없는 부드러운 설계."
+#~ msgid "通知は月曜の朝 1 回だけ。通知疲れしない、穏やかな設計。"
+#~ msgstr "알림은 월요일 아침 1회만. 알림 피로 없는 부드러운 설계."
+
+#: src/components/marketing/FeatureShowcase.tsx
+msgid "通知は週 1 回だけ"
+msgstr "알림은 주 1회뿐"
 
 #: src/app/garments/bulk/page.tsx
 #: src/app/garments/new/page.tsx
@@ -2446,8 +2629,8 @@ msgid "連続撮影"
 msgstr "연속 촬영"
 
 #: src/components/marketing/FeatureGrid.tsx
-msgid "週 1 回のダイジェスト"
-msgstr "주 1회 다이제스트"
+#~ msgid "週 1 回のダイジェスト"
+#~ msgstr "주 1회 다이제스트"
 
 #: src/app/digest/page.tsx
 msgid "週間レポート"

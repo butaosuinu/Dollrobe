@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Hero from "@/components/marketing/Hero";
 import ProblemSection from "@/components/marketing/ProblemSection";
-import FeatureGrid from "@/components/marketing/FeatureGrid";
+import FeatureShowcase from "@/components/marketing/FeatureShowcase";
 import StepsSection from "@/components/marketing/StepsSection";
+import FAQSection from "@/components/marketing/FAQSection";
 import MarketingHeader from "@/components/marketing/MarketingHeader";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 import LandingAuthRedirect from "@/components/marketing/LandingAuthRedirect";
@@ -10,7 +11,7 @@ import LandingAuthRedirect from "@/components/marketing/LandingAuthRedirect";
 /* eslint-disable lingui/no-unlocalized-strings -- OG/Twitter metadata is static
    ja_JP; per-locale variants would need full SSR routing which is out of scope */
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-const OG_TITLE = "Dollrobe — ドール服が、どこにあるか分かる";
+const OG_TITLE = "Dollrobe — スキャンするだけで、ドール服の場所がぜんぶ分かる";
 const OG_DESCRIPTION =
   "QR と NFC でドール服の収納を半自動管理する PWA。手入力なし、スキャンするだけで在庫が最新に。";
 
@@ -40,8 +41,9 @@ const LandingPage = () => (
     <main>
       <Hero />
       <ProblemSection />
-      <FeatureGrid />
+      <FeatureShowcase />
       <StepsSection />
+      <FAQSection />
     </main>
     <MarketingFooter />
   </>

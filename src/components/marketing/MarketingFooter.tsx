@@ -4,6 +4,7 @@ import { Trans } from "@lingui/react/macro";
 import Logo from "@/components/marketing/Logo";
 import LocaleSelector from "@/components/settings/LocaleSelector";
 import MarketingCTA from "@/components/marketing/MarketingCTA";
+import MarketingNavLinks from "@/components/marketing/MarketingNavLinks";
 
 const MarketingFooter = () => (
   <footer className="relative overflow-hidden border-t border-border-default/60 bg-surface-base">
@@ -43,6 +44,7 @@ const MarketingFooter = () => (
         </div>
 
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+          <MarketingNavLinks linkClassName="text-text-secondary transition-colors hover:text-primary-700" />
           <LocaleSelector />
         </nav>
       </div>
