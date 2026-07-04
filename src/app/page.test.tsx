@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { server } from "@/test/mocks/server";
 import { unauthenticatedHandler } from "@/test/mocks/handlers";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
@@ -33,6 +33,39 @@ describe("LandingPage", () => {
     for (const link of ctaLinks) {
       expect(link).toHaveAttribute("href", "/signin?redirect=%2Fdashboard");
     }
+  });
+
+  it("ヘッダーのアンカーナビが各セクションを指し、対応する id が存在する", async () => {
+    server.use(unauthenticatedHandler);
+
+    await renderWithProviders(<LandingPage />);
+
+    const nav = await screen.findByRole("navigation", {
+      name: "ページ内ナビゲーション",
+    });
+    const links = within(nav).getAllByRole("link");
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "#features",
+      "#steps",
+      "#faq",
+    ]);
+    for (const id of ["features", "steps", "faq"]) {
+      expect(document.getElementById(id)).not.toBeNull();
+    }
+  });
+
+  it("機能紹介と FAQ セクションの見出しが表示される", async () => {
+    server.use(unauthenticatedHandler);
+
+    await renderWithProviders(<LandingPage />);
+
+    expect(
+      await screen.findByRole("heading", { name: /収納を半自動化する/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "はじめる前の、気になるところ" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("iPhone でも使えますか？")).toBeInTheDocument();
   });
 
   it("認証済みのときは /dashboard へリダイレクトする", async () => {

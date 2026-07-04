@@ -45,20 +45,21 @@ const Hero = () => {
             <span className="size-1.5 rounded-full bg-primary-500" />
             <Trans>ドール服のための収納管理 PWA</Trans>
           </p>
-          <h1 className="font-display text-4xl font-bold leading-[1.15] tracking-tight text-text-primary md:text-5xl lg:text-6xl">
+          <h1 className="font-display text-[2rem] font-bold leading-[1.2] tracking-tight text-text-primary md:text-5xl lg:text-[3.25rem]">
             <Trans>
-              あの服、どこにしまったっけ？
+              スキャンするだけで、
+              <br />
+              ドール服の場所が
               <br />
               <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
-                を、終わらせる。
+                ぜんぶ分かる。
               </span>
             </Trans>
           </h1>
           <p className="max-w-xl text-base leading-relaxed text-text-secondary md:text-lg">
             <Trans>
               QR と NFC
-              で、ドール服の収納を半自動で管理。手入力は一切なし。スキャンするだけで、
-              どこに何があるかが常に最新の状態になります。
+              で、ドール服の収納を半自動で管理。手入力は一切なし。どの引き出しに何があるかが、常に最新の状態に保たれます。
             </Trans>
           </p>
           <div className="flex flex-wrap items-center gap-4 pt-2">

@@ -174,8 +174,10 @@ certificates/
 
 # claude local settings
 .claude/settings.local.json
+.claude/hooks/
 
 # dmux runtime metadata and worktrees
 .dmux/
+.claude/dmux/
 /docs/lp/photo-raw/
 .playwright-mcp/

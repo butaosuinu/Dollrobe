@@ -11,6 +11,7 @@ import {
   screenshotPath,
   type ScreenshotName,
 } from "@/components/marketing/screenshotPath";
+import { SECTION_ID } from "@/components/marketing/sectionIds";
 import { useFadeInOnView } from "@/hooks/useFadeInOnView";
 
 const STEPS: ReadonlyArray<{
@@ -123,7 +124,10 @@ const StepCard = ({
 };
 
 const StepsSection = () => (
-  <section className="relative py-20 lg:py-28">
+  <section
+    id={SECTION_ID.STEPS}
+    className="relative scroll-mt-20 py-20 lg:py-28"
+  >
     <div className="mx-auto max-w-6xl px-4 lg:px-8">
       <div className="mx-auto mb-16 max-w-2xl text-center">
         <p className="mb-3 text-sm font-medium text-primary-600">
