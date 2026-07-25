@@ -22,6 +22,7 @@ export default tseslint.config(
       "vitest.config.ts",
       "lingui.config.ts",
       "lingui-macro-loader.cjs",
+      ".dependency-cruiser.cjs",
       "src/lib/stubs/**/*.cjs",
       "src/locales/**/*.js",
       "src/locales/**/*.mjs",

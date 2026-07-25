@@ -38,6 +38,14 @@
 - `npx tsc --noEmit path/to/file.ts` は使用禁止（tsconfig.json 設定が無視されるため）
 - `-p` なしの `npx tsc-files --noEmit path/to/file.ts` は使用禁止（CI と異なる tsconfig が使われるため）
 
+### アーキテクチャ境界の検査（dependency-cruiser）
+
+- `pnpm depcruise` が import グラフを解析し、アーキテクチャ境界を検査する（`precheck` に含まれる）
+- 検査対象: workers ⇔ src の境界、workers 内のレイヤリング（trpc → services → repositories/db）、循環依存、孤立モジュール、バレルファイル禁止
+- 設定は `.dependency-cruiser.cjs`。全ルールが severity `error`
+- 違反した場合は原則コード側を直す。正当な例外（新規エントリポイント等）に限り設定の `pathNot` に追記する
+- **検出は近似**であり、green は「違反が無い」ことの証明ではない。レイヤリングは直接 import のエッジのみを見る（多段経由は検出しない）、孤立モジュールは import も被 import も両方ゼロのファイルのみ、バレル禁止は `index.ts(x)` が import された時点でのみ発火する（dead code やバレルの網羅検出は担保しない）
+
 ### PR 作成前の最終チェック（必須）
 
 - **PR 作成前に `pnpm precheck` を必ず実行すること**
@@ -143,12 +151,13 @@ QR スキャンで物理的な収納場所とデジタル在庫を紐づけ、�
     │   │   ├── client.ts      # DrizzleDB インスタンス生成
     │   │   ├── helpers.ts     # JSON 配列 customType
     │   │   └── validation.ts  # drizzle-zod による Zod バリデーション
+    │   ├── lib/               # 層をまたぐ共通ユーティリティ
+    │   │   ├── schemas.ts     # Zod 入力スキーマ（validation.ts から re-export + スキャン系）
+    │   │   ├── d1-helpers.ts  # wrapDbError（DB エラーの構造化ログ + TRPCError 変換）
+    │   │   └── logger.ts      # 構造化ロガー
     │   ├── trpc/
     │   │   ├── index.ts       # tRPC 初期化・ミドルウェア
     │   │   ├── router.ts      # AppRouter 合成
-    │   │   ├── lib/
-    │   │   │   ├── schemas.ts     # Zod 入力スキーマ（validation.ts から re-export + スキャン系）
-    │   │   │   └── d1-helpers.ts  # ユーティリティ（wrapDbError, generateLabel）
     │   │   └── routers/       # 薄い tRPC ルーター
     │   │       ├── garment.ts
     │   │       ├── location.ts

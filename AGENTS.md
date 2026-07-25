@@ -53,6 +53,8 @@ Dollrobe は、ドール服と物理的な収納場所を QR / NFC で結び付�
 - `workers/src/services/`: ビジネスルールとユースケース。
 - `workers/src/repositories/`: Drizzle を使った D1 アクセス。
 - `workers/src/db/`: schema、validation、client、DB helper。
+- `workers/src/lib/`: 層をまたぐ共通ユーティリティ。logger、Sentry、共有 Zod 入力
+  schema (`schemas.ts`)、D1 helper (`d1-helpers.ts`)。上位層に依存しない。
 - `workers/src/routes/`: Hono の非 tRPC route。
 - `workers/src/mcp/`, `queues/`, `scheduled/`: MCP、Queue consumer、cron。
 - `workers/migrations/`: Wrangler が適用する連番付き D1 migration。
@@ -69,6 +71,7 @@ Node.js 22 以上、`pnpm@10.28.2` を使用する。依存がない環境では
 - `pnpm db:migrate:local`: ローカル D1 migration
 - `pnpm typecheck`: app、Workers、service worker、image worker の型検査
 - `pnpm lint`: OxLint + ESLint
+- `pnpm depcruise`: dependency-cruiser によるアーキテクチャ境界検査
 - `pnpm format` / `pnpm format:check`: OxFmt の適用 / 検査
 - `pnpm i18n:check`: `en/ko/zh` の未翻訳検査
 - `pnpm test`: frontend + Workers の Vitest workspace
@@ -77,7 +80,7 @@ Node.js 22 以上、`pnpm@10.28.2` を使用する。依存がない環境では
 - `pnpm test:e2e`: Playwright。Next.js と Wrangler は設定から起動される
 - `pnpm build`: Next.js build
 - `pnpm build:workers`: Workers deploy の dry-run
-- `pnpm precheck`: typecheck、lint、format check、i18n check
+- `pnpm precheck`: typecheck、lint、depcruise、format check、i18n check
 - `pnpm precheck:full`: `precheck` + Vitest
 
 実装中は変更箇所に近いテストを先に実行し、完了時に変更範囲に応じて検証を
@@ -162,8 +165,9 @@ Node.js 22 以上、`pnpm@10.28.2` を使用する。依存がない環境では
   user-owned data には `userId` 条件を必ず含める。
 - リクエストスコープの logger を引数で渡し、`logger.child()` で context を
   追加する。Workers 本体で `console.log` を追加しない。
-- `workers/src/db/validation.ts` と tRPC input schema の責務を確認し、同じ
-  validation を複数箇所に複製しない。
+- `workers/src/db/validation.ts` と共有入力 schema (`workers/src/lib/schemas.ts`。
+  tRPC router と MCP tool が共用する) の責務を確認し、同じ validation を複数箇所
+  に複製しない。
 - auth、frozen user、admin、API key / MCP scope を変更する場合は、許可経路
   だけでなく拒否経路と既存 session の扱いもテストする。
 
