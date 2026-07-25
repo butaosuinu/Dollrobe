@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { aroundEach, describe, expect, it, vi } from "vitest";
 import { extractBearerKey, resolveAuthenticatedUserId } from "./auth-resolver";
 import type { Auth } from "../auth";
 
@@ -62,8 +62,11 @@ const cleanupUsers = async (): Promise<void> => {
     .run();
 };
 
-beforeEach(cleanupUsers);
-afterEach(cleanupUsers);
+aroundEach(async (runTest) => {
+  await cleanupUsers();
+  await runTest();
+  await cleanupUsers();
+});
 
 describe("extractBearerKey", () => {
   it("authorization が無いとき undefined", () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
@@ -29,7 +29,7 @@ const fireFileSelect = (file: File): void => {
 };
 
 describe("GarmentForm istanbul coverage", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     setupNextNavigation();
     colorHandle.current = setupUseColorExtraction();
@@ -39,9 +39,9 @@ describe("GarmentForm istanbul coverage", () => {
         HttpResponse.json({ imageUrl: "https://example.com/uploaded.png" }),
       ),
     );
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
@@ -19,12 +19,12 @@ const renderCard = async () =>
   );
 
 describe("StaleLocationsCard", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     setupNextNavigation();
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

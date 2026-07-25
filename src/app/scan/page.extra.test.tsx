@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
@@ -20,18 +20,12 @@ import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import ScanPage from "./page";
 
-const nfcRdrHandle: {
-  current: ReturnType<typeof setupUseNfcReader>;
-} = {
-  current: setupUseNfcReader({ status: "scanning" }),
-};
-
 describe("ScanPage (extra)", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     setNfcSupported(false);
-    nfcRdrHandle.current = setupUseNfcReader({ status: "scanning" });
+    setupUseNfcReader({ status: "scanning" });
     setupJsqr();
 
     installMediaDevices({
@@ -40,9 +34,9 @@ describe("ScanPage (extra)", () => {
     installCanvas2DContext();
     installVideoReadyState(4, 4);
     installMediaElementPlayback();
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.useRealTimers();
     vi.restoreAllMocks();
   });

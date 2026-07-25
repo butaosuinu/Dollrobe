@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, aroundEach, vi } from "vitest";
 import { act, screen } from "@testing-library/react";
 import { i18n } from "@lingui/core";
 import { messages as jaMessages } from "@/locales/ja/messages.mjs";
@@ -10,13 +10,13 @@ import { renderWithProviders } from "@/test/testUtils";
 import WardrobeAnalytics from "./WardrobeAnalytics";
 
 describe("WardrobeAnalytics", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     i18n.load({ ja: jaMessages, en: enMessages, ko: koMessages });
     i18n.activate("ja");
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
     i18n.activate("ja");
   });

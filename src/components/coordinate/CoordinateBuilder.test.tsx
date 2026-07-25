@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
@@ -48,12 +48,12 @@ const setup = async (props?: {
 };
 
 describe("CoordinateBuilder", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     setupNextNavigation();
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtils";
@@ -30,14 +30,14 @@ describe("CsvDropZone", () => {
   const createObjectUrlSpy = vi.fn(() => "blob:mock-url");
   const revokeObjectUrlSpy = vi.fn();
 
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     createObjectUrlSpy.mockClear();
     revokeObjectUrlSpy.mockClear();
     vi.spyOn(URL, "createObjectURL").mockImplementation(createObjectUrlSpy);
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(revokeObjectUrlSpy);
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

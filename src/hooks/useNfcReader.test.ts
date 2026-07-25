@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useNfcReader } from "./useNfcReader";
 import { NFC_SCAN_COOLDOWN_MS, VIBRATION_DURATION_MS } from "@/lib/constants";
@@ -97,7 +97,7 @@ describe("useNfcReader", () => {
     return mockReaderRef.current.instance;
   }
 
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     mockReaderRef.current = createMockReader();
 
     Object.defineProperty(window, "NDEFReader", {
@@ -111,9 +111,9 @@ describe("useNfcReader", () => {
       writable: true,
       configurable: true,
     });
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
 
     Object.defineProperty(window, "NDEFReader", {
@@ -251,58 +251,64 @@ describe("useNfcReader", () => {
     expect(onScan).not.toHaveBeenCalled();
   });
 
-  it("cooldown 期間内の同一データ重複スキャンを無視する", async () => {
-    vi.useFakeTimers();
-    const onScan = vi.fn();
-    renderHook(() => useNfcReader({ onScan, isActive: true }));
+  describe("cooldown", () => {
+    aroundEach(async (runTest) => {
+      vi.useFakeTimers();
 
-    await vi.advanceTimersByTimeAsync(0);
+      await runTest();
 
-    const event = createReadingEvent({
-      recordType: "url",
-      data: "dwg://g/garment-123",
+      vi.useRealTimers();
     });
 
-    act(() => {
-      mockReaderRef.current.triggerReading(event);
+    it("cooldown 期間内の同一データ重複スキャンを無視する", async () => {
+      const onScan = vi.fn();
+      renderHook(() => useNfcReader({ onScan, isActive: true }));
+
+      await vi.advanceTimersByTimeAsync(0);
+
+      const event = createReadingEvent({
+        recordType: "url",
+        data: "dwg://g/garment-123",
+      });
+
+      act(() => {
+        mockReaderRef.current.triggerReading(event);
+      });
+
+      expect(onScan).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        vi.advanceTimersByTime(NFC_SCAN_COOLDOWN_MS - 1);
+        mockReaderRef.current.triggerReading(event);
+      });
+
+      expect(onScan).toHaveBeenCalledTimes(1);
     });
 
-    expect(onScan).toHaveBeenCalledTimes(1);
+    it("cooldown 経過後は同一データでも onScan を呼ぶ", async () => {
+      const onScan = vi.fn();
+      renderHook(() => useNfcReader({ onScan, isActive: true }));
 
-    act(() => {
-      vi.advanceTimersByTime(NFC_SCAN_COOLDOWN_MS - 1);
-      mockReaderRef.current.triggerReading(event);
+      await vi.advanceTimersByTimeAsync(0);
+
+      const event = createReadingEvent({
+        recordType: "url",
+        data: "dwg://g/garment-123",
+      });
+
+      act(() => {
+        mockReaderRef.current.triggerReading(event);
+      });
+
+      expect(onScan).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        vi.advanceTimersByTime(NFC_SCAN_COOLDOWN_MS);
+        mockReaderRef.current.triggerReading(event);
+      });
+
+      expect(onScan).toHaveBeenCalledTimes(2);
     });
-
-    expect(onScan).toHaveBeenCalledTimes(1);
-    vi.useRealTimers();
-  });
-
-  it("cooldown 経過後は同一データでも onScan を呼ぶ", async () => {
-    vi.useFakeTimers();
-    const onScan = vi.fn();
-    renderHook(() => useNfcReader({ onScan, isActive: true }));
-
-    await vi.advanceTimersByTimeAsync(0);
-
-    const event = createReadingEvent({
-      recordType: "url",
-      data: "dwg://g/garment-123",
-    });
-
-    act(() => {
-      mockReaderRef.current.triggerReading(event);
-    });
-
-    expect(onScan).toHaveBeenCalledTimes(1);
-
-    act(() => {
-      vi.advanceTimersByTime(NFC_SCAN_COOLDOWN_MS);
-      mockReaderRef.current.triggerReading(event);
-    });
-
-    expect(onScan).toHaveBeenCalledTimes(2);
-    vi.useRealTimers();
   });
 
   it("isActive が false に変わるとスキャンが停止する", async () => {

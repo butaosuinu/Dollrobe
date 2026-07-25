@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import {
   estimateDecayDays,
   getConfidence,
@@ -373,12 +373,12 @@ describe("getReviewThreshold", () => {
 describe("getElapsedDays", () => {
   const FIXED_NOW = new Date("2025-06-15T00:00:00Z").getTime();
 
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.useFakeTimers();
     vi.setSystemTime(FIXED_NOW);
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.useRealTimers();
   });
 

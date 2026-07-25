@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
@@ -22,7 +22,7 @@ const colorHandle: {
 };
 
 describe("GarmentForm", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     setupNextNavigation();
     colorHandle.current = setupUseColorExtraction();
@@ -32,9 +32,9 @@ describe("GarmentForm", () => {
         HttpResponse.json({ imageUrl: "https://r2.example.com/test.png" }),
       ),
     );
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import { setNfcSupported } from "@/test/helpers/nfc";
 import NfcCapabilityBadge from "./NfcCapabilityBadge";
 
 describe("NfcCapabilityBadge", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     setNfcSupported(false);
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

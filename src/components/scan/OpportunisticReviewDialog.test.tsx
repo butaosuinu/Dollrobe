@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, fireEvent } from "@testing-library/react";
 import { createTestGarment, FIXED_NOW } from "@/test/factories";
 import { renderWithProviders } from "@/test/testUtils";
@@ -34,14 +34,14 @@ describe("OpportunisticReviewDialog", () => {
   const mockOnConfirmAll = vi.fn();
   const mockOnConfirmPartial = vi.fn();
 
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     mockOnClose.mockClear();
     mockOnConfirmAll.mockClear();
     mockOnConfirmPartial.mockClear();
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Env } from "../types";
@@ -63,11 +63,11 @@ const buildMultipartRequest = ({
 };
 
 describe("imageRoutes /upload/:garmentId", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.restoreAllMocks();
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

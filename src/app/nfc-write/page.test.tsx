@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb } from "@/test/mocks/db";
@@ -21,12 +21,12 @@ vi.mock("@/lib/nfc/writer", async () => {
 });
 
 describe("NfcWritePage", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     mockWriteNfcTag.mockReset();
     setNfcSupported(false);
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

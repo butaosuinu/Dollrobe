@@ -3,7 +3,7 @@ import {
   createExecutionContext,
   waitOnExecutionContext,
 } from "cloudflare:test";
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { APIError } from "better-auth/api";
 import worker from "./index";
 
@@ -67,15 +67,15 @@ const cleanupFrozenUsers = async (): Promise<void> => {
     .run();
 };
 
-beforeEach(async () => {
+aroundEach(async (runTest) => {
   setPasswordSpy.mockReset();
   deleteUserSpy.mockReset();
   getSessionSpy.mockReset();
   vi.spyOn(console, "log").mockImplementation(noop);
   await cleanupFrozenUsers();
-});
 
-afterEach(async () => {
+  await runTest();
+
   vi.restoreAllMocks();
   await cleanupFrozenUsers();
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
@@ -18,18 +18,14 @@ import {
 import { renderWithProviders } from "@/test/testUtils";
 import BulkCapturePage from "./page";
 
-const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
-  current: setupNextNavigation(),
-};
-
 vi.mock("@/lib/image/compressImage", () => ({
   compressImage: async ({ file }: { readonly file: File }) =>
     await Promise.resolve({ file, width: 100, height: 100 }),
 }));
 
 describe("BulkCapturePage", () => {
-  beforeEach(() => {
-    navHandle.current = setupNextNavigation();
+  aroundEach(async (runTest) => {
+    setupNextNavigation();
     installMediaDevices({
       resolveStream: createMockMediaStream(createMockTrack()),
     });
@@ -42,9 +38,9 @@ describe("BulkCapturePage", () => {
         HttpResponse.json({ imageUrl: "https://r2.example.com/test.png" }),
       ),
     );
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

@@ -1,5 +1,5 @@
 import Dexie from "dexie";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { aroundEach, describe, expect, it } from "vitest";
 import { STORAGE_CASE_TYPE, SYNC_ACTION_TYPE } from "@/lib/constants";
 import { DollWardrobeDB } from "@/lib/db/dexie";
 
@@ -77,11 +77,10 @@ const setupMigration = (
   seed: (db: Dexie) => Promise<void>,
 ): { readonly getDbName: () => string } => {
   const dbName = uniqueDbName(suffix);
-  beforeEach(async () => {
+  aroundEach(async (runTest) => {
     await Dexie.delete(dbName);
     await seedLegacyDb(dbName, version, stores, seed);
-  });
-  afterEach(async () => {
+    await runTest();
     await Dexie.delete(dbName);
   });
   return { getDbName: () => dbName };
