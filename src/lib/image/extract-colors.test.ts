@@ -11,10 +11,11 @@ const mockWorkerInstance = vi.hoisted(() => ({
   terminate: vi.fn(),
 }));
 
-vi.stubGlobal(
-  "Worker",
-  vi.fn(() => mockWorkerInstance),
-);
+function buildWorkerInstance(): typeof mockWorkerInstance {
+  return mockWorkerInstance;
+}
+
+vi.stubGlobal("Worker", vi.fn(buildWorkerInstance));
 
 const fireWorkerMessage = (data: ExtractColorsResponse): void => {
   const call = mockWorkerInstance.addEventListener.mock.calls.find(

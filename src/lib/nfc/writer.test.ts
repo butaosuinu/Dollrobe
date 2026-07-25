@@ -33,12 +33,16 @@ describe("buildNfcScheme", () => {
   });
 });
 
+function buildNdefReaderInstance(): { readonly write: typeof mockWrite } {
+  return { write: mockWrite };
+}
+
 describe("writeNfcTag", () => {
   beforeEach(() => {
     mockWrite.mockReset();
-    (globalThis as Record<string, unknown>).NDEFReader = vi.fn(() => ({
-      write: mockWrite,
-    }));
+    (globalThis as Record<string, unknown>).NDEFReader = vi.fn(
+      buildNdefReaderInstance,
+    );
   });
 
   afterEach(() => {

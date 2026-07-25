@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  type Mock,
+} from "vitest";
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
@@ -10,13 +18,17 @@ import {
 } from "@/lib/constants";
 import type { Coordinate } from "@/types";
 import { setupNextNavigation } from "@/test/mocks/modules/nextNavigation";
-import CoordinateBuilder from "./CoordinateBuilder";
+import CoordinateBuilder, {
+  type CoordinateBuilderSubmitData,
+} from "./CoordinateBuilder";
+
+type OnSubmit = (data: CoordinateBuilderSubmitData) => Promise<void>;
 
 type SetupParams = {
   readonly seedGarments?: boolean;
   readonly initial?: Coordinate;
-  readonly onSubmit?: ReturnType<typeof vi.fn>;
-  readonly onCancel?: ReturnType<typeof vi.fn>;
+  readonly onSubmit?: Mock<OnSubmit>;
+  readonly onCancel?: Mock<() => void>;
 };
 
 const buildInitial = (overrides: Partial<Coordinate> = {}): Coordinate => ({
@@ -58,7 +70,7 @@ const setup = async ({
   }
   await seedDbFromTestDb();
 
-  const submitMock = onSubmit ?? vi.fn().mockResolvedValue(undefined);
+  const submitMock = onSubmit ?? vi.fn<OnSubmit>().mockResolvedValue(undefined);
   const result = await renderWithProviders(
     <CoordinateBuilder
       initial={initial}
@@ -261,7 +273,7 @@ describe("CoordinateBuilder extra", () => {
 
   it("onCancel が渡されている場合はキャンセルボタンを表示する", async () => {
     const user = userEvent.setup();
-    const onCancel = vi.fn();
+    const onCancel = vi.fn<() => void>();
     await setup({ onCancel });
 
     const cancel = await screen.findByRole("button", { name: "キャンセル" });
@@ -297,7 +309,7 @@ describe("CoordinateBuilder extra", () => {
 
   it("onSubmit が Error 以外を投げるとデフォルトメッセージを表示する", async () => {
     const user = userEvent.setup();
-    const onSubmit = vi.fn().mockRejectedValue("文字列エラー");
+    const onSubmit = vi.fn<OnSubmit>().mockRejectedValue("文字列エラー");
     await setup({ onSubmit });
 
     await user.click(
@@ -312,7 +324,7 @@ describe("CoordinateBuilder extra", () => {
 
   it("初期値に存在しない garmentId が含まれていても submit 時には除外される", async () => {
     const user = userEvent.setup();
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const onSubmit = vi.fn<OnSubmit>().mockResolvedValue(undefined);
     await setup({
       onSubmit,
       initial: buildInitial({
@@ -332,7 +344,7 @@ describe("CoordinateBuilder extra", () => {
 
   it("初期 memo が指定されている場合は trim された値が送信される", async () => {
     const user = userEvent.setup();
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const onSubmit = vi.fn<OnSubmit>().mockResolvedValue(undefined);
     await setup({
       onSubmit,
       initial: buildInitial({

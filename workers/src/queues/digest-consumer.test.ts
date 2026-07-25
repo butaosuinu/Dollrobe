@@ -1,6 +1,6 @@
 import { env } from "cloudflare:test";
 import type { Message, MessageBatch } from "@cloudflare/workers-types";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { createTestLogger } from "../test/helpers";
 import { handleDigestQueue } from "./digest-consumer";
 import * as digestService from "../services/digest-service";
@@ -21,15 +21,15 @@ const mockedGenerate = vi.mocked(digestService.generateDigestForUser);
 const logger = createTestLogger();
 
 type StubMessage = Message & {
-  readonly ack: ReturnType<typeof vi.fn>;
-  readonly retry: ReturnType<typeof vi.fn>;
+  readonly ack: Mock<Message["ack"]>;
+  readonly retry: Mock<Message["retry"]>;
 };
 
 const buildMessage = (body: unknown): StubMessage => ({
   id: "msg-1",
   body,
-  ack: vi.fn(),
-  retry: vi.fn(),
+  ack: vi.fn<Message["ack"]>(),
+  retry: vi.fn<Message["retry"]>(),
   timestamp: new Date(),
   attempts: 1,
 });

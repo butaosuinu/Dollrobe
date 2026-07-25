@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { useFadeInOnView } from "@/hooks/useFadeInOnView";
 
@@ -6,8 +6,8 @@ type ObserverCb = (entries: ReadonlyArray<{ isIntersecting: boolean }>) => void;
 
 type Observer = {
   readonly cb: ObserverCb;
-  readonly observe: ReturnType<typeof vi.fn>;
-  readonly disconnect: ReturnType<typeof vi.fn>;
+  readonly observe: Mock<() => void>;
+  readonly disconnect: Mock<() => void>;
 };
 
 const observers: Observer[] = [];
@@ -16,8 +16,8 @@ const installIntersectionObserver = (): readonly Observer[] => {
   observers.splice(0, observers.length);
 
   const FakeIO = function (this: unknown, cb: ObserverCb) {
-    const observe = vi.fn();
-    const disconnect = vi.fn();
+    const observe = vi.fn<() => void>();
+    const disconnect = vi.fn<() => void>();
     observers.push({ cb, observe, disconnect });
     return {
       observe,

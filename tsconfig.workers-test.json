@@ -5,7 +5,7 @@
       "@cloudflare/workers-types",
       "node",
       "vitest/globals",
-      "@cloudflare/vitest-pool-workers"
+      "@cloudflare/vitest-pool-workers/types"
     ],
     "noUncheckedIndexedAccess": false,
     "declaration": false,

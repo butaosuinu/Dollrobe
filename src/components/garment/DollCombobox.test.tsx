@@ -1,10 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, type Mock } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createTestDoll } from "@/test/factories";
 import { renderWithProviders } from "@/test/testUtils";
 import type { Doll } from "@/types";
 import DollCombobox from "./DollCombobox";
+
+type OnChangeDoll = (id: string | undefined) => void;
 
 const BLUR_TIMEOUT_MS = 500;
 
@@ -32,11 +34,11 @@ const buildDolls = (): readonly Doll[] => [
 const renderCombobox = async ({
   dolls = buildDolls(),
   selectedDollId,
-  onChangeDoll = vi.fn(),
+  onChangeDoll = vi.fn<OnChangeDoll>(),
 }: {
   readonly dolls?: readonly Doll[];
   readonly selectedDollId?: string;
-  readonly onChangeDoll?: ReturnType<typeof vi.fn>;
+  readonly onChangeDoll?: Mock<OnChangeDoll>;
 } = {}) => {
   const utils = await renderWithProviders(
     <DollCombobox
@@ -212,7 +214,7 @@ describe("DollCombobox", () => {
 
   it("Enter で activeIndex が 0 のとき undefined が選択される (全ドール)", async () => {
     const user = userEvent.setup();
-    const onChangeDoll = vi.fn();
+    const onChangeDoll = vi.fn<OnChangeDoll>();
     const { combobox } = await renderCombobox({ onChangeDoll });
 
     await user.click(combobox);
@@ -226,7 +228,7 @@ describe("DollCombobox", () => {
 
   it("Enter で activeIndex が >= 1 のとき該当ドール ID が選択される", async () => {
     const user = userEvent.setup();
-    const onChangeDoll = vi.fn();
+    const onChangeDoll = vi.fn<OnChangeDoll>();
     const { combobox } = await renderCombobox({ onChangeDoll });
 
     await user.click(combobox);
@@ -238,7 +240,7 @@ describe("DollCombobox", () => {
 
   it("activeIndex が -1 の状態の Enter は何も選択しない", async () => {
     const user = userEvent.setup();
-    const onChangeDoll = vi.fn();
+    const onChangeDoll = vi.fn<OnChangeDoll>();
     const { combobox } = await renderCombobox({ onChangeDoll });
 
     await user.click(combobox);
@@ -261,7 +263,7 @@ describe("DollCombobox", () => {
 
   it("ドール option を pointerDown で選択すると onChangeDoll が呼ばれる", async () => {
     const user = userEvent.setup();
-    const onChangeDoll = vi.fn();
+    const onChangeDoll = vi.fn<OnChangeDoll>();
     const { combobox } = await renderCombobox({ onChangeDoll });
 
     await user.click(combobox);
@@ -276,7 +278,7 @@ describe("DollCombobox", () => {
 
   it("「全ドール」option を pointerDown で選択すると undefined が渡される", async () => {
     const user = userEvent.setup();
-    const onChangeDoll = vi.fn();
+    const onChangeDoll = vi.fn<OnChangeDoll>();
     const { combobox } = await renderCombobox({
       selectedDollId: "doll-1",
       onChangeDoll,
@@ -331,7 +333,7 @@ describe("DollCombobox", () => {
 
   it("該当なしの状態で Enter を押しても何も選択されない", async () => {
     const user = userEvent.setup();
-    const onChangeDoll = vi.fn();
+    const onChangeDoll = vi.fn<OnChangeDoll>();
     const { combobox } = await renderCombobox({ onChangeDoll });
 
     await user.click(combobox);

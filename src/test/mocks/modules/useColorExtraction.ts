@@ -23,7 +23,15 @@ const setState = (next: State): void => {
   stateMap.set("v", next);
 };
 
-export const useColorExtractionFactory = () => ({
+type UseColorExtractionMock = {
+  readonly extractionState: ColorExtractionState;
+  readonly extractColors: Spies["extractColors"];
+  readonly reset: Spies["reset"];
+};
+
+export const useColorExtractionFactory = (): {
+  useColorExtraction: () => UseColorExtractionMock;
+} => ({
   useColorExtraction: () => {
     const s = getState();
     return {
@@ -34,7 +42,11 @@ export const useColorExtractionFactory = () => ({
   },
 });
 
-export const setupUseColorExtraction = () => {
+export const setupUseColorExtraction = (): {
+  readonly extractColors: Spies["extractColors"];
+  readonly reset: Spies["reset"];
+  readonly setExtractionState: (s: ColorExtractionState) => void;
+} => {
   const current = getState();
   current.spies.extractColors.mockReset();
   current.spies.reset.mockReset();

@@ -93,11 +93,15 @@ describe("useNfcReader", () => {
   const mockReaderRef = { current: createMockReader() };
   const vibrateMock = vi.fn();
 
+  function buildNdefReaderInstance(): (typeof mockReaderRef.current)["instance"] {
+    return mockReaderRef.current.instance;
+  }
+
   beforeEach(() => {
     mockReaderRef.current = createMockReader();
 
     Object.defineProperty(window, "NDEFReader", {
-      value: vi.fn(() => mockReaderRef.current.instance),
+      value: vi.fn(buildNdefReaderInstance),
       writable: true,
       configurable: true,
     });

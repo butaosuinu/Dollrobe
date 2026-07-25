@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi, type Mock } from "vitest";
 
 type Router = {
   readonly push: ReturnType<typeof vi.fn>;
@@ -39,7 +39,16 @@ const setState = (next: NextNavigationState): void => {
   stateMap.set("v", next);
 };
 
-export const nextNavigationFactory = () => ({
+export type NextNavigationMock = {
+  readonly useRouter: () => Router;
+  readonly useParams: () => Record<string, string | readonly string[]>;
+  readonly useSearchParams: () => URLSearchParams;
+  readonly usePathname: () => string;
+  readonly redirect: Mock;
+  readonly notFound: Mock;
+};
+
+export const nextNavigationFactory = (): NextNavigationMock => ({
   useRouter: () => getState().router,
   useParams: () => getState().params,
   useSearchParams: () => getState().searchParams,
