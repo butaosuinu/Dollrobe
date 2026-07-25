@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi, type Mock } from "vitest";
 import type {
   ApiKeyScope,
   ApiKeySummary,
@@ -12,19 +12,30 @@ import type {
   UpdateProfileInput,
 } from "@/lib/auth";
 
+type CreateApiKeyInput = {
+  readonly name: string;
+  readonly scope: ApiKeyScope;
+};
+
+type SignUpEmailInput = {
+  readonly name: string;
+  readonly email: string;
+  readonly password: string;
+};
+
 type Spies = {
-  readonly createApiKey: ReturnType<typeof vi.fn>;
-  readonly listApiKeys: ReturnType<typeof vi.fn>;
-  readonly revokeApiKey: ReturnType<typeof vi.fn>;
-  readonly signInWithEmail: ReturnType<typeof vi.fn>;
-  readonly signUpWithEmail: ReturnType<typeof vi.fn>;
-  readonly signOut: ReturnType<typeof vi.fn>;
-  readonly updateProfile: ReturnType<typeof vi.fn>;
-  readonly changeEmail: ReturnType<typeof vi.fn>;
-  readonly changePassword: ReturnType<typeof vi.fn>;
-  readonly setPassword: ReturnType<typeof vi.fn>;
-  readonly deleteAccount: ReturnType<typeof vi.fn>;
-  readonly listAccounts: ReturnType<typeof vi.fn>;
+  readonly createApiKey: Mock<(input: CreateApiKeyInput) => void>;
+  readonly listApiKeys: Mock<() => void>;
+  readonly revokeApiKey: Mock<(keyId: string) => void>;
+  readonly signInWithEmail: Mock<(input: SignInEmailInput) => void>;
+  readonly signUpWithEmail: Mock<(input: SignUpEmailInput) => void>;
+  readonly signOut: Mock<() => void>;
+  readonly updateProfile: Mock<(input: UpdateProfileInput) => void>;
+  readonly changeEmail: Mock<(input: ChangeEmailInput) => void>;
+  readonly changePassword: Mock<(input: ChangePasswordInput) => void>;
+  readonly setPassword: Mock<(input: SetPasswordInput) => void>;
+  readonly deleteAccount: Mock<(input: DeleteAccountInput) => void>;
+  readonly listAccounts: Mock<() => void>;
 };
 
 type State = {
@@ -65,18 +76,18 @@ const createInitial = (): State => ({
   deleteAccountShouldFail: false,
   listAccountsShouldFail: false,
   spies: {
-    createApiKey: vi.fn(),
-    listApiKeys: vi.fn(),
-    revokeApiKey: vi.fn(),
-    signInWithEmail: vi.fn(),
-    signUpWithEmail: vi.fn(),
-    signOut: vi.fn(),
-    updateProfile: vi.fn(),
-    changeEmail: vi.fn(),
-    changePassword: vi.fn(),
-    setPassword: vi.fn(),
-    deleteAccount: vi.fn(),
-    listAccounts: vi.fn(),
+    createApiKey: vi.fn<(input: CreateApiKeyInput) => void>(),
+    listApiKeys: vi.fn<() => void>(),
+    revokeApiKey: vi.fn<(keyId: string) => void>(),
+    signInWithEmail: vi.fn<(input: SignInEmailInput) => void>(),
+    signUpWithEmail: vi.fn<(input: SignUpEmailInput) => void>(),
+    signOut: vi.fn<() => void>(),
+    updateProfile: vi.fn<(input: UpdateProfileInput) => void>(),
+    changeEmail: vi.fn<(input: ChangeEmailInput) => void>(),
+    changePassword: vi.fn<(input: ChangePasswordInput) => void>(),
+    setPassword: vi.fn<(input: SetPasswordInput) => void>(),
+    deleteAccount: vi.fn<(input: DeleteAccountInput) => void>(),
+    listAccounts: vi.fn<() => void>(),
   },
 });
 

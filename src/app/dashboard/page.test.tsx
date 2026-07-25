@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, within } from "@testing-library/react";
 import { MS_PER_DAY } from "@/lib/constants";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
@@ -8,12 +8,12 @@ import { renderWithProviders } from "@/test/testUtils";
 import DashboardPage from "./page";
 
 describe("DashboardPage", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     setupNextNavigation();
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

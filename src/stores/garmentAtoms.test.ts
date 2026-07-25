@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { aroundEach, describe, expect, it, vi } from "vitest";
 import { createStore } from "jotai";
 import { getDb } from "@/lib/db/dexie";
 import { setupAuthSession } from "@/test/mocks/modules/authAtomsState";
@@ -22,11 +22,11 @@ const primeAuth = async (store: ReturnType<typeof createStore>) => {
   await Promise.resolve();
 };
 
-beforeEach(() => {
+aroundEach(async (runTest) => {
   vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-});
 
-afterEach(() => {
+  await runTest();
+
   vi.restoreAllMocks();
 });
 

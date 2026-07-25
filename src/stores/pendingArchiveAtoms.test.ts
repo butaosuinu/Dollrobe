@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { aroundEach, describe, expect, it, vi } from "vitest";
 import { createStore } from "jotai";
 import { getDb } from "@/lib/db/dexie";
 import { SYNC_ACTION_TYPE } from "@/lib/constants";
@@ -45,12 +45,12 @@ const lastToastAction = (
   store.get(toastsAtom).at(-1)?.action;
 
 describe("pendingArchiveAtoms", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
     vi.setSystemTime(FIXED_NOW);
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.useRealTimers();
   });
 

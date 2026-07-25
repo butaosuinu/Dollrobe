@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { act } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import {
@@ -43,7 +43,7 @@ describe("QrScanner", () => {
   };
   const playMock = vi.fn<() => Promise<undefined>>();
 
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.useFakeTimers();
     jsqrHandle.current = setupJsqr();
     playMock.mockReset();
@@ -74,9 +74,9 @@ describe("QrScanner", () => {
     });
 
     installVideoReadyState(HAVE_ENOUGH_DATA, HAVE_ENOUGH_DATA);
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.useRealTimers();
     vi.restoreAllMocks();
   });

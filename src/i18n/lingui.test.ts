@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { aroundEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { i18n } from "@lingui/core";
 import type { Locale } from "@/i18n/types";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@/i18n/types";
@@ -17,9 +17,11 @@ const resetLocaleEnv = () => {
 };
 
 describe("detectLocale", () => {
-  beforeEach(resetLocaleEnv);
+  aroundEach(async (runTest) => {
+    resetLocaleEnv();
 
-  afterEach(() => {
+    await runTest();
+
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });

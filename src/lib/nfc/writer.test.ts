@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, aroundEach } from "vitest";
 import { buildNfcScheme, isNfcSupported, writeNfcTag } from "./writer";
 
 const mockWrite = vi.fn();
@@ -33,15 +33,19 @@ describe("buildNfcScheme", () => {
   });
 });
 
-describe("writeNfcTag", () => {
-  beforeEach(() => {
-    mockWrite.mockReset();
-    (globalThis as Record<string, unknown>).NDEFReader = vi.fn(() => ({
-      write: mockWrite,
-    }));
-  });
+function buildNdefReaderInstance(): { readonly write: typeof mockWrite } {
+  return { write: mockWrite };
+}
 
-  afterEach(() => {
+describe("writeNfcTag", () => {
+  aroundEach(async (runTest) => {
+    mockWrite.mockReset();
+    (globalThis as Record<string, unknown>).NDEFReader = vi.fn(
+      buildNdefReaderInstance,
+    );
+
+    await runTest();
+
     // biome-ignore lint: test cleanup requires delete
     delete (globalThis as Record<string, unknown>).NDEFReader;
   });

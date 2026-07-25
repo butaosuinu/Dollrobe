@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { aroundEach, describe, expect, it, vi } from "vitest";
 import { IMAGE_COMPRESSION, IMAGE_UPLOAD } from "@/lib/constants";
 import {
   installCanvas2DContext,
@@ -63,12 +63,12 @@ const stubCanvas = ({
 };
 
 describe("compressImage", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });

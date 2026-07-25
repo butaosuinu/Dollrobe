@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { aroundEach, describe, expect, it } from "vitest";
 import { createDrizzle } from "../db/client";
 import { adminAuditLogs, sessions, users } from "../db/schema";
 import { eq } from "drizzle-orm";
@@ -14,11 +14,9 @@ import * as adminService from "./admin-service";
 const drizzleDb = createDrizzle(env.DB);
 const logger = createTestLogger();
 
-beforeEach(async () => {
+aroundEach(async (runTest) => {
   await resetDatabase(env.DB);
-});
-
-afterEach(async () => {
+  await runTest();
   await resetDatabase(env.DB);
 });
 

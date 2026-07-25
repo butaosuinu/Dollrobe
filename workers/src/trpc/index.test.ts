@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it, expect } from "vitest";
+import { aroundEach, describe, it, expect } from "vitest";
 import { env } from "cloudflare:test";
 import { TRPCError } from "@trpc/server";
 import { createCallerFactory } from "./index";
@@ -70,11 +70,9 @@ describe("trpc authMiddleware", () => {
 });
 
 describe("trpc adminProcedure", () => {
-  beforeEach(async () => {
+  aroundEach(async (runTest) => {
     await resetDatabase(env.DB);
-  });
-
-  afterEach(async () => {
+    await runTest();
     await resetDatabase(env.DB);
   });
 

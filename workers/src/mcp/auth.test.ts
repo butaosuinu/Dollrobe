@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { aroundEach, describe, it, expect, vi } from "vitest";
 import { resolveMcpAuth } from "./auth";
 import { createApiKeyAuthStub } from "../test/mcp-helpers";
 
@@ -36,8 +36,11 @@ const cleanupUsers = async (): Promise<void> => {
     .run();
 };
 
-beforeEach(cleanupUsers);
-afterEach(cleanupUsers);
+aroundEach(async (runTest) => {
+  await cleanupUsers();
+  await runTest();
+  await cleanupUsers();
+});
 
 describe("resolveMcpAuth", () => {
   it("returns undefined when Authorization header is missing", async () => {

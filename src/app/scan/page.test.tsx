@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
 import { seedDbFromTestDb } from "@/test/helpers/seedDb";
@@ -27,7 +27,7 @@ const nfcRdrHandle: {
 };
 
 describe("ScanPage", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     // setInterval だけ fake にして QrScanner の scanFrame ループを制御。
     // setTimeout / Promise は実物のまま使うことで、Dexie 経由の async atom 解決
     // や findBy* / waitFor が動作する。
@@ -43,9 +43,9 @@ describe("ScanPage", () => {
     installCanvas2DContext();
     installVideoReadyState(4, 4);
     installMediaElementPlayback();
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.useRealTimers();
     vi.restoreAllMocks();
   });

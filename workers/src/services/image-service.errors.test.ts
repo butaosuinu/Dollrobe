@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import type {
   Blob as WorkersBlob,
   R2Bucket,
@@ -11,18 +11,18 @@ import { uploadImage, getImage, deleteImage } from "./image-service";
 const logger = createTestLogger();
 
 type StubBucket = {
-  readonly put: ReturnType<typeof vi.fn>;
-  readonly get: ReturnType<typeof vi.fn>;
-  readonly delete: ReturnType<typeof vi.fn>;
+  readonly put: Mock<R2Bucket["put"]>;
+  readonly get: Mock<R2Bucket["get"]>;
+  readonly delete: Mock<R2Bucket["delete"]>;
 };
 
 const buildStubBucket = (
   overrides: Partial<StubBucket> = {},
 ): { readonly bucket: R2Bucket; readonly stub: StubBucket } => {
   const stub: StubBucket = {
-    put: vi.fn(),
-    get: vi.fn(),
-    delete: vi.fn(),
+    put: vi.fn<R2Bucket["put"]>(),
+    get: vi.fn<R2Bucket["get"]>(),
+    delete: vi.fn<R2Bucket["delete"]>(),
     ...overrides,
   };
   // R2Bucket は head/list/multipart 等もメソッドを持つが、
@@ -91,7 +91,9 @@ beforeEach(() => {
 describe("uploadImage エラーパス", () => {
   it("R2.put が reject した場合 INTERNAL_ERROR を返す", async () => {
     const { bucket, stub } = buildStubBucket({
-      put: vi.fn().mockRejectedValue(new Error("network down")),
+      put: vi
+        .fn<R2Bucket["put"]>()
+        .mockRejectedValue(new Error("network down")),
     });
 
     const result = await uploadImage({
@@ -112,7 +114,7 @@ describe("uploadImage エラーパス", () => {
 
   it("R2.put が非 Error を reject した場合フォールバックメッセージを返す", async () => {
     const { bucket } = buildStubBucket({
-      put: vi.fn().mockRejectedValue("string error"),
+      put: vi.fn<R2Bucket["put"]>().mockRejectedValue("string error"),
     });
 
     const result = await uploadImage({
@@ -131,7 +133,13 @@ describe("uploadImage エラーパス", () => {
 
   it("正常系: R2.put が解決すると ok を返す", async () => {
     const { bucket, stub } = buildStubBucket({
-      put: vi.fn().mockResolvedValue(undefined),
+      put: vi.fn<R2Bucket["put"]>().mockResolvedValue(
+        buildR2ObjectBody({
+          body: new ArrayBuffer(0),
+          contentType: "image/png",
+          httpEtag: "etag-k3",
+        }),
+      ),
     });
 
     const result = await uploadImage({
@@ -155,7 +163,7 @@ describe("uploadImage エラーパス", () => {
 describe("getImage エラーパス", () => {
   it("R2.get が reject した場合 INTERNAL_ERROR を返す", async () => {
     const { bucket } = buildStubBucket({
-      get: vi.fn().mockRejectedValue(new Error("R2 down")),
+      get: vi.fn<R2Bucket["get"]>().mockRejectedValue(new Error("R2 down")),
     });
 
     const result = await getImage({ bucket, key: "k1", logger });
@@ -169,7 +177,7 @@ describe("getImage エラーパス", () => {
 
   it("R2.get が非 Error を reject した場合フォールバックメッセージを返す", async () => {
     const { bucket } = buildStubBucket({
-      get: vi.fn().mockRejectedValue(123),
+      get: vi.fn<R2Bucket["get"]>().mockRejectedValue(123),
     });
 
     const result = await getImage({ bucket, key: "k1", logger });
@@ -182,7 +190,7 @@ describe("getImage エラーパス", () => {
 
   it("R2.get が null を返した場合 NOT_FOUND を返す", async () => {
     const { bucket } = buildStubBucket({
-      get: vi.fn().mockResolvedValue(null),
+      get: vi.fn<R2Bucket["get"]>().mockResolvedValue(null),
     });
 
     const result = await getImage({ bucket, key: "missing", logger });
@@ -202,7 +210,7 @@ describe("getImage エラーパス", () => {
       httpEtag: "etag-1",
     });
     const { bucket } = buildStubBucket({
-      get: vi.fn().mockResolvedValue(obj),
+      get: vi.fn<R2Bucket["get"]>().mockResolvedValue(obj),
     });
 
     const result = await getImage({ bucket, key: "k", logger });
@@ -223,7 +231,7 @@ describe("getImage エラーパス", () => {
       httpEtag: "etag-2",
     });
     const { bucket } = buildStubBucket({
-      get: vi.fn().mockResolvedValue(obj),
+      get: vi.fn<R2Bucket["get"]>().mockResolvedValue(obj),
     });
 
     const result = await getImage({ bucket, key: "k", logger });
@@ -238,7 +246,9 @@ describe("getImage エラーパス", () => {
 describe("deleteImage エラーパス", () => {
   it("R2.delete が reject した場合 INTERNAL_ERROR を返す", async () => {
     const { bucket } = buildStubBucket({
-      delete: vi.fn().mockRejectedValue(new Error("delete failed")),
+      delete: vi
+        .fn<R2Bucket["delete"]>()
+        .mockRejectedValue(new Error("delete failed")),
     });
 
     const result = await deleteImage({ bucket, key: "k1", logger });
@@ -252,7 +262,7 @@ describe("deleteImage エラーパス", () => {
 
   it("R2.delete が非 Error を reject した場合フォールバックメッセージを返す", async () => {
     const { bucket } = buildStubBucket({
-      delete: vi.fn().mockRejectedValue(undefined),
+      delete: vi.fn<R2Bucket["delete"]>().mockRejectedValue(undefined),
     });
 
     const result = await deleteImage({ bucket, key: "k1", logger });
@@ -265,7 +275,7 @@ describe("deleteImage エラーパス", () => {
 
   it("正常系: 削除に成功する", async () => {
     const { bucket, stub } = buildStubBucket({
-      delete: vi.fn().mockResolvedValue(undefined),
+      delete: vi.fn<R2Bucket["delete"]>().mockResolvedValue(undefined),
     });
 
     const result = await deleteImage({ bucket, key: "k1", logger });

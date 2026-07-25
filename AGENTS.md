@@ -71,7 +71,7 @@ Node.js 22 以上、`pnpm@10.28.2` を使用する。依存がない環境では
 - `pnpm lint`: OxLint + ESLint
 - `pnpm format` / `pnpm format:check`: OxFmt の適用 / 検査
 - `pnpm i18n:check`: `en/ko/zh` の未翻訳検査
-- `pnpm test`: frontend + Workers の Vitest workspace
+- `pnpm test`: frontend + Workers の Vitest projects (`vitest.config.ts`)
 - `pnpm test:workers`: Workers テストのみ
 - `pnpm test:coverage`: coverage 計測
 - `pnpm test:e2e`: Playwright。Next.js と Wrangler は設定から起動される

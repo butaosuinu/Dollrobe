@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { aroundEach, describe, expect, it } from "vitest";
 import { createCallerFactory } from "../index";
 import { appRouter } from "../router";
 import {
@@ -22,11 +22,9 @@ const callAsAdmin = (userId = "admin-1") =>
     preAuthenticatedUserId: userId,
   });
 
-beforeEach(async () => {
+aroundEach(async (runTest) => {
   await resetDatabase(env.DB);
-});
-
-afterEach(async () => {
+  await runTest();
   await resetDatabase(env.DB);
 });
 

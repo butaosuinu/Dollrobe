@@ -1,5 +1,5 @@
 /* eslint-disable max-lines -- multiple integration scenarios for garment detail page */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
@@ -13,14 +13,14 @@ const navHandle: { current: ReturnType<typeof setupNextNavigation> } = {
 };
 
 describe("GarmentDetailPage", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
     navHandle.current = setupNextNavigation({
       params: { id: "garment-1" },
     });
-  });
 
-  afterEach(() => {
+    await runTest();
+
     vi.restoreAllMocks();
   });
 

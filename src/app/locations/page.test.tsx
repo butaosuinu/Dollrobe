@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { testDb, FIXED_NOW } from "@/test/mocks/db";
@@ -7,14 +7,16 @@ import { renderWithProviders } from "@/test/testUtils";
 import { MS_PER_DAY } from "@/lib/constants";
 import LocationsPage from "./page";
 
-describe("LocationsPage", () => {
-  beforeEach(() => {
-    vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-  });
+const withFixedNow = async (runTest: () => Promise<void>) => {
+  vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
+  await runTest();
+
+  vi.restoreAllMocks();
+};
+
+describe("LocationsPage", () => {
+  aroundEach(withFixedNow);
 
   it("収納場所がない場合に空状態を表示する", async () => {
     await renderWithProviders(<LocationsPage />);
@@ -183,13 +185,7 @@ describe("LocationsPage", () => {
 });
 
 describe("LocationsPage CRUD操作", () => {
-  beforeEach(() => {
-    vi.spyOn(Date, "now").mockReturnValue(FIXED_NOW);
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
+  aroundEach(withFixedNow);
 
   it("FABボタンクリックでケース作成シートを開く", async () => {
     await renderWithProviders(<LocationsPage />);
