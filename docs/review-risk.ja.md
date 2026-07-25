@@ -1,0 +1,95 @@
+# PR review risk 判定
+
+`tools/reviewrisk` は PR の変更 path と diff シグナルから、必要な review の
+重さを機械的に判定する repository 専用 CLI である。
+GitHub Actions は結果を `review:<level>` label と sticky comment に反映する。
+判定は advisory であり、risk level 自体は merge を block しない。
+
+## Level
+
+| Level    | 基本条件                       | Review guidance                                        |
+| -------- | ------------------------------ | ------------------------------------------------------ |
+| none     | 全ファイルが NONE              | 一般文書・マーケティング資産のみ。CI green で merge 可 |
+| low      | 最大 class が A                | 通常 review                                            |
+| medium   | 最大 class が M                | AI review + M ファイルを人間が確認                     |
+| high     | 最大 class が H、または S9/S10 | 人間 review 必須                                       |
+| critical | S1-S8 のいずれか               | 人間精読必須                                           |
+
+## Path class
+
+test file (`*.test.*` / `*.spec.*`) は配置先にかかわらず A とする。
+それ以外は exact rule、longest prefix rule の順に解決する。
+rename は新旧 path の重い方を採用し、未知 path は fail-closed で high にする。
+
+| Area                                           | Class | Rule IDs                                                                                                            |
+| ---------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------- |
+| 一般 README・文書                              | NONE  | `readme`, `docs-general`                                                                                            |
+| LP 制作・マーケティング資産                    | NONE  | `marketing-asset`                                                                                                   |
+| 通常 app route・component・public asset        | A     | `app-ui`, `component-ui`, `public-asset`                                                                            |
+| i18n                                           | A     | `client-i18n`                                                                                                       |
+| test・test harness                             | A     | `test-file`, `client-test-support`, `worker-test-support`, `e2e-test`                                               |
+| admin/auth/settings UI                         | M     | `admin-ui`, `auth-ui`, `admin-component`, `auth-component`, `settings-component`                                    |
+| client hook・domain logic・共有型              | M     | `client-hook`, `client-lib`, `client-type`, `client-stub`                                                           |
+| Workers service・queue・cron・共通 logic       | M     | `worker-service`, `worker-queue`, `worker-scheduled`, `worker-lib`, `worker-rest`                                   |
+| repository / agent / GitHub 一般設定           | M     | `repo-config`, `agent-config`, `agent-guide`, `github-rest`                                                         |
+| TypeScript・lint・test・i18n・CSS config       | M     | `tsconfig`, `lint-config`, `test-config`, `e2e-config`, `lingui-config`, `css-build-config`                         |
+| Cloudflare 運用文書                            | M     | `ops-doc`                                                                                                           |
+| dependency・build・Cloudflare config           | H     | `dependency-manifest`, `dependency-lock`, `web-build-config`, `cloudflare-config`, `drizzle-config`, `env-template` |
+| Sentry・MCP・OpenCV runtime                    | H     | `sentry-config`, `mcp-config`, `opencv-runtime`                                                                     |
+| GitHub workflow / local Action / script / hook | H     | `github-workflow`, `github-action`, `script`, `dmux-hook`, `review-gate`                                            |
+| review-risk 判定器                             | H     | `risk-tool`                                                                                                         |
+| client auth・API・offline state                | H     | `client-auth`, `client-api`, `client-db`, `client-store`, `client-sync`, `service-worker`                           |
+| Workers entry・auth・DB                        | H     | `worker-entry`, `worker-auth`, `worker-auth-boundary`, `worker-db`                                                  |
+| Workers user-data / HTTP boundary              | H     | `worker-repository`, `worker-trpc`, `worker-route`, `worker-middleware`, `worker-mcp`                               |
+| admin service                                  | H     | `admin-service`                                                                                                     |
+| D1 migration                                   | H     | `migration`                                                                                                         |
+
+## Escalation signals
+
+| ID                          | Level    | Condition                                                          |
+| --------------------------- | -------- | ------------------------------------------------------------------ |
+| S1-test-deleted             | critical | test file の削除、または rename による test suffix の喪失          |
+| S2-test-support-deleted     | critical | `src/test`、Workers test harness、E2E fixture/helper の削除・移動  |
+| S3-test-disabled-or-focused | critical | test への skip、fixme、only、x/f prefix の追加                     |
+| S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更       |
+| S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                   |
+| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                 |
+| S7-quality-gate-modified    | critical | package の test/typecheck/lint/precheck script の変更              |
+| S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                             |
+| S9-unclassified-path        | high     | rule に一致しない path                                             |
+| S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触 |
+| S11-large-diff              | +1       | 非 NONE が 800 行超または 30 ファイル超。low/medium のみ一段上げる |
+
+同一 diff では Files を path 順、Reasons を level 降順・signal・path 順に固定し、
+出力を決定的にする。binary の行数は 0 として集計する。
+
+## CLI
+
+```sh
+pnpm review-risk -- --base origin/main --format text
+pnpm review-risk -- --base origin/main --format json
+pnpm review-risk -- --base origin/main --format markdown
+pnpm review-risk -- --fail-at high
+```
+
+`--base` 省略時は `origin/main`、次に `main` を試す。
+比較起点は base と HEAD の merge-base で、そこから tracked working tree までを
+読む。通常は exit 0、`--fail-at` の threshold 以上は 1、flag・git error は 2。
+
+## GitHub Actions
+
+`review-risk.yml` は main 向けの同一 repository PR で実行する。
+fork と Dependabot の read-only token run は label/comment を書けないため skip
+する。判定前に shell-only self-modification guard を置き、判定器・正典・
+workflow 自身の変更は PR 側 code を実行せず critical に固定する。
+
+`review-risk-guard.yml` は `pull_request_target` で base branch 側の定義を
+実行する。PR head は `git fetch` と `git diff` の入力データとしてのみ扱い、
+PR 側の file、script、dependency は実行しない。自己変更時の comment は
+`<!-- review-risk-guard -->` という別 marker を使い、自己変更が取り消されたら
+削除する。
+
+どちらも `contents: read`、`pull-requests: write`、`issues: write` の最小権限、
+`persist-credentials: false`、PR 番号単位 concurrency を使う。
+同一 repository の write 権限保有者が別 workflow を変更できる境界までは
+防御しないため、label と comment はあくまで review の判断材料である。

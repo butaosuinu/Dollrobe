@@ -82,6 +82,9 @@
 ## Github Guidelines
 
 - `gh` コマンドを使用して issue や PR にアクセスすること
+- `pnpm review-risk` で main との差分の review risk を確認できる。分類規範は
+  `docs/review-risk.ja.md` とし、path 分類の変更は
+  `tools/reviewrisk/rules.mjs` と専用 test を同時更新すること
 
 ## Cloudflare Operations
 

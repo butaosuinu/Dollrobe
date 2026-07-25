@@ -1,0 +1,60 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const checkoutSha = "3d3c42e5aac5ba805825da76410c181273ba90b1";
+const setupNodeSha = "820762786026740c76f36085b0efc47a31fe5020";
+
+const readWorkflow = (name) =>
+  readFile(new URL(`../../.github/workflows/${name}`, import.meta.url), "utf8");
+
+test("review-risk workflow pins actions and guards trusted execution", async () => {
+  const source = await readWorkflow("review-risk.yml");
+
+  assert.match(source, new RegExp(`actions/checkout@${checkoutSha}`));
+  assert.match(source, new RegExp(`actions/setup-node@${setupNodeSha}`));
+  assert.match(source, /persist-credentials: false/);
+  assert.match(source, /contents: read/);
+  assert.match(source, /pull-requests: write/);
+  assert.match(source, /issues: write/);
+  assert.match(
+    source,
+    /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/,
+  );
+  assert.match(source, /github\.actor != 'dependabot\[bot\]'/);
+
+  const guardIndex = source.indexOf("Self-modification guard");
+  const setupNodeIndex = source.indexOf(`actions/setup-node@${setupNodeSha}`);
+
+  assert.notEqual(guardIndex, -1);
+  assert.notEqual(setupNodeIndex, -1);
+  assert.ok(guardIndex < setupNodeIndex);
+  assert.match(source, /tools\/reviewrisk/);
+  assert.match(source, /docs\/review-risk\.ja\.md/);
+  assert.match(source, /\.github\/workflows\/review-risk\.yml/);
+  assert.match(source, /\.github\/workflows\/review-risk-guard\.yml/);
+  assert.match(source, /<!-- review-risk -->/);
+});
+
+test("base guard treats pull request content as data only", async () => {
+  const source = await readWorkflow("review-risk-guard.yml");
+
+  assert.match(source, /pull_request_target:/);
+  assert.match(source, new RegExp(`actions/checkout@${checkoutSha}`));
+  assert.doesNotMatch(source, /actions\/setup-node@/);
+  assert.doesNotMatch(source, /\bpnpm\b/);
+  assert.match(source, /persist-credentials: false/);
+  assert.match(
+    source,
+    /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/,
+  );
+  assert.match(source, /github\.actor != 'dependabot\[bot\]'/);
+  assert.match(
+    source,
+    /HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/,
+  );
+  assert.match(source, /git fetch origin "\$HEAD_SHA"/);
+  assert.doesNotMatch(source, /ref:.*pull_request\.head/);
+  assert.match(source, /<!-- review-risk-guard -->/);
+  assert.match(source, /--method DELETE/);
+});
