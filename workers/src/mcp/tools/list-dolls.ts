@@ -1,4 +1,4 @@
-import { listDollsInputSchema } from "../../trpc/lib/schemas";
+import { listDollsInputSchema } from "../../lib/schemas";
 import { defineTool } from "./define-tool";
 
 export const listDollsTool = defineTool({

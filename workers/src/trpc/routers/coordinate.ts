@@ -6,7 +6,7 @@ import {
   createCoordinateInputSchema,
   updateCoordinateInputSchema,
   cuidSchema,
-} from "../lib/schemas";
+} from "../../lib/schemas";
 import * as coordinateService from "../../services/coordinate-service";
 import { throwIfError } from "../../services/types";
 

@@ -1,7 +1,7 @@
 import { createDrizzle } from "../../db/client";
 import * as syncService from "../../services/sync-service";
 import { throwIfError } from "../../services/types";
-import { syncPushInputSchema } from "../lib/schemas";
+import { syncPushInputSchema } from "../../lib/schemas";
 import { router, protectedProcedure } from "../index";
 
 export const syncRouter = router({

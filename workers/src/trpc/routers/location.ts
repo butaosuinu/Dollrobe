@@ -8,7 +8,7 @@ import {
   updateCaseInputSchema,
   updateLocationInputSchema,
   createLocationInputSchema,
-} from "../lib/schemas";
+} from "../../lib/schemas";
 
 export const locationRouter = router({
   listCases: protectedProcedure.query(async ({ ctx }) =>

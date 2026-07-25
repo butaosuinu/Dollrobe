@@ -7,7 +7,7 @@ import {
   adminUserDataInputSchema,
   adminUserDataPagedInputSchema,
   adminUserDetailInputSchema,
-} from "../lib/schemas";
+} from "../../lib/schemas";
 import * as adminService from "../../services/admin-service";
 import { throwIfError } from "../../services/types";
 

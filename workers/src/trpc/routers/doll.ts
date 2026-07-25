@@ -6,7 +6,7 @@ import {
   createDollInputSchema,
   updateDollInputSchema,
   cuidSchema,
-} from "../lib/schemas";
+} from "../../lib/schemas";
 import * as dollService from "../../services/doll-service";
 import { throwIfError } from "../../services/types";
 
