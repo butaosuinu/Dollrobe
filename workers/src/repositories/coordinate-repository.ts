@@ -3,7 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import { coordinates } from "../db/schema";
-import { wrapDbError } from "../trpc/lib/d1-helpers";
+import { wrapDbError } from "../lib/d1-helpers";
 import { buildSetObject } from "./build-set-object";
 
 type CoordinateSelectRow = typeof coordinates.$inferSelect;

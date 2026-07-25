@@ -1,4 +1,4 @@
-import { listCoordinatesInputSchema } from "../../trpc/lib/schemas";
+import { listCoordinatesInputSchema } from "../../lib/schemas";
 import { defineTool } from "./define-tool";
 
 export const listCoordinatesTool = defineTool({

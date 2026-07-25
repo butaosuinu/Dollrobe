@@ -33,6 +33,25 @@ const listFilters = (input: {
   frozen: input.frozen,
 });
 
+export const requireAdminUser = async ({
+  drizzleDb,
+  userId,
+  logger,
+}: {
+  readonly drizzleDb: DrizzleDB;
+  readonly userId: string;
+  readonly logger: Logger;
+}): Promise<ServiceResult<AdminUser>> => {
+  const user = await adminRepo.findUserById({ drizzleDb, id: userId, logger });
+  if (user === undefined || user.frozen) {
+    return serviceError("UNAUTHORIZED", "Admin access denied");
+  }
+  if (user.role !== "admin") {
+    return serviceError("FORBIDDEN", "Admin role required");
+  }
+  return serviceOk(user);
+};
+
 export const listUsers = async ({
   drizzleDb,
   input,

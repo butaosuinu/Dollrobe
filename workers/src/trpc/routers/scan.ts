@@ -5,7 +5,7 @@ import {
   confirmAllInputSchema,
   confirmPartialInputSchema,
   orphanResolveInputSchema,
-} from "../lib/schemas";
+} from "../../lib/schemas";
 import { createDrizzle } from "../../db/client";
 import * as scanService from "../../services/scan-service";
 import { throwIfError } from "../../services/types";

@@ -1,7 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { DrizzleDB } from "../db/client";
 import { adminAuditLogs } from "../db/schema";
-import { wrapDbError } from "../trpc/lib/d1-helpers";
+import { wrapDbError } from "../lib/d1-helpers";
 import type { Logger } from "../lib/logger";
 
 export type AdminAuditLog = {

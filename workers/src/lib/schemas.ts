@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { SYNC_ACTION_TYPE, ORPHAN_RESOLUTION } from "@shared/lib/constants";
-import { cuidSchema } from "../../db/validation";
-import { toNonEmptyTuple } from "../../lib/to-non-empty-tuple";
+import { cuidSchema } from "../db/validation";
+import { toNonEmptyTuple } from "./to-non-empty-tuple";
 
 export {
   cuidSchema,
@@ -24,7 +24,7 @@ export {
   createCoordinateInputSchema,
   updateCoordinateInputSchema,
   listCoordinatesInputSchema,
-} from "../../db/validation";
+} from "../db/validation";
 
 const MIN_GARMENT_IDS_LENGTH = 1;
 const MIN_CONFIRMATIONS_LENGTH = 1;

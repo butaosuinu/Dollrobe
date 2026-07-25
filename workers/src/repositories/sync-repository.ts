@@ -9,7 +9,7 @@ import {
   storageCases,
   storageLocations,
 } from "../db/schema";
-import { wrapDbError } from "../trpc/lib/d1-helpers";
+import { wrapDbError } from "../lib/d1-helpers";
 import * as locationRepo from "./location-repository";
 
 const resolveLocationId = async ({

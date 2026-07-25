@@ -5,7 +5,8 @@ import type { Auth } from "../auth";
 import type { Logger } from "../lib/logger";
 import { resolveAuthenticatedUserId } from "../lib/auth-resolver";
 import { createDrizzle } from "../db/client";
-import * as adminRepo from "../repositories/admin-repository";
+import * as adminService from "../services/admin-service";
+import { throwIfError } from "../services/types";
 
 export type TRPCContext = {
   readonly env: Env;
@@ -73,19 +74,13 @@ export const protectedProcedure = t.procedure
 // session payload には role を載せず、毎リクエスト DB lookup する (確実性優先・
 // 100 ユーザー規模なら無視できるコスト)。frozen の二重ガードも兼ねる。
 export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  const user = await adminRepo.findUserById({
-    drizzleDb: createDrizzle(ctx.env.DB),
-    id: ctx.userId,
-    logger: ctx.logger,
-  });
-
-  if (user === undefined || user.frozen) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  if (user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN" });
-  }
+  const user = throwIfError(
+    await adminService.requireAdminUser({
+      drizzleDb: createDrizzle(ctx.env.DB),
+      userId: ctx.userId,
+      logger: ctx.logger,
+    }),
+  );
 
   return await next({ ctx: { ...ctx, adminUser: user } });
 });

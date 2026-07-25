@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { cuidSchema } from "../../trpc/lib/schemas";
+import { cuidSchema } from "../../lib/schemas";
 import { defineTool } from "./define-tool";
 
 const TAG_MIN_LENGTH = 1;

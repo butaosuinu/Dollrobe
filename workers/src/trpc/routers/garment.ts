@@ -7,7 +7,7 @@ import {
   updateGarmentInputSchema,
   bulkCreateGarmentInputSchema,
   cuidSchema,
-} from "../lib/schemas";
+} from "../../lib/schemas";
 import * as garmentService from "../../services/garment-service";
 import { throwIfError } from "../../services/types";
 

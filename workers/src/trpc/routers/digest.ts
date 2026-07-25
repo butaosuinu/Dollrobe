@@ -3,7 +3,7 @@ import { router, protectedProcedure } from "../index";
 import {
   listDigestsInputSchema,
   markDigestReadInputSchema,
-} from "../lib/schemas";
+} from "../../lib/schemas";
 import * as digestService from "../../services/digest-service";
 import { throwIfError } from "../../services/types";
 

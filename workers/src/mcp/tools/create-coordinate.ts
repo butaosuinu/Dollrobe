@@ -1,4 +1,4 @@
-import { createCoordinateInputSchema } from "../../trpc/lib/schemas";
+import { createCoordinateInputSchema } from "../../lib/schemas";
 import { defineTool } from "./define-tool";
 
 const createCoordinateMcpInputSchema = createCoordinateInputSchema.omit({
