@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterAll, afterEach, beforeAll, vi } from "vitest";
+import { aroundAll, aroundEach, vi } from "vitest";
 import { server } from "./mocks/server";
 import { resetTestDb } from "./mocks/db";
 import { clearTrpcOverrides } from "./mocks/trpc/handlerFactory";
@@ -39,11 +39,15 @@ vi.mock("@/hooks/useColorExtraction", colorMod.useColorExtractionFactory);
 vi.mock("jsqr", jsqrMod.jsqrFactory);
 vi.mock("@/lib/auth", authClientMod.authClientFactory);
 
-beforeAll(() => {
+aroundAll(async (runSuite) => {
   server.listen({ onUnhandledRequest: "error" });
+  await runSuite();
+  server.close();
 });
 
-afterEach(async () => {
+aroundEach(async (runTest) => {
+  await runTest();
+
   cleanup();
   server.resetHandlers();
   clearTrpcOverrides();
@@ -59,8 +63,4 @@ afterEach(async () => {
   await db.storageLocations.clear();
   await db.coordinates.clear();
   await db.syncQueue.clear();
-});
-
-afterAll(() => {
-  server.close();
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, aroundEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Provider, createStore } from "jotai";
@@ -41,12 +41,10 @@ const TestWrapper = ({ children }: { readonly children: ReactNode }) => (
 );
 
 describe("ConfidenceIndicator", () => {
-  beforeEach(() => {
+  aroundEach(async (runTest) => {
     vi.useFakeTimers();
     vi.setSystemTime(FIXED_NOW);
-  });
-
-  afterEach(() => {
+    await runTest();
     vi.useRealTimers();
   });
 
