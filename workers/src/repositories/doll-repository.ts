@@ -5,7 +5,7 @@ import { DOLL_SIZES } from "@shared/lib/constants";
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import { dolls } from "../db/schema";
-import { wrapDbError } from "../trpc/lib/d1-helpers";
+import { wrapDbError } from "../lib/d1-helpers";
 import { buildSetObject } from "./build-set-object";
 
 type DollSelectRow = typeof dolls.$inferSelect;

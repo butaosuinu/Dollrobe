@@ -2,7 +2,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq, gte, like, or, sql } from "drizzle-orm";
 import type { DrizzleDB } from "../db/client";
 import { coordinates, garments, storageLocations, users } from "../db/schema";
-import { wrapDbError } from "../trpc/lib/d1-helpers";
+import { wrapDbError } from "../lib/d1-helpers";
 import type { Logger } from "../lib/logger";
 
 export type AdminUserRole = "admin" | "user";

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import type { Logger } from "../../lib/logger";
+import type { Logger } from "./logger";
 
 export const wrapDbError =
   ({

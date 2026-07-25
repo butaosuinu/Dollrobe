@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { wrapDbError } from "./d1-helpers";
-import { createTestLogger } from "../../test/helpers";
+import { createTestLogger } from "../test/helpers";
 
 const testLogger = createTestLogger();
 

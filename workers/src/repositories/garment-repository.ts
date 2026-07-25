@@ -14,7 +14,7 @@ import {
 import type { Logger } from "../lib/logger";
 import type { DrizzleDB } from "../db/client";
 import { garments } from "../db/schema";
-import { wrapDbError } from "../trpc/lib/d1-helpers";
+import { wrapDbError } from "../lib/d1-helpers";
 import { buildSetObject } from "./build-set-object";
 
 type GarmentSelectRow = typeof garments.$inferSelect;
