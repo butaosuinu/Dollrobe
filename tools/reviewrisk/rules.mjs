@@ -5,6 +5,14 @@ const rule = (id, reviewClass, note) =>
 
 const exactRules = new Map([
   [
+    ".dependency-cruiser.cjs",
+    rule(
+      "dependency-cruiser-config",
+      classes.high,
+      "依存アーキテクチャ境界の品質ゲート",
+    ),
+  ],
+  [
     ".dev.vars.example",
     rule("env-template", classes.high, "ローカル secret・binding 設定の雛形"),
   ],

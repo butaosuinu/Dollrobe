@@ -21,28 +21,28 @@ test file (`*.test.*` / `*.spec.*`) は配置先にかかわらず A とする�
 それ以外は exact rule、longest prefix rule の順に解決する。
 rename は新旧 path の重い方を採用し、未知 path は fail-closed で high にする。
 
-| Area                                           | Class | Rule IDs                                                                                                            |
-| ---------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------- |
-| 一般 README・文書                              | NONE  | `readme`, `docs-general`                                                                                            |
-| LP 制作・マーケティング資産                    | NONE  | `marketing-asset`                                                                                                   |
-| 通常 app route・component・public asset        | A     | `app-ui`, `component-ui`, `public-asset`                                                                            |
-| i18n                                           | A     | `client-i18n`                                                                                                       |
-| test・test harness                             | A     | `test-file`, `client-test-support`, `worker-test-support`, `e2e-test`                                               |
-| admin/auth/settings UI                         | M     | `admin-ui`, `auth-ui`, `admin-component`, `auth-component`, `settings-component`                                    |
-| client hook・domain logic・共有型              | M     | `client-hook`, `client-lib`, `client-type`, `client-stub`                                                           |
-| Workers service・queue・cron・共通 logic       | M     | `worker-service`, `worker-queue`, `worker-scheduled`, `worker-lib`, `worker-rest`                                   |
-| repository / agent / GitHub 一般設定           | M     | `repo-config`, `agent-config`, `agent-guide`, `github-rest`                                                         |
-| TypeScript・lint・test・i18n・CSS config       | M     | `tsconfig`, `lint-config`, `test-config`, `e2e-config`, `lingui-config`, `css-build-config`                         |
-| Cloudflare 運用文書                            | M     | `ops-doc`                                                                                                           |
-| dependency・build・Cloudflare config           | H     | `dependency-manifest`, `dependency-lock`, `web-build-config`, `cloudflare-config`, `drizzle-config`, `env-template` |
-| Sentry・MCP・OpenCV runtime                    | H     | `sentry-config`, `mcp-config`, `opencv-runtime`                                                                     |
-| GitHub workflow / local Action / script / hook | H     | `github-workflow`, `github-action`, `script`, `dmux-hook`, `review-gate`                                            |
-| review-risk 判定器                             | H     | `risk-tool`                                                                                                         |
-| client auth・API・offline state                | H     | `client-auth`, `client-api`, `client-db`, `client-store`, `client-sync`, `service-worker`                           |
-| Workers entry・auth・DB                        | H     | `worker-entry`, `worker-auth`, `worker-auth-boundary`, `worker-db`                                                  |
-| Workers user-data / HTTP boundary              | H     | `worker-repository`, `worker-trpc`, `worker-route`, `worker-middleware`, `worker-mcp`                               |
-| admin service                                  | H     | `admin-service`                                                                                                     |
-| D1 migration                                   | H     | `migration`                                                                                                         |
+| Area                                           | Class | Rule IDs                                                                                                                                         |
+| ---------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 一般 README・文書                              | NONE  | `readme`, `docs-general`                                                                                                                         |
+| LP 制作・マーケティング資産                    | NONE  | `marketing-asset`                                                                                                                                |
+| 通常 app route・component・public asset        | A     | `app-ui`, `component-ui`, `public-asset`                                                                                                         |
+| i18n                                           | A     | `client-i18n`                                                                                                                                    |
+| test・test harness                             | A     | `test-file`, `client-test-support`, `worker-test-support`, `e2e-test`                                                                            |
+| admin/auth/settings UI                         | M     | `admin-ui`, `auth-ui`, `admin-component`, `auth-component`, `settings-component`                                                                 |
+| client hook・domain logic・共有型              | M     | `client-hook`, `client-lib`, `client-type`, `client-stub`                                                                                        |
+| Workers service・queue・cron・共通 logic       | M     | `worker-service`, `worker-queue`, `worker-scheduled`, `worker-lib`, `worker-rest`                                                                |
+| repository / agent / GitHub 一般設定           | M     | `repo-config`, `agent-config`, `agent-guide`, `github-rest`                                                                                      |
+| TypeScript・lint・test・i18n・CSS config       | M     | `tsconfig`, `lint-config`, `test-config`, `e2e-config`, `lingui-config`, `css-build-config`                                                      |
+| Cloudflare 運用文書                            | M     | `ops-doc`                                                                                                                                        |
+| dependency・build・Cloudflare config           | H     | `dependency-manifest`, `dependency-lock`, `dependency-cruiser-config`, `web-build-config`, `cloudflare-config`, `drizzle-config`, `env-template` |
+| Sentry・MCP・OpenCV runtime                    | H     | `sentry-config`, `mcp-config`, `opencv-runtime`                                                                                                  |
+| GitHub workflow / local Action / script / hook | H     | `github-workflow`, `github-action`, `script`, `dmux-hook`, `review-gate`                                                                         |
+| review-risk 判定器                             | H     | `risk-tool`                                                                                                                                      |
+| client auth・API・offline state                | H     | `client-auth`, `client-api`, `client-db`, `client-store`, `client-sync`, `service-worker`                                                        |
+| Workers entry・auth・DB                        | H     | `worker-entry`, `worker-auth`, `worker-auth-boundary`, `worker-db`                                                                               |
+| Workers user-data / HTTP boundary              | H     | `worker-repository`, `worker-trpc`, `worker-route`, `worker-middleware`, `worker-mcp`                                                            |
+| admin service                                  | H     | `admin-service`                                                                                                                                  |
+| D1 migration                                   | H     | `migration`                                                                                                                                      |
 
 ## Escalation signals
 
