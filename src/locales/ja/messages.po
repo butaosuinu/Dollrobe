@@ -1777,6 +1777,10 @@ msgstr "印刷"
 msgid "印刷する QR コードが選択されていません"
 msgstr "印刷する QR コードが選択されていません"
 
+#: src/app/print/page.tsx
+msgid "印刷できる QR コードがありません"
+msgstr "印刷できる QR コードがありません"
+
 #: src/components/admin/UserDataTabs.tsx
 #: src/lib/nav-items.ts
 msgid "収納"
@@ -2302,6 +2306,10 @@ msgstr "登録された服"
 #: src/components/coordinate/CoordinateBuilder.tsx
 msgid "登録された服がありません"
 msgstr "登録された服がありません"
+
+#: src/app/print/page.tsx
+msgid "登録されていない ID のため印刷対象から除外しました（{missingLabel}）"
+msgstr "登録されていない ID のため印刷対象から除外しました（{missingLabel}）"
 
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "登録した服・収納場所・コーデ・ドールはすべて削除され、復元できません。"
