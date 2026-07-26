@@ -54,7 +54,21 @@ test("base guard treats pull request content as data only", async () => {
     /HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/,
   );
   assert.match(source, /git fetch origin "\$HEAD_SHA"/);
+  assert.match(source, /git merge-tree --write-tree HEAD FETCH_HEAD/);
   assert.doesNotMatch(source, /ref:.*pull_request\.head/);
   assert.match(source, /<!-- review-risk-guard -->/);
   assert.match(source, /--method DELETE/);
+
+  const clearIndex = source.indexOf(
+    "- name: Clear stale normal result while conflicting",
+  );
+  const applyIndex = source.indexOf("- name: Apply review:critical label");
+  assert.notEqual(clearIndex, -1);
+  assert.ok(clearIndex < applyIndex);
+  const clearStep = source.slice(clearIndex, applyIndex);
+  assert.match(clearStep, /steps\.guard\.outputs\.conflict == 'true'/);
+  assert.match(clearStep, /review:\*/);
+  assert.match(clearStep, /--remove-label/);
+  assert.match(clearStep, /<!-- review-risk -->/);
+  assert.match(clearStep, /--method DELETE/);
 });

@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
 
-const git = (args) => {
+const git = (args, cwd) => {
   const result = spawnSync("git", ["-c", "core.quotepath=off", ...args], {
+    cwd,
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
   });
@@ -87,14 +88,14 @@ export const parsePatchLines = (output) => {
   return { added, removed };
 };
 
-const resolveBase = (requestedBase) => {
+const resolveBase = (requestedBase, cwd) => {
   const candidates =
     requestedBase === undefined ? ["origin/main", "main"] : [requestedBase];
   for (const candidate of candidates) {
     const result = spawnSync(
       "git",
       ["rev-parse", "--verify", `${candidate}^{commit}`],
-      { encoding: "utf8" },
+      { cwd, encoding: "utf8" },
     );
     if (result.status === 0) {
       return candidate;
@@ -107,13 +108,15 @@ const resolveBase = (requestedBase) => {
   );
 };
 
-export const readGitDiff = ({ base: requestedBase } = {}) => {
-  const base = resolveBase(requestedBase);
-  const mergeBase = git(["merge-base", base, "HEAD"]).trim();
+export const readGitDiff = ({ base: requestedBase, cwd } = {}) => {
+  const base = resolveBase(requestedBase, cwd);
+  const mergeBase = git(["merge-base", base, "HEAD"], cwd).trim();
   const files = parseNameStatus(
-    git(["diff", "--name-status", "-M", "-z", mergeBase]),
+    git(["diff", "--name-status", "-M", "-z", mergeBase], cwd),
   );
-  const stats = parseNumstat(git(["diff", "--numstat", "-M", "-z", mergeBase]));
+  const stats = parseNumstat(
+    git(["diff", "--numstat", "-M", "-z", mergeBase], cwd),
+  );
   const addedLines = new Map();
   const removedLines = new Map();
 
@@ -124,15 +127,19 @@ export const readGitDiff = ({ base: requestedBase } = {}) => {
       file.deleted = fileStats.deleted;
     }
     const paths = file.oldPath === "" ? [file.path] : [file.oldPath, file.path];
-    const patch = git([
-      "diff",
-      "--unified=0",
-      "--no-ext-diff",
-      "--no-color",
-      mergeBase,
-      "--",
-      ...paths,
-    ]);
+    const patch = git(
+      [
+        "diff",
+        "--text",
+        "--unified=0",
+        "--no-ext-diff",
+        "--no-color",
+        mergeBase,
+        "--",
+        ...paths,
+      ],
+      cwd,
+    );
     const lines = parsePatchLines(patch);
     if (lines.added.length > 0) {
       addedLines.set(file.path, lines.added);

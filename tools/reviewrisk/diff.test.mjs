@@ -1,6 +1,22 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { parseNameStatus, parseNumstat, parsePatchLines } from "./diff.mjs";
+import {
+  parseNameStatus,
+  parseNumstat,
+  parsePatchLines,
+  readGitDiff,
+} from "./diff.mjs";
+import { evaluate, signals } from "./evaluate.mjs";
+import { levels } from "./classes.mjs";
+
+const runGit = (cwd, args) => {
+  const result = spawnSync("git", args, { cwd, encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+};
 
 test("name-status の追加・削除・rename を読む", () => {
   assert.deepEqual(
@@ -63,4 +79,34 @@ test("unified diff の hunk 本文だけを追加・削除行として読む", (
     added: ["new line", "++ content beginning with plus"],
     removed: ["old line"],
   });
+});
+
+test("diff 属性で無効化されたテキストも本文を読む", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-diff-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+  writeFileSync(join(cwd, ".gitattributes"), "package.json -diff\n");
+  writeFileSync(
+    join(cwd, "package.json"),
+    '{\n  "scripts": {\n    "test": "node --test"\n  }\n}\n',
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, "package.json"), '{\n  "scripts": {}\n}\n');
+
+  const actual = readGitDiff({ base: "HEAD", cwd });
+  assert.equal(
+    actual.removedLines
+      .get("package.json")
+      ?.includes('    "test": "node --test"'),
+    true,
+  );
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.qualityGate),
+    true,
+  );
 });

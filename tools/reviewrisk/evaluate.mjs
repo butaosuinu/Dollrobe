@@ -55,7 +55,7 @@ const invariantPatterns = [
 ];
 
 const testDisablePattern =
-  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(/;
+  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\b(?:skip|only)\s*:\s*true\b/;
 const qualityGatePattern =
   /"(?:test|typecheck|lint|format:check|i18n:check|precheck(?::full)?)"\s*:/;
 
@@ -93,6 +93,12 @@ const changedLines = (diff, path) => [
   ...(diff.addedLines.get(path) ?? []),
   ...(diff.removedLines.get(path) ?? []),
 ];
+
+const unclassifiedRule = (note = "未分類（rules.mjs に要追記）") => ({
+  id: "unclassified",
+  class: classes.unknown,
+  note,
+});
 
 const criticalReasons = (diff) => {
   const reasons = [];
@@ -253,20 +259,12 @@ export const evaluate = (diff) => {
   const classByPath = new Map();
   const files = diff.files
     .map((file) => {
-      let matchedRule = classifyPath(file.path);
-      const destinationClassified = matchedRule !== undefined;
-      if (matchedRule === undefined) {
-        matchedRule = {
-          id: "unclassified",
-          class: classes.unknown,
-          note: "未分類（rules.mjs に要追記）",
-        };
-      }
-      if (destinationClassified && file.status === "R" && file.oldPath !== "") {
-        const oldRule = classifyPath(file.oldPath);
+      let matchedRule = classifyPath(file.path) ?? unclassifiedRule();
+      if (file.status === "R" && file.oldPath !== "") {
+        const oldRule =
+          classifyPath(file.oldPath) ??
+          unclassifiedRule(`未分類 rename 元 ${file.oldPath}`);
         if (
-          oldRule !== undefined &&
-          levelForClass(oldRule.class) !== levels.none &&
           compareLevels(
             levelForClass(oldRule.class),
             levelForClass(matchedRule.class),
@@ -274,7 +272,10 @@ export const evaluate = (diff) => {
         ) {
           matchedRule = {
             ...oldRule,
-            note: `${oldRule.note}（rename 元 ${file.oldPath} 由来）`,
+            note:
+              oldRule.id === "unclassified"
+                ? oldRule.note
+                : `${oldRule.note}（rename 元 ${file.oldPath} 由来）`,
           };
         }
       }
@@ -301,7 +302,7 @@ export const evaluate = (diff) => {
           signals.unclassified,
           levels.high,
           file.path,
-          "未分類パス（fail-closed で high）",
+          `${file.note}（fail-closed で high）`,
         ),
       );
     }

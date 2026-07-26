@@ -269,10 +269,7 @@ const prefixRules = [
       "Dexie schema・migration・offline persistence",
     ),
   ],
-  [
-    "src/lib/stubs/",
-    rule("client-stub", classes.application, "build/test stub"),
-  ],
+  ["src/lib/stubs/", rule("client-stub", classes.medium, "build/test stub")],
   ["src/lib/", rule("client-lib", classes.medium, "client domain・I/O logic")],
   [
     "src/stores/",

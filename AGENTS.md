@@ -239,5 +239,7 @@ prefix と日本語説明を使用可）にする。PR には挙動の要約、�
 
 `tools/reviewrisk` は `docs/review-risk.ja.md` の分類規範から PR の review risk
 を判定する。新しい path や重要境界を追加する場合は、実装・正典・専用 test を
-同じ変更で更新する。未分類 path は安全側に high、判定器・test・migration・
-review/CI gate への接触は critical になる。
+同じ変更で更新する。未分類 path は安全側に high とする。test file は A、通常の
+GitHub workflow は H であり、critical は test・test support の削除、test の
+skip・focus 追加、review gate・review-risk・quality script・既存 migration の
+変更、workflow の削除など S1-S8 に限定する。

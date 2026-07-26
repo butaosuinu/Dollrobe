@@ -54,6 +54,24 @@ test("rename は新旧 path の重い方を採用する", () => {
   assert.equal(report.files[0].rule, "worker-auth");
 });
 
+test("未分類の rename 元は fail-closed で high", () => {
+  const report = evaluate(
+    diff({
+      files: [
+        change({
+          path: "docs/security.md",
+          oldPath: "unknown-security.toml",
+          status: "R",
+        }),
+      ],
+    }),
+  );
+  assert.equal(report.level, levels.high);
+  assert.equal(report.files[0].class, classes.unknown);
+  assert.equal(report.files[0].rule, "unclassified");
+  assert.equal(hasSignal(report, signals.unclassified), true);
+});
+
 test("テスト削除・skip 追加・fixture 削除は critical", () => {
   const report = evaluate(
     diff({
@@ -71,6 +89,19 @@ test("テスト削除・skip 追加・fixture 削除は critical", () => {
   assert.equal(hasSignal(report, signals.testDeleted), true);
   assert.equal(hasSignal(report, signals.testDisabled), true);
   assert.equal(hasSignal(report, signals.testSupportDeleted), true);
+});
+
+test("test options の skip true は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": ['test("later", { skip: true }, () => {});'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
 test("review-risk 自身・品質 script・既存 migration の変更は critical", () => {

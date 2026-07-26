@@ -58,6 +58,36 @@ jobs:
             echo "self=false" >> "$GITHUB_OUTPUT"
           fi
 
+          if git merge-tree --write-tree HEAD FETCH_HEAD >/dev/null; then
+            echo "conflict=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Clear stale normal result while conflicting
+        if: steps.guard.outputs.conflict == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          existing_labels="$(gh pr view "$PR" --json labels --jq '.labels[].name')"
+          while IFS= read -r label; do
+            case "$label" in
+              review:*)
+                gh pr edit "$PR" --remove-label "$label"
+                ;;
+            esac
+          done <<< "$existing_labels"
+
+          existing_id="$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+            --jq '[.[] | select(.body | startswith("<!-- review-risk -->"))][0].id // empty')"
+          if [ -n "$existing_id" ]; then
+            gh api --method DELETE "repos/$GH_REPO/issues/comments/$existing_id"
+          fi
+
       - name: Apply review:critical label
         if: steps.guard.outputs.self == 'true'
         env:
