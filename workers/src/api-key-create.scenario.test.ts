@@ -280,8 +280,9 @@ describe("POST /api/auth/api-key/create", () => {
           password: "password123",
         },
       });
-      const cookie = signUpResponse.headers.get("set-cookie")?.split(";")[0];
-      expect(cookie).toBeDefined();
+      const cookie = z
+        .string()
+        .parse(signUpResponse.headers.get("set-cookie")?.split(";")[0]);
       const createResponse = await request({
         path: "/api/auth/api-key/create",
         body: {
