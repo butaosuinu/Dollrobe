@@ -6,7 +6,6 @@ import { Trans } from "@lingui/react/macro";
 import { msg, t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { createApiKeyAtom } from "@/stores/apiKeyAtoms";
-import { addToastAtom } from "@/stores/toastAtoms";
 import {
   API_KEY_SCOPE,
   type ApiKeyScope,
@@ -14,6 +13,7 @@ import {
 } from "@/lib/auth";
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
+import ErrorAlert from "@/components/ui/ErrorAlert";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 
@@ -36,14 +36,25 @@ const toApiKeyScope = (value: string): ApiKeyScope =>
     ? API_KEY_SCOPE.READ_WRITE
     : API_KEY_SCOPE.READ_ONLY;
 
+// 発行が失敗した理由は better-auth の error.message にしか無いため、
+// 汎用メッセージに添えてダイアログ内へそのまま出す。
+type CreateFailure = { readonly serverDetail: string | undefined };
+
+const toCreateFailure = (cause: unknown): CreateFailure => ({
+  serverDetail:
+    cause instanceof Error && cause.message.trim() !== ""
+      ? cause.message
+      : undefined,
+});
+
 const ApiKeyCreateSheet = ({ isOpen, onClose, onCreated }: Props) => {
   const create = useSetAtom(createApiKeyAtom);
-  const addToast = useSetAtom(addToastAtom);
   const { i18n } = useLingui();
 
   const [name, setName] = useState("");
   const [scope, setScope] = useState<ApiKeyScope>(API_KEY_SCOPE.READ_ONLY);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [failure, setFailure] = useState<CreateFailure | undefined>(undefined);
 
   const trimmedName = name.trim();
   const isDisabled = trimmedName === "" || isSubmitting;
@@ -51,21 +62,23 @@ const ApiKeyCreateSheet = ({ isOpen, onClose, onCreated }: Props) => {
   const resetForm = () => {
     setName("");
     setScope(API_KEY_SCOPE.READ_ONLY);
+    setFailure(undefined);
   };
 
   const handleSubmit = async () => {
     if (isDisabled) return;
+    setFailure(undefined);
     setIsSubmitting(true);
-    const created = await create({ name: trimmedName, scope }).catch(
-      () => undefined,
+    const result = await create({ name: trimmedName, scope }).catch(
+      (cause: unknown) => toCreateFailure(cause),
     );
     setIsSubmitting(false);
-    if (created === undefined) {
-      addToast({ message: t`API キーの発行に失敗しました` });
+    if ("serverDetail" in result) {
+      setFailure(result);
       return;
     }
     resetForm();
-    onCreated(created);
+    onCreated(result);
   };
 
   const handleClose = () => {
@@ -102,6 +115,16 @@ const ApiKeyCreateSheet = ({ isOpen, onClose, onCreated }: Props) => {
             生キーは発行直後の一度しか表示されません。安全な場所に保管してください。
           </Trans>
         </p>
+        {failure !== undefined && (
+          <ErrorAlert>
+            <Trans>API キーの発行に失敗しました</Trans>
+            {failure.serverDetail !== undefined && (
+              <span className="mt-1 block break-all opacity-80">
+                {failure.serverDetail}
+              </span>
+            )}
+          </ErrorAlert>
+        )}
         <div className="flex gap-3">
           <Button variant="ghost" fullWidth onClick={handleClose}>
             <Trans>キャンセル</Trans>

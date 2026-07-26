@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupAuthClient } from "@/test/mocks/modules/authClient";
@@ -83,5 +83,82 @@ describe("ApiKeyCreateSheet", () => {
         scope: API_KEY_SCOPE.READ_WRITE,
       }),
     );
+  });
+
+  it("発行に失敗するとダイアログ内にエラーと server のエラー詳細が表示される", async () => {
+    setupAuthClient({
+      createShouldFail: true,
+      createErrorMessage: "API key creation is not enabled",
+    });
+    const onCreated = vi.fn();
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+
+    await renderWithProviders(
+      <ApiKeyCreateSheet
+        isOpen={true}
+        onClose={onClose}
+        onCreated={onCreated}
+      />,
+    );
+
+    await user.type(await screen.findByLabelText("名前"), "agent-x");
+    await user.click(screen.getByRole("button", { name: "発行" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("API キーの発行に失敗しました");
+    expect(alert).toHaveTextContent("API key creation is not enabled");
+    expect(onCreated).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("server のエラー詳細が無い失敗では汎用メッセージのみ表示される", async () => {
+    setupAuthClient({ createShouldFail: true, createErrorMessage: "" });
+    const user = userEvent.setup();
+
+    await renderWithProviders(
+      <ApiKeyCreateSheet isOpen={true} onClose={vi.fn()} onCreated={vi.fn()} />,
+    );
+
+    await user.type(await screen.findByLabelText("名前"), "agent-x");
+    await user.click(screen.getByRole("button", { name: "発行" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /^API キーの発行に失敗しました$/,
+    );
+  });
+
+  it("発行に失敗しても入力は保持され、再試行すると成功しエラーが消える", async () => {
+    setupAuthClient({ createShouldFail: true });
+    const onCreated = vi.fn();
+    const user = userEvent.setup();
+
+    await renderWithProviders(
+      <ApiKeyCreateSheet
+        isOpen={true}
+        onClose={vi.fn()}
+        onCreated={onCreated}
+      />,
+    );
+
+    await user.type(await screen.findByLabelText("名前"), "agent-x");
+    await user.click(screen.getByRole("button", { name: "発行" }));
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByLabelText("名前")).toHaveValue("agent-x");
+    const submitButton = screen.getByRole("button", { name: "発行" });
+    expect(submitButton).toBeEnabled();
+
+    const { spies } = setupAuthClient({ nextCreated: fixedCreated });
+    await user.click(submitButton);
+
+    expect(spies.createApiKey).toHaveBeenCalledWith({
+      name: "agent-x",
+      scope: API_KEY_SCOPE.READ_ONLY,
+    });
+    expect(onCreated).toHaveBeenCalledWith(fixedCreated);
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
   });
 });
