@@ -305,6 +305,10 @@ msgstr "Dollrobe에 로그인"
 msgid "Google でログイン"
 msgstr "Google로 로그인"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "HTTPS でアクセスしているか確認するか、別のブラウザで開いてください。"
+msgstr "HTTPS로 접속했는지 확인하거나 다른 브라우저에서 열어 주세요."
+
 #: src/components/settings/account/ProfileForm.tsx
 msgid "https://..."
 msgstr "https://..."
@@ -546,6 +550,10 @@ msgstr "액세서리"
 msgid "アップロード中..."
 msgstr "업로드 중..."
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "アドレスバーのカメラアイコン、または端末の設定からこのサイトのカメラを「許可」に変更してください。"
+msgstr "주소 표시줄의 카메라 아이콘 또는 기기 설정에서 이 사이트의 카메라 권한을 허용으로 변경해 주세요."
+
 #: src/components/digest/DigestCard.tsx
 msgid "あなたの在庫状況"
 msgstr "재고 상태"
@@ -640,9 +648,29 @@ msgstr "사용자 지정 이름"
 msgid "カテゴリ"
 msgstr "카테고리"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラが接続されているか、他のアプリで無効になっていないか確認してください。"
+msgstr "카메라가 연결되어 있는지, 다른 앱에서 비활성화되지 않았는지 확인해 주세요."
+
 #: src/components/garment/ImageUpload.tsx
 msgid "カメラで撮影"
 msgstr "카메라로 촬영"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラの起動に失敗しました"
+msgstr "카메라를 시작하지 못했습니다"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラへのアクセスが拒否されました"
+msgstr "카메라 접근이 거부되었습니다"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラを再試行"
+msgstr "카메라 다시 시도"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラを起動できませんでした"
+msgstr "카메라를 켤 수 없습니다"
 
 #: src/components/dashboard/WardrobeAnalytics.tsx
 msgid "カラー"
@@ -738,6 +766,10 @@ msgstr "이 API 키는 한 번만 표시됩니다. 닫기 전에 반드시 복�
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "이 기기는 NFC 쓰기를 지원하지 않습니다. Android Chrome을 이용해 주세요."
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "このブラウザではカメラを使えません"
+msgstr "이 브라우저에서는 카메라를 사용할 수 없습니다"
+
 #: src/app/admin/users/page.tsx
 msgid "このページには表示するユーザーがいません"
 msgstr "이 페이지에 표시할 사용자가 없습니다"
@@ -819,6 +851,10 @@ msgstr "시즌, 상황, 조합의 이유 등"
 #: src/lib/i18n-labels.ts
 msgid "シアン"
 msgstr "시안"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "しばらく待ってから再試行してください。"
+msgstr "잠시 후 다시 시도해 주세요."
 
 #: src/components/marketing/ProblemSection.tsx
 msgid "しばらく着せていない服が、いつの間にか箱の底で見つからない服になっている。"
@@ -1546,6 +1582,10 @@ msgstr "나란히 놓인 두 개의 칸막이 서랍에 정리된 인형 옷을 
 msgid "今ここにいなくても確認"
 msgstr "지금 여기 없어도 확인"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "他のアプリがカメラを使用している可能性があります。使用中のアプリを閉じてから再試行してください。"
+msgstr "다른 앱이 카메라를 사용 중일 수 있습니다. 해당 앱을 닫은 뒤 다시 시도해 주세요."
+
 #: src/app/settings/account/page.tsx
 msgid "他のユーザーや UI に表示されます。"
 msgstr "다른 사용자나 UI에 표시됩니다."
@@ -1740,6 +1780,10 @@ msgstr "꺼내고 넣을 때마다 장소 QR만 읽으면, 위치가 항상 최�
 #: src/components/location/StorageCaseForm.tsx
 msgid "列数"
 msgstr "열 수"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "利用できるカメラが見つかりません"
+msgstr "사용할 수 있는 카메라를 찾을 수 없습니다"
 
 #: src/components/marketing/MarketingFooter.tsx
 #~ msgid "利用規約"
