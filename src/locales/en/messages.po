@@ -2479,6 +2479,10 @@ msgid "色"
 msgstr "Colors"
 
 #: src/components/garment/GarmentForm.tsx
+msgid "色の自動抽出に失敗しました。下から手動で選んでください。"
+msgstr "Automatic color detection failed. Please pick colors manually below."
+
+#: src/components/garment/GarmentForm.tsx
 msgid "色を分析中..."
 msgstr "Analyzing colors..."
 

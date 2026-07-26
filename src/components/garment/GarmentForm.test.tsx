@@ -231,6 +231,34 @@ describe("GarmentForm", () => {
     expect(screen.getByText("色を分析中...")).toBeInTheDocument();
   });
 
+  it("色分析に失敗すると手動選択を促すメッセージが出る", async () => {
+    colorHandle.current.setExtractionState({ status: "error" });
+    await renderWithProviders(<GarmentForm />);
+
+    expect(
+      screen.getByText(
+        "色の自動抽出に失敗しました。下から手動で選んでください。",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("色を分析中...")).not.toBeInTheDocument();
+  });
+
+  it("色を手動で選ぶと自動抽出失敗メッセージが消える", async () => {
+    const user = userEvent.setup();
+    colorHandle.current.setExtractionState({ status: "error" });
+    await renderWithProviders(<GarmentForm />);
+
+    await user.click(
+      screen.getByRole("button", { name: "hsl(0, 70%, 55%)を追加" }),
+    );
+
+    expect(
+      screen.queryByText(
+        "色の自動抽出に失敗しました。下から手動で選んでください。",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
   it("色分析が完了するとローディングが消える", async () => {
     colorHandle.current.setExtractionState({
       status: "done",

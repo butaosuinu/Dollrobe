@@ -229,6 +229,12 @@ export const COLOR_EXTRACTION = Object.freeze({
   SECONDARY_COLOR_MIN_RATIO: 0.3,
 });
 
+export const OPENCV_ASSETS = Object.freeze({
+  SCRIPT_PATH: "/opencv.js",
+  WASM_PATH: "/opencv_js.wasm",
+  LOAD_TIMEOUT_MS: 30_000,
+});
+
 export const MIME_TO_EXTENSION = Object.freeze({
   "image/jpeg": "jpg",
   "image/png": "png",
