@@ -2479,6 +2479,10 @@ msgid "色"
 msgstr "色"
 
 #: src/components/garment/GarmentForm.tsx
+msgid "色の自動抽出に失敗しました。下から手動で選んでください。"
+msgstr "色の自動抽出に失敗しました。下から手動で選んでください。"
+
+#: src/components/garment/GarmentForm.tsx
 msgid "色を分析中..."
 msgstr "色を分析中..."
 

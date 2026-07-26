@@ -313,6 +313,14 @@ const GarmentForm = ({ garment }: Props) => {
         </div>
       )}
 
+      {extractionState.status === "error" && colors.length === 0 && (
+        <p className="text-sm text-text-tertiary">
+          <Trans>
+            色の自動抽出に失敗しました。下から手動で選んでください。
+          </Trans>
+        </p>
+      )}
+
       <ColorPicker label={t`色`} colors={colors} onChangeColors={setColors} />
 
       <TagInput label={t`タグ`} tags={tags} onChangeTags={setTags} />
