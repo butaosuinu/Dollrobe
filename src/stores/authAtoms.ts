@@ -54,8 +54,21 @@ const wrapSession = async (): Promise<SessionFetchResult> => {
   return session === undefined ? { ok: false } : { ok: true, session };
 };
 
+// unwrap の初期 fallback であり、SSR での確定値でもある。
+const PENDING_AUTH_STATE: AuthState = {
+  user: undefined,
+  isAuthenticated: false,
+  isLoading: true,
+  hasError: false,
+};
+
 export const authSessionAtom = atom(async (get): Promise<AuthState> => {
   get(authRefreshTriggerAtom);
+  // SSR は cookie を持たずセッションを解決できない。ここで fetch すると、
+  // Provider 無しの jotai default store がサーバプロセス全体で共有されるせいで
+  // 解決済み state が次のリクエストに残り、2 回目以降の SSR だけ
+  // isLoading: false の HTML を返してクライアント初回レンダーと食い違う。
+  if (typeof window === "undefined") return PENDING_AUTH_STATE;
   const result = await wrapSession();
   const user = result.ok ? extractUser(result.session) : undefined;
   return {
@@ -68,13 +81,7 @@ export const authSessionAtom = atom(async (get): Promise<AuthState> => {
 
 export const authSessionUnwrappedAtom = unwrap(
   authSessionAtom,
-  (prev): AuthState =>
-    prev ?? {
-      user: undefined,
-      isAuthenticated: false,
-      isLoading: true,
-      hasError: false,
-    },
+  (prev): AuthState => prev ?? PENDING_AUTH_STATE,
 );
 
 // Suspense にしないことで dataAtom 側との二重 Suspense を避ける。未認証時は即
