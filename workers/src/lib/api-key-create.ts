@@ -17,6 +17,9 @@ const apiKeyPermissionsSchema = z.union([
     .strict(),
 ]);
 
+const API_KEY_PREFIX_CHARACTERS =
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
+
 const apiKeyCreateBodySchema = z
   .object({
     configId: z.string().optional(),
@@ -24,7 +27,11 @@ const apiKeyCreateBodySchema = z
     expiresIn: z.number().min(1).nullable().optional(),
     prefix: z
       .string()
-      .regex(/^[a-zA-Z0-9_-]+$/)
+      .refine((value) =>
+        Array.from(value).every((character) =>
+          API_KEY_PREFIX_CHARACTERS.includes(character),
+        ),
+      )
       .optional(),
     remaining: z.null().optional(),
     metadata: z.unknown().optional(),
