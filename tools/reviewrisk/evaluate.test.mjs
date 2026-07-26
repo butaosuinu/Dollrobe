@@ -104,6 +104,29 @@ test("test options の skip true は critical", () => {
   assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
+test("dmux lifecycle hook の変更は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: ".dmux-hooks/worktree_created" })],
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.reviewGate), true);
+});
+
+test("test subscript の変更は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "package.json" })],
+      addedLines: {
+        "package.json": ['"test:review-risk": "true"'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.qualityGate), true);
+});
+
 test("review-risk 自身・品質 script・既存 migration の変更は critical", () => {
   const report = evaluate(
     diff({

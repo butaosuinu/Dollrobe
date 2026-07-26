@@ -32,7 +32,11 @@ const testSupportPrefixes = [
   "workers/test/",
 ];
 
-const reviewGatePrefixes = [".claude/scripts/", ".claude/skills/code-review/"];
+const reviewGatePrefixes = [
+  ".claude/scripts/",
+  ".claude/skills/code-review/",
+  ".dmux-hooks/",
+];
 
 const riskPaths = [
   ".github/workflows/review-risk-guard.yml",
@@ -57,7 +61,7 @@ const invariantPatterns = [
 const testDisablePattern =
   /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\b(?:skip|only)\s*:\s*true\b/;
 const qualityGatePattern =
-  /"(?:test|typecheck|lint|format:check|i18n:check|precheck(?::full)?)"\s*:/;
+  /"(?:test(?::[^"]+)?|typecheck|lint|format:check|i18n:check|precheck(?::full)?)"\s*:/;
 
 const touches = (file, pathOrPrefix) =>
   file.path.startsWith(pathOrPrefix) ||
@@ -111,7 +115,7 @@ const criticalReasons = (diff) => {
           file.path,
           file.status === "D"
             ? "テストファイルを削除"
-            : `rename でテスト形状を喪失（${file.oldPath}）`,
+            : "rename でテスト形状を喪失",
         ),
       );
     }
@@ -205,7 +209,7 @@ const criticalReasons = (diff) => {
         signals.qualityGate,
         levels.critical,
         "package.json",
-        "test・typecheck・lint・precheck script を変更",
+        "test・test:*・typecheck・lint・precheck script を変更",
       ),
     );
   }
@@ -302,7 +306,7 @@ export const evaluate = (diff) => {
           signals.unclassified,
           levels.high,
           file.path,
-          `${file.note}（fail-closed で high）`,
+          "未分類パス（rename 元を含む。fail-closed で high）",
         ),
       );
     }

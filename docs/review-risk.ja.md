@@ -54,7 +54,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更       |
 | S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                   |
 | S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                 |
-| S7-quality-gate-modified    | critical | package の test/typecheck/lint/precheck script の変更              |
+| S7-quality-gate-modified    | critical | package の test/test:\*/typecheck/lint/precheck script の変更      |
 | S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                             |
 | S9-unclassified-path        | high     | rule に一致しない path                                             |
 | S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触 |

@@ -5,7 +5,13 @@ export const reviewRiskMarker = "<!-- review-risk -->";
 const plusMinus = ({ added, deleted }) =>
   `+${String(added)} −${String(deleted)}`;
 
-const escapeTableCell = (value) => value.replaceAll("|", "\\|");
+const unsafeMarkdownPathCharacter = /[\u0000-\u001f\u007f\u2028\u2029`|<>&]/gu;
+
+const escapeMarkdownPath = (value) =>
+  value.replace(unsafeMarkdownPathCharacter, (character) => {
+    const codePoint = character.codePointAt(0);
+    return `[U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}]`;
+  });
 
 export const renderText = (report) => {
   const lines = [
@@ -49,7 +55,7 @@ export const renderMarkdown = (report) => {
   } else {
     for (const item of report.reasons) {
       lines.push(
-        `- **[${item.level}]** \`${item.signal}\` — \`${item.file || "(diff 全体)"}\`: ${item.detail}`,
+        `- **[${item.level}]** \`${item.signal}\` — \`${escapeMarkdownPath(item.file || "(diff 全体)")}\`: ${item.detail}`,
       );
     }
   }
@@ -62,7 +68,7 @@ export const renderMarkdown = (report) => {
   );
   for (const file of report.files) {
     lines.push(
-      `| \`${escapeTableCell(file.path)}\` | ${file.status} | ${file.class} | ${file.level} | ${file.rule} |`,
+      `| \`${escapeMarkdownPath(file.path)}\` | ${file.status} | ${file.class} | ${file.level} | ${file.rule} |`,
     );
   }
   lines.push("", "</details>", "", "判定ルール: docs/review-risk.ja.md");

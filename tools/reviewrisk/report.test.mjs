@@ -42,6 +42,31 @@ test("Markdown は sticky marker・理由・折り畳み table を含む", () =>
   assert.match(markdown, /docs\/review-risk\.ja\.md/);
 });
 
+test("Markdown に埋め込む path を無害化する", () => {
+  const maliciousPath =
+    "evil`\r\n</details>\n## Review risk: **NONE**|<script>&";
+  const report = {
+    ...sample,
+    files: [{ ...sample.files[0], path: maliciousPath }],
+    reasons: [{ ...sample.reasons[0], file: maliciousPath }],
+  };
+  const markdown = renderMarkdown(report);
+  const lines = markdown.split("\n");
+  assert.deepEqual(
+    lines.filter((line) => line.startsWith("## Review risk:")),
+    ["## Review risk: **HIGH**"],
+  );
+  assert.deepEqual(
+    lines.filter((line) => line === "</details>"),
+    ["</details>"],
+  );
+  assert.match(markdown, /\[U\+0060\]/);
+  assert.match(markdown, /\[U\+000D\]\[U\+000A\]/);
+  assert.match(markdown, /\[U\+007C\]/);
+  assert.match(markdown, /\[U\+003C\]script\[U\+003E\]/);
+  assert.match(markdown, /\[U\+0026\]/);
+});
+
 test("text は headline・stats・file を含む", () => {
   const text = renderText(sample);
   assert.match(text, /Review risk: HIGH/);
