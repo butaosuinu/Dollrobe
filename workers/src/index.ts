@@ -16,7 +16,6 @@ import type { Logger, LogLevel } from "./lib/logger";
 import { isUserFrozen } from "./lib/user-status";
 import { buildSentryOptions, captureTrpcError } from "./lib/sentry";
 import { imageRoutes } from "./routes/image";
-import { apiKeyRoutes } from "./routes/api-key";
 import * as imageService from "./services/image-service";
 import { handleDigestCron } from "./scheduled/digest-cron";
 import { handleDigestQueue } from "./queues/digest-consumer";
@@ -71,7 +70,13 @@ app.use("*", async (c, next) => {
 });
 
 app.use("*", async (c, next) => {
-  c.set("auth", createAuth({ env: c.env }));
+  c.set(
+    "auth",
+    createAuth({
+      env: c.env,
+      logger: c.get("logger").child({ component: "better-auth" }),
+    }),
+  );
   await next();
 });
 
@@ -184,8 +189,6 @@ app.post("/api/auth/delete-user", async (c) => {
       ? c.json({ message: "Failed" }, 500)
       : c.json({ status: true });
 });
-
-app.route("/api/auth/api-key", apiKeyRoutes);
 
 app.all("/api/auth/*", async (c) => {
   const auth = c.get("auth");

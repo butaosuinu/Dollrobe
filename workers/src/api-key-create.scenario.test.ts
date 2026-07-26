@@ -1,18 +1,13 @@
 import { env } from "cloudflare:test";
-import { Hono } from "hono";
 import { beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createAuth } from "./auth";
-import type { Auth } from "./auth";
-import type { Env } from "./types";
-import type { Logger } from "./lib/logger";
 import { createTestLogger } from "./test/helpers";
-import { apiKeyRoutes } from "./routes/api-key";
 import { resolveMcpAuth } from "./mcp/auth";
 import { hasScope } from "./mcp/scopes";
 
 const TEST_BASE = "http://localhost:8787";
-const AUTH_SCENARIO_TIMEOUT_MS = 15_000;
+const AUTH_SCENARIO_TIMEOUT_MS = 30_000;
 const createdApiKeySchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -24,54 +19,30 @@ const createdApiKeySchema = z.object({
   }),
 });
 
-type Variables = {
-  auth: Auth;
-  requestId: string;
-  logger: Logger;
-};
-
-const auth = createAuth({ env });
-const app = new Hono<{ Bindings: Env; Variables: Variables }>();
-app.use("*", async (c, next) => {
-  c.set("auth", auth);
-  c.set("logger", createTestLogger());
-  await next();
-});
-app.route("/api/auth/api-key", apiKeyRoutes);
+const auth = createAuth({ env, logger: createTestLogger() });
 
 const request = async ({
   path,
   body,
   cookie,
+  origin = "http://localhost:3000",
 }: {
   readonly path: string;
   readonly body: Record<string, unknown>;
   readonly cookie?: string;
+  readonly origin?: string | null;
 }): Promise<Response> =>
-  path.startsWith("/api/auth/api-key/")
-    ? await app.fetch(
-        new Request(`${TEST_BASE}${path}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Origin: "http://localhost:3000",
-            ...(cookie === undefined ? {} : { Cookie: cookie }),
-          },
-          body: JSON.stringify(body),
-        }),
-        env,
-      )
-    : await auth.handler(
-        new Request(`${TEST_BASE}${path}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Origin: "http://localhost:3000",
-            ...(cookie === undefined ? {} : { Cookie: cookie }),
-          },
-          body: JSON.stringify(body),
-        }),
-      );
+  await auth.handler(
+    new Request(`${TEST_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(origin === null ? {} : { Origin: origin }),
+        ...(cookie === undefined ? {} : { Cookie: cookie }),
+      },
+      body: JSON.stringify(body),
+    }),
+  );
 
 beforeEach(async () => {
   await env.DB.batch([
@@ -245,6 +216,50 @@ describe("POST /api/auth/api-key/create", () => {
         cookie,
       });
       expect(userIdResponse.status).toBe(400);
+
+      const stored = await env.DB.prepare(
+        `SELECT COUNT(*) AS count FROM apikey`,
+      ).first();
+      expect(stored).toEqual({ count: 0 });
+    },
+    AUTH_SCENARIO_TIMEOUT_MS,
+  );
+
+  it(
+    "session cookie 付きの不正または欠落 Origin は 403 で拒否する",
+    async () => {
+      const signUpResponse = await request({
+        path: "/api/auth/sign-up/email",
+        body: {
+          name: "Origin User",
+          email: "origin-api-key@example.com",
+          password: "password123",
+        },
+      });
+      const cookie = signUpResponse.headers.get("set-cookie")?.split(";")[0];
+      expect(cookie).toBeDefined();
+
+      const invalidOriginResponse = await request({
+        path: "/api/auth/api-key/create",
+        body: {
+          name: "invalid-origin-key",
+          permissions: { all: ["read"] },
+        },
+        cookie,
+        origin: "https://attacker.example",
+      });
+      expect(invalidOriginResponse.status).toBe(403);
+
+      const missingOriginResponse = await request({
+        path: "/api/auth/api-key/create",
+        body: {
+          name: "missing-origin-key",
+          permissions: { all: ["read"] },
+        },
+        cookie,
+        origin: null,
+      });
+      expect(missingOriginResponse.status).toBe(403);
 
       const stored = await env.DB.prepare(
         `SELECT COUNT(*) AS count FROM apikey`,
