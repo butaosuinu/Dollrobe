@@ -4,6 +4,10 @@ import { z } from "zod";
 import type { Env } from "../types";
 import type { Logger } from "../lib/logger";
 import type { Auth } from "../auth";
+import {
+  API_KEY_SCOPE,
+  buildStoredApiKeyPermissions,
+} from "../lib/api-key-permissions";
 
 type Variables = {
   auth: Auth;
@@ -12,10 +16,13 @@ type Variables = {
 };
 
 const apiKeyPermissionsSchema = z.union([
-  z.object({ all: z.tuple([z.literal("read")]) }).strict(),
+  z.object({ all: z.tuple([z.literal(API_KEY_SCOPE.READ)]) }).strict(),
   z
     .object({
-      all: z.tuple([z.literal("read"), z.literal("write")]),
+      all: z.tuple([
+        z.literal(API_KEY_SCOPE.READ),
+        z.literal(API_KEY_SCOPE.WRITE),
+      ]),
     })
     .strict(),
 ]);
@@ -103,6 +110,10 @@ apiKeyRoutes.post("/create", async (c) => {
     .createApiKey({
       body: {
         ...parsed.data,
+        permissions:
+          parsed.data.permissions === undefined
+            ? undefined
+            : buildStoredApiKeyPermissions(parsed.data.permissions.all),
         userId: sessionResult.user.id,
       },
     })

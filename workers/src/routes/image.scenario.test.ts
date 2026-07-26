@@ -8,6 +8,7 @@ import type { Logger } from "../lib/logger";
 import {
   createStubAuth,
   createTestLogger,
+  insertTestUser,
   TEST_USER_ID,
 } from "../test/helpers";
 import { imageRoutes } from "./image";
@@ -65,10 +66,17 @@ const buildMultipartRequest = ({
 describe("imageRoutes /upload/:garmentId", () => {
   aroundEach(async (runTest) => {
     vi.restoreAllMocks();
+    await env.DB.prepare(`DELETE FROM "user" WHERE id = ?`)
+      .bind(TEST_USER_ID)
+      .run();
+    await insertTestUser({ db: env.DB, id: TEST_USER_ID });
 
     await runTest();
 
     vi.restoreAllMocks();
+    await env.DB.prepare(`DELETE FROM "user" WHERE id = ?`)
+      .bind(TEST_USER_ID)
+      .run();
   });
 
   it("認証なしの場合 401 を返す", async () => {

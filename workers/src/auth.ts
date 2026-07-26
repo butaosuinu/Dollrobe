@@ -61,6 +61,9 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
       deleteUser: {
         enabled: true,
         beforeDelete: async (user) => {
+          await env.DB.prepare(`DELETE FROM "apikey" WHERE referenceId = ?`)
+            .bind(user.id)
+            .run();
           // FK: garments.location_id → storage_locations.id, storage_locations.case_id → storage_cases.id
           // 子→親の順で batch 実行し、D1 の FK 制約違反を避ける
           const drizzleDb = createDrizzle(env.DB);

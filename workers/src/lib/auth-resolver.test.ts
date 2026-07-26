@@ -5,7 +5,13 @@ import type { Auth } from "../auth";
 
 type SessionShape = { readonly user: { readonly id: string } } | null;
 type VerifyShape =
-  | { readonly valid: true; readonly key?: { readonly referenceId?: string } }
+  | {
+      readonly valid: true;
+      readonly key?: {
+        readonly referenceId?: string;
+        readonly permissions?: unknown;
+      };
+    }
   | { readonly valid: false };
 
 const TEST_USER_IDS = [
@@ -16,6 +22,18 @@ const TEST_USER_IDS = [
   "u-frozen-bearer",
   "u-active-session",
 ];
+const ACTIVE_USER_IDS = ["u-1", "u-cookie", "u-bearer", "u-active-session"];
+
+const validApiKey = ({
+  userId,
+  actions = ["read"],
+}: {
+  readonly userId: string;
+  readonly actions?: ReadonlyArray<"read" | "write">;
+}): VerifyShape => ({
+  valid: true,
+  key: { referenceId: userId, permissions: { all: actions } },
+});
 
 const makeAuth = ({
   session,
@@ -64,6 +82,11 @@ const cleanupUsers = async (): Promise<void> => {
 
 aroundEach(async (runTest) => {
   await cleanupUsers();
+  await Promise.all(
+    ACTIVE_USER_IDS.map(async (id) => {
+      await insertUser({ id, frozen: false });
+    }),
+  );
   await runTest();
   await cleanupUsers();
 });
@@ -101,7 +124,7 @@ describe("extractBearerKey", () => {
 describe("resolveAuthenticatedUserId", () => {
   it("Bearer のみ・cookie 無し→ verifyApiKey 経路で userId を返す", async () => {
     const auth = makeAuth({
-      verify: { valid: true, key: { referenceId: "u-1" } },
+      verify: validApiKey({ userId: "u-1" }),
     });
     const headers = new Headers({ authorization: "Bearer dwk_x" });
     const result = await resolveAuthenticatedUserId({
@@ -122,7 +145,7 @@ describe("resolveAuthenticatedUserId", () => {
 
   it("Bearer 経路で referenceId が空文字 → undefined", async () => {
     const auth = makeAuth({
-      verify: { valid: true, key: { referenceId: "" } },
+      verify: validApiKey({ userId: "" }),
     });
     const headers = new Headers({ authorization: "Bearer dwk_x" });
     expect(
@@ -141,7 +164,7 @@ describe("resolveAuthenticatedUserId", () => {
   it("Cookie あり Bearer あり → session 優先", async () => {
     const auth = makeAuth({
       session: { user: { id: "u-cookie" } },
-      verify: { valid: true, key: { referenceId: "u-bearer" } },
+      verify: validApiKey({ userId: "u-bearer" }),
     });
     const headers = new Headers({
       authorization: "Bearer dwk_x",
@@ -155,7 +178,7 @@ describe("resolveAuthenticatedUserId", () => {
   it("Cookie あり session が null → Bearer fallback", async () => {
     const auth = makeAuth({
       session: null,
-      verify: { valid: true, key: { referenceId: "u-bearer" } },
+      verify: validApiKey({ userId: "u-bearer" }),
     });
     const headers = new Headers({
       authorization: "Bearer dwk_x",
@@ -200,7 +223,6 @@ describe("resolveAuthenticatedUserId", () => {
   });
 
   it("session 経路で解決した userId が frozen=false なら通過する", async () => {
-    await insertUser({ id: "u-active-session", frozen: false });
     const auth = makeAuth({ session: { user: { id: "u-active-session" } } });
     const headers = new Headers({ cookie: "session=abc" });
     expect(
@@ -211,7 +233,7 @@ describe("resolveAuthenticatedUserId", () => {
   it("Bearer 経路で解決した userId が frozen=true なら undefined", async () => {
     await insertUser({ id: "u-frozen-bearer", frozen: true });
     const auth = makeAuth({
-      verify: { valid: true, key: { referenceId: "u-frozen-bearer" } },
+      verify: validApiKey({ userId: "u-frozen-bearer" }),
     });
     const headers = new Headers({ authorization: "Bearer dwk_x" });
     expect(
@@ -223,7 +245,7 @@ describe("resolveAuthenticatedUserId", () => {
     await insertUser({ id: "u-frozen-bearer", frozen: true });
     const auth = makeAuth({
       session: null,
-      verify: { valid: true, key: { referenceId: "u-frozen-bearer" } },
+      verify: validApiKey({ userId: "u-frozen-bearer" }),
     });
     const headers = new Headers({
       authorization: "Bearer dwk_x",
@@ -232,5 +254,48 @@ describe("resolveAuthenticatedUserId", () => {
     expect(
       await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
     ).toBeUndefined();
+  });
+
+  it("Bearer の所有ユーザーが存在しない場合は undefined", async () => {
+    const auth = makeAuth({
+      verify: validApiKey({ userId: "u-deleted" }),
+    });
+    const headers = new Headers({ authorization: "Bearer dwk_x" });
+
+    expect(
+      await resolveAuthenticatedUserId({ auth, db: env.DB, headers }),
+    ).toBeUndefined();
+  });
+
+  it("read-only Bearer は write scope を要求する経路では undefined", async () => {
+    const auth = makeAuth({
+      verify: validApiKey({ userId: "u-1" }),
+    });
+    const headers = new Headers({ authorization: "Bearer dwk_x" });
+
+    expect(
+      await resolveAuthenticatedUserId({
+        auth,
+        db: env.DB,
+        headers,
+        requiredApiKeyScope: "write",
+      }),
+    ).toBeUndefined();
+  });
+
+  it("read-write Bearer は write scope を要求する経路を通過する", async () => {
+    const auth = makeAuth({
+      verify: validApiKey({ userId: "u-1", actions: ["read", "write"] }),
+    });
+    const headers = new Headers({ authorization: "Bearer dwk_x" });
+
+    expect(
+      await resolveAuthenticatedUserId({
+        auth,
+        db: env.DB,
+        headers,
+        requiredApiKeyScope: "write",
+      }),
+    ).toBe("u-1");
   });
 });

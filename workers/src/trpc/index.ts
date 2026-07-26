@@ -7,6 +7,7 @@ import { resolveAuthenticatedUserId } from "../lib/auth-resolver";
 import { createDrizzle } from "../db/client";
 import * as adminService from "../services/admin-service";
 import { throwIfError } from "../services/types";
+import { API_KEY_SCOPE } from "../lib/api-key-permissions";
 
 export type TRPCContext = {
   readonly env: Env;
@@ -38,7 +39,7 @@ const loggingMiddleware = t.middleware(async ({ ctx, path, type, next }) => {
   return result;
 });
 
-const authMiddleware = t.middleware(async ({ ctx, next }) => {
+const authMiddleware = t.middleware(async ({ ctx, type, next }) => {
   if (ctx.preAuthenticatedUserId !== undefined) {
     return await next({
       ctx: { ...ctx, userId: ctx.preAuthenticatedUserId },
@@ -53,6 +54,8 @@ const authMiddleware = t.middleware(async ({ ctx, next }) => {
     auth: ctx.auth,
     db: ctx.env.DB,
     headers: ctx.honoContext.req.raw.headers,
+    requiredApiKeyScope:
+      type === "mutation" ? API_KEY_SCOPE.WRITE : API_KEY_SCOPE.READ,
   });
 
   if (userId === undefined) {

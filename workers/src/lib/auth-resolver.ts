@@ -1,6 +1,13 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { Auth } from "../auth";
-import { isUserFrozen } from "./user-status";
+import {
+  API_KEY_PERMISSION_NAMESPACE,
+  API_KEY_SCOPE,
+  hasApiKeyScope,
+  parseApiKeyScope,
+} from "./api-key-permissions";
+import type { ApiKeyScope } from "./api-key-permissions";
+import { isUserActive } from "./user-status";
 
 const BEARER_PREFIX = "bearer ";
 
@@ -23,7 +30,9 @@ const verifyBearer = async ({
 }: {
   readonly auth: Auth;
   readonly key: string;
-}): Promise<string | undefined> => {
+}): Promise<
+  { readonly userId: string; readonly scope: ApiKeyScope } | undefined
+> => {
   const result = await auth.api
     .verifyApiKey({ body: { key } })
     .catch(() => undefined);
@@ -31,54 +40,87 @@ const verifyBearer = async ({
     return undefined;
   }
   const userId = result.key?.referenceId;
-  return userId !== undefined && userId !== "" ? userId : undefined;
+  const scope = parseApiKeyScope({
+    permissions: result.key?.permissions,
+    namespace: API_KEY_PERMISSION_NAMESPACE.ALL,
+  });
+  return userId !== undefined && userId !== "" && scope !== undefined
+    ? { userId, scope }
+    : undefined;
 };
 
-// frozen=true のユーザーは、既存 session / 事前発行 API key を持っていても
-// すべての認証経路で「未認証扱い」に丸める。session.create.before での拒否は
-// 新規 sign-in を防ぐだけで、フリーズ前に発行済みの credential はそのままでは
-// 通ってしまうため、resolve の出口で必ず frozen を弾く。
-const rejectIfFrozen = async ({
+// frozen=true または削除済みのユーザーは、既存 session / 事前発行 API key
+// を持っていてもすべての認証経路で「未認証扱い」に丸める。
+// session.create.before での拒否は新規 sign-in を防ぐだけなので、resolve の
+// 出口で所有ユーザーが存在して active であることを必ず確認する。
+const rejectIfInactive = async ({
   db,
   userId,
 }: {
   readonly db: D1Database;
   readonly userId: string;
 }): Promise<string | undefined> => {
-  const frozen = await isUserFrozen({ db, userId });
-  return frozen ? undefined : userId;
+  const active = await isUserActive({ db, userId });
+  return active ? userId : undefined;
+};
+
+const resolveBearerUserId = async ({
+  auth,
+  db,
+  key,
+  requiredScope,
+}: {
+  readonly auth: Auth;
+  readonly db: D1Database;
+  readonly key: string;
+  readonly requiredScope: ApiKeyScope;
+}): Promise<string | undefined> => {
+  const verified = await verifyBearer({ auth, key });
+  if (
+    verified === undefined ||
+    !hasApiKeyScope({ current: verified.scope, required: requiredScope })
+  ) {
+    return undefined;
+  }
+  return await rejectIfInactive({ db, userId: verified.userId });
 };
 
 export const resolveAuthenticatedUserId = async ({
   auth,
   db,
   headers,
+  requiredApiKeyScope = API_KEY_SCOPE.READ,
 }: {
   readonly auth: Auth;
   readonly db: D1Database;
   readonly headers: Headers;
+  readonly requiredApiKeyScope?: ApiKeyScope;
 }): Promise<string | undefined> => {
   const bearer = extractBearerKey(headers);
   const hasCookie = headers.get("cookie") !== null;
 
   if (bearer !== undefined && !hasCookie) {
-    const userId = await verifyBearer({ auth, key: bearer });
-    return userId === undefined
-      ? undefined
-      : await rejectIfFrozen({ db, userId });
+    return await resolveBearerUserId({
+      auth,
+      db,
+      key: bearer,
+      requiredScope: requiredApiKeyScope,
+    });
   }
 
   const session = await auth.api.getSession({ headers }).catch(() => undefined);
   const sessionUserId = session?.user.id;
   if (sessionUserId !== undefined && sessionUserId !== "") {
-    return await rejectIfFrozen({ db, userId: sessionUserId });
+    return await rejectIfInactive({ db, userId: sessionUserId });
   }
 
   if (bearer === undefined) {
     return undefined;
   }
-  const userId = await verifyBearer({ auth, key: bearer });
-  return userId === undefined
-    ? undefined
-    : await rejectIfFrozen({ db, userId });
+  return await resolveBearerUserId({
+    auth,
+    db,
+    key: bearer,
+    requiredScope: requiredApiKeyScope,
+  });
 };
