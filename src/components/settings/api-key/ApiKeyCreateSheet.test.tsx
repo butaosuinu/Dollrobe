@@ -3,7 +3,11 @@ import { screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtils";
 import { setupAuthClient } from "@/test/mocks/modules/authClient";
-import { API_KEY_SCOPE, type CreatedApiKey } from "@/lib/auth";
+import {
+  API_KEY_CREATE_FALLBACK_ERROR,
+  API_KEY_SCOPE,
+  type CreatedApiKey,
+} from "@/lib/auth";
 import ApiKeyCreateSheet from "./ApiKeyCreateSheet";
 
 const fixedCreated: CreatedApiKey = {
@@ -113,7 +117,10 @@ describe("ApiKeyCreateSheet", () => {
   });
 
   it("server のエラー詳細が無い失敗では汎用メッセージのみ表示される", async () => {
-    setupAuthClient({ createShouldFail: true, createErrorMessage: "" });
+    setupAuthClient({
+      createShouldFail: true,
+      createErrorMessage: API_KEY_CREATE_FALLBACK_ERROR,
+    });
     const user = userEvent.setup();
 
     await renderWithProviders(

@@ -7,6 +7,7 @@ import { msg, t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { createApiKeyAtom } from "@/stores/apiKeyAtoms";
 import {
+  API_KEY_CREATE_FALLBACK_ERROR,
   API_KEY_SCOPE,
   type ApiKeyScope,
   type CreatedApiKey,
@@ -37,15 +38,19 @@ const toApiKeyScope = (value: string): ApiKeyScope =>
     : API_KEY_SCOPE.READ_ONLY;
 
 // 発行が失敗した理由は better-auth の error.message にしか無いため、
-// 汎用メッセージに添えてダイアログ内へそのまま出す。
+// 汎用メッセージに添えてダイアログ内へそのまま出す。server が
+// メッセージを返さなかったときのフォールバックは未翻訳の英語なので出さない。
 type CreateFailure = { readonly serverDetail: string | undefined };
 
-const toCreateFailure = (cause: unknown): CreateFailure => ({
-  serverDetail:
-    cause instanceof Error && cause.message.trim() !== ""
-      ? cause.message
-      : undefined,
-});
+const toCreateFailure = (cause: unknown): CreateFailure => {
+  const message = cause instanceof Error ? cause.message.trim() : "";
+  return {
+    serverDetail:
+      message === "" || message === API_KEY_CREATE_FALLBACK_ERROR
+        ? undefined
+        : message,
+  };
+};
 
 const ApiKeyCreateSheet = ({ isOpen, onClose, onCreated }: Props) => {
   const create = useSetAtom(createApiKeyAtom);
