@@ -48,6 +48,10 @@ aroundAll(async (runSuite) => {
 aroundEach(async (runTest) => {
   await runTest();
 
+  // ファイル内 aroundEach の setup が throw すると teardown に到達しないため、
+  // 最外層で fake timers を戻して後続ファイルへの漏れを断つ
+  vi.useRealTimers();
+
   cleanup();
   server.resetHandlers();
   clearTrpcOverrides();
