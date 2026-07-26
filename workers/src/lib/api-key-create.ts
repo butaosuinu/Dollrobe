@@ -24,7 +24,7 @@ const apiKeyCreateBodySchema = z
     expiresIn: z.number().min(1).nullable().optional(),
     prefix: z
       .string()
-      .regex(/^[a-zA-Z0-9_\-]+$/v)
+      .regex(/^[a-zA-Z0-9_-]+$/)
       .optional(),
     remaining: z.null().optional(),
     metadata: z.unknown().optional(),
