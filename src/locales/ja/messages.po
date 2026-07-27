@@ -305,6 +305,10 @@ msgstr "Dollrobe にログイン"
 msgid "Google でログイン"
 msgstr "Google でログイン"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "HTTPS でアクセスしているか確認するか、別のブラウザで開いてください。"
+msgstr "HTTPS でアクセスしているか確認するか、別のブラウザで開いてください。"
+
 #: src/components/settings/account/ProfileForm.tsx
 msgid "https://..."
 msgstr "https://..."
@@ -546,6 +550,10 @@ msgstr "アクセサリー"
 msgid "アップロード中..."
 msgstr "アップロード中..."
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "アドレスバーのカメラアイコン、または端末の設定からこのサイトのカメラを「許可」に変更してください。"
+msgstr "アドレスバーのカメラアイコン、または端末の設定からこのサイトのカメラを「許可」に変更してください。"
+
 #: src/components/digest/DigestCard.tsx
 msgid "あなたの在庫状況"
 msgstr "あなたの在庫状況"
@@ -640,9 +648,29 @@ msgstr "カスタム名称"
 msgid "カテゴリ"
 msgstr "カテゴリ"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラが接続されているか、他のアプリで無効になっていないか確認してください。"
+msgstr "カメラが接続されているか、他のアプリで無効になっていないか確認してください。"
+
 #: src/components/garment/ImageUpload.tsx
 msgid "カメラで撮影"
 msgstr "カメラで撮影"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラの起動に失敗しました"
+msgstr "カメラの起動に失敗しました"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラへのアクセスが拒否されました"
+msgstr "カメラへのアクセスが拒否されました"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラを再試行"
+msgstr "カメラを再試行"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラを起動できませんでした"
+msgstr "カメラを起動できませんでした"
 
 #: src/components/dashboard/WardrobeAnalytics.tsx
 msgid "カラー"
@@ -738,6 +766,10 @@ msgstr "この API キーは一度だけ表示されます。閉じる前に必�
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "このブラウザではカメラを使えません"
+msgstr "このブラウザではカメラを使えません"
+
 #: src/app/admin/users/page.tsx
 msgid "このページには表示するユーザーがいません"
 msgstr "このページには表示するユーザーがいません"
@@ -819,6 +851,10 @@ msgstr "シーズン、シーン、組み合わせの理由など"
 #: src/lib/i18n-labels.ts
 msgid "シアン"
 msgstr "シアン"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "しばらく待ってから再試行してください。"
+msgstr "しばらく待ってから再試行してください。"
 
 #: src/components/marketing/ProblemSection.tsx
 msgid "しばらく着せていない服が、いつの間にか箱の底で見つからない服になっている。"
@@ -1546,6 +1582,10 @@ msgstr "並んだ 2 つのコンパートメント引き出しに収まるドー
 msgid "今ここにいなくても確認"
 msgstr "今ここにいなくても確認"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "他のアプリがカメラを使用している可能性があります。使用中のアプリを閉じてから再試行してください。"
+msgstr "他のアプリがカメラを使用している可能性があります。使用中のアプリを閉じてから再試行してください。"
+
 #: src/app/settings/account/page.tsx
 msgid "他のユーザーや UI に表示されます。"
 msgstr "他のユーザーや UI に表示されます。"
@@ -1740,6 +1780,10 @@ msgstr "出し入れの度に場所の QR を読むだけで、居場所が常�
 #: src/components/location/StorageCaseForm.tsx
 msgid "列数"
 msgstr "列数"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "利用できるカメラが見つかりません"
+msgstr "利用できるカメラが見つかりません"
 
 #: src/components/marketing/MarketingFooter.tsx
 #~ msgid "利用規約"

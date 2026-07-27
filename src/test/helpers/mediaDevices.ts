@@ -57,6 +57,14 @@ export const installMediaElementPlayback = (
   return { play };
 };
 
+/**
+ * `navigator.mediaDevices` 自体が存在しない環境（非セキュアコンテキスト等）を
+ * 再現する。`restoreInstalledProperties` で setup.ts の afterEach に自動復元される。
+ */
+export const installMediaDevicesUnavailable = (): void => {
+  installObjectProperty(navigator, "mediaDevices", undefined);
+};
+
 export const installMediaDevices = (
   options: InstallMediaDevicesOptions = {},
 ): {
