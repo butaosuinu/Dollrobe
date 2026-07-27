@@ -70,7 +70,13 @@ app.use("*", async (c, next) => {
 });
 
 app.use("*", async (c, next) => {
-  c.set("auth", createAuth({ env: c.env }));
+  c.set(
+    "auth",
+    createAuth({
+      env: c.env,
+      logger: c.get("logger").child({ component: "better-auth" }),
+    }),
+  );
   await next();
 });
 

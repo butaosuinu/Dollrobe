@@ -1,4 +1,4 @@
-import { aroundEach, describe, it, expect } from "vitest";
+import { aroundEach, describe, it, expect, vi } from "vitest";
 import { env } from "cloudflare:test";
 import { TRPCError } from "@trpc/server";
 import { createCallerFactory } from "./index";
@@ -6,9 +6,11 @@ import { appRouter } from "./router";
 import {
   createTestLogger,
   createStubAuth,
+  createTestGarmentInput,
   insertTestUser,
   resetDatabase,
 } from "../test/helpers";
+import { createApiKeyAuthStub } from "../test/mcp-helpers";
 
 const callerFactory = createCallerFactory(appRouter);
 
@@ -54,6 +56,7 @@ describe("trpc authMiddleware", () => {
   });
 
   it("auth.api.getSession が userId を返した場合は protectedProcedure が通る", async () => {
+    await insertTestUser({ db: env.DB, id: "user-stub-1" });
     const stubAuth = createStubAuth("user-stub-1");
     const stubHono = {
       req: { raw: { headers: new Headers({ cookie: "session=x" }) } },
@@ -66,6 +69,64 @@ describe("trpc authMiddleware", () => {
     });
     const result = await caller.garment.list({});
     expect(result).toEqual([]);
+  });
+
+  it("read-only Bearer は query を実行できる", async () => {
+    await insertTestUser({ db: env.DB, id: "bearer-read-user" });
+    const auth = createApiKeyAuthStub(
+      vi.fn().mockResolvedValue({
+        valid: true,
+        key: {
+          referenceId: "bearer-read-user",
+          permissions: { all: ["read"] },
+        },
+      }),
+    );
+    const honoContext = {
+      req: {
+        raw: { headers: new Headers({ Authorization: "Bearer read-key" }) },
+      },
+    } as unknown as import("hono").Context;
+    const caller = callerFactory({
+      env,
+      logger: createTestLogger(),
+      auth,
+      honoContext,
+    });
+
+    await expect(caller.garment.list({})).resolves.toEqual([]);
+  });
+
+  it("read-only Bearer は mutation を実行できない", async () => {
+    await insertTestUser({ db: env.DB, id: "bearer-write-denied-user" });
+    const auth = createApiKeyAuthStub(
+      vi.fn().mockResolvedValue({
+        valid: true,
+        key: {
+          referenceId: "bearer-write-denied-user",
+          permissions: { all: ["read"] },
+        },
+      }),
+    );
+    const honoContext = {
+      req: {
+        raw: { headers: new Headers({ Authorization: "Bearer read-key" }) },
+      },
+    } as unknown as import("hono").Context;
+    const caller = callerFactory({
+      env,
+      logger: createTestLogger(),
+      auth,
+      honoContext,
+    });
+
+    const error = await caller.garment
+      .create(createTestGarmentInput())
+      .catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(TRPCError);
+    if (error instanceof TRPCError) {
+      expect(error.code).toBe("UNAUTHORIZED");
+    }
   });
 });
 
