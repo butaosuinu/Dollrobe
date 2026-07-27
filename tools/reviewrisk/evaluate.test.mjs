@@ -72,6 +72,24 @@ test("未分類の rename 元は fail-closed で high", () => {
   assert.equal(hasSignal(report, signals.unclassified), true);
 });
 
+test("同率 high でも未分類の rename 元を優先する", () => {
+  const report = evaluate(
+    diff({
+      files: [
+        change({
+          path: "workers/src/auth.ts",
+          oldPath: "mystery.toml",
+          status: "R",
+        }),
+      ],
+    }),
+  );
+  assert.equal(report.level, levels.high);
+  assert.equal(report.files[0].class, classes.unknown);
+  assert.equal(report.files[0].rule, "unclassified");
+  assert.equal(hasSignal(report, signals.unclassified), true);
+});
+
 test("テスト削除・skip 追加・fixture 削除は critical", () => {
   const report = evaluate(
     diff({
@@ -146,6 +164,24 @@ test("条件式を使う test options skip は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("文字列と block comment 内の skip は無視する", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/parser.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/parser.test.ts": [
+          'expect(source).toContain("skip: true");',
+          '/* test.skip("example", fn);',
+          " * only: true",
+          " */",
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
 });
 
 test("dmux lifecycle hook の変更は critical", () => {

@@ -22,6 +22,7 @@ const signals = Object.freeze({
   unclassified: "S9-unclassified-path",
   invariant: "S10-invariant-hit",
   largeDiff: "S11-large-diff",
+  patchUnreadable: "S12-patch-unreadable",
 });
 
 const testSupportPrefixes = [
@@ -113,8 +114,81 @@ const unclassifiedRule = (note = "未分類（rules.mjs に要追記）") => ({
   note,
 });
 
+const stripStringsAndComments = (source) => {
+  let result = "";
+  let state = "code";
+  let quote = "";
+  let escaped = false;
+
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    const next = source[index + 1];
+    const masked = character === "\n" ? "\n" : " ";
+
+    if (state === "line-comment") {
+      if (character === "\n") {
+        state = "code";
+      }
+      result += masked;
+      continue;
+    }
+    if (state === "block-comment") {
+      if (character === "*" && next === "/") {
+        result += "  ";
+        index += 1;
+        state = "code";
+      } else {
+        result += masked;
+      }
+      continue;
+    }
+    if (state === "string") {
+      result += masked;
+      if (escaped) {
+        escaped = false;
+      } else if (character === "\\") {
+        escaped = true;
+      } else if (character === quote) {
+        state = "code";
+      }
+      continue;
+    }
+    if (character === "/" && next === "/") {
+      result += "  ";
+      index += 1;
+      state = "line-comment";
+      continue;
+    }
+    if (character === "/" && next === "*") {
+      result += "  ";
+      index += 1;
+      state = "block-comment";
+      continue;
+    }
+    if (character === '"' || character === "'" || character === "`") {
+      result += " ";
+      quote = character;
+      state = "string";
+      escaped = false;
+      continue;
+    }
+    result += character;
+  }
+  return result;
+};
+
 const criticalReasons = (diff) => {
   const reasons = [];
+  for (const path of diff.unreadablePaths ?? []) {
+    reasons.push(
+      reason(
+        signals.patchUnreadable,
+        levels.critical,
+        path,
+        "patch 本文が読み取り上限を超過または安全に解析不能（fail-closed）",
+      ),
+    );
+  }
   for (const file of diff.files) {
     if (isDeletedOrMovedOut(file, isTestFile)) {
       reasons.push(
@@ -198,10 +272,7 @@ const criticalReasons = (diff) => {
   for (const [path, lines] of diff.addedLines) {
     if (
       isTestFile(path) &&
-      lines.some(
-        (line) =>
-          !line.trimStart().startsWith("//") && testDisablePattern.test(line),
-      )
+      testDisablePattern.test(stripStringsAndComments(lines.join("\n")))
     ) {
       reasons.push(
         reason(
@@ -280,11 +351,15 @@ export const evaluate = (diff) => {
         const oldRule =
           classifyPath(file.oldPath) ??
           unclassifiedRule(`未分類 rename 元 ${file.oldPath}`);
+        const levelComparison = compareLevels(
+          levelForClass(oldRule.class),
+          levelForClass(matchedRule.class),
+        );
         if (
-          compareLevels(
-            levelForClass(oldRule.class),
-            levelForClass(matchedRule.class),
-          ) > 0
+          levelComparison > 0 ||
+          (levelComparison === 0 &&
+            oldRule.class === classes.unknown &&
+            matchedRule.class !== classes.unknown)
         ) {
           matchedRule = {
             ...oldRule,

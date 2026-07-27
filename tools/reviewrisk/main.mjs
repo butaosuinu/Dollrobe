@@ -76,16 +76,16 @@ const isEntrypoint =
   process.argv[1] !== undefined &&
   import.meta.url === pathToFileURL(process.argv[1]).href;
 
+const runEntrypoint = async () => {
+  const { output, exitCode } = run(process.argv.slice(2));
+  process.stdout.write(`${output.replace(/\n$/, "")}\n`);
+  process.exitCode = exitCode;
+};
+
 if (isEntrypoint) {
-  Promise.resolve()
-    .then(() => run(process.argv.slice(2)))
-    .then(({ output, exitCode }) => {
-      process.stdout.write(`${output.replace(/\n$/, "")}\n`);
-      process.exitCode = exitCode;
-    })
-    .catch((error) => {
-      const message = error instanceof Error ? error.message : String(error);
-      process.stderr.write(`review-risk: ${message}\n${usage}\n`);
-      process.exitCode = 2;
-    });
+  await runEntrypoint().catch((error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`review-risk: ${message}\n${usage}\n`);
+    process.exitCode = 2;
+  });
 }

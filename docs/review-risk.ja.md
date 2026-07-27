@@ -13,7 +13,7 @@ GitHub Actions は結果を `review:<level>` label と sticky comment に反映�
 | low      | 最大 class が A                | 通常 review                                            |
 | medium   | 最大 class が M                | AI review + M ファイルを人間が確認                     |
 | high     | 最大 class が H、または S9/S10 | 人間 review 必須                                       |
-| critical | S1-S8 のいずれか               | 人間精読必須                                           |
+| critical | S1-S8 / S12 のいずれか         | 人間精読必須                                           |
 
 ## Path class
 
@@ -59,11 +59,14 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | S9-unclassified-path        | high     | rule に一致しない path                                             |
 | S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触 |
 | S11-large-diff              | +1       | 非 NONE が 800 行超または 30 ファイル超。low/medium のみ一段上げる |
+| S12-patch-unreadable        | critical | patch 本文が読み取り上限を超過、または安全に解析できない           |
 
 同一 diff では Files を path 順、Reasons を level 降順・signal・path 順に固定し、
 出力を決定的にする。binary の行数は 0 として集計する。Markdown は GitHub comment
 の上限に余裕を持たせて UTF-8 で 60,000 bytes 以下とし、超過する理由・ファイルは
-省略数を表示する。
+省略数を表示する。Git path は NUL 区切りの byte 列として読み、非 UTF-8 byte は
+`%XX` へ可逆 encoding する。patch 本文が 64 MiB の読み取り上限を超える場合は
+処理を停止せず、S12 / critical として fail-closed にする。
 
 ## CLI
 
@@ -95,5 +98,7 @@ PR 側の file、script、dependency は実行しない。自己変更時の com
 
 どちらも `contents: read`、`pull-requests: write`、`issues: write` の最小権限、
 `persist-credentials: false`、PR 番号単位 concurrency を使う。
+`opened`、`synchronize`、`reopened` に加えて `edited` でも起動し、既存 PR の
+base が main へ変更された場合も判定する。
 同一 repository の write 権限保有者が別 workflow を変更できる境界までは
 防御しないため、label と comment はあくまで review の判断材料である。

@@ -8,6 +8,9 @@ const setupNodeSha = "820762786026740c76f36085b0efc47a31fe5020";
 const readWorkflow = (name) =>
   readFile(new URL(`../../.github/workflows/${name}`, import.meta.url), "utf8");
 
+const readReviewRiskSource = (name) =>
+  readFile(new URL(name, import.meta.url), "utf8");
+
 const readPackage = async () =>
   JSON.parse(
     await readFile(new URL("../../package.json", import.meta.url), "utf8"),
@@ -26,6 +29,7 @@ test("test script keeps trailing arguments scoped to Vitest", async () => {
 test("review-risk workflow pins actions and guards trusted execution", async () => {
   const source = await readWorkflow("review-risk.yml");
 
+  assert.match(source, /types: \[opened, synchronize, reopened, edited\]/);
   assert.match(source, new RegExp(`actions/checkout@${checkoutSha}`));
   assert.match(source, new RegExp(`actions/setup-node@${setupNodeSha}`));
   assert.match(source, /persist-credentials: false/);
@@ -68,6 +72,7 @@ test("base guard treats pull request content as data only", async () => {
   const source = await readWorkflow("review-risk-guard.yml");
 
   assert.match(source, /pull_request_target:/);
+  assert.match(source, /types: \[opened, synchronize, reopened, edited\]/);
   assert.match(source, new RegExp(`actions/checkout@${checkoutSha}`));
   assert.doesNotMatch(source, /actions\/setup-node@/);
   assert.doesNotMatch(source, /\bpnpm\b/);
@@ -99,4 +104,11 @@ test("base guard treats pull request content as data only", async () => {
   assert.match(clearStep, /--remove-label/);
   assert.match(clearStep, /<!-- review-risk -->/);
   assert.match(clearStep, /--method DELETE/);
+});
+
+test("CLI entrypoint uses await with a terminal catch", async () => {
+  const source = await readReviewRiskSource("main.mjs");
+
+  assert.match(source, /await runEntrypoint\(\)\.catch\(/);
+  assert.doesNotMatch(source, /\.then\(/);
 });

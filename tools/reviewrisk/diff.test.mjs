@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,6 +17,12 @@ import { levels } from "./classes.mjs";
 const runGit = (cwd, args) => {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });
   assert.equal(result.status, 0, result.stderr);
+};
+
+const runGitWithInput = (cwd, args, input) => {
+  const result = spawnSync("git", args, { cwd, encoding: null, input });
+  assert.equal(result.status, 0, result.stderr?.toString("utf8"));
+  return result.stdout;
 };
 
 test("name-status の追加・削除・rename を読む", () => {
@@ -107,6 +114,10 @@ test("diff 属性で無効化されたテキストも本文を読む", (context)
       ?.includes('    "test": "node --test"'),
     true,
   );
+  assert.equal(
+    actual.addedLines.get("package.json")?.includes('  "scripts": {}'),
+    true,
+  );
   const report = evaluate(actual);
   assert.equal(report.level, levels.critical);
   assert.equal(
@@ -166,6 +177,79 @@ test("tab を含む path の行数で大規模 diff を判定する", (context) 
   assert.equal(report.level, levels.high);
   assert.equal(
     report.reasons.some(({ signal }) => signal === signals.largeDiff),
+    true,
+  );
+});
+
+test("非 UTF-8 path でも blob OID から patch 本文を読む", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-byte-path-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+  runGit(cwd, ["commit", "--quiet", "--allow-empty", "-m", "initial"]);
+
+  const path = "src/lib/%FF.test.ts";
+  const rawPath = Buffer.concat([
+    Buffer.from("src/lib/"),
+    Buffer.from([0xff]),
+    Buffer.from(".test.ts"),
+  ]);
+  const skippedTest = 'test.skip("later", () => {});';
+  const blobOid = runGitWithInput(
+    cwd,
+    ["hash-object", "-w", "--stdin"],
+    Buffer.from(`${skippedTest}\n`),
+  )
+    .toString("ascii")
+    .trim();
+  const indexEntry = Buffer.concat([
+    Buffer.from(`100644 ${blobOid}\t`),
+    rawPath,
+    Buffer.from([0]),
+  ]);
+  runGitWithInput(cwd, ["update-index", "-z", "--index-info"], indexEntry);
+  runGit(cwd, ["commit", "--quiet", "-m", "add byte path"]);
+  runGitWithInput(
+    cwd,
+    ["update-index", "--skip-worktree", "-z", "--stdin"],
+    Buffer.concat([rawPath, Buffer.from([0])]),
+  );
+
+  const actual = readGitDiff({ base: "HEAD^", cwd });
+  assert.equal(actual.addedLines.get(path)?.includes(skippedTest), true);
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
+test("patch 読み取り上限の超過は fail-closed で critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-large-patch-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+  runGit(cwd, ["commit", "--quiet", "--allow-empty", "-m", "initial"]);
+
+  const path = "src/lib/large.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(join(cwd, path), `${"x".repeat(4096)}\n`);
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "add large patch"]);
+
+  const actual = readGitDiff({
+    base: "HEAD^",
+    cwd,
+    maxPatchBytes: 1024,
+  });
+  assert.equal(actual.unreadablePaths.has(path), true);
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.patchUnreadable),
     true,
   );
 });

@@ -242,4 +242,4 @@ prefix と日本語説明を使用可）にする。PR には挙動の要約、�
 同じ変更で更新する。未分類 path は安全側に high とする。test file は A、通常の
 GitHub workflow は H であり、critical は test・test support の削除、test の
 skip・focus 追加、review gate・review-risk・quality script・既存 migration の
-変更、workflow の削除など S1-S8 に限定する。
+変更、workflow の削除、patch 読み取り不能など S1-S8 / S12 に限定する。
