@@ -1,6 +1,11 @@
+import { Buffer } from "node:buffer";
 import { levelGuidance } from "./classes.mjs";
 
 export const reviewRiskMarker = "<!-- review-risk -->";
+export const markdownByteLimit = 60_000;
+
+const markdownReasonByteBudget = 20_000;
+const markdownFileByteBudget = 35_000;
 
 const plusMinus = ({ added, deleted }) =>
   `+${String(added)} −${String(deleted)}`;
@@ -12,6 +17,21 @@ const escapeMarkdownPath = (value) =>
     const codePoint = character.codePointAt(0);
     return `[U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}]`;
   });
+
+const takeLinesWithinByteBudget = ({ items, render, byteBudget }) => {
+  const lines = [];
+  let usedBytes = 0;
+  for (const item of items) {
+    const line = render(item);
+    const lineBytes = Buffer.byteLength(`${line}\n`, "utf8");
+    if (usedBytes + lineBytes > byteBudget) {
+      break;
+    }
+    lines.push(line);
+    usedBytes += lineBytes;
+  }
+  return { lines, omitted: items.length - lines.length };
+};
 
 export const renderText = (report) => {
   const lines = [
@@ -53,10 +73,15 @@ export const renderMarkdown = (report) => {
   if (report.reasons.length === 0) {
     lines.push("- エスカレーションシグナルなし");
   } else {
-    for (const item of report.reasons) {
-      lines.push(
+    const visibleReasons = takeLinesWithinByteBudget({
+      items: report.reasons,
+      byteBudget: markdownReasonByteBudget,
+      render: (item) =>
         `- **[${item.level}]** \`${item.signal}\` — \`${escapeMarkdownPath(item.file || "(diff 全体)")}\`: ${item.detail}`,
-      );
+    });
+    lines.push(...visibleReasons.lines);
+    if (visibleReasons.omitted > 0) {
+      lines.push(`- _ほか ${String(visibleReasons.omitted)} 件の理由を省略_`);
     }
   }
   lines.push(
@@ -66,13 +91,33 @@ export const renderMarkdown = (report) => {
     "| File | St | Class | Level | Rule |",
     "|---|---|---|---|---|",
   );
-  for (const file of report.files) {
-    lines.push(
+  const visibleFiles = takeLinesWithinByteBudget({
+    items: report.files,
+    byteBudget: markdownFileByteBudget,
+    render: (file) =>
       `| \`${escapeMarkdownPath(file.path)}\` | ${file.status} | ${file.class} | ${file.level} | ${file.rule} |`,
+  });
+  lines.push(...visibleFiles.lines);
+  if (visibleFiles.omitted > 0) {
+    lines.push(
+      `| _ほか ${String(visibleFiles.omitted)} files を省略_ | - | - | - | - |`,
     );
   }
   lines.push("", "</details>", "", "判定ルール: docs/review-risk.ja.md");
-  return `${lines.join("\n")}\n`;
+  const markdown = `${lines.join("\n")}\n`;
+  if (Buffer.byteLength(markdown, "utf8") <= markdownByteLimit) {
+    return markdown;
+  }
+  return `${[
+    reviewRiskMarker,
+    `## Review risk: **${report.level.toUpperCase()}**`,
+    "",
+    levelGuidance[report.level],
+    "",
+    `出力上限のため ${String(report.reasons.length)} 件の理由と ${String(report.files.length)} files の詳細を省略しました。`,
+    "",
+    "判定ルール: docs/review-risk.ja.md",
+  ].join("\n")}\n`;
 };
 
 export const renderJson = (report) => JSON.stringify(report, null, 2);

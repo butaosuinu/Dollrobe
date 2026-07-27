@@ -110,3 +110,27 @@ test("diff 属性で無効化されたテキストも本文を読む", (context)
     true,
   );
 });
+
+test("pathspec magic で始まるファイルも literal path として読む", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-literal-path-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+  runGit(cwd, ["commit", "--quiet", "--allow-empty", "-m", "initial"]);
+
+  const path = ":(exclude)*.test.mjs";
+  const skippedTest = 'test.skip("later", () => {});';
+  writeFileSync(join(cwd, path), `${skippedTest}\n`);
+  runGit(cwd, ["--literal-pathspecs", "add", path]);
+  runGit(cwd, ["commit", "--quiet", "-m", "add magic path"]);
+
+  const actual = readGitDiff({ base: "HEAD^", cwd });
+  assert.equal(actual.addedLines.get(path)?.includes(skippedTest), true);
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});

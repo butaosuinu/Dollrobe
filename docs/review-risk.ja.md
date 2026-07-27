@@ -61,7 +61,9 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | S11-large-diff              | +1       | 非 NONE が 800 行超または 30 ファイル超。low/medium のみ一段上げる |
 
 同一 diff では Files を path 順、Reasons を level 降順・signal・path 順に固定し、
-出力を決定的にする。binary の行数は 0 として集計する。
+出力を決定的にする。binary の行数は 0 として集計する。Markdown は GitHub comment
+の上限に余裕を持たせて UTF-8 で 60,000 bytes 以下とし、超過する理由・ファイルは
+省略数を表示する。
 
 ## CLI
 
@@ -82,6 +84,8 @@ pnpm review-risk -- --fail-at high
 fork と Dependabot の read-only token run は label/comment を書けないため skip
 する。判定前に shell-only self-modification guard を置き、判定器・正典・
 workflow 自身の変更は PR 側 code を実行せず critical に固定する。
+判定 JSON と comment Markdown は checkout 前に `$RUNNER_TEMP` 配下へ作成した
+一時 directory に書き出し、PR が追加した symlink を出力先として辿らない。
 
 `review-risk-guard.yml` は `pull_request_target` で base branch 側の定義を
 実行する。PR head は `git fetch` と `git diff` の入力データとしてのみ扱い、

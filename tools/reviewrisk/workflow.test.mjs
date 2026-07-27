@@ -24,16 +24,29 @@ test("review-risk workflow pins actions and guards trusted execution", async () 
   assert.match(source, /github\.actor != 'dependabot\[bot\]'/);
 
   const guardIndex = source.indexOf("Self-modification guard");
+  const outputIndex = source.indexOf("- name: Prepare output directory");
+  const checkoutIndex = source.indexOf(`actions/checkout@${checkoutSha}`);
   const setupNodeIndex = source.indexOf(`actions/setup-node@${setupNodeSha}`);
 
+  assert.notEqual(outputIndex, -1);
+  assert.notEqual(checkoutIndex, -1);
   assert.notEqual(guardIndex, -1);
   assert.notEqual(setupNodeIndex, -1);
+  assert.ok(outputIndex < checkoutIndex);
   assert.ok(guardIndex < setupNodeIndex);
   assert.match(source, /tools\/reviewrisk/);
   assert.match(source, /docs\/review-risk\.ja\.md/);
   assert.match(source, /\.github\/workflows\/review-risk\.yml/);
   assert.match(source, /\.github\/workflows\/review-risk-guard\.yml/);
   assert.match(source, /<!-- review-risk -->/);
+  assert.match(source, /mktemp -d "\$RUNNER_TEMP\/review-risk\.XXXXXX"/);
+  assert.match(source, /> "\$OUTPUT_DIR\/risk\.json"/);
+  assert.match(source, /> "\$OUTPUT_DIR\/comment\.md"/);
+  assert.match(source, /body=@"\$OUTPUT_DIR\/comment\.md"/);
+  assert.match(source, /OUTPUT_DIR: \$\{\{ steps\.output\.outputs\.dir \}\}/);
+  assert.doesNotMatch(source, /> risk\.json$/m);
+  assert.doesNotMatch(source, /> comment\.md$/m);
+  assert.doesNotMatch(source, /body=@comment\.md/);
 });
 
 test("base guard treats pull request content as data only", async () => {

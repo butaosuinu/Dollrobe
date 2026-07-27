@@ -104,6 +104,19 @@ test("test options の skip true は critical", () => {
   assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
+test("test options の skip string は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": ['test("later", { skip: "TODO" }, () => {});'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
 test("dmux lifecycle hook の変更は critical", () => {
   const report = evaluate(
     diff({

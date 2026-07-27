@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import test from "node:test";
 import { classes, levels } from "./classes.mjs";
 import { parseArgs } from "./main.mjs";
 import {
+  markdownByteLimit,
   renderJson,
   renderMarkdown,
   renderText,
@@ -65,6 +67,28 @@ test("Markdown に埋め込む path を無害化する", () => {
   assert.match(markdown, /\[U\+007C\]/);
   assert.match(markdown, /\[U\+003C\]script\[U\+003E\]/);
   assert.match(markdown, /\[U\+0026\]/);
+});
+
+test("大規模 diff の Markdown を上限内で省略する", () => {
+  const files = Array.from({ length: 500 }, (_, index) => ({
+    ...sample.files[0],
+    path: `src/${String(index).padStart(3, "0")}-${"x".repeat(100)}.ts`,
+  }));
+  const reasons = files.map((file) => ({
+    ...sample.reasons[0],
+    file: file.path,
+  }));
+  const markdown = renderMarkdown({
+    ...sample,
+    files,
+    reasons,
+    stats: { files: files.length, added: 500, deleted: 0 },
+  });
+
+  assert.ok(Buffer.byteLength(markdown, "utf8") <= markdownByteLimit);
+  assert.match(markdown, /ほか \d+ 件の理由を省略/);
+  assert.match(markdown, /ほか \d+ files を省略/);
+  assert.match(markdown, /<\/details>/);
 });
 
 test("text は headline・stats・file を含む", () => {

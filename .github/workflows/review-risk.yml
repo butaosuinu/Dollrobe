@@ -24,6 +24,13 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.actor != 'dependabot[bot]'
     steps:
+      - name: Prepare output directory
+        id: output
+        run: |
+          set -euo pipefail
+          output_dir="$(mktemp -d "$RUNNER_TEMP/review-risk.XXXXXX")"
+          echo "dir=$output_dir" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
@@ -35,6 +42,8 @@ jobs:
       # PR-authored policy to judge changes to that policy itself.
       - name: Self-modification guard
         id: guard
+        env:
+          OUTPUT_DIR: ${{ steps.output.outputs.dir }}
         run: |
           set -euo pipefail
           base="$(git merge-base "origin/$GITHUB_BASE_REF" HEAD)"
@@ -49,7 +58,7 @@ jobs:
               echo '## Review risk: **CRITICAL**'
               echo
               echo '人間精読必須。review-risk の判定器・正典・workflow 自身が変更されているため、PR 側ツールは実行せず workflow が fail-closed で critical に固定しました(S5)。'
-            } > comment.md
+            } > "$OUTPUT_DIR/comment.md"
             echo "self=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -63,15 +72,18 @@ jobs:
       - name: Judge review risk
         id: risk
         if: steps.guard.outputs.self != 'true'
+        env:
+          OUTPUT_DIR: ${{ steps.output.outputs.dir }}
         run: |
           set -euo pipefail
           node ./tools/reviewrisk/main.mjs \
             --base "origin/$GITHUB_BASE_REF" \
-            --format json > risk.json
+            --format json > "$OUTPUT_DIR/risk.json"
           node ./tools/reviewrisk/main.mjs \
             --base "origin/$GITHUB_BASE_REF" \
-            --format markdown > comment.md
-          echo "level=$(jq -r .level risk.json)" >> "$GITHUB_OUTPUT"
+            --format markdown > "$OUTPUT_DIR/comment.md"
+          level="$(jq -r .level "$OUTPUT_DIR/risk.json")"
+          echo "level=$level" >> "$GITHUB_OUTPUT"
 
       - name: Apply review:<level> label
         env:
@@ -106,6 +118,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
+          OUTPUT_DIR: ${{ steps.output.outputs.dir }}
         run: |
           set -euo pipefail
 
@@ -113,7 +126,7 @@ jobs:
             --jq '[.[] | select(.body | startswith("<!-- review-risk -->"))][0].id // empty')"
 
           if [ -n "$existing_id" ]; then
-            gh api --method PATCH "repos/$GH_REPO/issues/comments/$existing_id" -F body=@comment.md
+            gh api --method PATCH "repos/$GH_REPO/issues/comments/$existing_id" -F body=@"$OUTPUT_DIR/comment.md"
           else
-            gh api --method POST "repos/$GH_REPO/issues/$PR/comments" -F body=@comment.md
+            gh api --method POST "repos/$GH_REPO/issues/$PR/comments" -F body=@"$OUTPUT_DIR/comment.md"
           fi

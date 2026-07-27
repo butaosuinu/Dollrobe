@@ -1,11 +1,15 @@
 import { spawnSync } from "node:child_process";
 
 const git = (args, cwd) => {
-  const result = spawnSync("git", ["-c", "core.quotepath=off", ...args], {
-    cwd,
-    encoding: "utf8",
-    maxBuffer: 64 * 1024 * 1024,
-  });
+  const result = spawnSync(
+    "git",
+    ["--literal-pathspecs", "-c", "core.quotepath=off", ...args],
+    {
+      cwd,
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+    },
+  );
   if (result.error !== undefined) {
     throw result.error;
   }
