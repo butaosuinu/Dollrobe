@@ -45,13 +45,27 @@ export const parseNameStatus = (output) => {
 
 const parseCount = (value) => (value === "-" ? -1 : Number.parseInt(value, 10));
 
+const parseNumstatHeader = (header) => {
+  const firstTab = header.indexOf("\t");
+  const secondTab = header.indexOf("\t", firstTab + 1);
+  if (firstTab === -1 || secondTab === -1) {
+    throw new Error(`invalid numstat header: ${JSON.stringify(header)}`);
+  }
+  return {
+    addedText: header.slice(0, firstTab),
+    deletedText: header.slice(firstTab + 1, secondTab),
+    pathFromHeader: header.slice(secondTab + 1),
+  };
+};
+
 export const parseNumstat = (output) => {
   const fields = output.split("\0");
   const stats = new Map();
   let index = 0;
   while (index < fields.length && fields[index] !== "") {
-    const [addedText, deletedText, pathFromHeader = ""] =
-      fields[index].split("\t");
+    const { addedText, deletedText, pathFromHeader } = parseNumstatHeader(
+      fields[index],
+    );
     index += 1;
     let path = pathFromHeader;
     if (path === "") {

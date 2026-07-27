@@ -117,6 +117,22 @@ test("test options の skip string は critical", () => {
   assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
+test("複数行の test options skip は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'test("later", { skip:',
+          "  true }, () => {});",
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
 test("dmux lifecycle hook の変更は critical", () => {
   const report = evaluate(
     diff({
@@ -138,6 +154,22 @@ test("test subscript の変更は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.qualityGate), true);
+});
+
+test("workflow の yml・yaml 間 rename は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [
+        change({
+          path: ".github/workflows/ci.yaml",
+          oldPath: ".github/workflows/ci.yml",
+          status: "R",
+        }),
+      ],
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.workflowDeleted), true);
 });
 
 test("review-risk 自身・品質 script・既存 migration の変更は critical", () => {

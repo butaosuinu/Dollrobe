@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -49,11 +49,15 @@ test("name-status の追加・削除・rename を読む", () => {
   );
 });
 
-test("numstat の通常 path・rename・binary を読む", () => {
+test("numstat の通常・tab 入り path・rename・binary を読む", () => {
   const actual = parseNumstat(
-    "12\t3\tsrc/file.ts\0-\t-\tpublic/image.png\0" + "1\t2\t\0old.ts\0new.ts\0",
+    "12\t3\tsrc/file.ts\0" +
+      "4\t5\tsrc/foo\tbar.ts\0" +
+      "-\t-\tpublic/image.png\0" +
+      "1\t2\t\0old.ts\0new.ts\0",
   );
   assert.deepEqual(actual.get("src/file.ts"), { added: 12, deleted: 3 });
+  assert.deepEqual(actual.get("src/foo\tbar.ts"), { added: 4, deleted: 5 });
   assert.deepEqual(actual.get("public/image.png"), {
     added: -1,
     deleted: -1,
@@ -131,6 +135,37 @@ test("pathspec magic で始まるファイルも literal path として読む", 
   assert.equal(report.level, levels.critical);
   assert.equal(
     report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
+test("tab を含む path の行数で大規模 diff を判定する", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-tab-path-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+  runGit(cwd, ["commit", "--quiet", "--allow-empty", "-m", "initial"]);
+
+  const path = "src/lib/foo\tbar.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  const lines = Array.from(
+    { length: 801 },
+    (_, index) => `export const value${String(index)} = ${String(index)};`,
+  );
+  writeFileSync(join(cwd, path), `${lines.join("\n")}\n`);
+  runGit(cwd, ["--literal-pathspecs", "add", path]);
+  runGit(cwd, ["commit", "--quiet", "-m", "add tab path"]);
+
+  const actual = readGitDiff({ base: "HEAD^", cwd });
+  assert.equal(
+    actual.files.find((file) => file.path === path)?.added,
+    lines.length,
+  );
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.high);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.largeDiff),
     true,
   );
 });

@@ -59,7 +59,7 @@ const invariantPatterns = [
 ];
 
 const testDisablePattern =
-  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:\s*(?:true\b|["'`])|\bonly\s*:\s*true\b/;
+  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:\s*(?:true\b|["'`]|$)|\bonly\s*:\s*true\b/;
 const qualityGatePattern =
   /"(?:test(?::[^"]+)?|typecheck|lint|format:check|i18n:check|precheck(?::full)?)"\s*:/;
 
@@ -78,6 +78,15 @@ const isWorkflowFile = (path) => {
     (remainder.endsWith(".yml") || remainder.endsWith(".yaml"))
   );
 };
+
+const workflowExtension = (path) =>
+  path.endsWith(".yaml") ? ".yaml" : path.endsWith(".yml") ? ".yml" : "";
+
+const changesWorkflowExtension = (file) =>
+  file.status === "R" &&
+  isWorkflowFile(file.oldPath) &&
+  isWorkflowFile(file.path) &&
+  workflowExtension(file.oldPath) !== workflowExtension(file.path);
 
 const reason = (signal, level, file, detail) => ({
   signal,
@@ -161,13 +170,16 @@ const criticalReasons = (diff) => {
         ),
       );
     }
-    if (isDeletedOrMovedOut(file, isWorkflowFile)) {
+    if (
+      isDeletedOrMovedOut(file, isWorkflowFile) ||
+      changesWorkflowExtension(file)
+    ) {
       reasons.push(
         reason(
           signals.workflowDeleted,
           levels.critical,
           file.path,
-          "GitHub Actions workflow を削除または無効化",
+          "GitHub Actions workflow を削除・拡張子変更または無効化",
         ),
       );
     }
