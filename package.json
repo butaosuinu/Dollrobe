@@ -17,7 +17,7 @@
     "depcruise": "depcruise src workers e2e scripts --config .dependency-cruiser.cjs",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "test": "vitest run && pnpm test:review-risk",
+    "test": "vitest run",
     "test:review-risk": "node --test tools/reviewrisk/*.test.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -40,7 +40,7 @@
     "lp:screenshots": "tsx scripts/capture-lp-screenshots.ts",
     "review-risk": "node tools/reviewrisk/main.mjs",
     "precheck": "pnpm typecheck && pnpm lint && pnpm depcruise && pnpm format:check && pnpm i18n:check",
-    "precheck:full": "pnpm typecheck && pnpm lint && pnpm depcruise && pnpm format:check && pnpm i18n:check && pnpm test"
+    "precheck:full": "pnpm typecheck && pnpm lint && pnpm depcruise && pnpm format:check && pnpm i18n:check && pnpm test && pnpm test:review-risk"
   },
   "dependencies": {
     "@better-auth/api-key": "^1.6.9",

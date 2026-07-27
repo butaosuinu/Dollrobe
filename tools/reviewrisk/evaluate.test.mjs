@@ -133,6 +133,21 @@ test("複数行の test options skip は critical", () => {
   assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
+test("条件式を使う test options skip は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'test("linux only", { skip: process.platform !== "linux" }, fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
 test("dmux lifecycle hook の変更は critical", () => {
   const report = evaluate(
     diff({

@@ -83,7 +83,7 @@ Node.js 22 以上、`pnpm@10.28.2` を使用する。依存がない環境では
 - `pnpm review-risk`: main との差分に対する PR review risk のローカル判定
 - `pnpm test:review-risk`: review-risk 判定器の専用 test
 - `pnpm precheck`: typecheck、lint、depcruise、format check、i18n check
-- `pnpm precheck:full`: `precheck` + Vitest
+- `pnpm precheck:full`: `precheck` + Vitest + review-risk test
 
 実装中は変更箇所に近いテストを先に実行し、完了時に変更範囲に応じて検証を
 広げる。`precheck` には build と E2E が含まれないため、必要な場合は別途実行

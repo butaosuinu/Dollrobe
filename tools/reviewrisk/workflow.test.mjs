@@ -8,6 +8,21 @@ const setupNodeSha = "820762786026740c76f36085b0efc47a31fe5020";
 const readWorkflow = (name) =>
   readFile(new URL(`../../.github/workflows/${name}`, import.meta.url), "utf8");
 
+const readPackage = async () =>
+  JSON.parse(
+    await readFile(new URL("../../package.json", import.meta.url), "utf8"),
+  );
+
+test("test script keeps trailing arguments scoped to Vitest", async () => {
+  const packageJson = await readPackage();
+
+  assert.equal(packageJson.scripts.test, "vitest run");
+  assert.match(
+    packageJson.scripts["precheck:full"],
+    /pnpm test && pnpm test:review-risk$/,
+  );
+});
+
 test("review-risk workflow pins actions and guards trusted execution", async () => {
   const source = await readWorkflow("review-risk.yml");
 
@@ -57,7 +72,7 @@ test("base guard treats pull request content as data only", async () => {
   assert.doesNotMatch(source, /actions\/setup-node@/);
   assert.doesNotMatch(source, /\bpnpm\b/);
   assert.match(source, /persist-credentials: false/);
-  assert.match(
+  assert.doesNotMatch(
     source,
     /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/,
   );

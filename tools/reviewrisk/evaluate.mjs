@@ -59,7 +59,7 @@ const invariantPatterns = [
 ];
 
 const testDisablePattern =
-  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:\s*(?:true\b|["'`]|$)|\bonly\s*:\s*true\b/;
+  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:\s*(?!false\b)|\bonly\s*:\s*true\b/;
 const qualityGatePattern =
   /"(?:test(?::[^"]+)?|typecheck|lint|format:check|i18n:check|precheck(?::full)?)"\s*:/;
 
