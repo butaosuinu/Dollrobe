@@ -46,7 +46,11 @@ test("review-risk workflow pins actions and guards trusted execution", async () 
     source,
     /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/,
   );
-  assert.match(source, /github\.actor != 'dependabot\[bot\]'/);
+  assert.match(
+    source,
+    /github\.event\.pull_request\.user\.login != 'dependabot\[bot\]'/,
+  );
+  assert.doesNotMatch(source, /github\.actor != 'dependabot\[bot\]'/);
 
   const guardIndex = source.indexOf("Self-modification guard");
   const outputIndex = source.indexOf("- name: Prepare output directory");
@@ -88,7 +92,11 @@ test("base guard treats pull request content as data only", async () => {
     source,
     /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/,
   );
-  assert.match(source, /github\.actor != 'dependabot\[bot\]'/);
+  assert.match(
+    source,
+    /github\.event\.pull_request\.user\.login != 'dependabot\[bot\]'/,
+  );
+  assert.doesNotMatch(source, /github\.actor != 'dependabot\[bot\]'/);
   assert.match(
     source,
     /HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/,

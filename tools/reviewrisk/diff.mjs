@@ -51,6 +51,24 @@ const limitedGitBuffer = (args, cwd, maxBuffer) => {
   return result.stdout;
 };
 
+const gitBlobExists = (oid, cwd) => {
+  if (zeroOidPattern.test(oid)) {
+    return false;
+  }
+  const args = ["cat-file", "-e", `${oid}^{blob}`];
+  const result = spawnGit(args, cwd);
+  if (result.error !== undefined) {
+    throw result.error;
+  }
+  if (result.status === 0) {
+    return true;
+  }
+  if (result.status === 1 || result.status === 128) {
+    return false;
+  }
+  throw gitError(args, result);
+};
+
 const asBuffer = (output) =>
   Buffer.isBuffer(output) ? output : Buffer.from(output, "utf8");
 
@@ -287,7 +305,9 @@ export const readGitDiff = ({
     const oldIsEmpty = zeroOidPattern.test(file.oldOid);
     const newIsEmpty = zeroOidPattern.test(file.newOid);
     let lines;
-    const readsWorkingTree = newIsEmpty && file.newMode !== "000000";
+    const readsWorkingTree =
+      file.newMode !== "000000" &&
+      (newIsEmpty || !gitBlobExists(file.newOid, cwd));
     if (readsWorkingTree) {
       if (!file.pathIsUtf8 || !file.oldPathIsUtf8) {
         unreadablePaths.add(file.path);

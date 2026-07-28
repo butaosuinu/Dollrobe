@@ -23,7 +23,7 @@ jobs:
     name: PR review risk guard (base-side)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.actor != 'dependabot[bot]'
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     steps:
       # Default ref is the trusted base branch for pull_request_target.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

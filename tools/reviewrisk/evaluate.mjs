@@ -62,7 +62,7 @@ const invariantPatterns = [
 const testDisablePattern =
   /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:(?!\s*false\b)\s*|\bonly\s*:\s*true\b/;
 const qualityGatePattern =
-  /"(?:test(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)"\s*:/;
+  /"(?:scripts|test(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)"\s*:/;
 
 const touches = (file, pathOrPrefix) =>
   file.path.startsWith(pathOrPrefix) ||
@@ -88,6 +88,14 @@ const changesWorkflowExtension = (file) =>
   isWorkflowFile(file.oldPath) &&
   isWorkflowFile(file.path) &&
   workflowExtension(file.oldPath) !== workflowExtension(file.path);
+
+const rewritesExistingMigration = (file) => {
+  const prefix = "workers/migrations/";
+  if (file.status === "R") {
+    return file.oldPath.startsWith(prefix);
+  }
+  return file.status !== "A" && file.path.startsWith(prefix);
+};
 
 const reason = (signal, level, file, detail) => ({
   signal,
@@ -339,7 +347,7 @@ const criticalReasons = (diff) => {
         ),
       );
     }
-    if (touches(file, "workers/migrations/") && file.status !== "A") {
+    if (rewritesExistingMigration(file)) {
       reasons.push(
         reason(
           signals.migrationRewritten,
@@ -374,7 +382,7 @@ const criticalReasons = (diff) => {
         signals.qualityGate,
         levels.critical,
         "package.json",
-        "test・test:*・typecheck・lint・depcruise・precheck script を変更",
+        "scripts container または品質 script を変更",
       ),
     );
   }

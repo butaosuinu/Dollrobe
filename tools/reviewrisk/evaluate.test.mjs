@@ -261,6 +261,22 @@ test("depcruise script の変更は critical", () => {
   assert.equal(hasSignal(report, signals.qualityGate), true);
 });
 
+test("scripts container の rename は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "package.json" })],
+      addedLines: {
+        "package.json": ['"disabledScripts": {'],
+      },
+      removedLines: {
+        "package.json": ['"scripts": {'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.qualityGate), true);
+});
+
 test("workflow の yml・yaml 間 rename は critical", () => {
   const report = evaluate(
     diff({
@@ -293,6 +309,38 @@ test("review-risk 自身・品質 script・既存 migration の変更は critica
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.riskTool), true);
   assert.equal(hasSignal(report, signals.qualityGate), true);
+  assert.equal(hasSignal(report, signals.migrationRewritten), true);
+});
+
+test("migration 外からの rename は新規 migration として high", () => {
+  const report = evaluate(
+    diff({
+      files: [
+        change({
+          path: "workers/migrations/0017_new.sql",
+          oldPath: "scripts/draft.sql",
+          status: "R",
+        }),
+      ],
+    }),
+  );
+  assert.equal(report.level, levels.high);
+  assert.equal(hasSignal(report, signals.migrationRewritten), false);
+});
+
+test("既存 migration からの rename は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [
+        change({
+          path: "scripts/archived.sql",
+          oldPath: "workers/migrations/0016_existing.sql",
+          status: "R",
+        }),
+      ],
+    }),
+  );
+  assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.migrationRewritten), true);
 });
 

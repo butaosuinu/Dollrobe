@@ -315,6 +315,33 @@ test("working tree の % path は実 path から本文を読む", (context) => {
   );
 });
 
+test("staged rename 後の unstaged edit を working tree から読む", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-worktree-rename-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const oldPath = "src/lib/before.test.ts";
+  const path = "src/lib/after.test.ts";
+  const skippedTest = 'test.skip("later", () => {});';
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(join(cwd, oldPath), 'test("enabled", () => {});\n');
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  runGit(cwd, ["mv", oldPath, path]);
+  writeFileSync(join(cwd, path), `${skippedTest}\n`);
+
+  const actual = readGitDiff({ base: "HEAD", cwd });
+  assert.equal(actual.addedLines.get(path)?.includes(skippedTest), true);
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
 test("patch 読み取り上限の超過は fail-closed で critical", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-large-patch-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));
