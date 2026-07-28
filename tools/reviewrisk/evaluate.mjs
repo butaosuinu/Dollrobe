@@ -439,14 +439,19 @@ const namespaceTestModules = new Set([
 const importedTestRoots = (source) => {
   const roots = new Map();
   const importPattern =
-    /\bimport\s*\{([\s\S]*?)\}\s*from\s*(["'])[^"'\r\n]+\2/g;
+    /\bimport\s*\{([\s\S]*?)\}\s*from\s*(["'])([^"'\r\n]+)\2/g;
   for (const match of source.matchAll(importPattern)) {
+    const moduleName = match[3];
     for (const specifier of match[1].split(",")) {
-      const aliasMatch = /^\s*test(?:\s+as\s+([A-Za-z_$][\w$]*))?\s*$/.exec(
-        specifier,
-      );
-      if (aliasMatch !== null) {
-        roots.set(aliasMatch[1] ?? "test", "test");
+      const aliasMatch =
+        /^\s*(test|it|describe|suite|context|xit|xdescribe|xtest|fit|fdescribe)(?:\s+as\s+([A-Za-z_$][\w$]*))?\s*$/.exec(
+          specifier,
+        );
+      if (
+        aliasMatch !== null &&
+        (aliasMatch[1] === "test" || namespaceTestModules.has(moduleName))
+      ) {
+        roots.set(aliasMatch[2] ?? aliasMatch[1], aliasMatch[1]);
       }
     }
   }
@@ -748,7 +753,7 @@ const readPropertyValueEnd = ({ structuralSource, start, objectEnd }) => {
   return objectEnd;
 };
 
-const activeOptionModes = ({ argument, structuralSource }) => {
+const activeOptionModes = ({ argument, source, structuralSource }) => {
   const modes = new Set();
   const objectStart = skipWhitespace(structuralSource, argument.start);
   if (structuralSource[objectStart] !== "{") {
@@ -784,26 +789,35 @@ const activeOptionModes = ({ argument, structuralSource }) => {
       parentheses = Math.max(0, parentheses - 1);
       continue;
     }
-    if (
-      braces !== 1 ||
-      brackets !== 0 ||
-      parentheses !== 0 ||
-      !/[A-Za-z_$]/.test(character)
-    ) {
+    if (braces !== 1 || brackets !== 0 || parentheses !== 0) {
       continue;
     }
 
-    const keyMatch = /^[A-Za-z_$][\w$]*/.exec(structuralSource.slice(index));
-    if (keyMatch === null) {
-      continue;
+    let key;
+    let keyEnd;
+    if (/[A-Za-z_$]/.test(character)) {
+      const keyMatch = /^[A-Za-z_$][\w$]*/.exec(structuralSource.slice(index));
+      if (keyMatch === null) {
+        continue;
+      }
+      key = keyMatch[0];
+      keyEnd = index + key.length;
+    } else {
+      const quotedKeyMatch = /^(["'])(skip|only)\1/.exec(
+        source.slice(index, argument.end),
+      );
+      if (quotedKeyMatch === null) {
+        continue;
+      }
+      key = quotedKeyMatch[2];
+      keyEnd = index + quotedKeyMatch[0].length;
     }
-    const key = keyMatch[0];
-    const colonIndex = skipWhitespace(structuralSource, index + key.length);
+    const colonIndex = skipWhitespace(structuralSource, keyEnd);
     if (
       (key !== "skip" && key !== "only") ||
       structuralSource[colonIndex] !== ":"
     ) {
-      index += key.length - 1;
+      index = keyEnd - 1;
       continue;
     }
 
@@ -821,16 +835,17 @@ const activeOptionModes = ({ argument, structuralSource }) => {
   return modes;
 };
 
-const disableModesForCall = ({ call, structuralSource }) => {
+const disableModesForCall = ({ call, source, structuralSource }) => {
   const modes = new Set();
+  const sourceRoot = call.importedRoot ?? call.root;
   if (
-    call.root === "xit" ||
-    call.root === "xdescribe" ||
-    call.root === "xtest"
+    sourceRoot === "xit" ||
+    sourceRoot === "xdescribe" ||
+    sourceRoot === "xtest"
   ) {
     modes.add("skip");
   }
-  if (call.root === "fit" || call.root === "fdescribe") {
+  if (sourceRoot === "fit" || sourceRoot === "fdescribe") {
     modes.add("only");
   }
   for (const [index, modifier] of call.modifiers.entries()) {
@@ -867,7 +882,11 @@ const disableModesForCall = ({ call, structuralSource }) => {
     }
   }
   for (const argument of call.arguments.slice(0, 2)) {
-    for (const mode of activeOptionModes({ argument, structuralSource })) {
+    for (const mode of activeOptionModes({
+      argument,
+      source,
+      structuralSource,
+    })) {
       modes.add(mode);
     }
   }
@@ -900,10 +919,12 @@ const testCallDescriptors = (source) => {
     const callback = call.arguments.at(-1)?.structural ?? "";
     const callbackIdentity = normalizedStructuralCode(callback);
     const positionalIdentity = `${root}|${positionalContext}|${String(position)}`;
+    const casePositionIdentity = `${positionalContext}|${String(position)}`;
     const movableIdentity = `${root}|${namedContext}|${title}|${callbackIdentity}`;
     const modes = [
       ...disableModesForCall({
         call,
+        source,
         structuralSource: parsed.structuralSource,
       }),
     ];
@@ -912,6 +933,7 @@ const testCallDescriptors = (source) => {
       modes,
       title,
       callbackIdentity,
+      casePositionIdentity,
       positionalIdentity,
       movableIdentity,
     });
@@ -981,7 +1003,6 @@ const removesTestCallFingerprint = (beforeSource, afterSource) => {
     const exactMatch = after.find(
       (candidate) =>
         !candidate.used &&
-        candidate.root === descriptor.root &&
         candidate.title === descriptor.title &&
         candidate.callbackIdentity === descriptor.callbackIdentity,
     );
@@ -996,7 +1017,7 @@ const removesTestCallFingerprint = (beforeSource, afterSource) => {
     const positionalMatch = after.find(
       (candidate) =>
         !candidate.used &&
-        candidate.positionalIdentity === descriptor.positionalIdentity &&
+        candidate.casePositionIdentity === descriptor.casePositionIdentity &&
         (candidate.title === descriptor.title ||
           candidate.callbackIdentity === descriptor.callbackIdentity),
     );

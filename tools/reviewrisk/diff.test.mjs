@@ -599,6 +599,33 @@ test("既存 test case の suite 間移動は削除として扱わない", (cont
   );
 });
 
+test("test から it への同義置換は削除として扱わない", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-it-alias-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/root-alias.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(join(cwd, path), 'test("same case", sharedFn);\n');
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, path), 'it("same case", sharedFn);\n');
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.low);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDeleted),
+    false,
+  );
+});
+
 test("既存の skip 済み test の並び替えは新規無効化として扱わない", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-move-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));

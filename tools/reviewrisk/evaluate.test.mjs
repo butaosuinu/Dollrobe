@@ -194,6 +194,16 @@ test("static import された test alias の skip・only は critical", () => {
       'import * as playwright from "@playwright/test";',
       'playwright.test.describe.only("focused", fn);',
     ],
+    ['import { it as check } from "vitest";', 'check.skip("later", fn);'],
+    [
+      'import { describe as group } from "vitest";',
+      'group.only("focused", fn);',
+    ],
+    ['import { xit as pending } from "vitest";', 'pending("later", fn);'],
+    [
+      'import { fdescribe as focused } from "vitest";',
+      'focused("focused", fn);',
+    ],
   ]) {
     const report = evaluate(
       diff({
@@ -257,6 +267,24 @@ test("test options の skip true は critical", () => {
   assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
+test("引用符付き test options の skip・only true は critical", () => {
+  for (const statement of [
+    'test("later", { "skip": true }, fn);',
+    "test(\"focused\", { 'only': true }, fn);",
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
+});
+
 test("test options の skip string は critical", () => {
   const report = evaluate(
     diff({
@@ -302,16 +330,21 @@ test("条件式を使う test options skip は critical", () => {
 });
 
 test("test options の skip false は無効化として扱わない", () => {
-  const report = evaluate(
-    diff({
-      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
-      addedLines: {
-        "src/lib/new.test.ts": ['test("enabled", { skip: false }, fn);'],
-      },
-    }),
-  );
-  assert.equal(report.level, levels.low);
-  assert.equal(hasSignal(report, signals.testDisabled), false);
+  for (const statement of [
+    'test("enabled", { skip: false }, fn);',
+    'test("enabled", { "skip": false }, fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.low, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), false, statement);
+  }
 });
 
 test("通常オブジェクトの skip・only は無効化として扱わない", () => {
