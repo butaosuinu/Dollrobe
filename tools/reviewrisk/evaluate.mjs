@@ -59,10 +59,10 @@ const invariantPatterns = [
   ["Playwright forbidOnly", /\bforbidOnly\b/],
 ];
 
-const testDisablePattern =
-  /\.(?:skip|only|fixme)\s*(?:\(|\.)|\.skipIf\s*\((?!\s*false\s*(?=[,)]))|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\b(?:skip|only)\s*:(?!\s*false\s*(?=[,}]))\s*/;
 const qualityGatePattern =
   /"(?:scripts|test(?::[^"]+)?|build(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)"\s*:/;
+const qualityScriptNamePattern =
+  /^(?:test(?::.+)?|build(?::.+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)$/;
 
 const touches = (file, pathOrPrefix) =>
   file.path.startsWith(pathOrPrefix) ||
@@ -170,6 +170,12 @@ const startsRegexLiteral = (codeBeforeSlash) => {
   let index = codeBeforeSlash.length - 1;
   while (index >= 0 && /\s/.test(codeBeforeSlash[index])) {
     index -= 1;
+  }
+  if (
+    (codeBeforeSlash[index] === "+" || codeBeforeSlash[index] === "-") &&
+    codeBeforeSlash[index - 1] === codeBeforeSlash[index]
+  ) {
+    return false;
   }
   if (index < 0 || regexPrefixCharacters.has(codeBeforeSlash[index])) {
     return true;
@@ -316,113 +322,405 @@ const stripStringsAndComments = (source) => {
   return result;
 };
 
-const readFirstArgument = ({ source, structuralSource, openingIndex }) => {
+const skipWhitespace = (source, start) => {
+  let index = start;
+  while (index < source.length && /\s/.test(source[index])) {
+    index += 1;
+  }
+  return index;
+};
+
+const findMatchingDelimiter = ({ source, openingIndex, opening, closing }) => {
   let depth = 0;
-  let end = structuralSource.length;
-  for (
-    let index = openingIndex + 1;
-    index < structuralSource.length;
-    index += 1
-  ) {
-    const character = structuralSource[index];
-    if (character === "(" || character === "[" || character === "{") {
+  for (let index = openingIndex; index < source.length; index += 1) {
+    if (source[index] === opening) {
       depth += 1;
-      continue;
-    }
-    if (character === ")" || character === "]" || character === "}") {
-      if (character === ")" && depth === 0) {
-        end = index;
-        break;
+    } else if (source[index] === closing) {
+      depth -= 1;
+      if (depth === 0) {
+        return index;
       }
-      depth = Math.max(0, depth - 1);
-      continue;
-    }
-    if (character === "," && depth === 0) {
-      end = index;
-      break;
     }
   }
+  return -1;
+};
+
+const argumentRange = ({ source, structuralSource, start, end }) => {
+  let trimmedStart = start;
+  let trimmedEnd = end;
+  while (trimmedStart < trimmedEnd && /\s/.test(source[trimmedStart])) {
+    trimmedStart += 1;
+  }
+  while (trimmedEnd > trimmedStart && /\s/.test(source[trimmedEnd - 1])) {
+    trimmedEnd -= 1;
+  }
   return {
-    end,
-    value: source
-      .slice(openingIndex + 1, end)
-      .trim()
-      .replace(/\s+/g, " "),
+    start: trimmedStart,
+    end: trimmedEnd,
+    raw: source.slice(trimmedStart, trimmedEnd),
+    structural: structuralSource.slice(trimmedStart, trimmedEnd),
   };
 };
 
-const findLastTestCallOpening = (structuralSource, beforeIndex) => {
-  const pattern = /\b(?:test|it|describe)\s*\(/g;
-  let openingIndex = -1;
-  for (const match of structuralSource.matchAll(pattern)) {
-    if ((match.index ?? 0) >= beforeIndex) {
-      break;
-    }
-    openingIndex = (match.index ?? 0) + match[0].lastIndexOf("(");
+const readCallArguments = ({ source, structuralSource, openingIndex }) => {
+  const closingIndex = findMatchingDelimiter({
+    source: structuralSource,
+    openingIndex,
+    opening: "(",
+    closing: ")",
+  });
+  if (closingIndex === -1) {
+    return { arguments: [], closingIndex: structuralSource.length };
   }
-  return openingIndex;
+
+  const argumentsList = [];
+  let start = openingIndex + 1;
+  let depth = 0;
+  for (let index = start; index < closingIndex; index += 1) {
+    const character = structuralSource[index];
+    if (character === "(" || character === "[" || character === "{") {
+      depth += 1;
+    } else if (character === ")" || character === "]" || character === "}") {
+      depth = Math.max(0, depth - 1);
+    } else if (character === "," && depth === 0) {
+      argumentsList.push(
+        argumentRange({ source, structuralSource, start, end: index }),
+      );
+      start = index + 1;
+    }
+  }
+  if (source.slice(start, closingIndex).trim() !== "") {
+    argumentsList.push(
+      argumentRange({
+        source,
+        structuralSource,
+        start,
+        end: closingIndex,
+      }),
+    );
+  }
+  return { arguments: argumentsList, closingIndex };
 };
 
-const testDisableFingerprints = (source) => {
+const testRootPattern =
+  /(?<![\w$.])\b(test|it|describe|suite|context|xit|xdescribe|xtest|fit|fdescribe)\b/g;
+
+const parseTestCalls = (source) => {
   const structuralSource = stripStringsAndComments(source);
-  const pattern = new RegExp(testDisablePattern.source, "g");
-  const fingerprints = [];
-  for (const match of structuralSource.matchAll(pattern)) {
-    const matchIndex = match.index ?? 0;
-    const property = match[0].match(/\b(skip|only)\s*:/)?.[1];
-    if (property !== undefined) {
-      const openingIndex = findLastTestCallOpening(
+  const calls = [];
+  for (const match of structuralSource.matchAll(testRootPattern)) {
+    const root = match[1];
+    let cursor = skipWhitespace(
+      structuralSource,
+      (match.index ?? 0) + match[0].length,
+    );
+    const modifiers = [];
+    const modifierArguments = new Map();
+    let openingIndex = -1;
+
+    while (cursor < structuralSource.length) {
+      if (structuralSource[cursor] === "(") {
+        openingIndex = cursor;
+        break;
+      }
+      if (structuralSource[cursor] !== ".") {
+        break;
+      }
+
+      cursor = skipWhitespace(structuralSource, cursor + 1);
+      const modifierMatch = /^[A-Za-z_$][\w$]*/.exec(
+        structuralSource.slice(cursor),
+      );
+      if (modifierMatch === null) {
+        break;
+      }
+      const modifier = modifierMatch[0];
+      modifiers.push(modifier);
+      cursor = skipWhitespace(structuralSource, cursor + modifier.length);
+      if (structuralSource[cursor] !== "(") {
+        continue;
+      }
+
+      const parsedModifier = readCallArguments({
+        source,
         structuralSource,
-        matchIndex,
+        openingIndex: cursor,
+      });
+      modifierArguments.set(modifier, parsedModifier.arguments);
+      const afterModifier = skipWhitespace(
+        structuralSource,
+        parsedModifier.closingIndex + 1,
       );
-      const target =
-        openingIndex === -1
-          ? ""
-          : readFirstArgument({
-              source,
-              structuralSource,
-              openingIndex,
-            }).value;
-      fingerprints.push(`${property}:${target}`);
-      continue;
+      if (structuralSource[afterModifier] === "(") {
+        openingIndex = afterModifier;
+        break;
+      }
+      if (structuralSource[afterModifier] === ".") {
+        cursor = afterModifier;
+        continue;
+      }
+      openingIndex = cursor;
+      break;
     }
 
-    const kind =
-      match[0].match(/\.(skipIf|skip|only|fixme)/)?.[1] ??
-      match[0].match(/\b(xit|xdescribe|xtest|fit|fdescribe)/)?.[1] ??
-      match[0].trim();
-    let openingIndex = matchIndex + match[0].lastIndexOf("(");
-    if (!match[0].includes("(")) {
-      openingIndex = structuralSource.indexOf(
-        "(",
-        matchIndex + match[0].length,
-      );
-    }
     if (openingIndex === -1) {
-      fingerprints.push(kind);
       continue;
     }
-
-    const firstArgument = readFirstArgument({
+    const parsedCall = readCallArguments({
       source,
       structuralSource,
       openingIndex,
     });
-    if (kind !== "skipIf") {
-      fingerprints.push(`${kind}:${firstArgument.value}`);
+    calls.push({
+      root,
+      modifiers,
+      modifierArguments,
+      openingIndex,
+      closingIndex: parsedCall.closingIndex,
+      arguments: parsedCall.arguments,
+    });
+  }
+  return { calls, structuralSource };
+};
+
+const normalizedTestRoot = (root) => {
+  switch (root) {
+    case "xit":
+    case "fit":
+      return "it";
+    case "xtest":
+      return "test";
+    case "xdescribe":
+    case "fdescribe":
+    case "suite":
+    case "context":
+      return "describe";
+    default:
+      return root;
+  }
+};
+
+const normalizedIdentityPart = (value) => value.trim().replace(/\s+/g, " ");
+
+const findSuiteBody = ({ call, structuralSource }) => {
+  const searchStart = call.arguments[0]?.end ?? call.openingIndex + 1;
+  const arrowIndex = structuralSource.indexOf("=>", searchStart);
+  const functionMatch = /\bfunction\b/.exec(
+    structuralSource.slice(searchStart, call.closingIndex),
+  );
+  const functionIndex =
+    functionMatch === null ? -1 : searchStart + (functionMatch.index ?? 0);
+  const markers = [arrowIndex, functionIndex].filter(
+    (index) => index >= searchStart && index < call.closingIndex,
+  );
+  if (markers.length === 0) {
+    return undefined;
+  }
+  const markerIndex = Math.min(...markers);
+  const openingIndex = structuralSource.indexOf("{", markerIndex);
+  if (openingIndex === -1 || openingIndex >= call.closingIndex) {
+    return undefined;
+  }
+  const closingIndex = findMatchingDelimiter({
+    source: structuralSource,
+    openingIndex,
+    opening: "{",
+    closing: "}",
+  });
+  if (closingIndex === -1) {
+    return undefined;
+  }
+  return { openingIndex, closingIndex };
+};
+
+const suiteScopes = ({ calls, structuralSource }) =>
+  calls.flatMap((call) => {
+    if (normalizedTestRoot(call.root) !== "describe") {
+      return [];
+    }
+    const body = findSuiteBody({ call, structuralSource });
+    if (body === undefined) {
+      return [];
+    }
+    return [
+      {
+        ...body,
+        title: normalizedIdentityPart(call.arguments[0]?.raw ?? "<anonymous>"),
+      },
+    ];
+  });
+
+const readPropertyValueEnd = ({ structuralSource, start, objectEnd }) => {
+  let braces = 0;
+  let brackets = 0;
+  let parentheses = 0;
+  for (let index = start; index < objectEnd; index += 1) {
+    const character = structuralSource[index];
+    if (character === "{") {
+      braces += 1;
+    } else if (character === "[") {
+      brackets += 1;
+    } else if (character === "(") {
+      parentheses += 1;
+    } else if (character === "}") {
+      if (braces === 0 && brackets === 0 && parentheses === 0) {
+        return index;
+      }
+      braces = Math.max(0, braces - 1);
+    } else if (character === "]") {
+      brackets = Math.max(0, brackets - 1);
+    } else if (character === ")") {
+      parentheses = Math.max(0, parentheses - 1);
+    } else if (
+      character === "," &&
+      braces === 0 &&
+      brackets === 0 &&
+      parentheses === 0
+    ) {
+      return index;
+    }
+  }
+  return objectEnd;
+};
+
+const activeOptionModes = ({ argument, structuralSource }) => {
+  const modes = new Set();
+  const objectStart = skipWhitespace(structuralSource, argument.start);
+  if (structuralSource[objectStart] !== "{") {
+    return modes;
+  }
+
+  let braces = 0;
+  let brackets = 0;
+  let parentheses = 0;
+  for (let index = objectStart; index < argument.end; index += 1) {
+    const character = structuralSource[index];
+    if (character === "{") {
+      braces += 1;
+      continue;
+    }
+    if (character === "}") {
+      braces = Math.max(0, braces - 1);
+      continue;
+    }
+    if (character === "[") {
+      brackets += 1;
+      continue;
+    }
+    if (character === "]") {
+      brackets = Math.max(0, brackets - 1);
+      continue;
+    }
+    if (character === "(") {
+      parentheses += 1;
+      continue;
+    }
+    if (character === ")") {
+      parentheses = Math.max(0, parentheses - 1);
+      continue;
+    }
+    if (
+      braces !== 1 ||
+      brackets !== 0 ||
+      parentheses !== 0 ||
+      !/[A-Za-z_$]/.test(character)
+    ) {
       continue;
     }
 
-    const targetOpening = structuralSource.indexOf("(", firstArgument.end + 1);
-    const target =
-      targetOpening === -1
-        ? ""
-        : readFirstArgument({
-            source,
-            structuralSource,
-            openingIndex: targetOpening,
-          }).value;
-    fingerprints.push(`${kind}:${firstArgument.value}:${target}`);
+    const keyMatch = /^[A-Za-z_$][\w$]*/.exec(structuralSource.slice(index));
+    if (keyMatch === null) {
+      continue;
+    }
+    const key = keyMatch[0];
+    const colonIndex = skipWhitespace(structuralSource, index + key.length);
+    if (
+      (key !== "skip" && key !== "only") ||
+      structuralSource[colonIndex] !== ":"
+    ) {
+      index += key.length - 1;
+      continue;
+    }
+
+    const valueStart = skipWhitespace(structuralSource, colonIndex + 1);
+    const valueEnd = readPropertyValueEnd({
+      structuralSource,
+      start: valueStart,
+      objectEnd: argument.end,
+    });
+    if (structuralSource.slice(valueStart, valueEnd).trim() !== "false") {
+      modes.add(key);
+    }
+    index = valueEnd - 1;
+  }
+  return modes;
+};
+
+const disableModesForCall = ({ call, structuralSource }) => {
+  const modes = new Set();
+  if (
+    call.root === "xit" ||
+    call.root === "xdescribe" ||
+    call.root === "xtest"
+  ) {
+    modes.add("skip");
+  }
+  if (call.root === "fit" || call.root === "fdescribe") {
+    modes.add("only");
+  }
+  for (const modifier of call.modifiers) {
+    if (
+      modifier === "skip" ||
+      modifier === "only" ||
+      modifier === "fixme" ||
+      modifier === "todo"
+    ) {
+      modes.add(modifier);
+    }
+    if (modifier === "skipIf") {
+      const condition =
+        call.modifierArguments.get(modifier)?.[0]?.structural.trim() ?? "";
+      if (condition !== "false") {
+        modes.add(modifier);
+      }
+    }
+  }
+  for (const argument of call.arguments.slice(0, 2)) {
+    for (const mode of activeOptionModes({ argument, structuralSource })) {
+      modes.add(mode);
+    }
+  }
+  return modes;
+};
+
+const testDisableFingerprints = (source) => {
+  const parsed = parseTestCalls(source);
+  const scopes = suiteScopes(parsed);
+  const occurrences = new Map();
+  const fingerprints = [];
+  for (const call of parsed.calls) {
+    const context = scopes
+      .filter(
+        (scope) =>
+          scope.openingIndex < call.openingIndex &&
+          call.openingIndex < scope.closingIndex,
+      )
+      .sort((left, right) => left.openingIndex - right.openingIndex)
+      .map((scope) => scope.title)
+      .join(" > ");
+    const title = normalizedIdentityPart(
+      call.arguments[0]?.raw ?? "<anonymous>",
+    );
+    const baseIdentity = `${context}|${normalizedTestRoot(call.root)}|${title}`;
+    const occurrence = (occurrences.get(baseIdentity) ?? 0) + 1;
+    occurrences.set(baseIdentity, occurrence);
+    const identity = `${baseIdentity}|${String(occurrence)}`;
+    for (const mode of disableModesForCall({
+      call,
+      structuralSource: parsed.structuralSource,
+    })) {
+      fingerprints.push(`${mode}:${identity}`);
+    }
   }
   return fingerprints;
 };
@@ -446,13 +744,73 @@ const addsTestDisablePattern = (diff, file) => {
   const afterSource = diff.afterContents?.get(file.path);
   if (afterSource === undefined) {
     const addedSource = (diff.addedLines.get(file.path) ?? []).join("\n");
-    return testDisablePattern.test(stripStringsAndComments(addedSource));
+    return testDisableFingerprints(addedSource).length > 0;
   }
   const oldPath = file.oldPath || file.path;
   const beforeSource = isTestFile(oldPath)
     ? (diff.beforeContents?.get(file.path) ?? "")
     : "";
   return addsTestDisableFingerprint(beforeSource, afterSource);
+};
+
+const isRecord = (value) =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const parsePackageJson = (source) => {
+  // Invalid PR-authored JSON is a quality-gate change, not a CLI crash.
+  try {
+    const parsed = JSON.parse(source);
+    return isRecord(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const packageQualityGateChanged = (diff) => {
+  const afterSource = diff.afterContents?.get("package.json");
+  if (afterSource === undefined) {
+    return changedLines(diff, "package.json").some((line) =>
+      qualityGatePattern.test(line),
+    );
+  }
+
+  const beforeSource = diff.beforeContents?.get("package.json") ?? "";
+  const before = parsePackageJson(beforeSource);
+  const after = parsePackageJson(afterSource);
+  if (before === undefined || after === undefined) {
+    return true;
+  }
+
+  const beforeHasScripts = Object.hasOwn(before, "scripts");
+  const afterHasScripts = Object.hasOwn(after, "scripts");
+  if (beforeHasScripts !== afterHasScripts) {
+    return true;
+  }
+  if (!beforeHasScripts) {
+    return false;
+  }
+  if (!isRecord(before.scripts) || !isRecord(after.scripts)) {
+    return true;
+  }
+
+  const names = new Set([
+    ...Object.keys(before.scripts),
+    ...Object.keys(after.scripts),
+  ]);
+  for (const name of names) {
+    if (!qualityScriptNamePattern.test(name)) {
+      continue;
+    }
+    if (
+      !Object.hasOwn(before.scripts, name) ||
+      !Object.hasOwn(after.scripts, name) ||
+      JSON.stringify(before.scripts[name]) !==
+        JSON.stringify(after.scripts[name])
+    ) {
+      return true;
+    }
+  }
+  return false;
 };
 
 const criticalReasons = (diff) => {
@@ -565,11 +923,7 @@ const criticalReasons = (diff) => {
   const packageManifestRemoved = diff.files.some((file) =>
     isDeletedOrMovedOut(file, (path) => path === "package.json"),
   );
-  const packageLines = changedLines(diff, "package.json");
-  if (
-    packageManifestRemoved ||
-    packageLines.some((line) => qualityGatePattern.test(line))
-  ) {
+  if (packageManifestRemoved || packageQualityGateChanged(diff)) {
     reasons.push(
       reason(
         signals.qualityGate,

@@ -59,13 +59,15 @@ const render = (format, report) => {
   }
 };
 
+const requiresContents = (path) => path === "package.json" || isTestFile(path);
+
 export const run = (args) => {
   const options = parseArgs(args);
   if (options.help === true) {
     return { output: usage, exitCode: 0 };
   }
   const report = evaluate(
-    readGitDiff({ base: options.base, includeContents: isTestFile }),
+    readGitDiff({ base: options.base, includeContents: requiresContents }),
   );
   const exitCode =
     options.failAt !== undefined &&

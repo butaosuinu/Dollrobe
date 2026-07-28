@@ -133,6 +133,37 @@ test("diff 属性で無効化されたテキストも本文を読む", (context)
   );
 });
 
+test("JSON escape された品質 script key の上書きは critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-package-json-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+  writeFileSync(
+    join(cwd, "package.json"),
+    '{\n  "scripts": {\n    "test": "node --test"\n  }\n}\n',
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(
+    join(cwd, "package.json"),
+    '{\n  "scripts": {\n    "test": "node --test",\n    "\\u0074est": "echo disabled"\n  }\n}\n',
+  );
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: (path) => path === "package.json" || isTestFile(path),
+  });
+  assert.match(actual.afterContents.get("package.json") ?? "", /\\u0074est/);
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.qualityGate),
+    true,
+  );
+});
+
 test("pathspec magic で始まるファイルも literal path として読む", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-literal-path-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));
@@ -465,6 +496,47 @@ test("skip を別の test へ差し替えた変更は critical", (context) => {
   writeFileSync(
     join(cwd, path),
     'test("old", () => {});\ntest.skip("new", () => {});\n',
+  );
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
+test("同名 test の suite 間 skip 差し替えは critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-same-name-skip-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/same-name.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    [
+      'describe("first", () => { test.skip("same", () => {}); });',
+      'describe("second", () => { test("same", () => {}); });',
+      "",
+    ].join("\n"),
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(
+    join(cwd, path),
+    [
+      'describe("first", () => { test("same", () => {}); });',
+      'describe("second", () => { test.skip("same", () => {}); });',
+      "",
+    ].join("\n"),
   );
 
   const actual = readGitDiff({

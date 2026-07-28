@@ -109,6 +109,21 @@ test("テスト削除・skip 追加・fixture 削除は critical", () => {
   assert.equal(hasSignal(report, signals.testSupportDeleted), true);
 });
 
+test("test・it・describe の todo は critical", () => {
+  for (const api of ["test", "it", "describe"]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [`${api}.todo("later", () => {});`],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, api);
+    assert.equal(hasSignal(report, signals.testDisabled), true, api);
+  }
+});
+
 test("test options の skip true は critical", () => {
   const report = evaluate(
     diff({
@@ -172,6 +187,24 @@ test("test options の skip false は無効化として扱わない", () => {
       files: [change({ path: "src/lib/new.test.ts", status: "A" })],
       addedLines: {
         "src/lib/new.test.ts": ['test("enabled", { skip: false }, fn);'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("通常オブジェクトの skip・only は無効化として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'test("enabled", () => {',
+          "  expect(result).toEqual({ skip: true });",
+          "  const config = { only: true };",
+          "});",
+        ],
       },
     }),
   );
@@ -284,6 +317,21 @@ test("正規表現リテラル後の test skip を検出する", () => {
       files: [change({ path: "src/lib/new.test.ts", status: "A" })],
       addedLines: {
         "src/lib/new.test.ts": ['const quote = /["]/; test.skip("later", fn);'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("postfix 演算後の除算に続く test skip を検出する", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'let i = 4; const half = i++ / 2; test.skip("later", fn);',
+        ],
       },
     }),
   );
