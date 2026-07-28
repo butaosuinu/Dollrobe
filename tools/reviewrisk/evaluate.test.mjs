@@ -109,6 +109,22 @@ test("テスト削除・skip 追加・fixture 削除は critical", () => {
   assert.equal(hasSignal(report, signals.testSupportDeleted), true);
 });
 
+test("test support 間の rename は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [
+        change({
+          path: "e2e/helpers/setup.ts",
+          oldPath: "src/test/setup.ts",
+          status: "R",
+        }),
+      ],
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testSupportDeleted), true);
+});
+
 test("test・it・describe の todo は critical", () => {
   for (const api of ["test", "it", "describe"]) {
     const report = evaluate(
@@ -121,6 +137,24 @@ test("test・it・describe の todo は critical", () => {
     );
     assert.equal(report.level, levels.critical, api);
     assert.equal(hasSignal(report, signals.testDisabled), true, api);
+  }
+});
+
+test("bracket notation・optional chaining の skip は critical", () => {
+  for (const statement of [
+    'test["skip"]("later", fn);',
+    'test?.skip("later", fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
   }
 });
 

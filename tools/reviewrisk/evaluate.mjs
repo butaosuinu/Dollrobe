@@ -115,6 +115,11 @@ const isDeletedOrMovedOut = (file, predicate) =>
   (file.status === "R" && predicate(file.oldPath) && !predicate(file.path)) ||
   (replacesRegularFileType(file) && predicate(file.path));
 
+const removesOrRenamesProtectedPath = (file, predicate) =>
+  (file.status === "D" && predicate(file.path)) ||
+  (file.status === "R" && predicate(file.oldPath)) ||
+  (replacesRegularFileType(file) && predicate(file.path));
+
 const pathMatchesPrefix = (path, prefixes) =>
   prefixes.some((prefix) => path.startsWith(prefix));
 
@@ -405,6 +410,13 @@ const readCallArguments = ({ source, structuralSource, openingIndex }) => {
 const testRootPattern =
   /(?<![\w$.])\b(test|it|describe|suite|context|xit|xdescribe|xtest|fit|fdescribe)\b/g;
 
+const staticBracketModifier = (source, start, end) => {
+  const match = /^(["'])(skip|only|fixme|todo|skipIf)\1$/.exec(
+    source.slice(start, end).trim(),
+  );
+  return match?.[2];
+};
+
 const parseTestCalls = (source) => {
   const structuralSource = stripStringsAndComments(source);
   const calls = [];
@@ -423,20 +435,42 @@ const parseTestCalls = (source) => {
         openingIndex = cursor;
         break;
       }
-      if (structuralSource[cursor] !== ".") {
+
+      let modifier;
+      if (structuralSource.startsWith("?.", cursor)) {
+        cursor = skipWhitespace(structuralSource, cursor + 2);
+      } else if (structuralSource[cursor] === ".") {
+        cursor = skipWhitespace(structuralSource, cursor + 1);
+      } else if (structuralSource[cursor] === "[") {
+        const closingBracket = findMatchingDelimiter({
+          source: structuralSource,
+          openingIndex: cursor,
+          opening: "[",
+          closing: "]",
+        });
+        if (closingBracket === -1) {
+          break;
+        }
+        modifier = staticBracketModifier(source, cursor + 1, closingBracket);
+        if (modifier === undefined) {
+          break;
+        }
+        cursor = skipWhitespace(structuralSource, closingBracket + 1);
+      } else {
         break;
       }
 
-      cursor = skipWhitespace(structuralSource, cursor + 1);
-      const modifierMatch = /^[A-Za-z_$][\w$]*/.exec(
-        structuralSource.slice(cursor),
-      );
-      if (modifierMatch === null) {
-        break;
+      if (modifier === undefined) {
+        const modifierMatch = /^[A-Za-z_$][\w$]*/.exec(
+          structuralSource.slice(cursor),
+        );
+        if (modifierMatch === null) {
+          break;
+        }
+        modifier = modifierMatch[0];
+        cursor = skipWhitespace(structuralSource, cursor + modifier.length);
       }
-      const modifier = modifierMatch[0];
       modifiers.push(modifier);
-      cursor = skipWhitespace(structuralSource, cursor + modifier.length);
       if (structuralSource[cursor] !== "(") {
         continue;
       }
@@ -500,8 +534,6 @@ const normalizedTestRoot = (root) => {
   }
 };
 
-const normalizedIdentityPart = (value) => value.trim().replace(/\s+/g, " ");
-
 const findSuiteBody = ({ call, structuralSource }) => {
   const searchStart = call.arguments[0]?.end ?? call.openingIndex + 1;
   const arrowIndex = structuralSource.indexOf("=>", searchStart);
@@ -545,10 +577,30 @@ const suiteScopes = ({ calls, structuralSource }) =>
     return [
       {
         ...body,
-        title: normalizedIdentityPart(call.arguments[0]?.raw ?? "<anonymous>"),
       },
     ];
   });
+
+const assignSuitePaths = (scopes) => {
+  const counts = new Map();
+  const assigned = [];
+  for (const scope of [...scopes].sort(
+    (left, right) => left.openingIndex - right.openingIndex,
+  )) {
+    const parent = assigned
+      .filter(
+        (candidate) =>
+          candidate.openingIndex < scope.openingIndex &&
+          scope.openingIndex < candidate.closingIndex,
+      )
+      .at(-1);
+    const parentPath = parent?.path ?? "root";
+    const index = (counts.get(parentPath) ?? 0) + 1;
+    counts.set(parentPath, index);
+    assigned.push({ ...scope, path: `${parentPath}.${String(index)}` });
+  }
+  return assigned;
+};
 
 const readPropertyValueEnd = ({ structuralSource, start, objectEnd }) => {
   let braces = 0;
@@ -693,49 +745,71 @@ const disableModesForCall = ({ call, structuralSource }) => {
   return modes;
 };
 
-const testDisableFingerprints = (source) => {
+const normalizedStructuralCode = (source) => source.replace(/\s+/g, "");
+const normalizedSourceFragment = (source) => source.trim().replace(/\s+/g, " ");
+
+const testDisableDescriptors = (source) => {
   const parsed = parseTestCalls(source);
-  const scopes = suiteScopes(parsed);
-  const occurrences = new Map();
-  const fingerprints = [];
+  const scopes = assignSuitePaths(suiteScopes(parsed));
+  const positions = new Map();
+  const descriptors = [];
   for (const call of parsed.calls) {
-    const context = scopes
+    const directScope = scopes
       .filter(
         (scope) =>
           scope.openingIndex < call.openingIndex &&
           call.openingIndex < scope.closingIndex,
       )
       .sort((left, right) => left.openingIndex - right.openingIndex)
-      .map((scope) => scope.title)
-      .join(" > ");
-    const title = normalizedIdentityPart(
-      call.arguments[0]?.raw ?? "<anonymous>",
-    );
-    const baseIdentity = `${context}|${normalizedTestRoot(call.root)}|${title}`;
-    const occurrence = (occurrences.get(baseIdentity) ?? 0) + 1;
-    occurrences.set(baseIdentity, occurrence);
-    const identity = `${baseIdentity}|${String(occurrence)}`;
+      .at(-1);
+    const context = directScope?.path ?? "root";
+    const position = (positions.get(context) ?? 0) + 1;
+    positions.set(context, position);
+    const root = normalizedTestRoot(call.root);
+    const title = normalizedSourceFragment(call.arguments[0]?.raw ?? "");
+    const callback = call.arguments.at(-1)?.structural ?? "";
+    const positionalIdentity = `${root}|${context}|${String(position)}`;
+    const movableIdentity = `${root}|${context}|${title}|${normalizedStructuralCode(callback)}`;
     for (const mode of disableModesForCall({
       call,
       structuralSource: parsed.structuralSource,
     })) {
-      fingerprints.push(`${mode}:${identity}`);
+      descriptors.push({ mode, positionalIdentity, movableIdentity });
     }
   }
-  return fingerprints;
+  return descriptors;
 };
 
 const addsTestDisableFingerprint = (beforeSource, afterSource) => {
-  const beforeCounts = new Map();
-  for (const fingerprint of testDisableFingerprints(beforeSource)) {
-    beforeCounts.set(fingerprint, (beforeCounts.get(fingerprint) ?? 0) + 1);
+  const before = testDisableDescriptors(beforeSource).map((descriptor) => ({
+    ...descriptor,
+    used: false,
+  }));
+  const unmatched = [];
+  for (const descriptor of testDisableDescriptors(afterSource)) {
+    const positionalMatch = before.find(
+      (candidate) =>
+        !candidate.used &&
+        candidate.mode === descriptor.mode &&
+        candidate.positionalIdentity === descriptor.positionalIdentity,
+    );
+    if (positionalMatch === undefined) {
+      unmatched.push(descriptor);
+    } else {
+      positionalMatch.used = true;
+    }
   }
-  for (const fingerprint of testDisableFingerprints(afterSource)) {
-    const remaining = beforeCounts.get(fingerprint) ?? 0;
-    if (remaining === 0) {
+  for (const descriptor of unmatched) {
+    const movableMatch = before.find(
+      (candidate) =>
+        !candidate.used &&
+        candidate.mode === descriptor.mode &&
+        candidate.movableIdentity === descriptor.movableIdentity,
+    );
+    if (movableMatch === undefined) {
       return true;
     }
-    beforeCounts.set(fingerprint, remaining - 1);
+    movableMatch.used = true;
   }
   return false;
 };
@@ -744,7 +818,7 @@ const addsTestDisablePattern = (diff, file) => {
   const afterSource = diff.afterContents?.get(file.path);
   if (afterSource === undefined) {
     const addedSource = (diff.addedLines.get(file.path) ?? []).join("\n");
-    return testDisableFingerprints(addedSource).length > 0;
+    return testDisableDescriptors(addedSource).length > 0;
   }
   const oldPath = file.oldPath || file.path;
   const beforeSource = isTestFile(oldPath)
@@ -841,7 +915,7 @@ const criticalReasons = (diff) => {
       );
     }
     if (
-      isDeletedOrMovedOut(file, (path) =>
+      removesOrRenamesProtectedPath(file, (path) =>
         pathMatchesPrefix(path, testSupportPrefixes),
       )
     ) {
