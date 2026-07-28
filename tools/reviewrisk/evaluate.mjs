@@ -60,9 +60,9 @@ const invariantPatterns = [
 ];
 
 const testDisablePattern =
-  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:(?!\s*false\b)\s*|\bonly\s*:\s*true\b/;
+  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:(?!\s*false\s*(?=[,}]))\s*|\bonly\s*:\s*true\b/;
 const qualityGatePattern =
-  /"(?:scripts|test(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)"\s*:/;
+  /"(?:scripts|test(?::[^"]+)?|build(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)"\s*:/;
 
 const touches = (file, pathOrPrefix) =>
   file.path.startsWith(pathOrPrefix) ||
@@ -183,6 +183,7 @@ const stripStringsAndComments = (source) => {
   let quote = "";
   let escaped = false;
   let inRegexCharacterClass = false;
+  const templateExpressionDepths = [];
 
   for (let index = 0; index < source.length; index += 1) {
     const character = source[index];
@@ -214,6 +215,24 @@ const stripStringsAndComments = (source) => {
         escaped = true;
       } else if (character === quote) {
         state = "code";
+      }
+      continue;
+    }
+    if (state === "template") {
+      if (!escaped && character === "$" && next === "{") {
+        result += "  ";
+        index += 1;
+        templateExpressionDepths.push(1);
+        state = "code";
+      } else {
+        result += masked;
+        if (escaped) {
+          escaped = false;
+        } else if (character === "\\") {
+          escaped = true;
+        } else if (character === "`") {
+          state = "code";
+        }
       }
       continue;
     }
@@ -255,11 +274,34 @@ const stripStringsAndComments = (source) => {
       inRegexCharacterClass = false;
       continue;
     }
-    if (character === '"' || character === "'" || character === "`") {
+    if (character === '"' || character === "'") {
       result += " ";
       quote = character;
       state = "string";
       escaped = false;
+      continue;
+    }
+    if (character === "`") {
+      result += " ";
+      state = "template";
+      escaped = false;
+      continue;
+    }
+    if (templateExpressionDepths.length > 0 && character === "{") {
+      templateExpressionDepths[templateExpressionDepths.length - 1] += 1;
+      result += character;
+      continue;
+    }
+    if (templateExpressionDepths.length > 0 && character === "}") {
+      const depthIndex = templateExpressionDepths.length - 1;
+      templateExpressionDepths[depthIndex] -= 1;
+      if (templateExpressionDepths[depthIndex] === 0) {
+        templateExpressionDepths.pop();
+        result += " ";
+        state = "template";
+      } else {
+        result += character;
+      }
       continue;
     }
     result += character;

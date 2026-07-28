@@ -46,20 +46,20 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 
 ## Escalation signals
 
-| ID                          | Level    | Condition                                                          |
-| --------------------------- | -------- | ------------------------------------------------------------------ |
-| S1-test-deleted             | critical | test file の削除、または rename による test suffix の喪失          |
-| S2-test-support-deleted     | critical | `src/test`、Workers test harness、E2E fixture/helper の削除・移動  |
-| S3-test-disabled-or-focused | critical | test への skip、fixme、only、x/f prefix の追加                     |
-| S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更       |
-| S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                   |
-| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                 |
-| S7-quality-gate-modified    | critical | package の scripts container・各品質 script の変更                 |
-| S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                             |
-| S9-unclassified-path        | high     | rule に一致しない path                                             |
-| S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触 |
-| S11-large-diff              | +1       | 非 NONE が 800 行超または 30 ファイル超。low/medium のみ一段上げる |
-| S12-patch-unreadable        | critical | patch 本文が読み取り上限を超過、または安全に解析できない           |
+| ID                          | Level    | Condition                                                                |
+| --------------------------- | -------- | ------------------------------------------------------------------------ |
+| S1-test-deleted             | critical | test file の削除、または rename による test suffix の喪失                |
+| S2-test-support-deleted     | critical | `src/test`、Workers test harness、E2E fixture/helper の削除・移動        |
+| S3-test-disabled-or-focused | critical | test への skip、fixme、only、x/f prefix の追加                           |
+| S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更             |
+| S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                         |
+| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                       |
+| S7-quality-gate-modified    | critical | package の scripts container・test/build/precheck 等の品質 script の変更 |
+| S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                                   |
+| S9-unclassified-path        | high     | rule に一致しない path                                                   |
+| S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触       |
+| S11-large-diff              | +1       | 非 NONE が 800 行超または 30 ファイル超。low/medium のみ一段上げる       |
+| S12-patch-unreadable        | critical | patch 本文が読み取り上限を超過、または安全に解析できない                 |
 
 同一 diff では Files を path 順、Reasons を level 降順・signal・path 順に固定し、
 出力を決定的にする。binary の行数は 0 として集計する。Markdown は GitHub comment

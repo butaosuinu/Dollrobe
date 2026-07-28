@@ -179,6 +179,49 @@ test("test options の skip false は無効化として扱わない", () => {
   assert.equal(hasSignal(report, signals.testDisabled), false);
 });
 
+test("false から始まる test options skip 式は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'test("disabled", { skip: false || true }, fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("template literal の補間内にある test skip を検出する", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'const value = `${{ nested: test.skip("later", fn) }.nested}`;',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("template literal の本文にある test skip は無効化として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/parser.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/parser.test.ts": ['const source = `test.skip("later", fn)`;'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
 test("正規表現リテラル後の test skip を検出する", () => {
   const report = evaluate(
     diff({
@@ -259,6 +302,21 @@ test("depcruise script の変更は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.qualityGate), true);
+});
+
+test("CI build scripts の変更は critical", () => {
+  for (const script of ["build", "build:workers"]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "package.json" })],
+        addedLines: {
+          "package.json": [`"${script}": "echo disabled"`],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, script);
+    assert.equal(hasSignal(report, signals.qualityGate), true, script);
+  }
 });
 
 test("scripts container の rename は critical", () => {
