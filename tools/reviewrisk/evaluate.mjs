@@ -417,8 +417,45 @@ const readCallArguments = ({ source, structuralSource, openingIndex }) => {
   return { arguments: argumentsList, closingIndex };
 };
 
-const testRootPattern =
-  /(?<![\w$.])\b(test|it|describe|suite|context|xit|xdescribe|xtest|fit|fdescribe)\b/g;
+const canonicalTestRoots = [
+  "test",
+  "it",
+  "describe",
+  "suite",
+  "context",
+  "xit",
+  "xdescribe",
+  "xtest",
+  "fit",
+  "fdescribe",
+];
+
+const importedTestAliases = (source) => {
+  const aliases = new Set();
+  const importPattern =
+    /\bimport\s*\{([\s\S]*?)\}\s*from\s*(["'])[^"'\r\n]+\2/g;
+  for (const match of source.matchAll(importPattern)) {
+    for (const specifier of match[1].split(",")) {
+      const aliasMatch = /^\s*test(?:\s+as\s+([A-Za-z_$][\w$]*))?\s*$/.exec(
+        specifier,
+      );
+      if (aliasMatch !== null) {
+        aliases.add(aliasMatch[1] ?? "test");
+      }
+    }
+  }
+  return aliases;
+};
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const testRootPatternFor = (aliases) => {
+  const roots = [...new Set([...canonicalTestRoots, ...aliases])]
+    .sort((left, right) => right.length - left.length)
+    .map(escapeRegExp)
+    .join("|");
+  return new RegExp(`(?<![\\w$.])\\b(${roots})\\b`, "g");
+};
 
 const staticBracketModifier = (source, start, end) => {
   const match = /^(["'])(skip|only|fixme|todo|skipIf)\1$/.exec(
@@ -429,8 +466,9 @@ const staticBracketModifier = (source, start, end) => {
 
 const parseTestCalls = (source) => {
   const structuralSource = stripStringsAndComments(source);
+  const aliases = importedTestAliases(source);
   const calls = [];
-  for (const match of structuralSource.matchAll(testRootPattern)) {
+  for (const match of structuralSource.matchAll(testRootPatternFor(aliases))) {
     const root = match[1];
     let cursor = skipWhitespace(
       structuralSource,
@@ -454,6 +492,22 @@ const parseTestCalls = (source) => {
           break;
         }
         cursor = afterOptional;
+        if (structuralSource[cursor] === "[") {
+          const closingBracket = findMatchingDelimiter({
+            source: structuralSource,
+            openingIndex: cursor,
+            opening: "[",
+            closing: "]",
+          });
+          if (closingBracket === -1) {
+            break;
+          }
+          modifier = staticBracketModifier(source, cursor + 1, closingBracket);
+          if (modifier === undefined) {
+            break;
+          }
+          cursor = skipWhitespace(structuralSource, closingBracket + 1);
+        }
       } else if (structuralSource[cursor] === ".") {
         cursor = skipWhitespace(structuralSource, cursor + 1);
       } else if (structuralSource[cursor] === "[") {
@@ -522,6 +576,7 @@ const parseTestCalls = (source) => {
     });
     calls.push({
       root,
+      isTestAlias: aliases.has(root),
       modifiers,
       modifierArguments,
       openingIndex,
@@ -532,21 +587,29 @@ const parseTestCalls = (source) => {
   return { calls, structuralSource };
 };
 
-const normalizedTestRoot = (root) => {
-  switch (root) {
+const normalizedTestRoot = (call) => {
+  let root;
+  switch (call.root) {
     case "xit":
     case "fit":
-      return "it";
+      root = "it";
+      break;
     case "xtest":
-      return "test";
+      root = "test";
+      break;
     case "xdescribe":
     case "fdescribe":
     case "suite":
     case "context":
-      return "describe";
+      root = "describe";
+      break;
     default:
-      return root;
+      root = call.isTestAlias ? "test" : call.root;
+      break;
   }
+  return root === "test" && call.modifiers.includes("describe")
+    ? "describe"
+    : root;
 };
 
 const findSuiteBody = ({ call, structuralSource }) => {
@@ -582,7 +645,7 @@ const findSuiteBody = ({ call, structuralSource }) => {
 
 const suiteScopes = ({ calls, structuralSource }) =>
   calls.flatMap((call) => {
-    if (normalizedTestRoot(call.root) !== "describe") {
+    if (normalizedTestRoot(call) !== "describe") {
       return [];
     }
     const body = findSuiteBody({ call, structuralSource });
@@ -592,12 +655,14 @@ const suiteScopes = ({ calls, structuralSource }) =>
     return [
       {
         ...body,
+        title: call.arguments[0]?.raw.trim().replace(/\s+/g, " ") ?? "",
       },
     ];
   });
 
 const assignSuitePaths = (scopes) => {
   const counts = new Map();
+  const titleCounts = new Map();
   const assigned = [];
   for (const scope of [...scopes].sort(
     (left, right) => left.openingIndex - right.openingIndex,
@@ -612,7 +677,15 @@ const assignSuitePaths = (scopes) => {
     const parentPath = parent?.path ?? "root";
     const index = (counts.get(parentPath) ?? 0) + 1;
     counts.set(parentPath, index);
-    assigned.push({ ...scope, path: `${parentPath}.${String(index)}` });
+    const parentNamedPath = parent?.namedPath ?? "root";
+    const titleKey = `${parentNamedPath}|${scope.title}`;
+    const titleIndex = (titleCounts.get(titleKey) ?? 0) + 1;
+    titleCounts.set(titleKey, titleIndex);
+    assigned.push({
+      ...scope,
+      path: `${parentPath}.${String(index)}`,
+      namedPath: `${parentNamedPath}>${scope.title}#${String(titleIndex)}`,
+    });
   }
   return assigned;
 };
@@ -735,7 +808,16 @@ const disableModesForCall = ({ call, structuralSource }) => {
   if (call.root === "fit" || call.root === "fdescribe") {
     modes.add("only");
   }
-  for (const modifier of call.modifiers) {
+  for (const [index, modifier] of call.modifiers.entries()) {
+    const modifierCondition =
+      call.modifierArguments.get(modifier)?.[0] ??
+      (index === call.modifiers.length - 1 ? call.arguments[0] : undefined);
+    if (
+      (modifier === "skip" || modifier === "fixme") &&
+      modifierCondition?.structural.trim() === "false"
+    ) {
+      continue;
+    }
     if (
       modifier === "skip" ||
       modifier === "only" ||
@@ -777,15 +859,16 @@ const testCallDescriptors = (source) => {
       )
       .sort((left, right) => left.openingIndex - right.openingIndex)
       .at(-1);
-    const context = directScope?.path ?? "root";
-    const position = (positions.get(context) ?? 0) + 1;
-    positions.set(context, position);
-    const root = normalizedTestRoot(call.root);
+    const positionalContext = directScope?.path ?? "root";
+    const namedContext = directScope?.namedPath ?? "root";
+    const position = (positions.get(positionalContext) ?? 0) + 1;
+    positions.set(positionalContext, position);
+    const root = normalizedTestRoot(call);
     const title = normalizedSourceFragment(call.arguments[0]?.raw ?? "");
     const callback = call.arguments.at(-1)?.structural ?? "";
     const callbackIdentity = normalizedStructuralCode(callback);
-    const positionalIdentity = `${root}|${context}|${String(position)}`;
-    const movableIdentity = `${root}|${context}|${title}|${callbackIdentity}`;
+    const positionalIdentity = `${root}|${positionalContext}|${String(position)}`;
+    const movableIdentity = `${root}|${namedContext}|${title}|${callbackIdentity}`;
     const modes = [
       ...disableModesForCall({
         call,

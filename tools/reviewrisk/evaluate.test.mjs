@@ -163,6 +163,7 @@ test("bracket notation・optional chaining・optional call の skip は critical
   for (const statement of [
     'test["skip"]("later", fn);',
     'test?.skip("later", fn);',
+    'test?.["skip"]("later", fn);',
     'test.skip?.("later", fn);',
   ]) {
     const report = evaluate(
@@ -176,6 +177,50 @@ test("bracket notation・optional chaining・optional call の skip は critical
     assert.equal(report.level, levels.critical, statement);
     assert.equal(hasSignal(report, signals.testDisabled), true, statement);
   }
+});
+
+test("static import された test alias の skip・only は critical", () => {
+  for (const source of [
+    [
+      'import { test as base } from "@playwright/test";',
+      'base.skip("later", fn);',
+    ],
+    [
+      'import { test as authedTest } from "./fixtures/auth";',
+      'authedTest.describe.only("focused", fn);',
+    ],
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "e2e/new.spec.ts", status: "A" })],
+        addedLines: {
+          "e2e/new.spec.ts": source,
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, source.join("\n"));
+    assert.equal(
+      hasSignal(report, signals.testDisabled),
+      true,
+      source.join("\n"),
+    );
+  }
+});
+
+test("static import のない任意 identifier の skip は無効化として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          "const base = createBuilder();",
+          'base.skip("not a test", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
 });
 
 test("test options の skip true は critical", () => {
@@ -305,6 +350,40 @@ test("skipIf false は無効化として扱わない", () => {
   );
   assert.equal(report.level, levels.low);
   assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("Playwright の skip・fixme false は無効化として扱わない", () => {
+  for (const modifier of ["skip", "fixme"]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "e2e/new.spec.ts", status: "A" })],
+        addedLines: {
+          "e2e/new.spec.ts": [
+            `test.${modifier}(false, "condition is disabled");`,
+          ],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.low, modifier);
+    assert.equal(hasSignal(report, signals.testDisabled), false, modifier);
+  }
+});
+
+test("Playwright の条件付き skip・fixme は critical", () => {
+  for (const modifier of ["skip", "fixme"]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "e2e/new.spec.ts", status: "A" })],
+        addedLines: {
+          "e2e/new.spec.ts": [
+            `test.${modifier}(process.env.CI, "conditional annotation");`,
+          ],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, modifier);
+    assert.equal(hasSignal(report, signals.testDisabled), true, modifier);
+  }
 });
 
 test("false から始まる skipIf 条件式は critical", () => {

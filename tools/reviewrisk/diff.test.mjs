@@ -544,6 +544,76 @@ test("既存の skip 済み test の並び替えは新規無効化として扱�
   );
 });
 
+test("skip 済み suite の並び替えは新規無効化として扱わない", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-suite-move-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/moved-suite.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    'describe("A", () => { test.skip("same", shared); });\n' +
+      'describe("B", () => { test("same", shared); });\n',
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(
+    join(cwd, path),
+    'describe("B", () => { test("same", shared); });\n' +
+      'describe("A", () => { test.skip("same", shared); });\n',
+  );
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.low);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    false,
+  );
+});
+
+test("suite 並び替え時の別 suite への skip 移動は critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-suite-skip-swap-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/swapped-suite-skip.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    'describe("A", () => { test.skip("same", shared); });\n' +
+      'describe("B", () => { test("same", shared); });\n',
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(
+    join(cwd, path),
+    'describe("B", () => { test.skip("same", shared); });\n' +
+      'describe("A", () => { test("same", shared); });\n',
+  );
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
 test("同じ位置に移った別 test の skip は critical", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-same-position-skip-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));
