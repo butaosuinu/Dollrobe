@@ -46,20 +46,20 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 
 ## Escalation signals
 
-| ID                          | Level    | Condition                                                                            |
-| --------------------------- | -------- | ------------------------------------------------------------------------------------ |
-| S1-test-deleted             | critical | test file の削除、rename による test suffix の喪失、非 regular file への type change |
-| S2-test-support-deleted     | critical | `src/test`、Workers test harness、E2E fixture/helper の削除・移動                    |
-| S3-test-disabled-or-focused | critical | test API の skip/fixme/todo/only、x/f prefix の追加・有効化・差し替え                |
-| S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更                         |
-| S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                                     |
-| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                                   |
-| S7-quality-gate-modified    | critical | package.json の削除・移動、JSON 上の scripts container・test/build/precheck 等の変更 |
-| S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                                               |
-| S9-unclassified-path        | high     | rule に一致しない path                                                               |
-| S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触                   |
-| S11-large-diff              | +1       | 非 NONE が 800 行超または 30 ファイル超。low/medium のみ一段上げる                   |
-| S12-patch-unreadable        | critical | patch 本文または判定に必要な変更前後文脈が上限超過・解析不能                         |
+| ID                          | Level    | Condition                                                                             |
+| --------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| S1-test-deleted             | critical | test file の削除、rename による test suffix の喪失、非 regular file への type change  |
+| S2-test-support-deleted     | critical | test runner config、`src/test`、Workers test harness、E2E fixture/helper の削除・移動 |
+| S3-test-disabled-or-focused | critical | test API の skip/fixme/todo/only、x/f prefix の追加・有効化・差し替え                 |
+| S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更                          |
+| S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                                      |
+| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                                    |
+| S7-quality-gate-modified    | critical | package.json の削除・移動、JSON 上の scripts container・test/build/precheck 等の変更  |
+| S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                                                |
+| S9-unclassified-path        | high     | rule に一致しない path                                                                |
+| S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触                    |
+| S11-large-diff              | +1       | 非 NONE が 800 行超または 30 ファイル超。low/medium のみ一段上げる                    |
+| S12-patch-unreadable        | critical | patch 本文または判定に必要な変更前後文脈が上限超過・解析不能                          |
 
 同一 diff では Files を path 順、Reasons を level 降順・signal・path 順に固定し、
 出力を決定的にする。binary の行数は 0 として集計する。Markdown は GitHub comment
@@ -100,7 +100,9 @@ guard comment を削除する。PR の base が main から外れた `edited` �
 既存の `review:*` label と通常・guard comment を削除する。
 
 どちらも `contents: read`、`pull-requests: write`、`issues: write` の最小権限、
-`persist-credentials: false`、PR 番号単位 concurrency を使う。
+`persist-credentials: false`、workflow ごとの PR 番号単位 concurrency を使う。
+通常 workflow は label と comment の各公開直前に live PR の base、head SHA、
+head repository を再確認し、古い run の結果を公開しない。
 `opened`、`synchronize`、`reopened` に加えて `edited` でも起動し、既存 PR の
 base が main へ変更された場合も判定する。
 同一 repository の write 権限保有者が別 workflow を変更できる境界までは

@@ -125,6 +125,25 @@ test("test support 間の rename は critical", () => {
   assert.equal(hasSignal(report, signals.testSupportDeleted), true);
 });
 
+test("test runner config の削除・rename は critical", () => {
+  for (const file of [
+    change({ path: "vitest.config.ts", status: "D" }),
+    change({
+      path: "docs/playwright.config.ts",
+      oldPath: "playwright.config.ts",
+      status: "R",
+    }),
+  ]) {
+    const report = evaluate(diff({ files: [file] }));
+    assert.equal(report.level, levels.critical, file.path);
+    assert.equal(
+      hasSignal(report, signals.testSupportDeleted),
+      true,
+      file.path,
+    );
+  }
+});
+
 test("test・it・describe の todo は critical", () => {
   for (const api of ["test", "it", "describe"]) {
     const report = evaluate(
@@ -140,10 +159,11 @@ test("test・it・describe の todo は critical", () => {
   }
 });
 
-test("bracket notation・optional chaining の skip は critical", () => {
+test("bracket notation・optional chaining・optional call の skip は critical", () => {
   for (const statement of [
     'test["skip"]("later", fn);',
     'test?.skip("later", fn);',
+    'test.skip?.("later", fn);',
   ]) {
     const report = evaluate(
       diff({

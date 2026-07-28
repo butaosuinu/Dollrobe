@@ -544,6 +544,66 @@ test("既存の skip 済み test の並び替えは新規無効化として扱�
   );
 });
 
+test("同じ位置に移った別 test の skip は critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-same-position-skip-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/same-position.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(join(cwd, path), 'test.skip("A", fnA);\ntest("B", fnB);\n');
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, path), 'test.skip("B", fnB);\ntest("A", fnA);\n');
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
+test("同名で callback が異なる test の skip 差し替えは critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-same-title-skip-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/same-title.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    'test.skip("same", fnA);\ntest("same", fnB);\n',
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(
+    join(cwd, path),
+    'test.skip("same", fnB);\ntest("same", fnA);\n',
+  );
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
 test("skip を別の test へ差し替えた変更は critical", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-replaced-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));

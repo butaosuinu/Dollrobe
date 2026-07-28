@@ -92,8 +92,20 @@ jobs:
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           LEVEL: ${{ steps.guard.outputs.self == 'true' && 'critical' || steps.risk.outputs.level }}
+          EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           set -euo pipefail
+
+          current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+            --jq '[.base.ref, .head.sha, .head.repo.full_name] | @tsv')"
+          expected="$(printf '%s\t%s\t%s' \
+            "$EXPECTED_BASE_REF" "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+          if [ "$current" != "$expected" ]; then
+            echo "Skipping stale label publish for $EXPECTED_HEAD_SHA"
+            exit 0
+          fi
 
           gh label create "review:none" --color cccccc --description "PR review risk: none" 2>/dev/null || true
           gh label create "review:low" --color 0e8a16 --description "PR review risk: low" 2>/dev/null || true
@@ -120,8 +132,20 @@ jobs:
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           OUTPUT_DIR: ${{ steps.output.outputs.dir }}
+          EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           set -euo pipefail
+
+          current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+            --jq '[.base.ref, .head.sha, .head.repo.full_name] | @tsv')"
+          expected="$(printf '%s\t%s\t%s' \
+            "$EXPECTED_BASE_REF" "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+          if [ "$current" != "$expected" ]; then
+            echo "Skipping stale comment publish for $EXPECTED_HEAD_SHA"
+            exit 0
+          fi
 
           existing_id="$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- review-risk -->")))][0].id // empty')"

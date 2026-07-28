@@ -33,6 +33,13 @@ const testSupportPrefixes = [
   "workers/test/",
 ];
 
+const testSupportPaths = new Set([
+  "playwright.config.ts",
+  "vitest.config.ts",
+  "vitest.config.workers.ts",
+  "vitest.workspace.ts",
+]);
+
 const reviewGatePrefixes = [
   ".claude/scripts/",
   ".claude/skills/code-review/",
@@ -122,6 +129,9 @@ const removesOrRenamesProtectedPath = (file, predicate) =>
 
 const pathMatchesPrefix = (path, prefixes) =>
   prefixes.some((prefix) => path.startsWith(prefix));
+
+const isTestSupportPath = (path) =>
+  testSupportPaths.has(path) || pathMatchesPrefix(path, testSupportPrefixes);
 
 const changedLines = (diff, path) => [
   ...(diff.addedLines.get(path) ?? []),
@@ -438,7 +448,12 @@ const parseTestCalls = (source) => {
 
       let modifier;
       if (structuralSource.startsWith("?.", cursor)) {
-        cursor = skipWhitespace(structuralSource, cursor + 2);
+        const afterOptional = skipWhitespace(structuralSource, cursor + 2);
+        if (structuralSource[afterOptional] === "(") {
+          openingIndex = afterOptional;
+          break;
+        }
+        cursor = afterOptional;
       } else if (structuralSource[cursor] === ".") {
         cursor = skipWhitespace(structuralSource, cursor + 1);
       } else if (structuralSource[cursor] === "[") {
@@ -748,7 +763,7 @@ const disableModesForCall = ({ call, structuralSource }) => {
 const normalizedStructuralCode = (source) => source.replace(/\s+/g, "");
 const normalizedSourceFragment = (source) => source.trim().replace(/\s+/g, " ");
 
-const testDisableDescriptors = (source) => {
+const testCallDescriptors = (source) => {
   const parsed = parseTestCalls(source);
   const scopes = assignSuitePaths(suiteScopes(parsed));
   const positions = new Map();
@@ -768,48 +783,71 @@ const testDisableDescriptors = (source) => {
     const root = normalizedTestRoot(call.root);
     const title = normalizedSourceFragment(call.arguments[0]?.raw ?? "");
     const callback = call.arguments.at(-1)?.structural ?? "";
+    const callbackIdentity = normalizedStructuralCode(callback);
     const positionalIdentity = `${root}|${context}|${String(position)}`;
-    const movableIdentity = `${root}|${context}|${title}|${normalizedStructuralCode(callback)}`;
-    for (const mode of disableModesForCall({
-      call,
-      structuralSource: parsed.structuralSource,
-    })) {
-      descriptors.push({ mode, positionalIdentity, movableIdentity });
-    }
+    const movableIdentity = `${root}|${context}|${title}|${callbackIdentity}`;
+    const modes = [
+      ...disableModesForCall({
+        call,
+        structuralSource: parsed.structuralSource,
+      }),
+    ];
+    descriptors.push({
+      modes,
+      title,
+      callbackIdentity,
+      positionalIdentity,
+      movableIdentity,
+    });
   }
   return descriptors;
 };
 
+const testDisableDescriptors = (source) =>
+  testCallDescriptors(source).flatMap(({ modes, ...descriptor }) =>
+    modes.map((mode) => ({ ...descriptor, mode })),
+  );
+
 const addsTestDisableFingerprint = (beforeSource, afterSource) => {
-  const before = testDisableDescriptors(beforeSource).map((descriptor) => ({
-    ...descriptor,
-    used: false,
-  }));
+  const beforeCalls = testCallDescriptors(beforeSource);
+  const before = beforeCalls.flatMap(({ modes, ...descriptor }) =>
+    modes.map((mode) => ({ ...descriptor, mode, used: false })),
+  );
   const unmatched = [];
   for (const descriptor of testDisableDescriptors(afterSource)) {
-    const positionalMatch = before.find(
-      (candidate) =>
-        !candidate.used &&
-        candidate.mode === descriptor.mode &&
-        candidate.positionalIdentity === descriptor.positionalIdentity,
-    );
-    if (positionalMatch === undefined) {
-      unmatched.push(descriptor);
-    } else {
-      positionalMatch.used = true;
-    }
-  }
-  for (const descriptor of unmatched) {
     const movableMatch = before.find(
       (candidate) =>
         !candidate.used &&
         candidate.mode === descriptor.mode &&
         candidate.movableIdentity === descriptor.movableIdentity,
     );
-    if (movableMatch === undefined) {
+    if (movableMatch !== undefined) {
+      movableMatch.used = true;
+    } else if (
+      beforeCalls.some(
+        (candidate) =>
+          candidate.movableIdentity === descriptor.movableIdentity &&
+          !candidate.modes.includes(descriptor.mode),
+      )
+    ) {
+      return true;
+    } else {
+      unmatched.push(descriptor);
+    }
+  }
+  for (const descriptor of unmatched) {
+    const positionalMatch = before.find(
+      (candidate) =>
+        !candidate.used &&
+        candidate.mode === descriptor.mode &&
+        candidate.positionalIdentity === descriptor.positionalIdentity &&
+        (candidate.title === descriptor.title ||
+          candidate.callbackIdentity === descriptor.callbackIdentity),
+    );
+    if (positionalMatch === undefined) {
       return true;
     }
-    movableMatch.used = true;
+    positionalMatch.used = true;
   }
   return false;
 };
@@ -914,11 +952,7 @@ const criticalReasons = (diff) => {
         ),
       );
     }
-    if (
-      removesOrRenamesProtectedPath(file, (path) =>
-        pathMatchesPrefix(path, testSupportPrefixes),
-      )
-    ) {
+    if (removesOrRenamesProtectedPath(file, isTestSupportPath)) {
       reasons.push(
         reason(
           signals.testSupportDeleted,

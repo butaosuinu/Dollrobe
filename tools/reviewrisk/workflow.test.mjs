@@ -32,6 +32,28 @@ test("CI runs the review-risk regression suite", async () => {
   assert.match(source, /- run: pnpm test\n\s+- run: pnpm test:review-risk/);
 });
 
+test("review-risk rechecks the live PR before each publish step", async () => {
+  const source = await readWorkflow("review-risk.yml");
+  const labelIndex = source.indexOf("- name: Apply review:<level> label");
+  const commentIndex = source.indexOf("- name: Update sticky comment");
+
+  assert.notEqual(labelIndex, -1);
+  assert.notEqual(commentIndex, -1);
+  for (const step of [
+    source.slice(labelIndex, commentIndex),
+    source.slice(commentIndex),
+  ]) {
+    assert.match(step, /repos\/\$GH_REPO\/pulls\/\$PR/);
+    assert.match(step, /\.base\.ref, \.head\.sha, \.head\.repo\.full_name/);
+    assert.match(
+      step,
+      /EXPECTED_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/,
+    );
+    assert.match(step, /if \[ "\$current" != "\$expected" \]/);
+    assert.match(step, /exit 0/);
+  }
+});
+
 test("review-risk workflow pins actions and guards trusted execution", async () => {
   const source = await readWorkflow("review-risk.yml");
 
