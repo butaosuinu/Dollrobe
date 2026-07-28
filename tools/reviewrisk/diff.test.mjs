@@ -447,6 +447,39 @@ test("既存の test skip の空白整形は新規無効化として扱わない
   );
 });
 
+test("skip を別の test へ差し替えた変更は critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-replaced-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/replaced.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    'test.skip("old", () => {});\ntest("new", () => {});\n',
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(
+    join(cwd, path),
+    'test("old", () => {});\ntest.skip("new", () => {});\n',
+  );
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
 test("test file の regular file から symlink への type change は critical", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-type-change-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));

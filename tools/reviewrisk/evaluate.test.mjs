@@ -391,6 +391,22 @@ test("scripts container の rename は critical", () => {
   assert.equal(hasSignal(report, signals.qualityGate), true);
 });
 
+test("package.json の対象外への rename は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [
+        change({
+          path: "package-old.json",
+          oldPath: "package.json",
+          status: "R",
+        }),
+      ],
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.qualityGate), true);
+});
+
 test("workflow の yml・yaml 間 rename は critical", () => {
   const report = evaluate(
     diff({

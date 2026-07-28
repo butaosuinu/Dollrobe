@@ -128,20 +128,34 @@ test("base guard treats pull request content as data only", async () => {
   const clearIndex = source.indexOf(
     "- name: Clear stale normal result outside main or while conflicting",
   );
+  const clearGuardIndex = source.indexOf(
+    "- name: Clear stale guard critical label for fork PR",
+  );
   const applyIndex = source.indexOf("- name: Apply review:critical label");
   const reconcileIndex = source.indexOf(
     "- name: Reconcile guard sticky comment",
   );
   assert.notEqual(clearIndex, -1);
+  assert.notEqual(clearGuardIndex, -1);
   assert.notEqual(reconcileIndex, -1);
-  assert.ok(clearIndex < applyIndex);
-  const clearStep = source.slice(clearIndex, applyIndex);
+  assert.ok(clearIndex < clearGuardIndex);
+  assert.ok(clearGuardIndex < applyIndex);
+  const clearStep = source.slice(clearIndex, clearGuardIndex);
   assert.match(clearStep, /steps\.guard\.outputs\.target != 'true'/);
   assert.match(clearStep, /steps\.guard\.outputs\.conflict == 'true'/);
   assert.match(clearStep, /review:\*/);
   assert.match(clearStep, /--remove-label/);
   assert.match(clearStep, /<!-- review-risk -->/);
   assert.match(clearStep, /--method DELETE/);
+
+  const clearGuardStep = source.slice(clearGuardIndex, applyIndex);
+  assert.match(clearGuardStep, /steps\.guard\.outputs\.target == 'true'/);
+  assert.match(clearGuardStep, /steps\.guard\.outputs\.self != 'true'/);
+  assert.match(
+    clearGuardStep,
+    /pull_request\.head\.repo\.full_name != github\.repository/,
+  );
+  assert.match(clearGuardStep, /--remove-label "review:critical"/);
 
   const applyStep = source.slice(applyIndex, reconcileIndex);
   assert.match(applyStep, /steps\.guard\.outputs\.target == 'true'/);

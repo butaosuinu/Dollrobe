@@ -316,10 +316,131 @@ const stripStringsAndComments = (source) => {
   return result;
 };
 
-const countTestDisablePatterns = (source) =>
-  stripStringsAndComments(source).match(
-    new RegExp(testDisablePattern.source, "g"),
-  )?.length ?? 0;
+const readFirstArgument = ({ source, structuralSource, openingIndex }) => {
+  let depth = 0;
+  let end = structuralSource.length;
+  for (
+    let index = openingIndex + 1;
+    index < structuralSource.length;
+    index += 1
+  ) {
+    const character = structuralSource[index];
+    if (character === "(" || character === "[" || character === "{") {
+      depth += 1;
+      continue;
+    }
+    if (character === ")" || character === "]" || character === "}") {
+      if (character === ")" && depth === 0) {
+        end = index;
+        break;
+      }
+      depth = Math.max(0, depth - 1);
+      continue;
+    }
+    if (character === "," && depth === 0) {
+      end = index;
+      break;
+    }
+  }
+  return {
+    end,
+    value: source
+      .slice(openingIndex + 1, end)
+      .trim()
+      .replace(/\s+/g, " "),
+  };
+};
+
+const findLastTestCallOpening = (structuralSource, beforeIndex) => {
+  const pattern = /\b(?:test|it|describe)\s*\(/g;
+  let openingIndex = -1;
+  for (const match of structuralSource.matchAll(pattern)) {
+    if ((match.index ?? 0) >= beforeIndex) {
+      break;
+    }
+    openingIndex = (match.index ?? 0) + match[0].lastIndexOf("(");
+  }
+  return openingIndex;
+};
+
+const testDisableFingerprints = (source) => {
+  const structuralSource = stripStringsAndComments(source);
+  const pattern = new RegExp(testDisablePattern.source, "g");
+  const fingerprints = [];
+  for (const match of structuralSource.matchAll(pattern)) {
+    const matchIndex = match.index ?? 0;
+    const property = match[0].match(/\b(skip|only)\s*:/)?.[1];
+    if (property !== undefined) {
+      const openingIndex = findLastTestCallOpening(
+        structuralSource,
+        matchIndex,
+      );
+      const target =
+        openingIndex === -1
+          ? ""
+          : readFirstArgument({
+              source,
+              structuralSource,
+              openingIndex,
+            }).value;
+      fingerprints.push(`${property}:${target}`);
+      continue;
+    }
+
+    const kind =
+      match[0].match(/\.(skipIf|skip|only|fixme)/)?.[1] ??
+      match[0].match(/\b(xit|xdescribe|xtest|fit|fdescribe)/)?.[1] ??
+      match[0].trim();
+    let openingIndex = matchIndex + match[0].lastIndexOf("(");
+    if (!match[0].includes("(")) {
+      openingIndex = structuralSource.indexOf(
+        "(",
+        matchIndex + match[0].length,
+      );
+    }
+    if (openingIndex === -1) {
+      fingerprints.push(kind);
+      continue;
+    }
+
+    const firstArgument = readFirstArgument({
+      source,
+      structuralSource,
+      openingIndex,
+    });
+    if (kind !== "skipIf") {
+      fingerprints.push(`${kind}:${firstArgument.value}`);
+      continue;
+    }
+
+    const targetOpening = structuralSource.indexOf("(", firstArgument.end + 1);
+    const target =
+      targetOpening === -1
+        ? ""
+        : readFirstArgument({
+            source,
+            structuralSource,
+            openingIndex: targetOpening,
+          }).value;
+    fingerprints.push(`${kind}:${firstArgument.value}:${target}`);
+  }
+  return fingerprints;
+};
+
+const addsTestDisableFingerprint = (beforeSource, afterSource) => {
+  const beforeCounts = new Map();
+  for (const fingerprint of testDisableFingerprints(beforeSource)) {
+    beforeCounts.set(fingerprint, (beforeCounts.get(fingerprint) ?? 0) + 1);
+  }
+  for (const fingerprint of testDisableFingerprints(afterSource)) {
+    const remaining = beforeCounts.get(fingerprint) ?? 0;
+    if (remaining === 0) {
+      return true;
+    }
+    beforeCounts.set(fingerprint, remaining - 1);
+  }
+  return false;
+};
 
 const addsTestDisablePattern = (diff, file) => {
   const afterSource = diff.afterContents?.get(file.path);
@@ -331,10 +452,7 @@ const addsTestDisablePattern = (diff, file) => {
   const beforeSource = isTestFile(oldPath)
     ? (diff.beforeContents?.get(file.path) ?? "")
     : "";
-  return (
-    countTestDisablePatterns(afterSource) >
-    countTestDisablePatterns(beforeSource)
-  );
+  return addsTestDisableFingerprint(beforeSource, afterSource);
 };
 
 const criticalReasons = (diff) => {
@@ -444,14 +562,22 @@ const criticalReasons = (diff) => {
     }
   }
 
+  const packageManifestRemoved = diff.files.some((file) =>
+    isDeletedOrMovedOut(file, (path) => path === "package.json"),
+  );
   const packageLines = changedLines(diff, "package.json");
-  if (packageLines.some((line) => qualityGatePattern.test(line))) {
+  if (
+    packageManifestRemoved ||
+    packageLines.some((line) => qualityGatePattern.test(line))
+  ) {
     reasons.push(
       reason(
         signals.qualityGate,
         levels.critical,
         "package.json",
-        "scripts container または品質 script を変更",
+        packageManifestRemoved
+          ? "package.json を削除・対象外へ移動・type change"
+          : "scripts container または品質 script を変更",
       ),
     );
   }

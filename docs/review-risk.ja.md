@@ -50,11 +50,11 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | --------------------------- | -------- | ------------------------------------------------------------------------------------ |
 | S1-test-deleted             | critical | test file の削除、rename による test suffix の喪失、非 regular file への type change |
 | S2-test-support-deleted     | critical | `src/test`、Workers test harness、E2E fixture/helper の削除・移動                    |
-| S3-test-disabled-or-focused | critical | literal false 単体を除く skip/fixme/only、x/f prefix の追加・有効化                  |
+| S3-test-disabled-or-focused | critical | literal false 単体を除く skip/fixme/only、x/f prefix の追加・有効化・差し替え        |
 | S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更                         |
 | S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                                     |
 | S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                                   |
-| S7-quality-gate-modified    | critical | package の scripts container・test/build/precheck 等の品質 script の変更             |
+| S7-quality-gate-modified    | critical | package.json の削除・移動、scripts container・test/build/precheck 等の変更           |
 | S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                                               |
 | S9-unclassified-path        | high     | rule に一致しない path                                                               |
 | S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触                   |
@@ -94,9 +94,10 @@ workflow 自身の変更は PR 側 code を実行せず critical に固定する
 `review-risk-guard.yml` は branch filter を設けない `pull_request_target` で
 base branch 側の定義を実行する。PR head は `git fetch` と `git diff` の
 入力データとしてのみ扱い、PR 側の file、script、dependency は実行しない。
-自己変更時の comment は `<!-- review-risk-guard -->` という別 marker を使い、
-自己変更が取り消されたら削除する。PR の base が main から外れた `edited`
-イベントでは、既存の `review:*` label と通常・guard comment を削除する。
+自己変更時の comment は `<!-- review-risk-guard -->` という別 marker を使う。
+fork PR で自己変更が取り消されたら、guard が付けた `review:critical` label と
+guard comment を削除する。PR の base が main から外れた `edited` イベントでは、
+既存の `review:*` label と通常・guard comment を削除する。
 
 どちらも `contents: read`、`pull-requests: write`、`issues: write` の最小権限、
 `persist-credentials: false`、PR 番号単位 concurrency を使う。

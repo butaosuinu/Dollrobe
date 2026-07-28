@@ -97,6 +97,23 @@ jobs:
             gh api --method DELETE "repos/$GH_REPO/issues/comments/$existing_id"
           fi
 
+      - name: Clear stale guard critical label for fork PR
+        if: >-
+          steps.guard.outputs.target == 'true' &&
+          steps.guard.outputs.self != 'true' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          has_critical="$(gh pr view "$PR" --json labels \
+            --jq 'any(.labels[]; .name == "review:critical")')"
+          if [ "$has_critical" = "true" ]; then
+            gh pr edit "$PR" --remove-label "review:critical"
+          fi
+
       - name: Apply review:critical label
         if: >-
           steps.guard.outputs.target == 'true' &&
