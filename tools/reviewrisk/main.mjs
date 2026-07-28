@@ -5,6 +5,7 @@ import { compareLevels, parseLevel } from "./classes.mjs";
 import { readGitDiff } from "./diff.mjs";
 import { evaluate } from "./evaluate.mjs";
 import { renderJson, renderMarkdown, renderText } from "./report.mjs";
+import { isTestFile } from "./rules.mjs";
 
 const usage =
   "usage: node tools/reviewrisk/main.mjs [--base <ref>] [--format text|json|markdown] [--fail-at <level>]";
@@ -63,7 +64,9 @@ export const run = (args) => {
   if (options.help === true) {
     return { output: usage, exitCode: 0 };
   }
-  const report = evaluate(readGitDiff({ base: options.base }));
+  const report = evaluate(
+    readGitDiff({ base: options.base, includeContents: isTestFile }),
+  );
   const exitCode =
     options.failAt !== undefined &&
     compareLevels(report.level, options.failAt) >= 0

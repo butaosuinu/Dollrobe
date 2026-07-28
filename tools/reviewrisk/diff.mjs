@@ -1,8 +1,11 @@
 import { spawnSync } from "node:child_process";
 import { Buffer, isUtf8 } from "node:buffer";
+import { lstatSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 const defaultMaxBuffer = 64 * 1024 * 1024;
 const zeroOidPattern = /^0+$/;
+const regularFileModes = new Set(["100644", "100755"]);
 
 const spawnGit = (args, cwd, { input, maxBuffer = defaultMaxBuffer } = {}) =>
   spawnSync(
@@ -49,6 +52,16 @@ const limitedGitBuffer = (args, cwd, maxBuffer) => {
     throw gitError(args, result);
   }
   return result.stdout;
+};
+
+const limitedWorkingTreeBuffer = (cwd, path, maxBuffer) => {
+  const absolutePath = join(cwd, path);
+  const stats = lstatSync(absolutePath, { throwIfNoEntry: false });
+  if (stats === undefined || !stats.isFile() || stats.size > maxBuffer) {
+    return undefined;
+  }
+  const content = readFileSync(absolutePath);
+  return content.length > maxBuffer ? undefined : content;
 };
 
 const gitBlobExists = (oid, cwd) => {
@@ -277,7 +290,8 @@ const resolveBase = (requestedBase, cwd) => {
 
 export const readGitDiff = ({
   base: requestedBase,
-  cwd,
+  cwd = process.cwd(),
+  includeContents = () => false,
   maxPatchBytes = defaultMaxBuffer,
 } = {}) => {
   const base = resolveBase(requestedBase, cwd);
@@ -290,6 +304,8 @@ export const readGitDiff = ({
   );
   const addedLines = new Map();
   const removedLines = new Map();
+  const beforeContents = new Map();
+  const afterContents = new Map();
   const unreadablePaths = new Set();
 
   for (const file of files) {
@@ -371,6 +387,31 @@ export const readGitDiff = ({
     if (lines.removed.length > 0) {
       removedLines.set(file.oldPath || file.path, lines.removed);
     }
+
+    if (
+      !includeContents(file.path) &&
+      (file.oldPath === "" || !includeContents(file.oldPath))
+    ) {
+      continue;
+    }
+    const beforeContent = regularFileModes.has(file.oldMode)
+      ? limitedGitBuffer(["cat-file", "blob", file.oldOid], cwd, maxPatchBytes)
+      : Buffer.alloc(0);
+    const afterContent = regularFileModes.has(file.newMode)
+      ? readsWorkingTree
+        ? limitedWorkingTreeBuffer(cwd, file.gitPath, maxPatchBytes)
+        : limitedGitBuffer(
+            ["cat-file", "blob", file.newOid],
+            cwd,
+            maxPatchBytes,
+          )
+      : Buffer.alloc(0);
+    if (beforeContent === undefined || afterContent === undefined) {
+      unreadablePaths.add(file.path);
+      continue;
+    }
+    beforeContents.set(file.path, beforeContent.toString("utf8"));
+    afterContents.set(file.path, afterContent.toString("utf8"));
   }
 
   return {
@@ -379,6 +420,8 @@ export const readGitDiff = ({
     files,
     addedLines,
     removedLines,
+    beforeContents,
+    afterContents,
     unreadablePaths,
   };
 };

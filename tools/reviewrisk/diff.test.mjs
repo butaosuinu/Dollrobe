@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -13,6 +19,7 @@ import {
 } from "./diff.mjs";
 import { evaluate, signals } from "./evaluate.mjs";
 import { levels } from "./classes.mjs";
+import { isTestFile } from "./rules.mjs";
 
 const runGit = (cwd, args) => {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });
@@ -338,6 +345,74 @@ test("staged rename 後の unstaged edit を working tree から読む", (contex
   assert.equal(report.level, levels.critical);
   assert.equal(
     report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
+test("変更行外の skip key と変更後の値を合わせて判定する", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-context-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/context.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    'test("later", {\n  skip:\n    false,\n}, () => {});\n',
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(
+    join(cwd, path),
+    'test("later", {\n  skip:\n    true,\n}, () => {});\n',
+  );
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  assert.deepEqual(actual.addedLines.get(path), ["    true,"]);
+  assert.match(actual.beforeContents.get(path) ?? "", /skip:\n    false/);
+  assert.match(actual.afterContents.get(path) ?? "", /skip:\n    true/);
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
+test("test file の regular file から symlink への type change は critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-type-change-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/removed.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(join(cwd, path), 'test("enabled", () => {});\n');
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  rmSync(join(cwd, path));
+  symlinkSync("missing-target", join(cwd, path));
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const changedFile = actual.files.find((file) => file.path === path);
+  assert.equal(changedFile?.status, "T");
+  assert.equal(changedFile?.oldMode, "100644");
+  assert.equal(changedFile?.newMode, "120000");
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDeleted),
     true,
   );
 });

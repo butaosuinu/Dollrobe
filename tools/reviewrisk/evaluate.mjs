@@ -104,9 +104,16 @@ const reason = (signal, level, file, detail) => ({
   detail,
 });
 
+const regularFileModes = new Set(["100644", "100755"]);
+const replacesRegularFileType = (file) =>
+  file.status === "T" &&
+  regularFileModes.has(file.oldMode) &&
+  !regularFileModes.has(file.newMode);
+
 const isDeletedOrMovedOut = (file, predicate) =>
   (file.status === "D" && predicate(file.path)) ||
-  (file.status === "R" && predicate(file.oldPath) && !predicate(file.path));
+  (file.status === "R" && predicate(file.oldPath) && !predicate(file.path)) ||
+  (replacesRegularFileType(file) && predicate(file.path));
 
 const pathMatchesPrefix = (path, prefixes) =>
   prefixes.some((prefix) => path.startsWith(prefix));
@@ -309,6 +316,30 @@ const stripStringsAndComments = (source) => {
   return result;
 };
 
+const countTestDisablePatterns = (source) =>
+  stripStringsAndComments(source).match(
+    new RegExp(testDisablePattern.source, "g"),
+  )?.length ?? 0;
+
+const addsTestDisablePattern = (diff, file) => {
+  const addedSource = (diff.addedLines.get(file.path) ?? []).join("\n");
+  if (testDisablePattern.test(stripStringsAndComments(addedSource))) {
+    return true;
+  }
+  const afterSource = diff.afterContents?.get(file.path);
+  if (afterSource === undefined) {
+    return false;
+  }
+  const oldPath = file.oldPath || file.path;
+  const beforeSource = isTestFile(oldPath)
+    ? (diff.beforeContents?.get(file.path) ?? "")
+    : "";
+  return (
+    countTestDisablePatterns(afterSource) >
+    countTestDisablePatterns(beforeSource)
+  );
+};
+
 const criticalReasons = (diff) => {
   const reasons = [];
   for (const path of diff.unreadablePaths ?? []) {
@@ -317,7 +348,7 @@ const criticalReasons = (diff) => {
         signals.patchUnreadable,
         levels.critical,
         path,
-        "patch 本文が読み取り上限を超過または安全に解析不能（fail-closed）",
+        "patch 本文または判定文脈が読み取り上限を超過・解析不能（fail-closed）",
       ),
     );
   }
@@ -330,7 +361,9 @@ const criticalReasons = (diff) => {
           file.path,
           file.status === "D"
             ? "テストファイルを削除"
-            : "rename でテスト形状を喪失",
+            : file.status === "R"
+              ? "rename でテスト形状を喪失"
+              : "type change でテストファイル実体を喪失",
         ),
       );
     }
@@ -344,7 +377,7 @@ const criticalReasons = (diff) => {
           signals.testSupportDeleted,
           levels.critical,
           file.path,
-          "test fixture・helper・harness を削除または対象外へ移動",
+          "test fixture・helper・harness を削除・対象外へ移動・type change",
         ),
       );
     }
@@ -401,17 +434,14 @@ const criticalReasons = (diff) => {
     }
   }
 
-  for (const [path, lines] of diff.addedLines) {
-    if (
-      isTestFile(path) &&
-      testDisablePattern.test(stripStringsAndComments(lines.join("\n")))
-    ) {
+  for (const file of diff.files) {
+    if (isTestFile(file.path) && addsTestDisablePattern(diff, file)) {
       reasons.push(
         reason(
           signals.testDisabled,
           levels.critical,
-          path,
-          "テストの skip・fixme・only を追加",
+          file.path,
+          "テストの skip・fixme・only を追加・有効化",
         ),
       );
     }

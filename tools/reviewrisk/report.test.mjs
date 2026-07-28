@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
 import test from "node:test";
 import { classes, levels } from "./classes.mjs";
-import { parseArgs } from "./main.mjs";
+import { parseArgs, run } from "./main.mjs";
 import {
   markdownByteLimit,
   renderJson,
@@ -98,6 +98,20 @@ test("text は headline・stats・file を含む", () => {
   assert.match(text, /garment-repository\.ts/);
 });
 
+test("text に埋め込む path の制御文字を無害化する", () => {
+  const maliciousPath = "src/\u001b[2J\n\u0007\u009B8;;evil.test.ts";
+  const report = {
+    ...sample,
+    files: [{ ...sample.files[0], path: maliciousPath }],
+    reasons: [{ ...sample.reasons[0], file: maliciousPath }],
+  };
+  const text = renderText(report);
+  assert.equal(text.includes("\u001b"), false);
+  assert.equal(text.includes("\u0007"), false);
+  assert.equal(text.includes("\u009B"), false);
+  assert.match(text, /\[U\+001B\]\[2J\[U\+000A\]\[U\+0007\]\[U\+009B\]/);
+});
+
 test("JSON は公開契約を保つ", () => {
   const parsed = JSON.parse(renderJson(sample));
   assert.equal(parsed.level, "high");
@@ -121,4 +135,10 @@ test("CLI 引数を検証する", () => {
   );
   assert.throws(() => parseArgs(["--format", "yaml"]), /unknown format/);
   assert.throws(() => parseArgs(["--base"]), /requires a value/);
+});
+
+test("CLI は process cwd から test file の変更文脈を読み取る", () => {
+  const result = run(["--base", "HEAD", "--format", "json"]);
+  assert.equal(result.exitCode, 0);
+  assert.equal(typeof JSON.parse(result.output).level, "string");
 });

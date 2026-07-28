@@ -139,6 +139,7 @@ test("base guard treats pull request content as data only", async () => {
 test("CLI entrypoint uses await with a terminal catch", async () => {
   const source = await readReviewRiskSource("main.mjs");
 
+  assert.match(source, /includeContents: isTestFile/);
   assert.match(source, /await runEntrypoint\(\)\.catch\(/);
   assert.doesNotMatch(source, /\.then\(/);
 });

@@ -10,13 +10,19 @@ const markdownFileByteBudget = 35_000;
 const plusMinus = ({ added, deleted }) =>
   `+${String(added)} −${String(deleted)}`;
 
-const unsafeMarkdownPathCharacter = /[\u0000-\u001f\u007f\u2028\u2029`|<>&]/gu;
+const unsafeTextPathCharacter = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/gu;
+const unsafeMarkdownPathCharacter =
+  /[\u0000-\u001f\u007f-\u009f\u2028\u2029`|<>&]/gu;
 
-const escapeMarkdownPath = (value) =>
-  value.replace(unsafeMarkdownPathCharacter, (character) => {
+const escapePath = (value, pattern) =>
+  value.replace(pattern, (character) => {
     const codePoint = character.codePointAt(0);
     return `[U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}]`;
   });
+
+const escapeTextPath = (value) => escapePath(value, unsafeTextPathCharacter);
+const escapeMarkdownPath = (value) =>
+  escapePath(value, unsafeMarkdownPathCharacter);
 
 const takeLinesWithinByteBudget = ({ items, render, byteBudget }) => {
   const lines = [];
@@ -41,7 +47,7 @@ export const renderText = (report) => {
     lines.push("", "理由:");
     for (const item of report.reasons) {
       lines.push(
-        `  [${item.level}] ${item.signal}  ${item.file || "-"}  ${item.detail}`,
+        `  [${item.level}] ${item.signal}  ${escapeTextPath(item.file || "-")}  ${item.detail}`,
       );
     }
   }
@@ -53,7 +59,7 @@ export const renderText = (report) => {
     );
     for (const file of report.files) {
       lines.push(
-        `  ${file.status.padEnd(3)} ${file.class.padEnd(6)} ${file.level.padEnd(9)} ${file.rule.padEnd(20)} ${file.path}`,
+        `  ${file.status.padEnd(3)} ${file.class.padEnd(6)} ${file.level.padEnd(9)} ${file.rule.padEnd(20)} ${escapeTextPath(file.path)}`,
       );
     }
   }
