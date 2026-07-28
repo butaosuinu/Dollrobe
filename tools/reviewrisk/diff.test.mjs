@@ -626,6 +626,63 @@ test("test から it への同義置換は削除として扱わない", (context
   );
 });
 
+test("skip 済み test から it への同義置換は新規無効化として扱わない", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-test-it-alias-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/root-alias-skip.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(join(cwd, path), 'test.skip("same", sharedFn);\n');
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, path), 'it.skip("same", sharedFn);\n');
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.low);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    false,
+  );
+});
+
+test("tagged-template each の test case 削除は critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-tagged-each-delete-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/tagged-each.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    'test.each`a | b\n${1} | ${2}`("same", sharedFn);\n',
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, path), "");
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDeleted),
+    true,
+  );
+});
+
 test("既存の skip 済み test の並び替えは新規無効化として扱わない", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-move-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));

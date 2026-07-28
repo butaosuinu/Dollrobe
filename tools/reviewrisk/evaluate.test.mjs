@@ -238,6 +238,28 @@ test("static import のない任意 identifier の skip は無効化として扱
   assert.equal(hasSignal(report, signals.testDisabled), false);
 });
 
+test("コメント・文字列内の import は test alias として扱わない", () => {
+  for (const fakeImport of [
+    '// import { it as check } from "vitest";',
+    "const fixture = 'import { it as check } from \"vitest\";';",
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [
+            fakeImport,
+            "const check = createBuilder();",
+            'check.skip("not a test", fn);',
+          ],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.low, fakeImport);
+    assert.equal(hasSignal(report, signals.testDisabled), false, fakeImport);
+  }
+});
+
 test("test module 以外の namespace は test root として扱わない", () => {
   const report = evaluate(
     diff({
@@ -271,6 +293,24 @@ test("引用符付き test options の skip・only true は critical", () => {
   for (const statement of [
     'test("later", { "skip": true }, fn);',
     "test(\"focused\", { 'only': true }, fn);",
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
+});
+
+test("computed test options の skip・only true は critical", () => {
+  for (const statement of [
+    'test("later", { ["skip"]: true }, fn);',
+    "test(\"focused\", { ['only']: true }, fn);",
   ]) {
     const report = evaluate(
       diff({
@@ -333,6 +373,7 @@ test("test options の skip false は無効化として扱わない", () => {
   for (const statement of [
     'test("enabled", { skip: false }, fn);',
     'test("enabled", { "skip": false }, fn);',
+    'test("enabled", { ["skip"]: false }, fn);',
   ]) {
     const report = evaluate(
       diff({
@@ -492,6 +533,22 @@ test("false から始まる test options skip 式は critical", () => {
       addedLines: {
         "src/lib/new.test.ts": [
           'test("disabled", { skip: false || true }, fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("tagged-template each の skip は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          "test.skip.each`a | b",
+          '${1} | ${2}`("later", fn);',
         ],
       },
     }),

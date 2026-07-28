@@ -205,13 +205,17 @@ const startsRegexLiteral = (codeBeforeSlash) => {
   return regexPrefixKeywords.has(codeBeforeSlash.slice(index + 1, end));
 };
 
-const stripStringsAndComments = (source) => {
+const scanSource = (source) => {
   let result = "";
   let state = "code";
   let quote = "";
+  let stringStart = -1;
   let escaped = false;
   let inRegexCharacterClass = false;
   const templateExpressionDepths = [];
+  const stringLiteralEnds = new Map();
+  const templateLiteralEnds = new Map();
+  const templateStarts = [];
 
   for (let index = 0; index < source.length; index += 1) {
     const character = source[index];
@@ -242,6 +246,8 @@ const stripStringsAndComments = (source) => {
       } else if (character === "\\") {
         escaped = true;
       } else if (character === quote) {
+        stringLiteralEnds.set(stringStart, index);
+        stringStart = -1;
         state = "code";
       }
       continue;
@@ -259,6 +265,10 @@ const stripStringsAndComments = (source) => {
         } else if (character === "\\") {
           escaped = true;
         } else if (character === "`") {
+          const templateStart = templateStarts.pop();
+          if (templateStart !== undefined) {
+            templateLiteralEnds.set(templateStart, index);
+          }
           state = "code";
         }
       }
@@ -305,12 +315,14 @@ const stripStringsAndComments = (source) => {
     if (character === '"' || character === "'") {
       result += " ";
       quote = character;
+      stringStart = index;
       state = "string";
       escaped = false;
       continue;
     }
     if (character === "`") {
       result += " ";
+      templateStarts.push(index);
       state = "template";
       escaped = false;
       continue;
@@ -334,7 +346,11 @@ const stripStringsAndComments = (source) => {
     }
     result += character;
   }
-  return result;
+  return {
+    structuralSource: result,
+    stringLiteralEnds,
+    templateLiteralEnds,
+  };
 };
 
 const skipWhitespace = (source, start) => {
@@ -436,12 +452,42 @@ const namespaceTestModules = new Set([
   "vitest",
 ]);
 
-const importedTestRoots = (source) => {
+const staticStringLiteralAt = ({
+  source,
+  structuralSource,
+  stringLiteralEnds,
+  start,
+  end = source.length,
+}) => {
+  for (let index = start; index < end; index += 1) {
+    const literalEnd = stringLiteralEnds.get(index);
+    if (literalEnd !== undefined && literalEnd < end) {
+      return {
+        value: source.slice(index + 1, literalEnd),
+        end: literalEnd,
+      };
+    }
+    if (!/\s/.test(structuralSource[index])) {
+      return undefined;
+    }
+  }
+  return undefined;
+};
+
+const importedTestRoots = ({ source, structuralSource, stringLiteralEnds }) => {
   const roots = new Map();
-  const importPattern =
-    /\bimport\s*\{([\s\S]*?)\}\s*from\s*(["'])([^"'\r\n]+)\2/g;
-  for (const match of source.matchAll(importPattern)) {
-    const moduleName = match[3];
+  const importPattern = /\bimport\s*\{([\s\S]*?)\}\s*from\b/g;
+  for (const match of structuralSource.matchAll(importPattern)) {
+    const moduleLiteral = staticStringLiteralAt({
+      source,
+      structuralSource,
+      stringLiteralEnds,
+      start: (match.index ?? 0) + match[0].length,
+    });
+    if (moduleLiteral === undefined) {
+      continue;
+    }
+    const moduleName = moduleLiteral.value;
     for (const specifier of match[1].split(",")) {
       const aliasMatch =
         /^\s*(test|it|describe|suite|context|xit|xdescribe|xtest|fit|fdescribe)(?:\s+as\s+([A-Za-z_$][\w$]*))?\s*$/.exec(
@@ -456,11 +502,19 @@ const importedTestRoots = (source) => {
     }
   }
 
-  const namespacePattern =
-    /\bimport\s*\*\s*as\s+([A-Za-z_$][\w$]*)\s*from\s*(["'])([^"'\r\n]+)\2/g;
-  for (const match of source.matchAll(namespacePattern)) {
+  const namespacePattern = /\bimport\s*\*\s*as\s+([A-Za-z_$][\w$]*)\s*from\b/g;
+  for (const match of structuralSource.matchAll(namespacePattern)) {
     const namespace = match[1];
-    const moduleName = match[3];
+    const moduleLiteral = staticStringLiteralAt({
+      source,
+      structuralSource,
+      stringLiteralEnds,
+      start: (match.index ?? 0) + match[0].length,
+    });
+    if (moduleLiteral === undefined) {
+      continue;
+    }
+    const moduleName = moduleLiteral.value;
     if (!namespaceTestModules.has(moduleName)) {
       continue;
     }
@@ -491,9 +545,27 @@ const staticBracketModifier = (source, start, end) => {
   return match?.[2];
 };
 
+const taggedTemplateAt = ({ structuralSource, templateLiteralEnds, start }) => {
+  for (let index = start; index < structuralSource.length; index += 1) {
+    const end = templateLiteralEnds.get(index);
+    if (end !== undefined) {
+      return { start: index, end };
+    }
+    if (!/\s/.test(structuralSource[index])) {
+      return undefined;
+    }
+  }
+  return undefined;
+};
+
 const parseTestCalls = (source) => {
-  const structuralSource = stripStringsAndComments(source);
-  const importedRoots = importedTestRoots(source);
+  const { structuralSource, stringLiteralEnds, templateLiteralEnds } =
+    scanSource(source);
+  const importedRoots = importedTestRoots({
+    source,
+    structuralSource,
+    stringLiteralEnds,
+  });
   const calls = [];
   for (const match of structuralSource.matchAll(
     testRootPatternFor(importedRoots),
@@ -566,9 +638,33 @@ const parseTestCalls = (source) => {
           break;
         }
         modifier = modifierMatch[0];
-        cursor = skipWhitespace(structuralSource, cursor + modifier.length);
+        const modifierEnd = cursor + modifier.length;
+        const taggedTemplate =
+          modifier === "each"
+            ? taggedTemplateAt({
+                structuralSource,
+                templateLiteralEnds,
+                start: modifierEnd,
+              })
+            : undefined;
+        cursor =
+          taggedTemplate?.start ??
+          skipWhitespace(structuralSource, modifierEnd);
+        modifiers.push(modifier);
+        if (taggedTemplate !== undefined) {
+          cursor = skipWhitespace(structuralSource, taggedTemplate.end + 1);
+          if (structuralSource[cursor] === "(") {
+            openingIndex = cursor;
+            break;
+          }
+          if (structuralSource[cursor] === ".") {
+            continue;
+          }
+          break;
+        }
+      } else {
+        modifiers.push(modifier);
       }
-      modifiers.push(modifier);
       if (structuralSource[cursor] !== "(") {
         continue;
       }
@@ -613,7 +709,7 @@ const parseTestCalls = (source) => {
       arguments: parsedCall.arguments,
     });
   }
-  return { calls, structuralSource };
+  return { calls, structuralSource, stringLiteralEnds };
 };
 
 const normalizedTestRoot = (call) => {
@@ -753,7 +849,65 @@ const readPropertyValueEnd = ({ structuralSource, start, objectEnd }) => {
   return objectEnd;
 };
 
-const activeOptionModes = ({ argument, source, structuralSource }) => {
+const staticOptionKeyAt = ({
+  source,
+  structuralSource,
+  stringLiteralEnds,
+  start,
+  end,
+}) => {
+  const identifierMatch = /^[A-Za-z_$][\w$]*/.exec(
+    structuralSource.slice(start),
+  );
+  if (identifierMatch !== null) {
+    return {
+      key: identifierMatch[0],
+      end: start + identifierMatch[0].length,
+    };
+  }
+
+  const literalEnd = stringLiteralEnds.get(start);
+  if (literalEnd !== undefined && literalEnd < end) {
+    return {
+      key: source.slice(start + 1, literalEnd),
+      end: literalEnd + 1,
+    };
+  }
+
+  if (structuralSource[start] !== "[") {
+    return undefined;
+  }
+  const closingBracket = findMatchingDelimiter({
+    source: structuralSource,
+    openingIndex: start,
+    opening: "[",
+    closing: "]",
+  });
+  if (closingBracket === -1 || closingBracket >= end) {
+    return undefined;
+  }
+  const literal = staticStringLiteralAt({
+    source,
+    structuralSource,
+    stringLiteralEnds,
+    start: start + 1,
+    end: closingBracket,
+  });
+  if (
+    literal === undefined ||
+    structuralSource.slice(literal.end + 1, closingBracket).trim() !== ""
+  ) {
+    return undefined;
+  }
+  return { key: literal.value, end: closingBracket + 1 };
+};
+
+const activeOptionModes = ({
+  argument,
+  source,
+  structuralSource,
+  stringLiteralEnds,
+}) => {
   const modes = new Set();
   const objectStart = skipWhitespace(structuralSource, argument.start);
   if (structuralSource[objectStart] !== "{") {
@@ -765,6 +919,37 @@ const activeOptionModes = ({ argument, source, structuralSource }) => {
   let parentheses = 0;
   for (let index = objectStart; index < argument.end; index += 1) {
     const character = structuralSource[index];
+    if (braces === 1 && brackets === 0 && parentheses === 0) {
+      const property = staticOptionKeyAt({
+        source,
+        structuralSource,
+        stringLiteralEnds,
+        start: index,
+        end: argument.end,
+      });
+      if (property !== undefined) {
+        const colonIndex = skipWhitespace(structuralSource, property.end);
+        if (
+          (property.key !== "skip" && property.key !== "only") ||
+          structuralSource[colonIndex] !== ":"
+        ) {
+          index = property.end - 1;
+          continue;
+        }
+
+        const valueStart = skipWhitespace(structuralSource, colonIndex + 1);
+        const valueEnd = readPropertyValueEnd({
+          structuralSource,
+          start: valueStart,
+          objectEnd: argument.end,
+        });
+        if (structuralSource.slice(valueStart, valueEnd).trim() !== "false") {
+          modes.add(property.key);
+        }
+        index = valueEnd - 1;
+        continue;
+      }
+    }
     if (character === "{") {
       braces += 1;
       continue;
@@ -789,53 +974,16 @@ const activeOptionModes = ({ argument, source, structuralSource }) => {
       parentheses = Math.max(0, parentheses - 1);
       continue;
     }
-    if (braces !== 1 || brackets !== 0 || parentheses !== 0) {
-      continue;
-    }
-
-    let key;
-    let keyEnd;
-    if (/[A-Za-z_$]/.test(character)) {
-      const keyMatch = /^[A-Za-z_$][\w$]*/.exec(structuralSource.slice(index));
-      if (keyMatch === null) {
-        continue;
-      }
-      key = keyMatch[0];
-      keyEnd = index + key.length;
-    } else {
-      const quotedKeyMatch = /^(["'])(skip|only)\1/.exec(
-        source.slice(index, argument.end),
-      );
-      if (quotedKeyMatch === null) {
-        continue;
-      }
-      key = quotedKeyMatch[2];
-      keyEnd = index + quotedKeyMatch[0].length;
-    }
-    const colonIndex = skipWhitespace(structuralSource, keyEnd);
-    if (
-      (key !== "skip" && key !== "only") ||
-      structuralSource[colonIndex] !== ":"
-    ) {
-      index = keyEnd - 1;
-      continue;
-    }
-
-    const valueStart = skipWhitespace(structuralSource, colonIndex + 1);
-    const valueEnd = readPropertyValueEnd({
-      structuralSource,
-      start: valueStart,
-      objectEnd: argument.end,
-    });
-    if (structuralSource.slice(valueStart, valueEnd).trim() !== "false") {
-      modes.add(key);
-    }
-    index = valueEnd - 1;
   }
   return modes;
 };
 
-const disableModesForCall = ({ call, source, structuralSource }) => {
+const disableModesForCall = ({
+  call,
+  source,
+  structuralSource,
+  stringLiteralEnds,
+}) => {
   const modes = new Set();
   const sourceRoot = call.importedRoot ?? call.root;
   if (
@@ -886,6 +1034,7 @@ const disableModesForCall = ({ call, source, structuralSource }) => {
       argument,
       source,
       structuralSource,
+      stringLiteralEnds,
     })) {
       modes.add(mode);
     }
@@ -915,17 +1064,19 @@ const testCallDescriptors = (source) => {
     const position = (positions.get(positionalContext) ?? 0) + 1;
     positions.set(positionalContext, position);
     const root = normalizedTestRoot(call);
+    const matchingRoot = root === "it" ? "test" : root;
     const title = normalizedSourceFragment(call.arguments[0]?.raw ?? "");
     const callback = call.arguments.at(-1)?.structural ?? "";
     const callbackIdentity = normalizedStructuralCode(callback);
-    const positionalIdentity = `${root}|${positionalContext}|${String(position)}`;
+    const positionalIdentity = `${matchingRoot}|${positionalContext}|${String(position)}`;
     const casePositionIdentity = `${positionalContext}|${String(position)}`;
-    const movableIdentity = `${root}|${namedContext}|${title}|${callbackIdentity}`;
+    const movableIdentity = `${matchingRoot}|${namedContext}|${title}|${callbackIdentity}`;
     const modes = [
       ...disableModesForCall({
         call,
         source,
         structuralSource: parsed.structuralSource,
+        stringLiteralEnds: parsed.stringLiteralEnds,
       }),
     ];
     descriptors.push({
