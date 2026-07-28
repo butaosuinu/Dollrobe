@@ -12,6 +12,10 @@ test("Dollrobe の重要境界を分類する", () => {
     ["src/app/admin/users/page.tsx", classes.medium, "admin-ui"],
     ["src/lib/db/dexie.ts", classes.high, "client-db"],
     ["src/lib/stubs/fs-stub.cjs", classes.medium, "client-stub"],
+    ["public/lp/photos/hero-bg.webp", classes.none, "marketing-asset"],
+    ["public/lp/app.js", classes.application, "public-asset"],
+    ["public/lp/index.html", classes.application, "public-asset"],
+    ["public/lp/image.svg", classes.application, "public-asset"],
     ["src/stores/syncAtoms.ts", classes.high, "client-store"],
     [
       "workers/src/repositories/garment-repository.ts",

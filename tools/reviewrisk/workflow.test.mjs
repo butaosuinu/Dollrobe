@@ -73,6 +73,10 @@ test("review-risk workflow pins actions and guards trusted execution", async () 
   assert.match(source, /> "\$OUTPUT_DIR\/comment\.md"/);
   assert.match(source, /body=@"\$OUTPUT_DIR\/comment\.md"/);
   assert.match(source, /OUTPUT_DIR: \$\{\{ steps\.output\.outputs\.dir \}\}/);
+  assert.match(
+    source,
+    /select\(\.user\.login == "github-actions\[bot\]" and \(\.body \| startswith\("<!-- review-risk -->"\)\)\)/,
+  );
   assert.doesNotMatch(source, /> risk\.json$/m);
   assert.doesNotMatch(source, /> comment\.md$/m);
   assert.doesNotMatch(source, /body=@comment\.md/);
@@ -112,6 +116,14 @@ test("base guard treats pull request content as data only", async () => {
   assert.doesNotMatch(source, /ref:.*pull_request\.head/);
   assert.match(source, /<!-- review-risk-guard -->/);
   assert.match(source, /--method DELETE/);
+  assert.match(
+    source,
+    /select\(\.user\.login == "github-actions\[bot\]" and \(\.body \| startswith\("<!-- review-risk -->"\)\)\)/,
+  );
+  assert.match(
+    source,
+    /select\(\.user\.login == "github-actions\[bot\]" and \(\.body \| startswith\("<!-- review-risk-guard -->"\)\)\)/,
+  );
 
   const clearIndex = source.indexOf(
     "- name: Clear stale normal result outside main or while conflicting",

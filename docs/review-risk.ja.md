@@ -24,7 +24,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | Area                                           | Class | Rule IDs                                                                                                                                         |
 | ---------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 一般 README・文書                              | NONE  | `readme`, `docs-general`                                                                                                                         |
-| LP 制作・マーケティング資産                    | NONE  | `marketing-asset`                                                                                                                                |
+| LP の静的画像（AVIF/GIF/JPEG/PNG/WebP）        | NONE  | `marketing-asset`                                                                                                                                |
 | 通常 app route・component・public asset        | A     | `app-ui`, `component-ui`, `public-asset`                                                                                                         |
 | i18n                                           | A     | `client-i18n`                                                                                                                                    |
 | test・test harness                             | A     | `test-file`, `client-test-support`, `worker-test-support`, `e2e-test`                                                                            |
@@ -50,7 +50,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | --------------------------- | -------- | ------------------------------------------------------------------------------------ |
 | S1-test-deleted             | critical | test file の削除、rename による test suffix の喪失、非 regular file への type change |
 | S2-test-support-deleted     | critical | `src/test`、Workers test harness、E2E fixture/helper の削除・移動                    |
-| S3-test-disabled-or-focused | critical | test への skip、fixme、only、x/f prefix の追加・有効化                               |
+| S3-test-disabled-or-focused | critical | literal false 単体を除く skip/fixme/only、x/f prefix の追加・有効化                  |
 | S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更                         |
 | S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                                     |
 | S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                                   |

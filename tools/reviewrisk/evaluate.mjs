@@ -60,7 +60,7 @@ const invariantPatterns = [
 ];
 
 const testDisablePattern =
-  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:(?!\s*false\s*(?=[,}]))\s*|\bonly\s*:\s*true\b/;
+  /\.(?:skip|only|fixme)\s*(?:\(|\.)|\.skipIf\s*\((?!\s*false\s*(?=[,)]))|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\b(?:skip|only)\s*:(?!\s*false\s*(?=[,}]))\s*/;
 const qualityGatePattern =
   /"(?:scripts|test(?::[^"]+)?|build(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)"\s*:/;
 
@@ -322,13 +322,10 @@ const countTestDisablePatterns = (source) =>
   )?.length ?? 0;
 
 const addsTestDisablePattern = (diff, file) => {
-  const addedSource = (diff.addedLines.get(file.path) ?? []).join("\n");
-  if (testDisablePattern.test(stripStringsAndComments(addedSource))) {
-    return true;
-  }
   const afterSource = diff.afterContents?.get(file.path);
   if (afterSource === undefined) {
-    return false;
+    const addedSource = (diff.addedLines.get(file.path) ?? []).join("\n");
+    return testDisablePattern.test(stripStringsAndComments(addedSource));
   }
   const oldPath = file.oldPath || file.path;
   const beforeSource = isTestFile(oldPath)

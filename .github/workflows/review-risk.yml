@@ -124,7 +124,7 @@ jobs:
           set -euo pipefail
 
           existing_id="$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
-            --jq '[.[] | select(.body | startswith("<!-- review-risk -->"))][0].id // empty')"
+            --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- review-risk -->")))][0].id // empty')"
 
           if [ -n "$existing_id" ]; then
             gh api --method PATCH "repos/$GH_REPO/issues/comments/$existing_id" -F body=@"$OUTPUT_DIR/comment.md"

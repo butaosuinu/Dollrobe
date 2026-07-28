@@ -181,6 +181,13 @@ const exactRules = new Map([
   ],
 ]);
 
+const marketingAssetRule = rule(
+  "marketing-asset",
+  classes.none,
+  "LP の静的画像",
+);
+const marketingAssetPattern = /^public\/lp\/.+\.(?:avif|gif|jpe?g|png|webp)$/i;
+
 const prefixRules = [
   [
     ".github/workflows/",
@@ -213,7 +220,6 @@ const prefixRules = [
   ],
   ["docs/", rule("docs-general", classes.none, "一般文書")],
   ["e2e/", rule("e2e-test", classes.application, "Playwright test・fixture")],
-  ["public/lp/", rule("marketing-asset", classes.none, "LP 制作・表示資産")],
   ["public/", rule("public-asset", classes.application, "配布静的資産")],
   ["scripts/", rule("script", classes.high, "開発・検証用実行 script")],
   [
@@ -349,6 +355,9 @@ export const classifyPath = (path) => {
   if (isTestFile(path)) {
     return rule("test-file", classes.application, "自動 test");
   }
+  if (marketingAssetPattern.test(path)) {
+    return marketingAssetRule;
+  }
   const match = prefixRules.find(([prefix]) => path.startsWith(prefix));
   return match?.[1];
 };
@@ -356,6 +365,7 @@ export const classifyPath = (path) => {
 export const allRuleIds = () =>
   [
     ...exactRules.values(),
+    marketingAssetRule,
     ...prefixRules.map(([, prefixRule]) => prefixRule),
     rule("test-file", classes.application, "自動 test"),
   ]

@@ -385,6 +385,68 @@ test("変更行外の skip key と変更後の値を合わせて判定する", (
   );
 });
 
+test("skipIf の条件だけを false から true にした変更は critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-if-context-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/conditional.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    'test.skipIf(\n  false\n)("later", () => {});\n',
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(
+    join(cwd, path),
+    'test.skipIf(\n  true\n)("later", () => {});\n',
+  );
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  assert.deepEqual(actual.addedLines.get(path), ["  true"]);
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
+test("既存の test skip の空白整形は新規無効化として扱わない", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-format-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/lib/formatted.test.ts";
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(join(cwd, path), 'test.skip("later",()=>{});\n');
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, path), 'test.skip("later", () => {});\n');
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  assert.match(actual.addedLines.get(path)?.[0] ?? "", /test\.skip/);
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.low);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    false,
+  );
+});
+
 test("test file の regular file から symlink への type change は critical", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-type-change-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));

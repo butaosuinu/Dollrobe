@@ -179,6 +179,62 @@ test("test options の skip false は無効化として扱わない", () => {
   assert.equal(hasSignal(report, signals.testDisabled), false);
 });
 
+test("条件式を使う test options only は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'test("linux only", { only: process.platform === "linux" }, fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("test options の only false は focus として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": ['test("enabled", { only: false }, fn);'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("skipIf false は無効化として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": ['test.skipIf(false)("enabled", () => {});'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("false から始まる skipIf 条件式は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'test.skipIf(false || true)("disabled", () => {});',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
 test("false から始まる test options skip 式は critical", () => {
   const report = evaluate(
     diff({
