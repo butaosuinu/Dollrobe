@@ -72,7 +72,12 @@ const splitNullFields = (output) => {
 
 const decodePathInfo = (path) => {
   if (isUtf8(path)) {
-    return { path: path.toString("utf8"), isUtf8: true };
+    const gitPath = path.toString("utf8");
+    return {
+      path: gitPath.replaceAll("%", "%25"),
+      isUtf8: true,
+      gitPath,
+    };
   }
   return {
     path: [...path]
@@ -83,6 +88,7 @@ const decodePathInfo = (path) => {
       )
       .join(""),
     isUtf8: false,
+    gitPath: "",
   };
 };
 
@@ -126,11 +132,13 @@ const parseRaw = (output) => {
     const [, oldMode, newMode, oldOid, newOid, status] = match;
     let oldPath = "";
     let oldPathIsUtf8 = true;
+    let oldGitPath = "";
     let pathInfo = decodePathInfo(fields[index]);
     index += 1;
     if (status === "R" || status === "C") {
       oldPath = pathInfo.path;
       oldPathIsUtf8 = pathInfo.isUtf8;
+      oldGitPath = pathInfo.gitPath;
       pathInfo = decodePathInfo(fields[index]);
       index += 1;
     }
@@ -140,6 +148,8 @@ const parseRaw = (output) => {
       path: pathInfo.path,
       oldPathIsUtf8,
       pathIsUtf8: pathInfo.isUtf8,
+      oldGitPath,
+      gitPath: pathInfo.gitPath,
       oldMode,
       newMode,
       oldOid,
@@ -284,7 +294,7 @@ export const readGitDiff = ({
         continue;
       }
       const paths =
-        file.oldPath === "" ? [file.path] : [file.oldPath, file.path];
+        file.oldPath === "" ? [file.gitPath] : [file.oldGitPath, file.gitPath];
       const patch = limitedGitBuffer(
         [
           "diff",

@@ -26,6 +26,12 @@ test("test script keeps trailing arguments scoped to Vitest", async () => {
   );
 });
 
+test("CI runs the review-risk regression suite", async () => {
+  const source = await readWorkflow("ci.yml");
+
+  assert.match(source, /- run: pnpm test\n\s+- run: pnpm test:review-risk/);
+});
+
 test("review-risk workflow pins actions and guards trusted execution", async () => {
   const source = await readWorkflow("review-risk.yml");
 
@@ -73,6 +79,7 @@ test("base guard treats pull request content as data only", async () => {
 
   assert.match(source, /pull_request_target:/);
   assert.match(source, /types: \[opened, synchronize, reopened, edited\]/);
+  assert.doesNotMatch(source, /branches: \[main\]/);
   assert.match(source, new RegExp(`actions/checkout@${checkoutSha}`));
   assert.doesNotMatch(source, /actions\/setup-node@/);
   assert.doesNotMatch(source, /\bpnpm\b/);
@@ -86,6 +93,12 @@ test("base guard treats pull request content as data only", async () => {
     source,
     /HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/,
   );
+  assert.match(
+    source,
+    /BASE_REF: \$\{\{ github\.event\.pull_request\.base\.ref \}\}/,
+  );
+  assert.match(source, /if \[ "\$BASE_REF" != "main" \]/);
+  assert.match(source, /echo "target=false" >> "\$GITHUB_OUTPUT"/);
   assert.match(source, /git fetch origin "\$HEAD_SHA"/);
   assert.match(source, /git merge-tree --write-tree HEAD FETCH_HEAD/);
   assert.doesNotMatch(source, /ref:.*pull_request\.head/);
@@ -93,17 +106,26 @@ test("base guard treats pull request content as data only", async () => {
   assert.match(source, /--method DELETE/);
 
   const clearIndex = source.indexOf(
-    "- name: Clear stale normal result while conflicting",
+    "- name: Clear stale normal result outside main or while conflicting",
   );
   const applyIndex = source.indexOf("- name: Apply review:critical label");
+  const reconcileIndex = source.indexOf(
+    "- name: Reconcile guard sticky comment",
+  );
   assert.notEqual(clearIndex, -1);
+  assert.notEqual(reconcileIndex, -1);
   assert.ok(clearIndex < applyIndex);
   const clearStep = source.slice(clearIndex, applyIndex);
+  assert.match(clearStep, /steps\.guard\.outputs\.target != 'true'/);
   assert.match(clearStep, /steps\.guard\.outputs\.conflict == 'true'/);
   assert.match(clearStep, /review:\*/);
   assert.match(clearStep, /--remove-label/);
   assert.match(clearStep, /<!-- review-risk -->/);
   assert.match(clearStep, /--method DELETE/);
+
+  const applyStep = source.slice(applyIndex, reconcileIndex);
+  assert.match(applyStep, /steps\.guard\.outputs\.target == 'true'/);
+  assert.match(applyStep, /steps\.guard\.outputs\.self == 'true'/);
 });
 
 test("CLI entrypoint uses await with a terminal catch", async () => {

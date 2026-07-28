@@ -54,7 +54,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更       |
 | S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                   |
 | S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                 |
-| S7-quality-gate-modified    | critical | package の test/test:\*/typecheck/lint/precheck script の変更      |
+| S7-quality-gate-modified    | critical | package の test/test:\*/typecheck/lint/depcruise/precheck 変更     |
 | S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                             |
 | S9-unclassified-path        | high     | rule に一致しない path                                             |
 | S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触 |
@@ -65,8 +65,9 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 出力を決定的にする。binary の行数は 0 として集計する。Markdown は GitHub comment
 の上限に余裕を持たせて UTF-8 で 60,000 bytes 以下とし、超過する理由・ファイルは
 省略数を表示する。Git path は NUL 区切りの byte 列として読み、非 UTF-8 byte は
-`%XX` へ可逆 encoding する。patch 本文が 64 MiB の読み取り上限を超える場合は
-処理を停止せず、S12 / critical として fail-closed にする。
+`%XX`、有効な UTF-8 path 内の `%` は `%25` へ encoding して一意に保つ。
+patch 本文が 64 MiB の読み取り上限を超える場合は処理を停止せず、S12 /
+critical として fail-closed にする。
 
 ## CLI
 
@@ -90,11 +91,12 @@ workflow 自身の変更は PR 側 code を実行せず critical に固定する
 判定 JSON と comment Markdown は checkout 前に `$RUNNER_TEMP` 配下へ作成した
 一時 directory に書き出し、PR が追加した symlink を出力先として辿らない。
 
-`review-risk-guard.yml` は `pull_request_target` で base branch 側の定義を
-実行する。PR head は `git fetch` と `git diff` の入力データとしてのみ扱い、
-PR 側の file、script、dependency は実行しない。自己変更時の comment は
-`<!-- review-risk-guard -->` という別 marker を使い、自己変更が取り消されたら
-削除する。
+`review-risk-guard.yml` は branch filter を設けない `pull_request_target` で
+base branch 側の定義を実行する。PR head は `git fetch` と `git diff` の
+入力データとしてのみ扱い、PR 側の file、script、dependency は実行しない。
+自己変更時の comment は `<!-- review-risk-guard -->` という別 marker を使い、
+自己変更が取り消されたら削除する。PR の base が main から外れた `edited`
+イベントでは、既存の `review:*` label と通常・guard comment を削除する。
 
 どちらも `contents: read`、`pull-requests: write`、`issues: write` の最小権限、
 `persist-credentials: false`、PR 番号単位 concurrency を使う。

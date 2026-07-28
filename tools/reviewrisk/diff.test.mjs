@@ -226,6 +226,95 @@ test("非 UTF-8 path でも blob OID から patch 本文を読む", (context) =>
   );
 });
 
+test("UTF-8 の %XX path と非 UTF-8 byte path を一意に読む", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-distinct-byte-path-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+  runGit(cwd, ["commit", "--quiet", "--allow-empty", "-m", "initial"]);
+
+  const utf8Path = Buffer.from("src/lib/%FF.test.ts");
+  const bytePath = Buffer.concat([
+    Buffer.from("src/lib/"),
+    Buffer.from([0xff]),
+    Buffer.from(".test.ts"),
+  ]);
+  const skippedTest = 'test.skip("later", () => {});';
+  const enabledTest = 'test("enabled", () => {});';
+  const skippedOid = runGitWithInput(
+    cwd,
+    ["hash-object", "-w", "--stdin"],
+    Buffer.from(`${skippedTest}\n`),
+  )
+    .toString("ascii")
+    .trim();
+  const enabledOid = runGitWithInput(
+    cwd,
+    ["hash-object", "-w", "--stdin"],
+    Buffer.from(`${enabledTest}\n`),
+  )
+    .toString("ascii")
+    .trim();
+  const indexEntries = Buffer.concat([
+    Buffer.from(`100644 ${skippedOid}\t`),
+    utf8Path,
+    Buffer.from([0]),
+    Buffer.from(`100644 ${enabledOid}\t`),
+    bytePath,
+    Buffer.from([0]),
+  ]);
+  runGitWithInput(cwd, ["update-index", "-z", "--index-info"], indexEntries);
+  runGit(cwd, ["commit", "--quiet", "-m", "add distinct byte paths"]);
+  runGitWithInput(
+    cwd,
+    ["update-index", "--skip-worktree", "-z", "--stdin"],
+    Buffer.concat([utf8Path, Buffer.from([0]), bytePath, Buffer.from([0])]),
+  );
+
+  const actual = readGitDiff({ base: "HEAD^", cwd });
+  assert.equal(
+    actual.addedLines.get("src/lib/%25FF.test.ts")?.includes(skippedTest),
+    true,
+  );
+  assert.equal(
+    actual.addedLines.get("src/lib/%FF.test.ts")?.includes(enabledTest),
+    true,
+  );
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
+test("working tree の % path は実 path から本文を読む", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-percent-path-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const gitPath = "src/lib/%FF.test.ts";
+  const reportPath = "src/lib/%25FF.test.ts";
+  const skippedTest = 'test.skip("later", () => {});';
+  mkdirSync(join(cwd, "src/lib"), { recursive: true });
+  writeFileSync(join(cwd, gitPath), 'test("enabled", () => {});\n');
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, gitPath), `${skippedTest}\n`);
+
+  const actual = readGitDiff({ base: "HEAD", cwd });
+  assert.equal(actual.addedLines.get(reportPath)?.includes(skippedTest), true);
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDisabled),
+    true,
+  );
+});
+
 test("patch 読み取り上限の超過は fail-closed で critical", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-large-patch-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));

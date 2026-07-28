@@ -166,6 +166,47 @@ test("条件式を使う test options skip は critical", () => {
   assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
+test("test options の skip false は無効化として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": ['test("enabled", { skip: false }, fn);'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("正規表現リテラル後の test skip を検出する", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": ['const quote = /["]/; test.skip("later", fn);'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("正規表現リテラル内の test skip は無効化として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/parser.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/parser.test.ts": [
+          'const pattern = /* syntax */ /test\\.skip\\("later"/;',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
 test("文字列と block comment 内の skip は無視する", () => {
   const report = evaluate(
     diff({
@@ -200,6 +241,19 @@ test("test subscript の変更は critical", () => {
       files: [change({ path: "package.json" })],
       addedLines: {
         "package.json": ['"test:review-risk": "true"'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.qualityGate), true);
+});
+
+test("depcruise script の変更は critical", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "package.json" })],
+      addedLines: {
+        "package.json": ['"depcruise": "echo disabled"'],
       },
     }),
   );

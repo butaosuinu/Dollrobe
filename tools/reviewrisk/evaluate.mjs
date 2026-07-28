@@ -60,9 +60,9 @@ const invariantPatterns = [
 ];
 
 const testDisablePattern =
-  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:\s*(?!false\b)|\bonly\s*:\s*true\b/;
+  /\.(?:skip|skipIf|only|fixme)\s*(?:\(|\.)|\b(?:xit|xdescribe|xtest|fit|fdescribe)\s*\(|\bskip\s*:(?!\s*false\b)\s*|\bonly\s*:\s*true\b/;
 const qualityGatePattern =
-  /"(?:test(?::[^"]+)?|typecheck|lint|format:check|i18n:check|precheck(?::full)?)"\s*:/;
+  /"(?:test(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)"\s*:/;
 
 const touches = (file, pathOrPrefix) =>
   file.path.startsWith(pathOrPrefix) ||
@@ -114,11 +114,67 @@ const unclassifiedRule = (note = "未分類（rules.mjs に要追記）") => ({
   note,
 });
 
+const regexPrefixCharacters = new Set([
+  "(",
+  "[",
+  "{",
+  ":",
+  ";",
+  ",",
+  "=",
+  "!",
+  "?",
+  "&",
+  "|",
+  "+",
+  "-",
+  "*",
+  "%",
+  "^",
+  "~",
+  "<",
+  ">",
+]);
+const regexPrefixKeywords = new Set([
+  "await",
+  "case",
+  "delete",
+  "do",
+  "else",
+  "in",
+  "instanceof",
+  "of",
+  "return",
+  "throw",
+  "typeof",
+  "void",
+  "yield",
+]);
+
+const startsRegexLiteral = (codeBeforeSlash) => {
+  let index = codeBeforeSlash.length - 1;
+  while (index >= 0 && /\s/.test(codeBeforeSlash[index])) {
+    index -= 1;
+  }
+  if (index < 0 || regexPrefixCharacters.has(codeBeforeSlash[index])) {
+    return true;
+  }
+  if (!/[A-Za-z0-9_$]/.test(codeBeforeSlash[index])) {
+    return false;
+  }
+  const end = index + 1;
+  while (index >= 0 && /[A-Za-z0-9_$]/.test(codeBeforeSlash[index])) {
+    index -= 1;
+  }
+  return regexPrefixKeywords.has(codeBeforeSlash.slice(index + 1, end));
+};
+
 const stripStringsAndComments = (source) => {
   let result = "";
   let state = "code";
   let quote = "";
   let escaped = false;
+  let inRegexCharacterClass = false;
 
   for (let index = 0; index < source.length; index += 1) {
     const character = source[index];
@@ -153,6 +209,25 @@ const stripStringsAndComments = (source) => {
       }
       continue;
     }
+    if (state === "regex") {
+      result += masked;
+      if (character === "\n") {
+        state = "code";
+        escaped = false;
+        inRegexCharacterClass = false;
+      } else if (escaped) {
+        escaped = false;
+      } else if (character === "\\") {
+        escaped = true;
+      } else if (character === "[") {
+        inRegexCharacterClass = true;
+      } else if (character === "]") {
+        inRegexCharacterClass = false;
+      } else if (character === "/" && !inRegexCharacterClass) {
+        state = "code";
+      }
+      continue;
+    }
     if (character === "/" && next === "/") {
       result += "  ";
       index += 1;
@@ -163,6 +238,13 @@ const stripStringsAndComments = (source) => {
       result += "  ";
       index += 1;
       state = "block-comment";
+      continue;
+    }
+    if (character === "/" && next !== "=" && startsRegexLiteral(result)) {
+      result += " ";
+      state = "regex";
+      escaped = false;
+      inRegexCharacterClass = false;
       continue;
     }
     if (character === '"' || character === "'" || character === "`") {
@@ -292,7 +374,7 @@ const criticalReasons = (diff) => {
         signals.qualityGate,
         levels.critical,
         "package.json",
-        "test・test:*・typecheck・lint・precheck script を変更",
+        "test・test:*・typecheck・lint・depcruise・precheck script を変更",
       ),
     );
   }

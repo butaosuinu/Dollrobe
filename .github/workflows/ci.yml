@@ -65,6 +65,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm i18n:compile
       - run: pnpm test
+      - run: pnpm test:review-risk
 
   build:
     name: Build

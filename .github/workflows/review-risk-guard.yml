@@ -7,7 +7,6 @@ name: review-risk-guard
 
 on:
   pull_request_target:
-    branches: [main]
     types: [opened, synchronize, reopened, edited]
 
 permissions:
@@ -35,9 +34,18 @@ jobs:
       - name: Detect self-modification
         id: guard
         env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
+          if [ "$BASE_REF" != "main" ]; then
+            echo "target=false" >> "$GITHUB_OUTPUT"
+            echo "self=false" >> "$GITHUB_OUTPUT"
+            echo "conflict=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "target=true" >> "$GITHUB_OUTPUT"
           git fetch origin "$HEAD_SHA"
           base="$(git merge-base HEAD FETCH_HEAD)"
           if ! git diff --quiet "$base" FETCH_HEAD -- \
@@ -63,8 +71,10 @@ jobs:
             echo "conflict=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Clear stale normal result while conflicting
-        if: steps.guard.outputs.conflict == 'true'
+      - name: Clear stale normal result outside main or while conflicting
+        if: >-
+          steps.guard.outputs.target != 'true' ||
+          steps.guard.outputs.conflict == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -88,7 +98,9 @@ jobs:
           fi
 
       - name: Apply review:critical label
-        if: steps.guard.outputs.self == 'true'
+        if: >-
+          steps.guard.outputs.target == 'true' &&
+          steps.guard.outputs.self == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
