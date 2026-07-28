@@ -189,6 +189,11 @@ test("static import された test alias の skip・only は critical", () => {
       'import { test as authedTest } from "./fixtures/auth";',
       'authedTest.describe.only("focused", fn);',
     ],
+    ['import * as vitest from "vitest";', 'vitest.test.skip("later", fn);'],
+    [
+      'import * as playwright from "@playwright/test";',
+      'playwright.test.describe.only("focused", fn);',
+    ],
   ]) {
     const report = evaluate(
       diff({
@@ -215,6 +220,22 @@ test("static import のない任意 identifier の skip は無効化として扱
         "src/lib/new.test.ts": [
           "const base = createBuilder();",
           'base.skip("not a test", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("test module 以外の namespace は test root として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'import * as helper from "./helper";',
+          'helper.test.skip("not a test API", fn);',
         ],
       },
     }),
@@ -350,6 +371,36 @@ test("skipIf false は無効化として扱わない", () => {
   );
   assert.equal(report.level, levels.low);
   assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("runIf true は無効化として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": ['test.runIf(true)("enabled", () => {});'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("runIf false・条件式は critical", () => {
+  for (const condition of ["false", "process.env.CI"]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [
+            `test.runIf(${condition})("conditionally enabled", fn);`,
+          ],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, condition);
+    assert.equal(hasSignal(report, signals.testDisabled), true, condition);
+  }
 });
 
 test("Playwright の skip・fixme false は無効化として扱わない", () => {

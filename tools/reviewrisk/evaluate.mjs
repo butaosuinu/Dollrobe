@@ -430,8 +430,14 @@ const canonicalTestRoots = [
   "fdescribe",
 ];
 
-const importedTestAliases = (source) => {
-  const aliases = new Set();
+const namespaceTestModules = new Set([
+  "@playwright/test",
+  "node:test",
+  "vitest",
+]);
+
+const importedTestRoots = (source) => {
+  const roots = new Map();
   const importPattern =
     /\bimport\s*\{([\s\S]*?)\}\s*from\s*(["'])[^"'\r\n]+\2/g;
   for (const match of source.matchAll(importPattern)) {
@@ -440,17 +446,33 @@ const importedTestAliases = (source) => {
         specifier,
       );
       if (aliasMatch !== null) {
-        aliases.add(aliasMatch[1] ?? "test");
+        roots.set(aliasMatch[1] ?? "test", "test");
       }
     }
   }
-  return aliases;
+
+  const namespacePattern =
+    /\bimport\s*\*\s*as\s+([A-Za-z_$][\w$]*)\s*from\s*(["'])([^"'\r\n]+)\2/g;
+  for (const match of source.matchAll(namespacePattern)) {
+    const namespace = match[1];
+    const moduleName = match[3];
+    if (!namespaceTestModules.has(moduleName)) {
+      continue;
+    }
+    roots.set(`${namespace}.test`, "test");
+    if (moduleName !== "@playwright/test") {
+      roots.set(`${namespace}.it`, "it");
+      roots.set(`${namespace}.describe`, "describe");
+      roots.set(`${namespace}.suite`, "describe");
+    }
+  }
+  return roots;
 };
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const testRootPatternFor = (aliases) => {
-  const roots = [...new Set([...canonicalTestRoots, ...aliases])]
+const testRootPatternFor = (importedRoots) => {
+  const roots = [...new Set([...canonicalTestRoots, ...importedRoots.keys()])]
     .sort((left, right) => right.length - left.length)
     .map(escapeRegExp)
     .join("|");
@@ -458,7 +480,7 @@ const testRootPatternFor = (aliases) => {
 };
 
 const staticBracketModifier = (source, start, end) => {
-  const match = /^(["'])(skip|only|fixme|todo|skipIf)\1$/.exec(
+  const match = /^(["'])(skip|only|fixme|todo|skipIf|runIf)\1$/.exec(
     source.slice(start, end).trim(),
   );
   return match?.[2];
@@ -466,9 +488,11 @@ const staticBracketModifier = (source, start, end) => {
 
 const parseTestCalls = (source) => {
   const structuralSource = stripStringsAndComments(source);
-  const aliases = importedTestAliases(source);
+  const importedRoots = importedTestRoots(source);
   const calls = [];
-  for (const match of structuralSource.matchAll(testRootPatternFor(aliases))) {
+  for (const match of structuralSource.matchAll(
+    testRootPatternFor(importedRoots),
+  )) {
     const root = match[1];
     let cursor = skipWhitespace(
       structuralSource,
@@ -576,7 +600,7 @@ const parseTestCalls = (source) => {
     });
     calls.push({
       root,
-      isTestAlias: aliases.has(root),
+      importedRoot: importedRoots.get(root),
       modifiers,
       modifierArguments,
       openingIndex,
@@ -588,8 +612,9 @@ const parseTestCalls = (source) => {
 };
 
 const normalizedTestRoot = (call) => {
+  const sourceRoot = call.importedRoot ?? call.root;
   let root;
-  switch (call.root) {
+  switch (sourceRoot) {
     case "xit":
     case "fit":
       root = "it";
@@ -604,7 +629,7 @@ const normalizedTestRoot = (call) => {
       root = "describe";
       break;
     default:
-      root = call.isTestAlias ? "test" : call.root;
+      root = sourceRoot;
       break;
   }
   return root === "test" && call.modifiers.includes("describe")
@@ -833,6 +858,13 @@ const disableModesForCall = ({ call, structuralSource }) => {
         modes.add(modifier);
       }
     }
+    if (modifier === "runIf") {
+      const condition =
+        call.modifierArguments.get(modifier)?.[0]?.structural.trim() ?? "";
+      if (condition !== "true") {
+        modes.add(modifier);
+      }
+    }
   }
   for (const argument of call.arguments.slice(0, 2)) {
     for (const mode of activeOptionModes({ argument, structuralSource })) {
@@ -876,6 +908,7 @@ const testCallDescriptors = (source) => {
       }),
     ];
     descriptors.push({
+      root,
       modes,
       title,
       callbackIdentity,
@@ -935,6 +968,46 @@ const addsTestDisableFingerprint = (beforeSource, afterSource) => {
   return false;
 };
 
+const removesTestCallFingerprint = (beforeSource, afterSource) => {
+  const before = testCallDescriptors(beforeSource).filter(
+    ({ root }) => root === "test" || root === "it",
+  );
+  const after = testCallDescriptors(afterSource)
+    .filter(({ root }) => root === "test" || root === "it")
+    .map((descriptor) => ({ ...descriptor, used: false }));
+  const unmatched = [];
+
+  for (const descriptor of before) {
+    const exactMatch = after.find(
+      (candidate) =>
+        !candidate.used &&
+        candidate.root === descriptor.root &&
+        candidate.title === descriptor.title &&
+        candidate.callbackIdentity === descriptor.callbackIdentity,
+    );
+    if (exactMatch === undefined) {
+      unmatched.push(descriptor);
+    } else {
+      exactMatch.used = true;
+    }
+  }
+
+  for (const descriptor of unmatched) {
+    const positionalMatch = after.find(
+      (candidate) =>
+        !candidate.used &&
+        candidate.positionalIdentity === descriptor.positionalIdentity &&
+        (candidate.title === descriptor.title ||
+          candidate.callbackIdentity === descriptor.callbackIdentity),
+    );
+    if (positionalMatch === undefined) {
+      return true;
+    }
+    positionalMatch.used = true;
+  }
+  return false;
+};
+
 const addsTestDisablePattern = (diff, file) => {
   const afterSource = diff.afterContents?.get(file.path);
   if (afterSource === undefined) {
@@ -946,6 +1019,20 @@ const addsTestDisablePattern = (diff, file) => {
     ? (diff.beforeContents?.get(file.path) ?? "")
     : "";
   return addsTestDisableFingerprint(beforeSource, afterSource);
+};
+
+const removesTestCallPattern = (diff, file) => {
+  const oldPath = file.oldPath || file.path;
+  if (!isTestFile(oldPath)) {
+    return false;
+  }
+  const beforeSource = diff.beforeContents?.get(file.path);
+  const afterSource = diff.afterContents?.get(file.path);
+  return (
+    beforeSource !== undefined &&
+    afterSource !== undefined &&
+    removesTestCallFingerprint(beforeSource, afterSource)
+  );
 };
 
 const isRecord = (value) =>
@@ -1021,7 +1108,8 @@ const criticalReasons = (diff) => {
     );
   }
   for (const file of diff.files) {
-    if (isDeletedOrMovedOut(file, isTestFile)) {
+    const losesTestFile = isDeletedOrMovedOut(file, isTestFile);
+    if (losesTestFile) {
       reasons.push(
         reason(
           signals.testDeleted,
@@ -1032,6 +1120,15 @@ const criticalReasons = (diff) => {
             : file.status === "R"
               ? "rename でテスト形状を喪失"
               : "type change でテストファイル実体を喪失",
+        ),
+      );
+    } else if (removesTestCallPattern(diff, file)) {
+      reasons.push(
+        reason(
+          signals.testDeleted,
+          levels.critical,
+          file.path,
+          "テストファイル内の test case を削除・別 case へ差し替え",
         ),
       );
     }

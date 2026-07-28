@@ -48,9 +48,9 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 
 | ID                          | Level    | Condition                                                                             |
 | --------------------------- | -------- | ------------------------------------------------------------------------------------- |
-| S1-test-deleted             | critical | test file の削除、rename による test suffix の喪失、非 regular file への type change  |
+| S1-test-deleted             | critical | test file・test case の削除、test suffix の喪失、非 regular file への type change     |
 | S2-test-support-deleted     | critical | test runner config、`src/test`、Workers test harness、E2E fixture/helper の削除・移動 |
-| S3-test-disabled-or-focused | critical | test API の skip/fixme/todo/only、x/f prefix の追加・有効化・差し替え                 |
+| S3-test-disabled-or-focused | critical | test API の skip/fixme/todo/only/runIf、x/f prefix の追加・有効化・差し替え           |
 | S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更                          |
 | S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                                      |
 | S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                                    |
