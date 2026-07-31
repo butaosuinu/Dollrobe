@@ -832,6 +832,24 @@ test("イコールから始まる正規表現と除算代入後の skip を検�
   }
 });
 
+test("制御文直後の正規表現後にある test skip を検出する", () => {
+  for (const statement of [
+    'if (enabled) /foo=/.test(value); test.skip("later", fn);',
+    'while (enabled) /foo=/.test(value); test.skip("later", fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
+});
+
 test("postfix 演算後の除算に続く test skip を検出する", () => {
   const report = evaluate(
     diff({

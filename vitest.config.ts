@@ -5,6 +5,17 @@ import {
   cloudflareTest,
   readD1Migrations,
 } from "@cloudflare/vitest-pool-workers";
+import { unstable_readConfig } from "wrangler";
+
+const wranglerConfig = unstable_readConfig(
+  { config: "./wrangler.jsonc" },
+  { hideWarnings: true },
+);
+const compatibilityDate = wranglerConfig.compatibility_date;
+
+if (compatibilityDate === undefined) {
+  throw new Error("wrangler.jsonc must define compatibility_date");
+}
 
 const linguiMacroPlugin = (): Plugin => {
   const macroPattern = /@lingui\/(core|react)\/macro/;
@@ -99,7 +110,8 @@ export default defineConfig({
             const migrations = await readD1Migrations(migrationsPath);
             return {
               miniflare: {
-                compatibilityDate: "2026-07-29",
+                compatibilityDate,
+                compatibilityFlags: wranglerConfig.compatibility_flags,
                 d1Databases: ["DB"],
                 kvNamespaces: ["KV"],
                 r2Buckets: ["BUCKET"],

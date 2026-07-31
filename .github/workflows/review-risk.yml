@@ -107,15 +107,17 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           LEVEL: ${{ steps.guard.outputs.self == 'true' && 'critical' || steps.risk.outcome == 'success' && steps.risk.outputs.level || 'critical' }}
           EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           set -euo pipefail
 
           current="$(gh api "repos/$GH_REPO/pulls/$PR" \
-            --jq '[.base.ref, .head.sha, .head.repo.full_name] | @tsv')"
-          expected="$(printf '%s\t%s\t%s' \
-            "$EXPECTED_BASE_REF" "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+          expected="$(printf '%s\t%s\t%s\t%s' \
+            "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+            "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
           if [ "$current" != "$expected" ]; then
             echo "Skipping stale label publish for $EXPECTED_HEAD_SHA"
             exit 0
@@ -147,15 +149,17 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           OUTPUT_DIR: ${{ steps.output.outputs.dir }}
           EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           set -euo pipefail
 
           current="$(gh api "repos/$GH_REPO/pulls/$PR" \
-            --jq '[.base.ref, .head.sha, .head.repo.full_name] | @tsv')"
-          expected="$(printf '%s\t%s\t%s' \
-            "$EXPECTED_BASE_REF" "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+          expected="$(printf '%s\t%s\t%s\t%s' \
+            "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+            "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
           if [ "$current" != "$expected" ]; then
             echo "Skipping stale comment publish for $EXPECTED_HEAD_SHA"
             exit 0

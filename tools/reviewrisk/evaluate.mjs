@@ -186,6 +186,37 @@ const regexPrefixKeywords = new Set([
   "void",
   "yield",
 ]);
+const controlStatementKeywords = new Set(["for", "if", "while", "with"]);
+
+const closesControlStatement = (source, closingIndex) => {
+  let depth = 0;
+  for (let index = closingIndex; index >= 0; index -= 1) {
+    if (source[index] === ")") {
+      depth += 1;
+      continue;
+    }
+    if (source[index] !== "(") {
+      continue;
+    }
+    depth -= 1;
+    if (depth !== 0) {
+      continue;
+    }
+    let keywordEnd = index;
+    let keywordStart = index - 1;
+    while (keywordStart >= 0 && /\s/.test(source[keywordStart])) {
+      keywordStart -= 1;
+      keywordEnd -= 1;
+    }
+    while (keywordStart >= 0 && /[A-Za-z]/.test(source[keywordStart])) {
+      keywordStart -= 1;
+    }
+    return controlStatementKeywords.has(
+      source.slice(keywordStart + 1, keywordEnd),
+    );
+  }
+  return false;
+};
 
 const startsRegexLiteral = (codeBeforeSlash) => {
   let index = codeBeforeSlash.length - 1;
@@ -203,6 +234,12 @@ const startsRegexLiteral = (codeBeforeSlash) => {
     /[A-Za-z0-9_$)\]}]/.test(codeBeforeSlash[index - 1] ?? "")
   ) {
     return false;
+  }
+  if (
+    codeBeforeSlash[index] === ")" &&
+    closesControlStatement(codeBeforeSlash, index)
+  ) {
+    return true;
   }
   if (index < 0 || regexPrefixCharacters.has(codeBeforeSlash[index])) {
     return true;

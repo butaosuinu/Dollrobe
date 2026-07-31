@@ -11,6 +11,9 @@ const readWorkflow = (name) =>
 const readReviewRiskSource = (name) =>
   readFile(new URL(name, import.meta.url), "utf8");
 
+const readRootSource = (name) =>
+  readFile(new URL(`../../${name}`, import.meta.url), "utf8");
+
 const readPackage = async () =>
   JSON.parse(
     await readFile(new URL("../../package.json", import.meta.url), "utf8"),
@@ -44,7 +47,14 @@ test("review-risk rechecks the live PR before each publish step", async () => {
     source.slice(commentIndex),
   ]) {
     assert.match(step, /repos\/\$GH_REPO\/pulls\/\$PR/);
-    assert.match(step, /\.base\.ref, \.head\.sha, \.head\.repo\.full_name/);
+    assert.match(
+      step,
+      /\.base\.ref, \.base\.sha, \.head\.sha, \.head\.repo\.full_name/,
+    );
+    assert.match(
+      step,
+      /EXPECTED_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/,
+    );
     assert.match(
       step,
       /EXPECTED_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/,
@@ -52,6 +62,18 @@ test("review-risk rechecks the live PR before each publish step", async () => {
     assert.match(step, /if \[ "\$current" != "\$expected" \]/);
     assert.match(step, /exit 0/);
   }
+});
+
+test("Workers test は deploy compatibility 設定を再利用する", async () => {
+  const source = await readRootSource("vitest.config.ts");
+
+  assert.match(source, /unstable_readConfig\(/);
+  assert.match(source, /config: "\.\/wrangler\.jsonc"/);
+  assert.match(source, /compatibilityDate,\s*compatibilityFlags:/);
+  assert.match(
+    source,
+    /compatibilityFlags: wranglerConfig\.compatibility_flags/,
+  );
 });
 
 test("review-risk publishes a fail-closed result when the judge fails", async () => {
