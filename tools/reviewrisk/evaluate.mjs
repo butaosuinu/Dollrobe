@@ -89,9 +89,9 @@ const invariantPatterns = [
 ];
 
 const qualityGatePattern =
-  /"(?:scripts|test(?::[^"]+)?|build(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)"\s*:/;
+  /"(?:scripts|test(?::[^"]+)?|build(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?|review-risk)"\s*:/;
 const qualityScriptNamePattern =
-  /^(?:test(?::.+)?|build(?::.+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?)$/;
+  /^(?:test(?::.+)?|build(?::.+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?|review-risk)$/;
 
 const touches = (file, pathOrPrefix) =>
   file.path.startsWith(pathOrPrefix) ||
@@ -1291,59 +1291,118 @@ const scopeRangeForOpening = (scopes, openingIndex) => {
     : { start: scope.openingIndex, end: scope.closingIndex };
 };
 
-const parameterBindingsForScopes = ({ structuralSource, scopes }) => {
-  const bindings = [];
-  const addBindings = ({
-    pattern,
-    parameterIndex,
-    nameIndex,
-    excludedNames = new Set(),
-  }) => {
-    for (const match of structuralSource.matchAll(pattern)) {
-      if (
-        nameIndex !== undefined &&
-        excludedNames.has(match[nameIndex] ?? "")
-      ) {
-        continue;
-      }
-      const openingIndex = (match.index ?? 0) + match[0].lastIndexOf("{");
-      const range = scopeRangeForOpening(scopes, openingIndex);
-      if (range === undefined) {
-        continue;
-      }
-      for (const name of parameterBindingNames(match[parameterIndex] ?? "")) {
-        bindings.push({
-          name,
-          declarationIndex: match.index ?? 0,
-          range,
-        });
-      }
-    }
-  };
+const parameterBodyAfter = ({ structuralSource, closingIndex }) => {
+  let cursor = skipWhitespace(structuralSource, closingIndex + 1);
+  if (structuralSource.startsWith("=>", cursor)) {
+    cursor = skipWhitespace(structuralSource, cursor + 2);
+    return structuralSource[cursor] === "{"
+      ? { openingIndex: cursor, arrow: true }
+      : undefined;
+  }
+  if (structuralSource[cursor] === "{") {
+    return { openingIndex: cursor, arrow: false };
+  }
+  if (structuralSource[cursor] !== ":") {
+    return undefined;
+  }
 
-  addBindings({
-    pattern:
-      /\bfunction(?:\s*\*)?(?:\s+[A-Za-z_$][\w$]*)?\s*\(([^()]*)\)\s*\{/g,
-    parameterIndex: 1,
-  });
-  addBindings({
-    pattern: /\(([^()]*)\)\s*=>\s*\{/g,
-    parameterIndex: 1,
-  });
-  addBindings({
-    pattern: /\b([A-Za-z_$][\w$]*)\s*=>\s*\{/g,
-    parameterIndex: 1,
-  });
-  addBindings({
-    pattern: /\b([A-Za-z_$][\w$]*)\s*\(([^()]*)\)\s*\{/g,
-    parameterIndex: 2,
-    nameIndex: 1,
-    excludedNames: new Set(["catch", "for", "if", "switch", "while", "with"]),
-  });
-  addBindings({
-    pattern: /\bcatch\s*\(([^()]*)\)\s*\{/g,
-    parameterIndex: 1,
-  });
+  for (let index = cursor + 1; index < structuralSource.length; index += 1) {
+    if (structuralSource.startsWith("=>", index)) {
+      const openingIndex = skipWhitespace(structuralSource, index + 2);
+      return structuralSource[openingIndex] === "{"
+        ? { openingIndex, arrow: true }
+        : undefined;
+    }
+    if (structuralSource[index] !== "{") {
+      continue;
+    }
+    const closingType = findMatchingDelimiter({
+      source: structuralSource,
+      openingIndex: index,
+      opening: "{",
+      closing: "}",
+    });
+    if (closingType === -1) {
+      return undefined;
+    }
+    const afterType = skipWhitespace(structuralSource, closingType + 1);
+    if (structuralSource[afterType] === "{") {
+      return { openingIndex: afterType, arrow: false };
+    }
+    if (structuralSource.startsWith("=>", afterType)) {
+      const openingIndex = skipWhitespace(structuralSource, afterType + 2);
+      return structuralSource[openingIndex] === "{"
+        ? { openingIndex, arrow: true }
+        : undefined;
+    }
+    return { openingIndex: index, arrow: false };
+  }
+  return undefined;
+};
+
+const callableParameterLists = ({ structuralSource, scopes }) => {
+  const lists = [];
+  const excludedNames = new Set(["for", "if", "switch", "while", "with"]);
+  for (
+    let openingIndex = 0;
+    openingIndex < structuralSource.length;
+    openingIndex += 1
+  ) {
+    if (structuralSource[openingIndex] !== "(") {
+      continue;
+    }
+    const closingIndex = findMatchingDelimiter({
+      source: structuralSource,
+      openingIndex,
+      opening: "(",
+      closing: ")",
+    });
+    if (closingIndex === -1) {
+      continue;
+    }
+    const body = parameterBodyAfter({ structuralSource, closingIndex });
+    if (body === undefined) {
+      continue;
+    }
+    const prefix = structuralSource.slice(0, openingIndex);
+    const callableName = /([A-Za-z_$][\w$]*)\s*$/.exec(prefix)?.[1];
+    const functionExpression =
+      /\bfunction(?:\s*\*)?(?:\s+[A-Za-z_$][\w$]*)?\s*$/.test(prefix);
+    if (
+      !body.arrow &&
+      !functionExpression &&
+      (callableName === undefined || excludedNames.has(callableName))
+    ) {
+      continue;
+    }
+    const range = scopeRangeForOpening(scopes, body.openingIndex);
+    if (range !== undefined) {
+      lists.push({ openingIndex, closingIndex, range });
+    }
+  }
+  return lists;
+};
+
+const parameterBindingsForScopes = ({ structuralSource, scopes }) => {
+  const bindings = callableParameterLists({ structuralSource, scopes }).flatMap(
+    ({ openingIndex, closingIndex, range }) =>
+      parameterBindingNames(
+        structuralSource.slice(openingIndex + 1, closingIndex),
+      ).map((name) => ({ name, declarationIndex: openingIndex, range })),
+  );
+  for (const match of structuralSource.matchAll(
+    /\b([A-Za-z_$][\w$]*)\s*=>\s*\{/g,
+  )) {
+    const openingIndex = (match.index ?? 0) + match[0].lastIndexOf("{");
+    const range = scopeRangeForOpening(scopes, openingIndex);
+    if (range !== undefined) {
+      bindings.push({
+        name: match[1],
+        declarationIndex: match.index ?? 0,
+        range,
+      });
+    }
+  }
   return bindings;
 };
 
@@ -2124,9 +2183,23 @@ const staticOptionBindings = ({ source, structuralSource }) => {
         opening: "{",
         closing: "}",
       });
+      const staticTypeSuffixPattern =
+        /^(?:as\s+(?:const\b|[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)|satisfies\s+[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)/;
+      let initializerEnd = objectEnd + 1;
+      let suffix;
+      while (objectEnd !== -1) {
+        initializerEnd = skipWhitespace(structuralSource, initializerEnd);
+        suffix = staticTypeSuffixPattern.exec(
+          structuralSource.slice(initializerEnd),
+        );
+        if (suffix === null) {
+          break;
+        }
+        initializerEnd += suffix[0].length;
+      }
       if (
         objectEnd !== -1 &&
-        endsStaticAliasInitializer(structuralSource, objectEnd + 1)
+        endsStaticAliasInitializer(structuralSource, initializerEnd)
       ) {
         argument = argumentRange({
           source,

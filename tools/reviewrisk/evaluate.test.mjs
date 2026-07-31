@@ -572,6 +572,16 @@ test("ローカル binding で shadow された test root は test API として
   for (const source of [
     ["const test = createReporter();", 'test.skip("not a test API", fn);'],
     ["function inspect(test) {", '  test.only("not a test API", fn);', "}"],
+    [
+      "function inspect(test = createReporter()) {",
+      '  test.only("not a test API", fn);',
+      "}",
+    ],
+    [
+      "const inspect = (test = createReporter()) => {",
+      '  test.only("not a test API", fn);',
+      "};",
+    ],
     ["function inspect([test]) {", '  test.only("not a test API", fn);', "}"],
     [
       "function inspect([, { reporter: test }]) {",
@@ -723,6 +733,14 @@ test("const alias の test options は静的に解決する", () => {
       "function register() {",
       '  test("later", options, () => {});',
       "}",
+    ],
+    [
+      "const options = { skip: true } as const;",
+      'test("later", options, () => {});',
+    ],
+    [
+      "const options = { only: process.env.CI } satisfies TestOptions;",
+      'test("focused", options, () => {});',
     ],
   ]) {
     const report = evaluate(
@@ -1535,6 +1553,31 @@ test("depcruise script の変更は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.qualityGate), true);
+});
+
+test("review-risk entry script の追加・削除・変更は critical", () => {
+  for (const [beforeScripts, afterScripts] of [
+    [{ "review-risk": "node tools/reviewrisk/cli.mjs" }, {}],
+    [{}, { "review-risk": "node tools/reviewrisk/cli.mjs" }],
+    [
+      { "review-risk": "node tools/reviewrisk/cli.mjs" },
+      { "review-risk": "true" },
+    ],
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "package.json" })],
+        beforeContents: {
+          "package.json": JSON.stringify({ scripts: beforeScripts }),
+        },
+        afterContents: {
+          "package.json": JSON.stringify({ scripts: afterScripts }),
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical);
+    assert.equal(hasSignal(report, signals.qualityGate), true);
+  }
 });
 
 test("CI build scripts の変更は critical", () => {

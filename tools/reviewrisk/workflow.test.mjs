@@ -313,6 +313,10 @@ test("base guard publishes a fail-closed result when detection fails", async () 
 
   const reconcileStep = source.slice(reconcileIndex, finalFailureIndex);
   assert.match(reconcileStep, /always\(\)/);
+  assert.match(
+    reconcileStep,
+    /github\.event\.pull_request\.base\.ref != 'main'/,
+  );
   assert.match(reconcileStep, /steps\.fallback\.outcome == 'success'/);
   assert.match(reconcileStep, /SELF:.*steps\.fallback\.outcome == 'success'/);
 

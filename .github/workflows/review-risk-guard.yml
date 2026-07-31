@@ -234,6 +234,7 @@ jobs:
         if: >-
           always() &&
           (
+            github.event.pull_request.base.ref != 'main' ||
             steps.guard.outcome == 'success' ||
             steps.fallback.outcome == 'success'
           )
