@@ -191,6 +191,14 @@ const exactRules = new Map([
     "workers/src/services/admin-service.ts",
     rule("admin-service", classes.high, "admin 認可・監査操作"),
   ],
+  [
+    "workers/src/services/scan-service.ts",
+    rule("scan-service", classes.high, "収納 scan・確認履歴・信頼度更新"),
+  ],
+  [
+    "workers/src/services/sync-service.ts",
+    rule("sync-service", classes.high, "offline pull/push・queue 処理順序"),
+  ],
 ]);
 
 const marketingAssetRule = rule(
@@ -199,6 +207,12 @@ const marketingAssetRule = rule(
   "LP の静的画像",
 );
 const marketingAssetPattern = /^public\/lp\/.+\.(?:avif|gif|jpe?g|png|webp)$/i;
+const nextRouteHandlerRule = rule(
+  "next-route-handler",
+  classes.high,
+  "Next.js user-data HTTP boundary",
+);
+const nextRouteHandlerPattern = /^src\/app\/(?:.+\/)?route\.ts$/;
 
 const prefixRules = [
   [
@@ -370,6 +384,9 @@ export const classifyPath = (path) => {
   if (marketingAssetPattern.test(path)) {
     return marketingAssetRule;
   }
+  if (nextRouteHandlerPattern.test(path)) {
+    return nextRouteHandlerRule;
+  }
   const match = prefixRules.find(([prefix]) => path.startsWith(prefix));
   return match?.[1];
 };
@@ -378,6 +395,7 @@ export const allRuleIds = () =>
   [
     ...exactRules.values(),
     marketingAssetRule,
+    nextRouteHandlerRule,
     ...prefixRules.map(([, prefixRule]) => prefixRule),
     rule("test-file", classes.application, "自動 test"),
   ]

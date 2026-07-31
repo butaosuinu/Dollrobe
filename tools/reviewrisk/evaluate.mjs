@@ -616,7 +616,7 @@ const testRootPatternFor = (importedRoots) => {
     .sort((left, right) => right.length - left.length)
     .map(escapeRegExp)
     .join("|");
-  return new RegExp(`(?<![\\w$.])\\b(${roots})\\b`, "g");
+  return new RegExp(`(?<![\\w$.])(${roots})(?![\\w$])`, "g");
 };
 
 const staticBracketMember = (source, start, end) => {
@@ -624,6 +624,150 @@ const staticBracketMember = (source, start, end) => {
     source.slice(start, end).trim(),
   );
   return match?.[2];
+};
+
+const staticMemberPathAt = ({ source, structuralSource, start }) => {
+  const rootMatch = /^[A-Za-z_$][\w$]*/.exec(structuralSource.slice(start));
+  if (rootMatch === null) {
+    return undefined;
+  }
+  const members = [rootMatch[0]];
+  let cursor = start + rootMatch[0].length;
+  while (cursor < structuralSource.length) {
+    cursor = skipWhitespace(structuralSource, cursor);
+    if (structuralSource[cursor] === ".") {
+      const memberStart = skipWhitespace(structuralSource, cursor + 1);
+      const memberMatch = /^[A-Za-z_$][\w$]*/.exec(
+        structuralSource.slice(memberStart),
+      );
+      if (memberMatch === null) {
+        break;
+      }
+      members.push(memberMatch[0]);
+      cursor = memberStart + memberMatch[0].length;
+      continue;
+    }
+    if (structuralSource[cursor] !== "[") {
+      break;
+    }
+    const closingBracket = findMatchingDelimiter({
+      source: structuralSource,
+      openingIndex: cursor,
+      opening: "[",
+      closing: "]",
+    });
+    if (closingBracket === -1) {
+      break;
+    }
+    const member = staticBracketMember(source, cursor + 1, closingBracket);
+    if (member === undefined) {
+      break;
+    }
+    members.push(member);
+    cursor = closingBracket + 1;
+  }
+  return { path: members.join("."), end: cursor };
+};
+
+const aliasableTestMembers = new Set([
+  ...canonicalTestRoots,
+  "fixme",
+  "only",
+  "skip",
+  "todo",
+]);
+
+const resolvedTestRoot = (roots, path) => {
+  const direct = roots.get(path);
+  if (direct !== undefined) {
+    return direct;
+  }
+  if (canonicalTestRoots.includes(path)) {
+    return path;
+  }
+  const separator = path.lastIndexOf(".");
+  if (separator === -1) {
+    return undefined;
+  }
+  const base = resolvedTestRoot(roots, path.slice(0, separator));
+  const member = path.slice(separator + 1);
+  return base !== undefined && aliasableTestMembers.has(member)
+    ? member
+    : undefined;
+};
+
+const endsStaticAliasInitializer = (structuralSource, end) => {
+  for (let index = end; index < structuralSource.length; index += 1) {
+    if (structuralSource[index] === "\n") {
+      return true;
+    }
+    if (!/\s/.test(structuralSource[index])) {
+      return structuralSource[index] === ";" || structuralSource[index] === ",";
+    }
+  }
+  return true;
+};
+
+const staticTestRootAliases = ({ source, structuralSource, importedRoots }) => {
+  const roots = new Map(importedRoots);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const assignmentPattern = /\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*/g;
+    for (const match of structuralSource.matchAll(assignmentPattern)) {
+      const localName = match[1];
+      const initializer = staticMemberPathAt({
+        source,
+        structuralSource,
+        start: (match.index ?? 0) + match[0].length,
+      });
+      if (
+        initializer === undefined ||
+        !endsStaticAliasInitializer(structuralSource, initializer.end)
+      ) {
+        continue;
+      }
+      const root = resolvedTestRoot(roots, initializer.path);
+      if (root !== undefined && !roots.has(localName)) {
+        roots.set(localName, root);
+        changed = true;
+      }
+    }
+
+    const destructuringPattern = /\bconst\s*\{([^{}]*)\}\s*=\s*/g;
+    for (const match of structuralSource.matchAll(destructuringPattern)) {
+      const initializer = staticMemberPathAt({
+        source,
+        structuralSource,
+        start: (match.index ?? 0) + match[0].length,
+      });
+      if (
+        initializer === undefined ||
+        !endsStaticAliasInitializer(structuralSource, initializer.end)
+      ) {
+        continue;
+      }
+      for (const specifier of match[1].split(",")) {
+        const aliasMatch =
+          /^\s*([A-Za-z_$][\w$]*)(?:\s*:\s*([A-Za-z_$][\w$]*))?\s*$/.exec(
+            specifier,
+          );
+        if (aliasMatch === null) {
+          continue;
+        }
+        const root = resolvedTestRoot(
+          roots,
+          `${initializer.path}.${aliasMatch[1]}`,
+        );
+        const localName = aliasMatch[2] ?? aliasMatch[1];
+        if (root !== undefined && !roots.has(localName)) {
+          roots.set(localName, root);
+          changed = true;
+        }
+      }
+    }
+  }
+  return roots;
 };
 
 const groupingParenthesesBefore = (source, rootIndex) => {
@@ -696,9 +840,14 @@ const parseTestCalls = (source) => {
     structuralSource,
     stringLiteralEnds,
   });
+  const testRoots = staticTestRootAliases({
+    source,
+    structuralSource,
+    importedRoots,
+  });
   const calls = [];
   for (const match of structuralSource.matchAll(
-    testRootPatternFor(importedRoots),
+    testRootPatternFor(testRoots),
   )) {
     const root = match[1];
     let groupingDepth = groupingParenthesesBefore(
@@ -847,7 +996,7 @@ const parseTestCalls = (source) => {
     });
     calls.push({
       root,
-      importedRoot: importedRoots.get(root),
+      importedRoot: testRoots.get(root),
       modifiers,
       modifierArguments,
       openingIndex,
@@ -1102,7 +1251,7 @@ const activeOptionModeConditions = ({
       if (property !== undefined) {
         const colonIndex = skipWhitespace(structuralSource, property.end);
         if (
-          (property.key !== "skip" && property.key !== "only") ||
+          !["skip", "only", "todo"].includes(property.key) ||
           structuralSource[colonIndex] !== ":"
         ) {
           index = property.end - 1;

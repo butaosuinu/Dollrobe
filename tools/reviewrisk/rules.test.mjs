@@ -56,6 +56,33 @@ test("API key の permission・create 境界は H に分類する", () => {
   }
 });
 
+test("同期・スキャン service は H に分類する", () => {
+  for (const [path, rule] of [
+    ["workers/src/services/sync-service.ts", "sync-service"],
+    ["workers/src/services/scan-service.ts", "scan-service"],
+  ]) {
+    const actual = classifyPath(path);
+    assert.equal(actual?.class, classes.high, path);
+    assert.equal(actual?.id, rule, path);
+  }
+});
+
+test("Next.js Route Handler は H に分類する", () => {
+  for (const path of [
+    "src/app/route.ts",
+    "src/app/api/users/route.ts",
+    "src/app/dolls/[id]/route.ts",
+  ]) {
+    const actual = classifyPath(path);
+    assert.equal(actual?.class, classes.high, path);
+    assert.equal(actual?.id, "next-route-handler", path);
+  }
+
+  const page = classifyPath("src/app/api/users/page.tsx");
+  assert.equal(page?.class, classes.application);
+  assert.equal(page?.id, "app-ui");
+});
+
 test("未知の top-level path は分類しない", () => {
   assert.equal(classifyPath("new-security-config.toml"), undefined);
 });

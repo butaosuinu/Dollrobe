@@ -25,7 +25,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | ---------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 一般 README・文書                              | NONE  | `readme`, `docs-general`                                                                                                                         |
 | LP の静的画像（AVIF/GIF/JPEG/PNG/WebP）        | NONE  | `marketing-asset`                                                                                                                                |
-| 通常 app route・component・public asset        | A     | `app-ui`, `component-ui`, `public-asset`                                                                                                         |
+| 通常 app page・component・public asset         | A     | `app-ui`, `component-ui`, `public-asset`                                                                                                         |
 | i18n                                           | A     | `client-i18n`                                                                                                                                    |
 | test・test harness                             | A     | `test-file`, `client-test-support`, `worker-test-support`, `e2e-test`                                                                            |
 | admin/auth/settings UI                         | M     | `admin-ui`, `auth-ui`, `admin-component`, `auth-component`, `settings-component`                                                                 |
@@ -40,8 +40,8 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | review-risk 判定器                             | H     | `risk-tool`                                                                                                                                      |
 | client auth・API・offline state                | H     | `client-auth`, `client-api`, `client-db`, `client-store`, `client-sync`, `root-layout`, `service-worker`                                         |
 | Workers entry・auth・DB                        | H     | `worker-entry`, `worker-auth`, `worker-auth-boundary`, `worker-db`                                                                               |
-| Workers user-data / HTTP boundary              | H     | `worker-repository`, `worker-trpc`, `worker-route`, `worker-middleware`, `worker-mcp`                                                            |
-| admin service                                  | H     | `admin-service`                                                                                                                                  |
+| Next.js / Workers user-data・HTTP boundary     | H     | `next-route-handler`, `worker-repository`, `worker-trpc`, `worker-route`, `worker-middleware`, `worker-mcp`                                      |
+| admin・sync・scan service                      | H     | `admin-service`, `sync-service`, `scan-service`                                                                                                  |
 | D1 migration                                   | H     | `migration`                                                                                                                                      |
 
 ## Escalation signals

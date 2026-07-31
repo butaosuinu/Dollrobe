@@ -230,6 +230,68 @@ test("static import された test alias の skip・only は critical", () => {
   }
 });
 
+test("静的に代入した test API alias の無効化を検出する", () => {
+  for (const source of [
+    ["const skipped = test.skip;", 'skipped("later", fn);'],
+    ['const $skipped = test["skip"];', '$skipped("later", fn);'],
+    [
+      "const skipped = test.skip;",
+      "const disabled = skipped;",
+      'disabled("later", fn);',
+    ],
+    [
+      "const disabled = test.skip;",
+      "{ const disabled = test.only; }",
+      'disabled("later", fn);',
+    ],
+    ["const { skip } = test;", 'skip("later", fn);'],
+    ["const { todo: pending } = test;", 'pending("later", fn);'],
+    [
+      'import { test as base } from "./fixtures/auth";',
+      "const focused = base.only;",
+      'focused("boundary", fn);',
+    ],
+    [
+      'import * as vitest from "vitest";',
+      "const { test: check } = vitest;",
+      'check.skip("later", fn);',
+    ],
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "e2e/new.spec.ts", status: "A" })],
+        addedLines: {
+          "e2e/new.spec.ts": source,
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, source.join("\n"));
+    assert.equal(
+      hasSignal(report, signals.testDisabled),
+      true,
+      source.join("\n"),
+    );
+  }
+});
+
+test("test API 以外から代入した alias は無効化として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          "const skipped = reporter.skip;",
+          'skipped("not a test", fn);',
+          "const { only: focused } = builder;",
+          'focused("not a test", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
 test("Vitest namespace の x/f prefix alias は critical", () => {
   for (const statement of [
     'vitest.xit("later", fn);',
@@ -458,6 +520,38 @@ test("test options の skip string は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("test options の todo true・理由文字列は critical", () => {
+  for (const statement of [
+    'test("later", { todo: true }, fn);',
+    'test("later", { todo: "blocked by upstream" }, fn);',
+    'test("later", { ["todo"]: true }, fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
+});
+
+test("test options の todo false は無効化として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": ['test("enabled", { todo: false }, fn);'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
 });
 
 test("複数行の test options skip は critical", () => {
