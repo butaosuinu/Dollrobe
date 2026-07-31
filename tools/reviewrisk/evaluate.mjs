@@ -40,11 +40,33 @@ const testSupportPaths = new Set([
   "vitest.workspace.ts",
 ]);
 
-const reviewGatePrefixes = [
-  ".claude/scripts/",
-  ".claude/skills/code-review/",
-  ".dmux-hooks/",
-];
+const reviewGatePrefixes = [".claude/scripts/", ".claude/skills/code-review/"];
+
+const dmuxLifecycleHookNames = new Set([
+  "before_pane_create",
+  "pane_created",
+  "worktree_created",
+  "before_pane_close",
+  "pane_closed",
+  "before_worktree_remove",
+  "worktree_removed",
+  "pre_merge",
+  "post_merge",
+  "run_test",
+  "run_dev",
+]);
+
+const isDmuxLifecycleHook = (path) => {
+  const prefix = ".dmux-hooks/";
+  if (!path.startsWith(prefix)) {
+    return false;
+  }
+  const name = path.slice(prefix.length);
+  return !name.includes("/") && dmuxLifecycleHookNames.has(name);
+};
+
+const touchesDmuxLifecycleHook = (file) =>
+  isDmuxLifecycleHook(file.path) || isDmuxLifecycleHook(file.oldPath);
 
 const riskPaths = [
   ".github/workflows/review-risk-guard.yml",
@@ -770,6 +792,50 @@ const staticStringLiteralAt = ({
   return undefined;
 };
 
+const staticRequireModuleAt = ({
+  source,
+  structuralSource,
+  stringLiteralEnds,
+  openingIndex,
+}) => {
+  const closingIndex = findMatchingDelimiter({
+    source: structuralSource,
+    openingIndex,
+    opening: "(",
+    closing: ")",
+  });
+  if (closingIndex === -1) {
+    return undefined;
+  }
+  const moduleLiteral = staticStringLiteralAt({
+    source,
+    structuralSource,
+    stringLiteralEnds,
+    start: openingIndex + 1,
+    end: closingIndex,
+  });
+  if (
+    moduleLiteral === undefined ||
+    skipWhitespace(structuralSource, moduleLiteral.end + 1) !== closingIndex
+  ) {
+    return undefined;
+  }
+  return { value: moduleLiteral.value, end: closingIndex + 1 };
+};
+
+const addNodeTestNamespaceRoots = ({ roots, namespace, callable }) => {
+  if (callable) {
+    roots.set(namespace, "test");
+  }
+  roots.set(`${namespace}.test`, "test");
+  roots.set(`${namespace}.it`, "it");
+  roots.set(`${namespace}.describe`, "describe");
+  roots.set(`${namespace}.suite`, "describe");
+  for (const root of directNodeTestDisableRoots) {
+    roots.set(`${namespace}.${root}`, root);
+  }
+};
+
 const importedTestRoots = ({ source, structuralSource, stringLiteralEnds }) => {
   const roots = new Map();
   const defaultImportPattern =
@@ -847,8 +913,53 @@ const importedTestRoots = ({ source, structuralSource, stringLiteralEnds }) => {
       }
     }
     if (moduleName === "node:test") {
-      for (const root of directNodeTestDisableRoots) {
-        roots.set(`${namespace}.${root}`, root);
+      addNodeTestNamespaceRoots({ roots, namespace, callable: false });
+    }
+  }
+
+  const requireNamespacePattern =
+    /\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*require\s*\(/g;
+  for (const match of structuralSource.matchAll(requireNamespacePattern)) {
+    const requiredModule = staticRequireModuleAt({
+      source,
+      structuralSource,
+      stringLiteralEnds,
+      openingIndex: (match.index ?? 0) + match[0].lastIndexOf("("),
+    });
+    if (
+      requiredModule?.value === "node:test" &&
+      endsStaticAliasInitializer(structuralSource, requiredModule.end)
+    ) {
+      addNodeTestNamespaceRoots({
+        roots,
+        namespace: match[1],
+        callable: true,
+      });
+    }
+  }
+
+  const requireDestructuringPattern =
+    /\bconst\s*\{([^{}]*)\}\s*=\s*require\s*\(/g;
+  for (const match of structuralSource.matchAll(requireDestructuringPattern)) {
+    const requiredModule = staticRequireModuleAt({
+      source,
+      structuralSource,
+      stringLiteralEnds,
+      openingIndex: (match.index ?? 0) + match[0].lastIndexOf("("),
+    });
+    if (
+      requiredModule?.value !== "node:test" ||
+      !endsStaticAliasInitializer(structuralSource, requiredModule.end)
+    ) {
+      continue;
+    }
+    for (const specifier of match[1].split(",")) {
+      const aliasMatch =
+        /^\s*(test|it|describe|suite|context|xit|xdescribe|xtest|fit|fdescribe|skip|todo|only)(?:\s*:\s*([A-Za-z_$][\w$]*))?\s*$/.exec(
+          specifier,
+        );
+      if (aliasMatch !== null) {
+        roots.set(aliasMatch[2] ?? aliasMatch[1], aliasMatch[1]);
       }
     }
   }
@@ -1070,7 +1181,12 @@ const parameterBindingNames = (parameters) => {
   return names;
 };
 
-const testRootShadowRanges = ({ source, structuralSource, testRoots }) => {
+const testRootShadowRanges = ({
+  source,
+  structuralSource,
+  stringLiteralEnds,
+  testRoots,
+}) => {
   const rootNames = new Set([
     ...canonicalTestRoots,
     ...[...testRoots.keys()].map((root) => root.split(".")[0]),
@@ -1126,18 +1242,39 @@ const testRootShadowRanges = ({ source, structuralSource, testRoots }) => {
     const nameEnd =
       (match.index ?? 0) + match[0].lastIndexOf(localName) + localName.length;
     const assignmentIndex = skipWhitespace(structuralSource, nameEnd);
+    const initializerStart = skipWhitespace(
+      structuralSource,
+      assignmentIndex + 1,
+    );
     const initializer =
       structuralSource[assignmentIndex] === "="
         ? staticMemberPathAt({
             source,
             structuralSource,
-            start: skipWhitespace(structuralSource, assignmentIndex + 1),
+            start: initializerStart,
+          })
+        : undefined;
+    const requireOpeningIndex =
+      structuralSource[assignmentIndex] === "=" &&
+      structuralSource.startsWith("require", initializerStart)
+        ? skipWhitespace(structuralSource, initializerStart + "require".length)
+        : -1;
+    const requiredModule =
+      requireOpeningIndex !== -1 &&
+      structuralSource[requireOpeningIndex] === "("
+        ? staticRequireModuleAt({
+            source,
+            structuralSource,
+            stringLiteralEnds,
+            openingIndex: requireOpeningIndex,
           })
         : undefined;
     const aliasesTestRoot =
-      initializer !== undefined &&
-      endsStaticAliasInitializer(structuralSource, initializer.end) &&
-      resolvedTestRoot(testRoots, initializer.path) !== undefined;
+      (requiredModule?.value === "node:test" &&
+        endsStaticAliasInitializer(structuralSource, requiredModule.end)) ||
+      (initializer !== undefined &&
+        endsStaticAliasInitializer(structuralSource, initializer.end) &&
+        resolvedTestRoot(testRoots, initializer.path) !== undefined);
     if (!aliasesTestRoot) {
       const scope = innermostScopeAt(scopes, match.index ?? 0);
       addRange(
@@ -1271,6 +1408,7 @@ const parseTestCalls = (source) => {
   const shadowRanges = testRootShadowRanges({
     source,
     structuralSource,
+    stringLiteralEnds,
     testRoots,
   });
   const calls = [];
@@ -2380,6 +2518,7 @@ const criticalReasons = (diff) => {
     if (
       file.path === ".claude/settings.json" ||
       file.oldPath === ".claude/settings.json" ||
+      touchesDmuxLifecycleHook(file) ||
       reviewGatePrefixes.some((prefix) => touches(file, prefix))
     ) {
       reasons.push(

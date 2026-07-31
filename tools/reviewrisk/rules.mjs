@@ -27,6 +27,15 @@ const exactRules = new Map([
   ["CLAUDE.md", rule("agent-guide", classes.medium, "エージェント作業規約")],
   ["README.md", rule("readme", classes.none, "一般利用文書")],
   [
+    ".dmux-hooks/AGENTS.md",
+    rule("agent-guide", classes.medium, "エージェント作業規約"),
+  ],
+  [
+    ".dmux-hooks/CLAUDE.md",
+    rule("agent-guide", classes.medium, "エージェント作業規約"),
+  ],
+  [".dmux-hooks/README.md", rule("readme", classes.none, "一般利用文書")],
+  [
     "drizzle.config.ts",
     rule("drizzle-config", classes.high, "D1 schema・migration 生成設定"),
   ],

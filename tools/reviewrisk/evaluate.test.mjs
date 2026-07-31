@@ -412,6 +412,51 @@ test("node:test の default import alias は test root として扱う", () => {
   assert.equal(hasSignal(unrelated, signals.testDisabled), false);
 });
 
+test("CommonJS の node:test disable export と namespace alias は critical", () => {
+  for (const source of [
+    ['const { skip } = require("node:test");', 'skip("disabled", fn);'],
+    [
+      'const { only: focused } = require("node:test");',
+      'focused("boundary", fn);',
+    ],
+    [
+      'const nodeTest = require("node:test");',
+      'nodeTest.todo("disabled", fn);',
+    ],
+    [
+      'const nodeTest = require("node:test");',
+      'nodeTest.test.skip("disabled", fn);',
+    ],
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.cjs", status: "A" })],
+        addedLines: { "src/lib/new.test.cjs": source },
+      }),
+    );
+    assert.equal(report.level, levels.critical, source.join("\n"));
+    assert.equal(
+      hasSignal(report, signals.testDisabled),
+      true,
+      source.join("\n"),
+    );
+  }
+
+  const unrelated = evaluate(
+    diff({
+      files: [change({ path: "src/lib/helper.test.cjs", status: "A" })],
+      addedLines: {
+        "src/lib/helper.test.cjs": [
+          'const { skip } = require("./reporter");',
+          'skip("not a test API", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(unrelated.level, levels.low);
+  assert.equal(hasSignal(unrelated, signals.testDisabled), false);
+});
+
 test("static import のない任意 identifier の skip は無効化として扱わない", () => {
   const report = evaluate(
     diff({
@@ -1300,13 +1345,27 @@ test("JSX text 内の test API は無視して式コンテナ内だけを解析�
 });
 
 test("dmux lifecycle hook の変更は critical", () => {
-  const report = evaluate(
-    diff({
-      files: [change({ path: ".dmux-hooks/worktree_created" })],
-    }),
-  );
-  assert.equal(report.level, levels.critical);
-  assert.equal(hasSignal(report, signals.reviewGate), true);
+  for (const path of [
+    ".dmux-hooks/worktree_created",
+    ".dmux-hooks/pre_merge",
+  ]) {
+    const report = evaluate(diff({ files: [change({ path })] }));
+    assert.equal(report.level, levels.critical, path);
+    assert.equal(hasSignal(report, signals.reviewGate), true, path);
+  }
+});
+
+test("dmux の文書と example は review gate 変更として扱わない", () => {
+  for (const [path, expectedLevel] of [
+    [".dmux-hooks/README.md", levels.none],
+    [".dmux-hooks/AGENTS.md", levels.medium],
+    [".dmux-hooks/CLAUDE.md", levels.medium],
+    [".dmux-hooks/examples/worktree_created.example", levels.high],
+  ]) {
+    const report = evaluate(diff({ files: [change({ path })] }));
+    assert.equal(report.level, expectedLevel, path);
+    assert.equal(hasSignal(report, signals.reviewGate), false, path);
+  }
 });
 
 test("test subscript の変更は critical", () => {

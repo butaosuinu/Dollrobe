@@ -79,6 +79,18 @@ test("共有入力 schema は H に分類する", () => {
   assert.equal(actual?.id, "worker-input-schema");
 });
 
+test("dmux の文書は通常の文書 class に分類する", () => {
+  for (const [path, expectedClass, expectedRule] of [
+    [".dmux-hooks/README.md", classes.none, "readme"],
+    [".dmux-hooks/AGENTS.md", classes.medium, "agent-guide"],
+    [".dmux-hooks/CLAUDE.md", classes.medium, "agent-guide"],
+  ]) {
+    const actual = classifyPath(path);
+    assert.equal(actual?.class, expectedClass, path);
+    assert.equal(actual?.id, expectedRule, path);
+  }
+});
+
 test("Next.js Route Handler は H に分類する", () => {
   for (const path of [
     "src/app/route.ts",
