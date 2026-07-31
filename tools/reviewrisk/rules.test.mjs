@@ -9,6 +9,7 @@ test("Dollrobe の重要境界を分類する", () => {
   const cases = [
     ["README.md", classes.none, "readme"],
     ["src/app/page.tsx", classes.application, "app-ui"],
+    ["src/app/layout.tsx", classes.high, "root-layout"],
     ["src/app/admin/users/page.tsx", classes.medium, "admin-ui"],
     ["src/lib/db/dexie.ts", classes.high, "client-db"],
     ["src/lib/stubs/fs-stub.cjs", classes.medium, "client-stub"],

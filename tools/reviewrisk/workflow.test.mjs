@@ -54,6 +54,44 @@ test("review-risk rechecks the live PR before each publish step", async () => {
   }
 });
 
+test("review-risk publishes a fail-closed result when the judge fails", async () => {
+  const source = await readWorkflow("review-risk.yml");
+  const judgeIndex = source.indexOf("- name: Judge review risk");
+  const failureIndex = source.indexOf("- name: Prepare failed judge result");
+  const labelIndex = source.indexOf("- name: Apply review:<level> label");
+  const commentIndex = source.indexOf("- name: Update sticky comment");
+  const finalFailureIndex = source.indexOf(
+    "- name: Fail workflow after publishing failed judge result",
+  );
+
+  assert.notEqual(judgeIndex, -1);
+  assert.notEqual(failureIndex, -1);
+  assert.notEqual(labelIndex, -1);
+  assert.notEqual(commentIndex, -1);
+  assert.notEqual(finalFailureIndex, -1);
+  assert.ok(judgeIndex < failureIndex);
+  assert.ok(failureIndex < labelIndex);
+  assert.ok(commentIndex < finalFailureIndex);
+
+  const judgeStep = source.slice(judgeIndex, failureIndex);
+  assert.match(judgeStep, /continue-on-error: true/);
+
+  const failureStep = source.slice(failureIndex, labelIndex);
+  assert.match(failureStep, /steps\.risk\.outcome == 'failure'/);
+  assert.match(failureStep, /## Review risk: \*\*CRITICAL\*\*/);
+  assert.match(failureStep, /> "\$OUTPUT_DIR\/comment\.md"/);
+
+  const labelStep = source.slice(labelIndex, commentIndex);
+  assert.match(
+    labelStep,
+    /steps\.risk\.outcome == 'success' && steps\.risk\.outputs\.level \|\| 'critical'/,
+  );
+
+  const finalFailureStep = source.slice(finalFailureIndex);
+  assert.match(finalFailureStep, /steps\.risk\.outcome == 'failure'/);
+  assert.match(finalFailureStep, /exit 1/);
+});
+
 test("review-risk workflow pins actions and guards trusted execution", async () => {
   const source = await readWorkflow("review-risk.yml");
 
@@ -187,8 +225,8 @@ test("base guard treats pull request content as data only", async () => {
 test("CLI entrypoint uses await with a terminal catch", async () => {
   const source = await readReviewRiskSource("main.mjs");
 
-  assert.match(source, /path === "package\.json" \|\| isTestFile\(path\)/);
-  assert.match(source, /includeContents: requiresContents/);
+  assert.match(source, /import \{ evaluate, requiresEvaluationContents \}/);
+  assert.match(source, /includeContents: requiresEvaluationContents/);
   assert.match(source, /await runEntrypoint\(\)\.catch\(/);
   assert.doesNotMatch(source, /\.then\(/);
 });

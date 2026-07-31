@@ -10,9 +10,10 @@ const markdownFileByteBudget = 35_000;
 const plusMinus = ({ added, deleted }) =>
   `+${String(added)} −${String(deleted)}`;
 
-const unsafeTextPathCharacter = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/gu;
+const unsafeTextPathCharacter =
+  /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028-\u202e\u2066-\u2069]/gu;
 const unsafeMarkdownPathCharacter =
-  /[\u0000-\u001f\u007f-\u009f\u2028\u2029`|<>&]/gu;
+  /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028-\u202e\u2066-\u2069`|<>&]/gu;
 
 const escapePath = (value, pattern) =>
   value.replace(pattern, (character) => {

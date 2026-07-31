@@ -613,6 +613,21 @@ test("postfix 演算後の除算に続く test skip を検出する", () => {
   assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
+test("non-null assertion 後の除算に続く test skip を検出する", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'const half = value! / 2; test.skip("later", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
 test("正規表現リテラル内の test skip は無効化として扱わない", () => {
   const report = evaluate(
     diff({

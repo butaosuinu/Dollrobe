@@ -46,7 +46,7 @@ test("Markdown は sticky marker・理由・折り畳み table を含む", () =>
 
 test("Markdown に埋め込む path を無害化する", () => {
   const maliciousPath =
-    "evil`\r\n</details>\n## Review risk: **NONE**|<script>&";
+    "evil`\r\n</details>\n## Review risk: **NONE**|<script>&\u202E";
   const report = {
     ...sample,
     files: [{ ...sample.files[0], path: maliciousPath }],
@@ -67,6 +67,8 @@ test("Markdown に埋め込む path を無害化する", () => {
   assert.match(markdown, /\[U\+007C\]/);
   assert.match(markdown, /\[U\+003C\]script\[U\+003E\]/);
   assert.match(markdown, /\[U\+0026\]/);
+  assert.match(markdown, /\[U\+202E\]/);
+  assert.equal(markdown.includes("\u202E"), false);
 });
 
 test("大規模 diff の Markdown を上限内で省略する", () => {
@@ -99,7 +101,7 @@ test("text は headline・stats・file を含む", () => {
 });
 
 test("text に埋め込む path の制御文字を無害化する", () => {
-  const maliciousPath = "src/\u001b[2J\n\u0007\u009B8;;evil.test.ts";
+  const maliciousPath = "src/\u001b[2J\n\u0007\u009B8;;\u2066evil.test.ts";
   const report = {
     ...sample,
     files: [{ ...sample.files[0], path: maliciousPath }],
@@ -109,7 +111,11 @@ test("text に埋め込む path の制御文字を無害化する", () => {
   assert.equal(text.includes("\u001b"), false);
   assert.equal(text.includes("\u0007"), false);
   assert.equal(text.includes("\u009B"), false);
-  assert.match(text, /\[U\+001B\]\[2J\[U\+000A\]\[U\+0007\]\[U\+009B\]/);
+  assert.equal(text.includes("\u2066"), false);
+  assert.match(
+    text,
+    /\[U\+001B\]\[2J\[U\+000A\]\[U\+0007\]\[U\+009B\]8;;\[U\+2066\]/,
+  );
 });
 
 test("JSON は公開契約を保つ", () => {

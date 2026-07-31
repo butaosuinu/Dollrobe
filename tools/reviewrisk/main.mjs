@@ -3,9 +3,8 @@
 import { pathToFileURL } from "node:url";
 import { compareLevels, parseLevel } from "./classes.mjs";
 import { readGitDiff } from "./diff.mjs";
-import { evaluate } from "./evaluate.mjs";
+import { evaluate, requiresEvaluationContents } from "./evaluate.mjs";
 import { renderJson, renderMarkdown, renderText } from "./report.mjs";
-import { isTestFile } from "./rules.mjs";
 
 const usage =
   "usage: node tools/reviewrisk/main.mjs [--base <ref>] [--format text|json|markdown] [--fail-at <level>]";
@@ -59,15 +58,16 @@ const render = (format, report) => {
   }
 };
 
-const requiresContents = (path) => path === "package.json" || isTestFile(path);
-
 export const run = (args) => {
   const options = parseArgs(args);
   if (options.help === true) {
     return { output: usage, exitCode: 0 };
   }
   const report = evaluate(
-    readGitDiff({ base: options.base, includeContents: requiresContents }),
+    readGitDiff({
+      base: options.base,
+      includeContents: requiresEvaluationContents,
+    }),
   );
   const exitCode =
     options.failAt !== undefined &&

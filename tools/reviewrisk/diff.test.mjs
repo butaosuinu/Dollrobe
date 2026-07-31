@@ -17,7 +17,7 @@ import {
   parsePatchLines,
   readGitDiff,
 } from "./diff.mjs";
-import { evaluate, signals } from "./evaluate.mjs";
+import { evaluate, requiresEvaluationContents, signals } from "./evaluate.mjs";
 import { levels } from "./classes.mjs";
 import { isTestFile } from "./rules.mjs";
 
@@ -949,6 +949,69 @@ test("test file の regular file から symlink への type change は critical"
   assert.equal(
     report.reasons.some(({ signal }) => signal === signals.testDeleted),
     true,
+  );
+});
+
+test("空にされた test support は critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-empty-test-support-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "src/test/setup.ts";
+  mkdirSync(join(cwd, "src/test"), { recursive: true });
+  writeFileSync(join(cwd, path), "installTestHarness();\n");
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, path), " \n");
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: requiresEvaluationContents,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testSupportDeleted),
+    true,
+  );
+});
+
+test("test の設定・hook メソッド削除は test case 削除として扱わない", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-settings-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = "e2e/settings.spec.ts";
+  mkdirSync(join(cwd, "e2e"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    [
+      "test.setTimeout(60_000);",
+      'test.use({ locale: "ja-JP" });',
+      "test.beforeEach(setup);",
+      'test.step("helper", helperFn);',
+      "",
+    ].join("\n"),
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, path), "");
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: isTestFile,
+  });
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.low);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.testDeleted),
+    false,
   );
 });
 

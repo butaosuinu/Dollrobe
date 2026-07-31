@@ -38,7 +38,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | Sentry・MCP・OpenCV runtime                    | H     | `sentry-config`, `mcp-config`, `opencv-runtime`                                                                                                  |
 | GitHub workflow / local Action / script / hook | H     | `github-workflow`, `github-action`, `script`, `dmux-hook`, `review-gate`                                                                         |
 | review-risk 判定器                             | H     | `risk-tool`                                                                                                                                      |
-| client auth・API・offline state                | H     | `client-auth`, `client-api`, `client-db`, `client-store`, `client-sync`, `service-worker`                                                        |
+| client auth・API・offline state                | H     | `client-auth`, `client-api`, `client-db`, `client-store`, `client-sync`, `root-layout`, `service-worker`                                         |
 | Workers entry・auth・DB                        | H     | `worker-entry`, `worker-auth`, `worker-auth-boundary`, `worker-db`                                                                               |
 | Workers user-data / HTTP boundary              | H     | `worker-repository`, `worker-trpc`, `worker-route`, `worker-middleware`, `worker-mcp`                                                            |
 | admin service                                  | H     | `admin-service`                                                                                                                                  |

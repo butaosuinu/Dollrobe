@@ -136,6 +136,10 @@ const exactRules = new Map([
     rule("service-worker", classes.high, "service worker 登録境界"),
   ],
   [
+    "src/app/layout.tsx",
+    rule("root-layout", classes.high, "全 route の認証・offline composition"),
+  ],
+  [
     "src/app/sw.ts",
     rule("service-worker", classes.high, "offline cache・同期境界"),
   ],

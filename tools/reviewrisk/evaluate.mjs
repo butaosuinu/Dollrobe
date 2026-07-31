@@ -133,6 +133,9 @@ const pathMatchesPrefix = (path, prefixes) =>
 const isTestSupportPath = (path) =>
   testSupportPaths.has(path) || pathMatchesPrefix(path, testSupportPrefixes);
 
+export const requiresEvaluationContents = (path) =>
+  path === "package.json" || isTestFile(path) || isTestSupportPath(path);
+
 const changedLines = (diff, path) => [
   ...(diff.addedLines.get(path) ?? []),
   ...(diff.removedLines.get(path) ?? []),
@@ -189,6 +192,12 @@ const startsRegexLiteral = (codeBeforeSlash) => {
   if (
     (codeBeforeSlash[index] === "+" || codeBeforeSlash[index] === "-") &&
     codeBeforeSlash[index - 1] === codeBeforeSlash[index]
+  ) {
+    return false;
+  }
+  if (
+    codeBeforeSlash[index] === "!" &&
+    /[A-Za-z0-9_$)\]}]/.test(codeBeforeSlash[index - 1] ?? "")
   ) {
     return false;
   }
@@ -738,6 +747,27 @@ const normalizedTestRoot = (call) => {
     : root;
 };
 
+const nonTestCaseModifiers = new Set([
+  "afterAll",
+  "afterEach",
+  "beforeAll",
+  "beforeEach",
+  "extend",
+  "info",
+  "setTimeout",
+  "slow",
+  "step",
+  "use",
+]);
+
+const isTestCaseCall = (call) => {
+  const root = normalizedTestRoot(call);
+  return (
+    (root === "test" || root === "it") &&
+    !call.modifiers.some((modifier) => nonTestCaseModifiers.has(modifier))
+  );
+};
+
 const findSuiteBody = ({ call, structuralSource }) => {
   const searchStart = call.arguments[0]?.end ?? call.openingIndex + 1;
   const arrowIndex = structuralSource.indexOf("=>", searchStart);
@@ -1049,6 +1079,7 @@ const testCallDescriptors = (source) => {
   const parsed = parseTestCalls(source);
   const scopes = assignSuitePaths(suiteScopes(parsed));
   const positions = new Map();
+  const casePositions = new Map();
   const descriptors = [];
   for (const call of parsed.calls) {
     const directScope = scopes
@@ -1064,12 +1095,19 @@ const testCallDescriptors = (source) => {
     const position = (positions.get(positionalContext) ?? 0) + 1;
     positions.set(positionalContext, position);
     const root = normalizedTestRoot(call);
+    const testCase = isTestCaseCall(call);
+    const casePosition = testCase
+      ? (casePositions.get(positionalContext) ?? 0) + 1
+      : 0;
+    if (testCase) {
+      casePositions.set(positionalContext, casePosition);
+    }
     const matchingRoot = root === "it" ? "test" : root;
     const title = normalizedSourceFragment(call.arguments[0]?.raw ?? "");
     const callback = call.arguments.at(-1)?.structural ?? "";
     const callbackIdentity = normalizedStructuralCode(callback);
     const positionalIdentity = `${matchingRoot}|${positionalContext}|${String(position)}`;
-    const casePositionIdentity = `${positionalContext}|${String(position)}`;
+    const casePositionIdentity = `${positionalContext}|${String(casePosition)}`;
     const movableIdentity = `${matchingRoot}|${namedContext}|${title}|${callbackIdentity}`;
     const modes = [
       ...disableModesForCall({
@@ -1081,6 +1119,7 @@ const testCallDescriptors = (source) => {
     ];
     descriptors.push({
       root,
+      testCase,
       modes,
       title,
       callbackIdentity,
@@ -1143,10 +1182,10 @@ const addsTestDisableFingerprint = (beforeSource, afterSource) => {
 
 const removesTestCallFingerprint = (beforeSource, afterSource) => {
   const before = testCallDescriptors(beforeSource).filter(
-    ({ root }) => root === "test" || root === "it",
+    ({ testCase }) => testCase,
   );
   const after = testCallDescriptors(afterSource)
-    .filter(({ root }) => root === "test" || root === "it")
+    .filter(({ testCase }) => testCase)
     .map((descriptor) => ({ ...descriptor, used: false }));
   const unmatched = [];
 
@@ -1204,6 +1243,20 @@ const removesTestCallPattern = (diff, file) => {
     beforeSource !== undefined &&
     afterSource !== undefined &&
     removesTestCallFingerprint(beforeSource, afterSource)
+  );
+};
+
+const emptiesTestSupportPattern = (diff, file) => {
+  if (!isTestSupportPath(file.path)) {
+    return false;
+  }
+  const beforeSource = diff.beforeContents?.get(file.path);
+  const afterSource = diff.afterContents?.get(file.path);
+  return (
+    beforeSource !== undefined &&
+    beforeSource.trim() !== "" &&
+    afterSource !== undefined &&
+    afterSource.trim() === ""
   );
 };
 
@@ -1304,13 +1357,19 @@ const criticalReasons = (diff) => {
         ),
       );
     }
-    if (removesOrRenamesProtectedPath(file, isTestSupportPath)) {
+    const losesTestSupport = removesOrRenamesProtectedPath(
+      file,
+      isTestSupportPath,
+    );
+    if (losesTestSupport || emptiesTestSupportPattern(diff, file)) {
       reasons.push(
         reason(
           signals.testSupportDeleted,
           levels.critical,
           file.path,
-          "test fixture・helper・harness を削除・対象外へ移動・type change",
+          losesTestSupport
+            ? "test fixture・helper・harness を削除・対象外へ移動・type change"
+            : "test fixture・helper・harness の内容を空に変更",
         ),
       );
     }
