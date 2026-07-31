@@ -67,6 +67,12 @@ test("同期・スキャン service は H に分類する", () => {
   }
 });
 
+test("信頼度導出ロジックは H に分類する", () => {
+  const actual = classifyPath("src/lib/confidence.ts");
+  assert.equal(actual?.class, classes.high);
+  assert.equal(actual?.id, "confidence-derivation");
+});
+
 test("Next.js Route Handler は H に分類する", () => {
   for (const path of [
     "src/app/route.ts",

@@ -156,6 +156,14 @@ const exactRules = new Map([
     rule("client-auth", classes.high, "認証・account・API key client"),
   ],
   [
+    "src/lib/confidence.ts",
+    rule(
+      "confidence-derivation",
+      classes.high,
+      "スキャン履歴・活動量から導出する信頼度ロジック",
+    ),
+  ],
+  [
     "src/lib/trpc.ts",
     rule("client-api", classes.high, "tRPC transport・認証境界"),
   ],

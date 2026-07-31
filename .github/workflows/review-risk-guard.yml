@@ -79,13 +79,31 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
+          EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           set -euo pipefail
+
+          ensure_current_pr() {
+            local current expected
+            current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+              --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+            expected="$(printf '%s\t%s\t%s\t%s' \
+              "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+              "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            if [ "$current" != "$expected" ]; then
+              echo "Skipping stale base guard mutation for $EXPECTED_HEAD_SHA"
+              return 1
+            fi
+          }
 
           existing_labels="$(gh pr view "$PR" --json labels --jq '.labels[].name')"
           while IFS= read -r label; do
             case "$label" in
               review:*)
+                ensure_current_pr || exit 0
                 gh pr edit "$PR" --remove-label "$label"
                 ;;
             esac
@@ -94,6 +112,7 @@ jobs:
           existing_id="$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- review-risk -->")))][0].id // empty')"
           if [ -n "$existing_id" ]; then
+            ensure_current_pr || exit 0
             gh api --method DELETE "repos/$GH_REPO/issues/comments/$existing_id"
           fi
 
@@ -104,13 +123,32 @@ jobs:
           github.event.pull_request.head.repo.full_name != github.repository
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
+          EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           set -euo pipefail
+
+          ensure_current_pr() {
+            local current expected
+            current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+              --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+            expected="$(printf '%s\t%s\t%s\t%s' \
+              "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+              "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            if [ "$current" != "$expected" ]; then
+              echo "Skipping stale base guard mutation for $EXPECTED_HEAD_SHA"
+              return 1
+            fi
+          }
 
           has_critical="$(gh pr view "$PR" --json labels \
             --jq 'any(.labels[]; .name == "review:critical")')"
           if [ "$has_critical" = "true" ]; then
+            ensure_current_pr || exit 0
             gh pr edit "$PR" --remove-label "review:critical"
           fi
 
@@ -122,13 +160,35 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
+          EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           set -euo pipefail
 
+          ensure_current_pr() {
+            local current expected
+            current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+              --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+            expected="$(printf '%s\t%s\t%s\t%s' \
+              "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+              "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            if [ "$current" != "$expected" ]; then
+              echo "Skipping stale base guard mutation for $EXPECTED_HEAD_SHA"
+              return 1
+            fi
+          }
+
+          ensure_current_pr || exit 0
           gh label create "review:none" --color cccccc --description "PR review risk: none" 2>/dev/null || true
+          ensure_current_pr || exit 0
           gh label create "review:low" --color 0e8a16 --description "PR review risk: low" 2>/dev/null || true
+          ensure_current_pr || exit 0
           gh label create "review:medium" --color fbca04 --description "PR review risk: medium" 2>/dev/null || true
+          ensure_current_pr || exit 0
           gh label create "review:high" --color d93f0b --description "PR review risk: high" 2>/dev/null || true
+          ensure_current_pr || exit 0
           gh label create "review:critical" --color b60205 --description "PR review risk: critical" 2>/dev/null || true
 
           existing_labels="$(gh pr view "$PR" --json labels --jq '.labels[].name')"
@@ -136,12 +196,14 @@ jobs:
             case "$label" in
               review:*)
                 if [ "$label" != "review:critical" ]; then
+                  ensure_current_pr || exit 0
                   gh pr edit "$PR" --remove-label "$label"
                 fi
                 ;;
             esac
           done <<< "$existing_labels"
 
+          ensure_current_pr || exit 0
           gh pr edit "$PR" --add-label "review:critical"
 
       - name: Reconcile guard sticky comment
@@ -150,18 +212,38 @@ jobs:
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           SELF: ${{ steps.guard.outputs.self }}
+          EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           set -euo pipefail
+
+          ensure_current_pr() {
+            local current expected
+            current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+              --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+            expected="$(printf '%s\t%s\t%s\t%s' \
+              "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+              "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            if [ "$current" != "$expected" ]; then
+              echo "Skipping stale base guard mutation for $EXPECTED_HEAD_SHA"
+              return 1
+            fi
+          }
 
           existing_id="$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- review-risk-guard -->")))][0].id // empty')"
 
           if [ "$SELF" = "true" ]; then
             if [ -n "$existing_id" ]; then
+              ensure_current_pr || exit 0
               gh api --method PATCH "repos/$GH_REPO/issues/comments/$existing_id" -F body=@comment.md
             else
+              ensure_current_pr || exit 0
               gh api --method POST "repos/$GH_REPO/issues/$PR/comments" -F body=@comment.md
             fi
           elif [ -n "$existing_id" ]; then
+            ensure_current_pr || exit 0
             gh api --method DELETE "repos/$GH_REPO/issues/comments/$existing_id"
           fi

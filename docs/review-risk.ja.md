@@ -38,7 +38,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | Sentry・MCP・OpenCV runtime                    | H     | `sentry-config`, `mcp-config`, `opencv-runtime`                                                                                                  |
 | GitHub workflow / local Action / script / hook | H     | `github-workflow`, `github-action`, `script`, `dmux-hook`, `review-gate`                                                                         |
 | review-risk 判定器                             | H     | `risk-tool`                                                                                                                                      |
-| client auth・API・offline state                | H     | `client-auth`, `client-api`, `client-db`, `client-store`, `client-sync`, `root-layout`, `service-worker`                                         |
+| client auth・API・offline state・信頼度導出    | H     | `client-auth`, `client-api`, `client-db`, `client-store`, `client-sync`, `root-layout`, `service-worker`, `confidence-derivation`                |
 | Workers entry・auth・DB                        | H     | `worker-entry`, `worker-auth`, `worker-auth-boundary`, `worker-db`                                                                               |
 | Next.js / Workers user-data・HTTP boundary     | H     | `next-route-handler`, `worker-repository`, `worker-trpc`, `worker-route`, `worker-middleware`, `worker-mcp`                                      |
 | admin・sync・scan service                      | H     | `admin-service`, `sync-service`, `scan-service`                                                                                                  |
@@ -101,8 +101,9 @@ guard comment を削除する。PR の base が main から外れた `edited` �
 
 どちらも `contents: read`、`pull-requests: write`、`issues: write` の最小権限、
 `persist-credentials: false`、workflow ごとの PR 番号単位 concurrency を使う。
-通常 workflow は label と comment の各公開直前に live PR の base、head SHA、
-head repository を再確認し、古い run の結果を公開しない。
+通常 workflow は label と comment の各公開直前に、base-side guard は label と
+comment の各 mutation 直前に live PR の base、head SHA、head repository を
+再確認し、古い run の結果を公開しない。
 `opened`、`synchronize`、`reopened` に加えて `edited` でも起動し、既存 PR の
 base が main へ変更された場合も判定する。
 同一 repository の write 権限保有者が別 workflow を変更できる境界までは

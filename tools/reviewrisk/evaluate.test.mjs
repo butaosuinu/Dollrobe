@@ -1244,7 +1244,7 @@ test("medium の大規模 diff は high に一段上げる", () => {
     diff({
       files: [
         change({
-          path: "src/lib/confidence.ts",
+          path: "src/lib/domain.ts",
           added: 801,
           deleted: 0,
         }),

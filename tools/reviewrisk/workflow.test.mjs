@@ -244,6 +244,50 @@ test("base guard treats pull request content as data only", async () => {
   assert.match(applyStep, /steps\.guard\.outputs\.self == 'true'/);
 });
 
+test("base guard rechecks the live PR before every PR mutation", async () => {
+  const source = await readWorkflow("review-risk-guard.yml");
+  const stepNames = [
+    "Clear stale normal result outside main or while conflicting",
+    "Clear stale guard critical label for fork PR",
+    "Apply review:critical label",
+    "Reconcile guard sticky comment",
+  ];
+  const stepIndexes = stepNames.map((name) =>
+    source.indexOf(`- name: ${name}`),
+  );
+
+  for (const index of stepIndexes) {
+    assert.notEqual(index, -1);
+  }
+  for (const [position, index] of stepIndexes.entries()) {
+    const step = source.slice(index, stepIndexes[position + 1]);
+    assert.match(step, /repos\/\$GH_REPO\/pulls\/\$PR/);
+    assert.match(
+      step,
+      /\.base\.ref, \.base\.sha, \.head\.sha, \.head\.repo\.full_name/,
+    );
+    assert.match(
+      step,
+      /EXPECTED_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/,
+    );
+    assert.match(
+      step,
+      /EXPECTED_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/,
+    );
+    const mutationCount = [
+      ...step.matchAll(
+        /(?:gh label create|gh pr edit|gh api --method (?:DELETE|PATCH|POST))/g,
+      ),
+    ].length;
+    const guardedMutationCount = [
+      ...step.matchAll(
+        /ensure_current_pr \|\| exit 0\n\s+(?:gh label create|gh pr edit|gh api --method (?:DELETE|PATCH|POST))/g,
+      ),
+    ].length;
+    assert.equal(guardedMutationCount, mutationCount, stepNames[position]);
+  }
+});
+
 test("CLI entrypoint uses await with a terminal catch", async () => {
   const source = await readReviewRiskSource("main.mjs");
 
