@@ -795,6 +795,51 @@ test("Playwright の条件付き skip・fixme は critical", () => {
   }
 });
 
+test("Playwright の実行時 annotation 削除は test case 削除にしない", () => {
+  for (const modifier of ["skip", "fixme"]) {
+    const path = "e2e/annotation.spec.ts";
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: {
+          [path]: [
+            'test("works", () => {',
+            `  test.${modifier}(process.env.CI, "CI annotation");`,
+            "  expect(result).toBe(true);",
+            "});",
+          ].join("\n"),
+        },
+        afterContents: {
+          [path]: [
+            'test("works", () => {',
+            "  expect(result).toBe(true);",
+            "});",
+          ].join("\n"),
+        },
+      }),
+    );
+    assert.equal(report.level, levels.low, modifier);
+    assert.equal(hasSignal(report, signals.testDeleted), false, modifier);
+  }
+});
+
+test("Playwright の skipped test 宣言削除は test case 削除を維持する", () => {
+  for (const modifier of ["skip", "fixme"]) {
+    const path = "e2e/disabled.spec.ts";
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: {
+          [path]: `test.${modifier}("disabled", fn);`,
+        },
+        afterContents: { [path]: "" },
+      }),
+    );
+    assert.equal(report.level, levels.critical, modifier);
+    assert.equal(hasSignal(report, signals.testDeleted), true, modifier);
+  }
+});
+
 test("false から始まる skipIf 条件式は critical", () => {
   const report = evaluate(
     diff({

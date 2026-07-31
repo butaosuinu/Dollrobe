@@ -860,6 +860,7 @@ const parseTestCalls = (source) => {
     );
     const modifiers = [];
     const modifierArguments = new Map();
+    let terminalModifier;
     let openingIndex = -1;
 
     while (cursor < structuralSource.length) {
@@ -982,6 +983,7 @@ const parseTestCalls = (source) => {
         cursor = afterModifier;
         continue;
       }
+      terminalModifier = modifier;
       openingIndex = cursor;
       break;
     }
@@ -999,6 +1001,7 @@ const parseTestCalls = (source) => {
       importedRoot: testRoots.get(root),
       modifiers,
       modifierArguments,
+      terminalModifier,
       openingIndex,
       closingIndex: parsedCall.closingIndex,
       arguments: parsedCall.arguments,
@@ -1051,11 +1054,35 @@ const nonTestCaseModifiers = new Set([
   "use",
 ]);
 
+const runtimeAnnotationForCall = (call) => {
+  const sourceRoot = call.importedRoot ?? call.root;
+  const mode =
+    call.terminalModifier ??
+    (sourceRoot === "skip" || sourceRoot === "fixme" ? sourceRoot : undefined);
+  if (mode !== "skip" && mode !== "fixme") {
+    return undefined;
+  }
+  const annotationArguments =
+    call.terminalModifier === mode
+      ? (call.modifierArguments.get(mode) ?? [])
+      : call.arguments;
+  if (
+    annotationArguments.length < 2 ||
+    annotationArguments[0]?.structural.trim() === "" ||
+    annotationArguments[1]?.structural.trim() !== "" ||
+    !/^["'`]/.test(annotationArguments[1]?.raw.trim() ?? "")
+  ) {
+    return undefined;
+  }
+  return { mode, arguments: annotationArguments };
+};
+
 const isTestCaseCall = (call) => {
   const root = normalizedTestRoot(call);
   return (
     (root === "test" || root === "it") &&
-    !call.modifiers.some((modifier) => nonTestCaseModifiers.has(modifier))
+    !call.modifiers.some((modifier) => nonTestCaseModifiers.has(modifier)) &&
+    runtimeAnnotationForCall(call) === undefined
   );
 };
 
@@ -1422,14 +1449,9 @@ const disableConditionIdentity = (call, mode) => {
   if (mode === "skipIf" || mode === "runIf") {
     return normalizedConditionCode(modifierArguments[0]?.raw ?? "");
   }
-  if (
-    (mode === "skip" || mode === "fixme") &&
-    modifierArguments.length >= 2 &&
-    modifierArguments[0]?.structural.trim() !== "" &&
-    modifierArguments[1]?.structural.trim() === "" &&
-    /^["']/.test(modifierArguments[1]?.raw.trim() ?? "")
-  ) {
-    return normalizedConditionCode(modifierArguments[0].raw);
+  const annotation = runtimeAnnotationForCall(call);
+  if (annotation?.mode === mode) {
+    return normalizedConditionCode(annotation.arguments[0].raw);
   }
   return "";
 };
