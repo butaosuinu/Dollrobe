@@ -99,7 +99,7 @@ export default defineConfig({
             const migrations = await readD1Migrations(migrationsPath);
             return {
               miniflare: {
-                compatibilityDate: "2025-01-01",
+                compatibilityDate: "2026-07-29",
                 d1Databases: ["DB"],
                 kvNamespaces: ["KV"],
                 r2Buckets: ["BUCKET"],
