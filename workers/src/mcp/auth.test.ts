@@ -4,6 +4,7 @@ import { resolveMcpAuth } from "./auth";
 import { createApiKeyAuthStub } from "../test/mcp-helpers";
 
 const TEST_USER_IDS = ["user-1", "user-2", "user-3", "user-frozen"];
+const ACTIVE_USER_IDS = ["user-1", "user-2", "user-3"];
 
 const headersWith = (auth: string | undefined): Headers => {
   const headers = new Headers();
@@ -38,6 +39,11 @@ const cleanupUsers = async (): Promise<void> => {
 
 aroundEach(async (runTest) => {
   await cleanupUsers();
+  await Promise.all(
+    ACTIVE_USER_IDS.map(async (id) => {
+      await insertUser({ id, frozen: false });
+    }),
+  );
   await runTest();
   await cleanupUsers();
 });
@@ -179,8 +185,23 @@ describe("resolveMcpAuth", () => {
     expect(result).toBeUndefined();
   });
 
+  it("returns undefined when the API key owner no longer exists", async () => {
+    const verify = vi.fn().mockResolvedValue({
+      valid: true,
+      key: {
+        referenceId: "user-deleted",
+        permissions: { mcp: ["read"] },
+      },
+    });
+    const result = await resolveMcpAuth({
+      auth: createApiKeyAuthStub(verify),
+      db: env.DB,
+      headers: headersWith("Bearer key-deleted"),
+    });
+    expect(result).toBeUndefined();
+  });
+
   it("returns scope when resolved user is active (frozen=false)", async () => {
-    await insertUser({ id: "user-1", frozen: false });
     const verify = vi.fn().mockResolvedValue({
       valid: true,
       key: { referenceId: "user-1", permissions: { mcp: ["read"] } },

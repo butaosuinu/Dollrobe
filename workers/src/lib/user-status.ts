@@ -21,3 +21,19 @@ export const isUserFrozen = async ({
     .limit(1);
   return rows[0]?.frozen === true;
 };
+
+export const isUserActive = async ({
+  db,
+  userId,
+}: {
+  readonly db: D1Database;
+  readonly userId: string;
+}): Promise<boolean> => {
+  const drizzleDb = createDrizzle(db);
+  const rows = await drizzleDb
+    .select({ frozen: users.frozen })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return rows[0]?.frozen === false;
+};

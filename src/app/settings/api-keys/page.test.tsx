@@ -103,10 +103,11 @@ describe("ApiKeysPage", () => {
     });
   });
 
-  it("API キー発行に失敗するとシートが閉じず生キー表示も出ない", async () => {
+  it("API キー発行に失敗するとシート内にエラーが出て閉じず生キー表示も出ない", async () => {
     const { spies } = setupAuthClient({
       apiKeys: [],
       createShouldFail: true,
+      createErrorMessage: "API key creation is not enabled",
     });
     const user = userEvent.setup();
     await renderWithProviders(<ApiKeysPage />);
@@ -120,7 +121,31 @@ describe("ApiKeysPage", () => {
     await waitFor(() => {
       expect(spies.createApiKey).toHaveBeenCalled();
     });
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("API キーの発行に失敗しました");
+    expect(alert).toHaveTextContent("API key creation is not enabled");
+    expect(screen.getByRole("button", { name: "発行" })).toBeEnabled();
     expect(screen.queryByTestId("api-key-value")).toBeNull();
+  });
+
+  it("発行失敗後にシートを閉じて開き直すとエラー表示が消える", async () => {
+    setupAuthClient({ apiKeys: [], createShouldFail: true });
+    const user = userEvent.setup();
+    await renderWithProviders(<ApiKeysPage />);
+
+    const openButton = await screen.findByRole("button", {
+      name: "新しい API キーを発行",
+    });
+    await user.click(openButton);
+    await user.type(await screen.findByLabelText("名前"), "agent-fail");
+    await user.click(screen.getByRole("button", { name: "発行" }));
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "キャンセル" }));
+    await user.click(openButton);
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(await screen.findByLabelText("名前")).toHaveValue("");
   });
 
   it("名前が空のとき発行ボタンは無効化される", async () => {

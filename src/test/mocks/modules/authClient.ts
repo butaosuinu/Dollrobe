@@ -43,6 +43,7 @@ type State = {
   readonly nextCreated: CreatedApiKey | undefined;
   readonly accounts: readonly LinkedAccount[];
   readonly createShouldFail: boolean;
+  readonly createErrorMessage: string | undefined;
   readonly listShouldFail: boolean;
   readonly revokeShouldFail: boolean;
   readonly signInShouldFail: boolean;
@@ -63,6 +64,7 @@ const createInitial = (): State => ({
   nextCreated: undefined,
   accounts: [{ providerId: "credential" }],
   createShouldFail: false,
+  createErrorMessage: undefined,
   listShouldFail: false,
   revokeShouldFail: false,
   signInShouldFail: false,
@@ -110,7 +112,11 @@ export const authClientFactory = async () => {
       const s = getState();
       s.spies.createApiKey(input);
       if (s.createShouldFail) {
-        return await Promise.reject(new Error("Failed to create API key"));
+        return await Promise.reject(
+          new Error(
+            s.createErrorMessage ?? actual.API_KEY_CREATE_FALLBACK_ERROR,
+          ),
+        );
       }
       const created: CreatedApiKey = s.nextCreated ?? {
         id: `api-key-${Date.now()}`,
@@ -224,6 +230,7 @@ type SetupOverrides = {
   readonly nextCreated?: CreatedApiKey;
   readonly accounts?: readonly LinkedAccount[];
   readonly createShouldFail?: boolean;
+  readonly createErrorMessage?: string;
   readonly listShouldFail?: boolean;
   readonly revokeShouldFail?: boolean;
   readonly signInShouldFail?: boolean;
@@ -258,6 +265,7 @@ export const setupAuthClient = (overrides: SetupOverrides = {}) => {
     nextCreated: overrides.nextCreated,
     accounts: overrides.accounts ?? [{ providerId: "credential" }],
     createShouldFail: overrides.createShouldFail ?? false,
+    createErrorMessage: overrides.createErrorMessage,
     listShouldFail: overrides.listShouldFail ?? false,
     revokeShouldFail: overrides.revokeShouldFail ?? false,
     signInShouldFail: overrides.signInShouldFail ?? false,

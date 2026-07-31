@@ -9,6 +9,7 @@ import {
   createTestGarmentInput,
   createTestLogger,
   getTestDb,
+  insertTestUser,
   resetDatabase,
   TEST_USER_ID,
 } from "../test/helpers";
@@ -101,6 +102,7 @@ describe("/api/mcp Hono handler", () => {
     // API key) AND a Cookie (userB's session) must run as userA — the holder
     // of the API key whose scope was just verified. Pre-fix, tRPC's
     // resolveAuthenticatedUserId preferred the cookie session.
+    await insertTestUser({ db: env.DB, id: TEST_USER_ID });
     const aliceCaller = createMcpCaller({
       env,
       userId: "alice",
@@ -183,6 +185,7 @@ describe("/api/mcp Hono handler", () => {
   });
 
   it("lists all 7 MCP tools for an authorized read API key", async () => {
+    await insertTestUser({ db: env.DB, id: "user-mcp-list" });
     const auth = createApiKeyAuthStub(
       vi.fn().mockResolvedValue({
         valid: true,

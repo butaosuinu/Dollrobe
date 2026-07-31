@@ -11,10 +11,38 @@ import {
   storageCases,
   storageLocations,
 } from "./db/schema";
+import { createApiKeyCreateRequestPolicy } from "./lib/api-key-create";
+import type { Logger } from "./lib/logger";
 import { isUserFrozen } from "./lib/user-status";
 
-export const createAuth = ({ env }: { readonly env: Env }) =>
-  betterAuth({
+const createBetterAuthLogger = (logger: Logger | undefined) =>
+  logger === undefined
+    ? undefined
+    : {
+        disableColors: true,
+        level: "info" as const,
+        log: (
+          level: "debug" | "info" | "warn" | "error",
+          message: string,
+          details?: unknown,
+        ) => {
+          logger[level](
+            message,
+            details === undefined ? undefined : { betterAuthDetails: details },
+          );
+        },
+      };
+
+export const createAuth = ({
+  env,
+  logger,
+}: {
+  readonly env: Env;
+  readonly logger?: Logger;
+}) => {
+  const apiKeyCreatePolicy = createApiKeyCreateRequestPolicy();
+
+  return betterAuth({
     database: env.DB,
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
@@ -79,6 +107,11 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
             drizzleDb.delete(digests).where(eq(digests.userId, user.id)),
           ]);
         },
+        afterDelete: async (user) => {
+          await env.DB.prepare(`DELETE FROM "apikey" WHERE referenceId = ?`)
+            .bind(user.id)
+            .run();
+        },
       },
     },
     databaseHooks: {
@@ -94,8 +127,20 @@ export const createAuth = ({ env }: { readonly env: Env }) =>
         },
       },
     },
-    plugins: [apiKey()],
+    hooks: {
+      before: apiKeyCreatePolicy.before,
+    },
+    logger: createBetterAuthLogger(logger),
+    plugins: [
+      apiKey({
+        permissions: {
+          defaultPermissions: (_referenceId, ctx) =>
+            apiKeyCreatePolicy.getPermissions(ctx.request),
+        },
+      }),
+    ],
     trustedOrigins: env.TRUSTED_ORIGINS.split(","),
   });
+};
 
 export type Auth = ReturnType<typeof createAuth>;

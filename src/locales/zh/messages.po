@@ -305,6 +305,10 @@ msgstr "登录 Dollrobe"
 msgid "Google でログイン"
 msgstr "使用Google登录"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "HTTPS でアクセスしているか確認するか、別のブラウザで開いてください。"
+msgstr "请确认是否通过 HTTPS 访问，或改用其他浏览器打开。"
+
 #: src/components/settings/account/ProfileForm.tsx
 msgid "https://..."
 msgstr "https://..."
@@ -546,6 +550,10 @@ msgstr "配饰"
 msgid "アップロード中..."
 msgstr "上传中..."
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "アドレスバーのカメラアイコン、または端末の設定からこのサイトのカメラを「許可」に変更してください。"
+msgstr "请通过地址栏的相机图标或设备设置，将本站的相机权限改为「允许」。"
+
 #: src/components/digest/DigestCard.tsx
 msgid "あなたの在庫状況"
 msgstr "您的库存状态"
@@ -640,9 +648,29 @@ msgstr "自定义名称"
 msgid "カテゴリ"
 msgstr "类别"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラが接続されているか、他のアプリで無効になっていないか確認してください。"
+msgstr "请确认相机已连接，且未被其他应用禁用。"
+
 #: src/components/garment/ImageUpload.tsx
 msgid "カメラで撮影"
 msgstr "拍照"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラの起動に失敗しました"
+msgstr "相机启动失败"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラへのアクセスが拒否されました"
+msgstr "相机访问被拒绝"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラを再試行"
+msgstr "重试相机"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラを起動できませんでした"
+msgstr "无法启动相机"
 
 #: src/components/dashboard/WardrobeAnalytics.tsx
 msgid "カラー"
@@ -738,6 +766,10 @@ msgstr "此 API 密钥仅显示一次。请在关闭前务必复制。"
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "此设备不支持NFC写入。请使用Android Chrome。"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "このブラウザではカメラを使えません"
+msgstr "此浏览器无法使用相机"
+
 #: src/app/admin/users/page.tsx
 msgid "このページには表示するユーザーがいません"
 msgstr "本页没有可显示的用户"
@@ -819,6 +851,10 @@ msgstr "季节、场景、组合理由等"
 #: src/lib/i18n-labels.ts
 msgid "シアン"
 msgstr "青色"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "しばらく待ってから再試行してください。"
+msgstr "请稍后再试。"
 
 #: src/components/marketing/ProblemSection.tsx
 msgid "しばらく着せていない服が、いつの間にか箱の底で見つからない服になっている。"
@@ -1546,6 +1582,10 @@ msgstr "并排放置的两个分格抽屉中整齐摆放的娃娃服装俯视图
 msgid "今ここにいなくても確認"
 msgstr "不在现场也可确认"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "他のアプリがカメラを使用している可能性があります。使用中のアプリを閉じてから再試行してください。"
+msgstr "可能有其他应用正在使用相机。请关闭该应用后重试。"
+
 #: src/app/settings/account/page.tsx
 msgid "他のユーザーや UI に表示されます。"
 msgstr "将显示给其他用户和在 UI 中。"
@@ -1741,6 +1781,10 @@ msgstr "每次取放时只扫一次位置 QR,位置便始终保持最新。"
 msgid "列数"
 msgstr "列数"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "利用できるカメラが見つかりません"
+msgstr "找不到可用的相机"
+
 #: src/components/marketing/MarketingFooter.tsx
 #~ msgid "利用規約"
 #~ msgstr "使用条款"
@@ -1776,6 +1820,10 @@ msgstr "打印"
 #: src/app/print/page.tsx
 msgid "印刷する QR コードが選択されていません"
 msgstr "未选择要打印的QR码"
+
+#: src/app/print/page.tsx
+msgid "印刷できる QR コードがありません"
+msgstr "没有可打印的QR码"
 
 #: src/components/admin/UserDataTabs.tsx
 #: src/lib/nav-items.ts
@@ -2303,6 +2351,10 @@ msgstr "已登记衣服"
 msgid "登録された服がありません"
 msgstr "还没有登记的衣服。"
 
+#: src/app/print/page.tsx
+msgid "登録されていない ID のため印刷対象から除外しました（{missingLabel}）"
+msgstr "以下ID未注册，已从打印对象中排除（{missingLabel}）"
+
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "登録した服・収納場所・コーデ・ドールはすべて削除され、復元できません。"
 msgstr "已注册的衣物、收纳位置、搭配和人偶都将被删除，无法恢复。"
@@ -2477,6 +2529,10 @@ msgstr "自由输入备注..."
 #: src/components/garment/GarmentForm.tsx
 msgid "色"
 msgstr "颜色"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "色の自動抽出に失敗しました。下から手動で選んでください。"
+msgstr "颜色自动提取失败。请在下方手动选择。"
 
 #: src/components/garment/GarmentForm.tsx
 msgid "色を分析中..."

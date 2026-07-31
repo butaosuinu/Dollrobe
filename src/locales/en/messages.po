@@ -305,6 +305,10 @@ msgstr "Sign in to Dollrobe"
 msgid "Google でログイン"
 msgstr "Sign in with Google"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "HTTPS でアクセスしているか確認するか、別のブラウザで開いてください。"
+msgstr "Check that you are connecting over HTTPS, or open this page in another browser."
+
 #: src/components/settings/account/ProfileForm.tsx
 msgid "https://..."
 msgstr "https://..."
@@ -546,6 +550,10 @@ msgstr "Accessories"
 msgid "アップロード中..."
 msgstr "Uploading..."
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "アドレスバーのカメラアイコン、または端末の設定からこのサイトのカメラを「許可」に変更してください。"
+msgstr "Allow camera access for this site from the camera icon in the address bar, or from your device settings."
+
 #: src/components/digest/DigestCard.tsx
 msgid "あなたの在庫状況"
 msgstr "Your inventory status"
@@ -640,9 +648,29 @@ msgstr "Custom name"
 msgid "カテゴリ"
 msgstr "Category"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラが接続されているか、他のアプリで無効になっていないか確認してください。"
+msgstr "Check that a camera is connected and has not been disabled by another app."
+
 #: src/components/garment/ImageUpload.tsx
 msgid "カメラで撮影"
 msgstr "Take Photo"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラの起動に失敗しました"
+msgstr "Failed to start the camera"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラへのアクセスが拒否されました"
+msgstr "Camera access was denied"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラを再試行"
+msgstr "Retry camera"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "カメラを起動できませんでした"
+msgstr "Could not start the camera"
 
 #: src/components/dashboard/WardrobeAnalytics.tsx
 msgid "カラー"
@@ -738,6 +766,10 @@ msgstr "This API key is shown only once. Make sure to copy it before closing."
 msgid "このデバイスは NFC 書き込みに対応していません。Android Chrome をご利用ください。"
 msgstr "This device does not support NFC writing. Please use Android Chrome."
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "このブラウザではカメラを使えません"
+msgstr "The camera is not available in this browser"
+
 #: src/app/admin/users/page.tsx
 msgid "このページには表示するユーザーがいません"
 msgstr "No users to show on this page"
@@ -819,6 +851,10 @@ msgstr "Season, scene, why you chose it..."
 #: src/lib/i18n-labels.ts
 msgid "シアン"
 msgstr "Cyan"
+
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "しばらく待ってから再試行してください。"
+msgstr "Please wait a moment and try again."
 
 #: src/components/marketing/ProblemSection.tsx
 msgid "しばらく着せていない服が、いつの間にか箱の底で見つからない服になっている。"
@@ -1546,6 +1582,10 @@ msgstr "Top-down view of doll garments arranged in two side-by-side compartmente
 msgid "今ここにいなくても確認"
 msgstr "Confirm without being here"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "他のアプリがカメラを使用している可能性があります。使用中のアプリを閉じてから再試行してください。"
+msgstr "Another app may be using the camera. Close it and try again."
+
 #: src/app/settings/account/page.tsx
 msgid "他のユーザーや UI に表示されます。"
 msgstr "Shown to other users and in the UI."
@@ -1741,6 +1781,10 @@ msgstr "Just scan a location's QR each time you take something out or put it bac
 msgid "列数"
 msgstr "Columns"
 
+#: src/components/scan/CameraErrorOverlay.tsx
+msgid "利用できるカメラが見つかりません"
+msgstr "No available camera was found"
+
 #: src/components/marketing/MarketingFooter.tsx
 #~ msgid "利用規約"
 #~ msgstr "Terms of Service"
@@ -1776,6 +1820,10 @@ msgstr "Print"
 #: src/app/print/page.tsx
 msgid "印刷する QR コードが選択されていません"
 msgstr "No QR codes selected for printing"
+
+#: src/app/print/page.tsx
+msgid "印刷できる QR コードがありません"
+msgstr "No printable QR codes"
 
 #: src/components/admin/UserDataTabs.tsx
 #: src/lib/nav-items.ts
@@ -2303,6 +2351,10 @@ msgstr "Registered garments"
 msgid "登録された服がありません"
 msgstr "No garments registered yet."
 
+#: src/app/print/page.tsx
+msgid "登録されていない ID のため印刷対象から除外しました（{missingLabel}）"
+msgstr "Excluded from printing because these IDs are not registered ({missingLabel})"
+
 #: src/components/settings/account/DeleteAccountSection.tsx
 msgid "登録した服・収納場所・コーデ・ドールはすべて削除され、復元できません。"
 msgstr "All registered garments, locations, coordinates, and dolls will be deleted and cannot be restored."
@@ -2477,6 +2529,10 @@ msgstr "Enter notes freely..."
 #: src/components/garment/GarmentForm.tsx
 msgid "色"
 msgstr "Colors"
+
+#: src/components/garment/GarmentForm.tsx
+msgid "色の自動抽出に失敗しました。下から手動で選んでください。"
+msgstr "Automatic color detection failed. Please pick colors manually below."
 
 #: src/components/garment/GarmentForm.tsx
 msgid "色を分析中..."

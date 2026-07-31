@@ -1,7 +1,7 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { Auth } from "../auth";
 import { extractBearerKey } from "../lib/auth-resolver";
-import { isUserFrozen } from "../lib/user-status";
+import { isUserActive } from "../lib/user-status";
 import { parsePermissions, type McpScope } from "./scopes";
 
 export type McpAuth = {
@@ -35,11 +35,11 @@ export const resolveMcpAuth = async ({
     return undefined;
   }
 
-  // frozen ユーザーの API key は revoke するまで使い続けられないように、
-  // 認証成立直前で必ず弾く。session.create.before は新規 sign-in しか
-  // 防がないため、ここで二重ガードする。
-  const frozen = await isUserFrozen({ db, userId });
-  if (frozen) {
+  // frozen または削除済みユーザーの API key は、認証成立直前で必ず弾く。
+  // session.create.before は新規 sign-in しか防がないため、ここで
+  // 所有ユーザーの存在と状態を二重ガードする。
+  const active = await isUserActive({ db, userId });
+  if (!active) {
     return undefined;
   }
 

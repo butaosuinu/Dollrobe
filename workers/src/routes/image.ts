@@ -5,6 +5,7 @@ import type { Auth } from "../auth";
 import * as imageService from "../services/image-service";
 import { resolveAuthenticatedUserId } from "../lib/auth-resolver";
 import { cuidSchema } from "../db/validation";
+import { API_KEY_SCOPE } from "../lib/api-key-permissions";
 
 type Variables = {
   auth: Auth;
@@ -21,6 +22,7 @@ imageRoutes.post("/upload/:garmentId", async (c) => {
     auth: c.get("auth"),
     db: c.env.DB,
     headers: c.req.raw.headers,
+    requiredApiKeyScope: API_KEY_SCOPE.WRITE,
   });
   if (userId === undefined) {
     return c.json({ error: "Unauthorized" }, 401);

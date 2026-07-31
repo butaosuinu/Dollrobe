@@ -351,6 +351,10 @@ const toLastRequest = (raw: unknown): number | undefined => {
   return ms === 0 ? undefined : ms;
 };
 
+// server がメッセージを返さないときのフォールバック。UI はこれを
+// 「server 由来の詳細なし」と判定するため、比較用に export する。
+export const API_KEY_CREATE_FALLBACK_ERROR = "Failed to create API key";
+
 export const createApiKey = async (input: {
   readonly name: string;
   readonly scope: ApiKeyScope;
@@ -369,7 +373,7 @@ export const createApiKey = async (input: {
         enabled: data.enabled,
         key: data.key,
       }
-    : fail(error.message ?? "Failed to create API key");
+    : fail(error.message ?? API_KEY_CREATE_FALLBACK_ERROR);
 };
 
 export const listApiKeys = async (): Promise<readonly ApiKeySummary[]> => {
