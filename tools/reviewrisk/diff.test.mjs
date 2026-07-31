@@ -979,6 +979,38 @@ test("空にされた test support は critical", (context) => {
   );
 });
 
+test("コメントだけにされた workflow は本文を読み取り critical", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-empty-workflow-"));
+  context.after(() => rmSync(cwd, { recursive: true, force: true }));
+  runGit(cwd, ["init", "--quiet"]);
+  runGit(cwd, ["config", "user.email", "test@example.com"]);
+  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
+
+  const path = ".github/workflows/ci.yml";
+  mkdirSync(join(cwd, ".github/workflows"), { recursive: true });
+  writeFileSync(
+    join(cwd, path),
+    "on: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n",
+  );
+  runGit(cwd, ["add", "."]);
+  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
+  writeFileSync(join(cwd, path), "# disabled temporarily\n");
+
+  const actual = readGitDiff({
+    base: "HEAD",
+    cwd,
+    includeContents: requiresEvaluationContents,
+  });
+  assert.match(actual.beforeContents.get(path) ?? "", /^on: push/);
+  assert.equal(actual.afterContents.get(path), "# disabled temporarily\n");
+  const report = evaluate(actual);
+  assert.equal(report.level, levels.critical);
+  assert.equal(
+    report.reasons.some(({ signal }) => signal === signals.workflowDeleted),
+    true,
+  );
+});
+
 test("test の設定・hook メソッド削除は test case 削除として扱わない", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-settings-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));

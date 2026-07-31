@@ -45,6 +45,17 @@ test("test file は機密 prefix 配下でも A に分類する", () => {
   assert.equal(actual?.id, "test-file");
 });
 
+test("API key の permission・create 境界は H に分類する", () => {
+  for (const path of [
+    "workers/src/lib/api-key-permissions.ts",
+    "workers/src/lib/api-key-create.ts",
+  ]) {
+    const actual = classifyPath(path);
+    assert.equal(actual?.class, classes.high, path);
+    assert.equal(actual?.id, "worker-auth-boundary", path);
+  }
+});
+
 test("未知の top-level path は分類しない", () => {
   assert.equal(classifyPath("new-security-config.toml"), undefined);
 });

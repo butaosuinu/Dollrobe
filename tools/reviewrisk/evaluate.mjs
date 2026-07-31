@@ -134,7 +134,10 @@ const isTestSupportPath = (path) =>
   testSupportPaths.has(path) || pathMatchesPrefix(path, testSupportPrefixes);
 
 export const requiresEvaluationContents = (path) =>
-  path === "package.json" || isTestFile(path) || isTestSupportPath(path);
+  path === "package.json" ||
+  isTestFile(path) ||
+  isTestSupportPath(path) ||
+  isWorkflowFile(path);
 
 const changedLines = (diff, path) => [
   ...(diff.addedLines.get(path) ?? []),
@@ -219,10 +222,12 @@ const scanSource = (source) => {
   let state = "code";
   let quote = "";
   let stringStart = -1;
+  let regexStart = -1;
   let escaped = false;
   let inRegexCharacterClass = false;
   const templateExpressionDepths = [];
   const stringLiteralEnds = new Map();
+  const regexLiteralEnds = new Map();
   const templateLiteralEnds = new Map();
   const templateStarts = [];
 
@@ -287,6 +292,7 @@ const scanSource = (source) => {
       result += masked;
       if (character === "\n") {
         state = "code";
+        regexStart = -1;
         escaped = false;
         inRegexCharacterClass = false;
       } else if (escaped) {
@@ -298,6 +304,8 @@ const scanSource = (source) => {
       } else if (character === "]") {
         inRegexCharacterClass = false;
       } else if (character === "/" && !inRegexCharacterClass) {
+        regexLiteralEnds.set(regexStart, index);
+        regexStart = -1;
         state = "code";
       }
       continue;
@@ -314,9 +322,10 @@ const scanSource = (source) => {
       state = "block-comment";
       continue;
     }
-    if (character === "/" && next !== "=" && startsRegexLiteral(result)) {
+    if (character === "/" && startsRegexLiteral(result)) {
       result += " ";
       state = "regex";
+      regexStart = index;
       escaped = false;
       inRegexCharacterClass = false;
       continue;
@@ -358,6 +367,7 @@ const scanSource = (source) => {
   return {
     structuralSource: result,
     stringLiteralEnds,
+    regexLiteralEnds,
     templateLiteralEnds,
   };
 };
@@ -460,6 +470,14 @@ const namespaceTestModules = new Set([
   "node:test",
   "vitest",
 ]);
+const directNodeTestDisableRoots = new Set(["skip", "todo", "only"]);
+const vitestNamespacePrefixRoots = [
+  "xit",
+  "xdescribe",
+  "xtest",
+  "fit",
+  "fdescribe",
+];
 
 const staticStringLiteralAt = ({
   source,
@@ -499,12 +517,19 @@ const importedTestRoots = ({ source, structuralSource, stringLiteralEnds }) => {
     const moduleName = moduleLiteral.value;
     for (const specifier of match[1].split(",")) {
       const aliasMatch =
-        /^\s*(test|it|describe|suite|context|xit|xdescribe|xtest|fit|fdescribe)(?:\s+as\s+([A-Za-z_$][\w$]*))?\s*$/.exec(
+        /^\s*(test|it|describe|suite|context|xit|xdescribe|xtest|fit|fdescribe|skip|todo|only)(?:\s+as\s+([A-Za-z_$][\w$]*))?\s*$/.exec(
           specifier,
         );
+      const importedName = aliasMatch?.[1];
       if (
         aliasMatch !== null &&
-        (aliasMatch[1] === "test" || namespaceTestModules.has(moduleName))
+        (importedName === "test" ||
+          (importedName !== undefined &&
+            canonicalTestRoots.includes(importedName) &&
+            namespaceTestModules.has(moduleName)) ||
+          (moduleName === "node:test" &&
+            importedName !== undefined &&
+            directNodeTestDisableRoots.has(importedName)))
       ) {
         roots.set(aliasMatch[2] ?? aliasMatch[1], aliasMatch[1]);
       }
@@ -533,6 +558,11 @@ const importedTestRoots = ({ source, structuralSource, stringLiteralEnds }) => {
       roots.set(`${namespace}.describe`, "describe");
       roots.set(`${namespace}.suite`, "describe");
     }
+    if (moduleName === "vitest") {
+      for (const root of vitestNamespacePrefixRoots) {
+        roots.set(`${namespace}.${root}`, root);
+      }
+    }
   }
   return roots;
 };
@@ -547,11 +577,41 @@ const testRootPatternFor = (importedRoots) => {
   return new RegExp(`(?<![\\w$.])\\b(${roots})\\b`, "g");
 };
 
-const staticBracketModifier = (source, start, end) => {
-  const match = /^(["'])(skip|only|fixme|todo|skipIf|runIf)\1$/.exec(
+const staticBracketMember = (source, start, end) => {
+  const match = /^(["'])([A-Za-z_$][\w$]*)\1$/.exec(
     source.slice(start, end).trim(),
   );
   return match?.[2];
+};
+
+const groupingParenthesesBefore = (source, rootIndex) => {
+  let cursor = rootIndex;
+  let count = 0;
+  while (cursor > 0) {
+    let openingIndex = cursor - 1;
+    while (openingIndex >= 0 && /\s/.test(source[openingIndex])) {
+      openingIndex -= 1;
+    }
+    if (
+      source[openingIndex] !== "(" ||
+      !startsRegexLiteral(source.slice(0, openingIndex))
+    ) {
+      break;
+    }
+    count += 1;
+    cursor = openingIndex;
+  }
+  return count;
+};
+
+const skipGroupingClosings = ({ source, start, remaining }) => {
+  let cursor = skipWhitespace(source, start);
+  let grouping = remaining;
+  while (grouping > 0 && source[cursor] === ")") {
+    grouping -= 1;
+    cursor = skipWhitespace(source, cursor + 1);
+  }
+  return { cursor, remaining: grouping };
 };
 
 const taggedTemplateAt = ({ structuralSource, templateLiteralEnds, start }) => {
@@ -580,6 +640,10 @@ const parseTestCalls = (source) => {
     testRootPatternFor(importedRoots),
   )) {
     const root = match[1];
+    let groupingDepth = groupingParenthesesBefore(
+      structuralSource,
+      match.index ?? 0,
+    );
     let cursor = skipWhitespace(
       structuralSource,
       (match.index ?? 0) + match[0].length,
@@ -589,6 +653,13 @@ const parseTestCalls = (source) => {
     let openingIndex = -1;
 
     while (cursor < structuralSource.length) {
+      const afterGrouping = skipGroupingClosings({
+        source: structuralSource,
+        start: cursor,
+        remaining: groupingDepth,
+      });
+      cursor = afterGrouping.cursor;
+      groupingDepth = afterGrouping.remaining;
       if (structuralSource[cursor] === "(") {
         openingIndex = cursor;
         break;
@@ -612,7 +683,7 @@ const parseTestCalls = (source) => {
           if (closingBracket === -1) {
             break;
           }
-          modifier = staticBracketModifier(source, cursor + 1, closingBracket);
+          modifier = staticBracketMember(source, cursor + 1, closingBracket);
           if (modifier === undefined) {
             break;
           }
@@ -630,7 +701,7 @@ const parseTestCalls = (source) => {
         if (closingBracket === -1) {
           break;
         }
-        modifier = staticBracketModifier(source, cursor + 1, closingBracket);
+        modifier = staticBracketMember(source, cursor + 1, closingBracket);
         if (modifier === undefined) {
           break;
         }
@@ -684,10 +755,13 @@ const parseTestCalls = (source) => {
         openingIndex: cursor,
       });
       modifierArguments.set(modifier, parsedModifier.arguments);
-      const afterModifier = skipWhitespace(
-        structuralSource,
-        parsedModifier.closingIndex + 1,
-      );
+      const afterModifierGrouping = skipGroupingClosings({
+        source: structuralSource,
+        start: parsedModifier.closingIndex + 1,
+        remaining: groupingDepth,
+      });
+      const afterModifier = afterModifierGrouping.cursor;
+      groupingDepth = afterModifierGrouping.remaining;
       if (structuralSource[afterModifier] === "(") {
         openingIndex = afterModifier;
         break;
@@ -730,6 +804,11 @@ const normalizedTestRoot = (call) => {
       root = "it";
       break;
     case "xtest":
+      root = "test";
+      break;
+    case "skip":
+    case "todo":
+    case "only":
       root = "test";
       break;
     case "xdescribe":
@@ -1026,6 +1105,9 @@ const disableModesForCall = ({
   if (sourceRoot === "fit" || sourceRoot === "fdescribe") {
     modes.add("only");
   }
+  if (directNodeTestDisableRoots.has(sourceRoot)) {
+    modes.add(sourceRoot);
+  }
   for (const [index, modifier] of call.modifiers.entries()) {
     const modifierCondition =
       call.modifierArguments.get(modifier)?.[0] ??
@@ -1075,6 +1157,46 @@ const disableModesForCall = ({
 const normalizedStructuralCode = (source) => source.replace(/\s+/g, "");
 const normalizedSourceFragment = (source) => source.trim().replace(/\s+/g, " ");
 
+const normalizedConditionCode = (source) => {
+  const {
+    structuralSource,
+    stringLiteralEnds,
+    regexLiteralEnds,
+    templateLiteralEnds,
+  } = scanSource(source);
+  let result = "";
+  for (let index = 0; index < source.length; index += 1) {
+    const literalEnd =
+      stringLiteralEnds.get(index) ??
+      regexLiteralEnds.get(index) ??
+      templateLiteralEnds.get(index);
+    if (literalEnd !== undefined) {
+      result += source.slice(index, literalEnd + 1);
+      index = literalEnd;
+    } else if (!/\s/.test(structuralSource[index])) {
+      result += structuralSource[index];
+    }
+  }
+  return result;
+};
+
+const disableConditionIdentity = (call, mode) => {
+  const modifierArguments = call.modifierArguments.get(mode) ?? [];
+  if (mode === "skipIf" || mode === "runIf") {
+    return normalizedConditionCode(modifierArguments[0]?.raw ?? "");
+  }
+  if (
+    (mode === "skip" || mode === "fixme") &&
+    modifierArguments.length >= 2 &&
+    modifierArguments[0]?.structural.trim() !== "" &&
+    modifierArguments[1]?.structural.trim() === "" &&
+    /^["']/.test(modifierArguments[1]?.raw.trim() ?? "")
+  ) {
+    return normalizedConditionCode(modifierArguments[0].raw);
+  }
+  return "";
+};
+
 const testCallDescriptors = (source) => {
   const parsed = parseTestCalls(source);
   const scopes = assignSuitePaths(suiteScopes(parsed));
@@ -1117,10 +1239,14 @@ const testCallDescriptors = (source) => {
         stringLiteralEnds: parsed.stringLiteralEnds,
       }),
     ];
+    const modeConditions = new Map(
+      modes.map((mode) => [mode, disableConditionIdentity(call, mode)]),
+    );
     descriptors.push({
       root,
       testCase,
       modes,
+      modeConditions,
       title,
       callbackIdentity,
       casePositionIdentity,
@@ -1131,22 +1257,31 @@ const testCallDescriptors = (source) => {
   return descriptors;
 };
 
-const testDisableDescriptors = (source) =>
-  testCallDescriptors(source).flatMap(({ modes, ...descriptor }) =>
-    modes.map((mode) => ({ ...descriptor, mode })),
+const disableDescriptorsForCalls = (calls) =>
+  calls.flatMap(({ modes, modeConditions, ...descriptor }) =>
+    modes.map((mode) => ({
+      ...descriptor,
+      mode,
+      conditionIdentity: modeConditions.get(mode) ?? "",
+    })),
   );
+
+const testDisableDescriptors = (source) =>
+  disableDescriptorsForCalls(testCallDescriptors(source));
 
 const addsTestDisableFingerprint = (beforeSource, afterSource) => {
   const beforeCalls = testCallDescriptors(beforeSource);
-  const before = beforeCalls.flatMap(({ modes, ...descriptor }) =>
-    modes.map((mode) => ({ ...descriptor, mode, used: false })),
-  );
+  const before = disableDescriptorsForCalls(beforeCalls).map((descriptor) => ({
+    ...descriptor,
+    used: false,
+  }));
   const unmatched = [];
   for (const descriptor of testDisableDescriptors(afterSource)) {
     const movableMatch = before.find(
       (candidate) =>
         !candidate.used &&
         candidate.mode === descriptor.mode &&
+        candidate.conditionIdentity === descriptor.conditionIdentity &&
         candidate.movableIdentity === descriptor.movableIdentity,
     );
     if (movableMatch !== undefined) {
@@ -1168,6 +1303,7 @@ const addsTestDisableFingerprint = (beforeSource, afterSource) => {
       (candidate) =>
         !candidate.used &&
         candidate.mode === descriptor.mode &&
+        candidate.conditionIdentity === descriptor.conditionIdentity &&
         candidate.positionalIdentity === descriptor.positionalIdentity &&
         (candidate.title === descriptor.title ||
           candidate.callbackIdentity === descriptor.callbackIdentity),
@@ -1257,6 +1393,25 @@ const emptiesTestSupportPattern = (diff, file) => {
     beforeSource.trim() !== "" &&
     afterSource !== undefined &&
     afterSource.trim() === ""
+  );
+};
+
+const hasWorkflowDefinition = (source) =>
+  source
+    .split(/\r?\n/)
+    .some((line) => line.trim() !== "" && !line.trimStart().startsWith("#"));
+
+const emptiesWorkflowPattern = (diff, file) => {
+  if (!isWorkflowFile(file.path)) {
+    return false;
+  }
+  const beforeSource = diff.beforeContents?.get(file.path);
+  const afterSource = diff.afterContents?.get(file.path);
+  return (
+    beforeSource !== undefined &&
+    hasWorkflowDefinition(beforeSource) &&
+    afterSource !== undefined &&
+    !hasWorkflowDefinition(afterSource)
   );
 };
 
@@ -1403,7 +1558,8 @@ const criticalReasons = (diff) => {
     }
     if (
       isDeletedOrMovedOut(file, isWorkflowFile) ||
-      changesWorkflowExtension(file)
+      changesWorkflowExtension(file) ||
+      emptiesWorkflowPattern(diff, file)
     ) {
       reasons.push(
         reason(

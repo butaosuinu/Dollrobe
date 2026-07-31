@@ -53,7 +53,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | S3-test-disabled-or-focused | critical | test API の skip/fixme/todo/only/runIf、x/f prefix の追加・有効化・差し替え           |
 | S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更                          |
 | S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                                      |
-| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動                                    |
+| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動、空・コメントだけへの変更          |
 | S7-quality-gate-modified    | critical | package.json の削除・移動、JSON 上の scripts container・test/build/precheck 等の変更  |
 | S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                                                |
 | S9-unclassified-path        | high     | rule に一致しない path                                                                |
@@ -66,8 +66,8 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 の上限に余裕を持たせて UTF-8 で 60,000 bytes 以下とし、超過する理由・ファイルは
 省略数を表示する。Git path は NUL 区切りの byte 列として読み、非 UTF-8 byte は
 `%XX`、有効な UTF-8 path 内の `%` は `%25` へ encoding して一意に保つ。
-patch 本文または test file の変更前後文脈が 64 MiB の読み取り上限を超える場合は
-処理を停止せず、S12 / critical として fail-closed にする。
+patch 本文または test file・workflow の変更前後文脈が 64 MiB の読み取り上限を
+超える場合は処理を停止せず、S12 / critical として fail-closed にする。
 
 ## CLI
 

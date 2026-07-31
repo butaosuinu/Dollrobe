@@ -176,6 +176,14 @@ const exactRules = new Map([
     rule("worker-auth-boundary", classes.high, "session・API key 認証解決"),
   ],
   [
+    "workers/src/lib/api-key-permissions.ts",
+    rule("worker-auth-boundary", classes.high, "API key scope 認可境界"),
+  ],
+  [
+    "workers/src/lib/api-key-create.ts",
+    rule("worker-auth-boundary", classes.high, "API key 発行ポリシー境界"),
+  ],
+  [
     "workers/src/lib/user-status.ts",
     rule("worker-auth-boundary", classes.high, "frozen user 判定"),
   ],

@@ -11,10 +11,18 @@ const change = ({
   deleted = 1,
 }) => ({ path, status, oldPath, added, deleted });
 
-const diff = ({ files, addedLines = {}, removedLines = {} }) => ({
+const diff = ({
+  files,
+  addedLines = {},
+  removedLines = {},
+  beforeContents = {},
+  afterContents = {},
+}) => ({
   files,
   addedLines: new Map(Object.entries(addedLines)),
   removedLines: new Map(Object.entries(removedLines)),
+  beforeContents: new Map(Object.entries(beforeContents)),
+  afterContents: new Map(Object.entries(afterContents)),
 });
 
 const hasSignal = (report, signal) =>
@@ -222,6 +230,54 @@ test("static import された test alias の skip・only は critical", () => {
   }
 });
 
+test("Vitest namespace の x/f prefix alias は critical", () => {
+  for (const statement of [
+    'vitest.xit("later", fn);',
+    'vitest.xtest("later", fn);',
+    'vitest.xdescribe("later", fn);',
+    'vitest.fit("focused", fn);',
+    'vitest.fdescribe("focused", fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [
+            'import * as vitest from "vitest";',
+            statement,
+          ],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
+});
+
+test("node:test の直接 disable export と alias は critical", () => {
+  for (const [importName, localName] of [
+    ["skip", "skip"],
+    ["todo", "pending"],
+    ["only", "focused"],
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [
+            `import { ${importName}${
+              importName === localName ? "" : ` as ${localName}`
+            } } from "node:test";`,
+            `${localName}("boundary", fn);`,
+          ],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, importName);
+    assert.equal(hasSignal(report, signals.testDisabled), true, importName);
+  }
+});
+
 test("static import のない任意 identifier の skip は無効化として扱わない", () => {
   const report = evaluate(
     diff({
@@ -269,6 +325,54 @@ test("test module 以外の namespace は test root として扱わない", () =
           'import * as helper from "./helper";',
           'helper.test.skip("not a test API", fn);',
         ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("静的 bracket の中間 modifier に続く only は critical", () => {
+  for (const statement of [
+    'test["describe"].only("suite", fn);',
+    'test?.["describe"]["only"]("suite", fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
+});
+
+test("括弧で grouping した test root・member の skip は critical", () => {
+  for (const statement of [
+    '(test).skip("later", fn);',
+    '(test.skip)("later", fn);',
+    '((test).skip)("later", fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
+
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": ['builder(test).skip("not test.skip", fn);'],
       },
     }),
   );
@@ -477,6 +581,50 @@ test("runIf false・条件式は critical", () => {
   }
 });
 
+test("条件付き modifier の条件差し替えは critical", () => {
+  for (const [beforeSource, afterSource] of [
+    [
+      'test.skipIf(process.platform === "win32")("x", fn);',
+      'test.skipIf(process.platform !== "win32")("x", fn);',
+    ],
+    ['test.runIf(featureA)("x", fn);', 'test.runIf(featureB)("x", fn);'],
+    [
+      'test.skip(process.platform === "win32", "Windows");',
+      'test.skip(process.platform !== "win32", "Windows");',
+    ],
+    [
+      'test.skipIf(process.platform === "win32")("x", fn);',
+      'test.skipIf(process.platform === "darwin")("x", fn);',
+    ],
+  ]) {
+    const path = "src/lib/new.test.ts";
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: { [path]: beforeSource },
+        afterContents: { [path]: afterSource },
+      }),
+    );
+    assert.equal(report.level, levels.critical, afterSource);
+    assert.equal(hasSignal(report, signals.testDisabled), true, afterSource);
+  }
+
+  const path = "src/lib/formatted.test.ts";
+  const report = evaluate(
+    diff({
+      files: [change({ path })],
+      beforeContents: {
+        [path]: 'test.skipIf(featureA && featureB)("x", fn);',
+      },
+      afterContents: {
+        [path]: 'test.skipIf(featureA  &&  featureB)("x", fn);',
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
 test("Playwright の skip・fixme false は無効化として扱わない", () => {
   for (const modifier of ["skip", "fixme"]) {
     const report = evaluate(
@@ -596,6 +744,24 @@ test("正規表現リテラル後の test skip を検出する", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("イコールから始まる正規表現と除算代入後の skip を検出する", () => {
+  for (const statement of [
+    'const matches = /=/.test(value); test.skip("later", fn);',
+    'value /= 2; test.skip("later", fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
 });
 
 test("postfix 演算後の除算に続く test skip を検出する", () => {
@@ -758,6 +924,27 @@ test("workflow の yml・yaml 間 rename は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.workflowDeleted), true);
+});
+
+test("空またはコメントだけにされた workflow は critical", () => {
+  for (const afterSource of ["", "\n# disabled temporarily\n"]) {
+    const path = ".github/workflows/ci.yml";
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: {
+          [path]: "on: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n",
+        },
+        afterContents: { [path]: afterSource },
+      }),
+    );
+    assert.equal(report.level, levels.critical, JSON.stringify(afterSource));
+    assert.equal(
+      hasSignal(report, signals.workflowDeleted),
+      true,
+      JSON.stringify(afterSource),
+    );
+  }
 });
 
 test("review-risk 自身・品質 script・既存 migration の変更は critical", () => {
