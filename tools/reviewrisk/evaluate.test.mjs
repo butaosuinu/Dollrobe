@@ -604,6 +604,44 @@ test("ローカル binding で shadow された test root は test API として
   );
   assert.equal(realTest.level, levels.critical);
   assert.equal(hasSignal(realTest, signals.testDisabled), true);
+
+  for (const source of [
+    [
+      "for (const test of reporters) {",
+      '  test.skip("not a test API", fn);',
+      "}",
+    ],
+    ["for (const test of reporters)", '  test.skip("not a test API", fn);'],
+  ]) {
+    const loopOnly = evaluate(
+      diff({
+        files: [change({ path: "src/lib/loop.test.ts", status: "A" })],
+        addedLines: { "src/lib/loop.test.ts": source },
+      }),
+    );
+    assert.equal(loopOnly.level, levels.low, source.join("\n"));
+    assert.equal(
+      hasSignal(loopOnly, signals.testDisabled),
+      false,
+      source.join("\n"),
+    );
+  }
+
+  const loopShadow = evaluate(
+    diff({
+      files: [change({ path: "src/lib/loop.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/loop.test.ts": [
+          "for (const test of reporters) {",
+          '  test.skip("not a test API", fn);',
+          "}",
+          'test.skip("real test API", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(loopShadow.level, levels.critical);
+  assert.equal(hasSignal(loopShadow, signals.testDisabled), true);
 });
 
 test("静的 bracket の中間 modifier に続く only は critical", () => {

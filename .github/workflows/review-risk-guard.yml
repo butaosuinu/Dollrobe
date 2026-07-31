@@ -71,10 +71,28 @@ jobs:
             echo "conflict=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Prepare failed guard result
+        id: fallback
+        if: >-
+          always() &&
+          github.event.pull_request.base.ref == 'main' &&
+          steps.guard.outcome != 'success'
+        run: |
+          set -euo pipefail
+          {
+            echo '<!-- review-risk-guard -->'
+            echo '## Review risk: **CRITICAL**（base 側ガード）'
+            echo
+            echo '人間精読必須。base ブランチ側の自己改変判定を完了できなかったため、fail-closed で critical に固定しました。この workflow は PR 側コードを実行しません。'
+          } > comment.md
+
       - name: Clear stale normal result outside main or while conflicting
         if: >-
-          steps.guard.outputs.target != 'true' ||
-          steps.guard.outputs.conflict == 'true'
+          always() &&
+          (
+            steps.guard.outputs.target != 'true' ||
+            steps.guard.outputs.conflict == 'true'
+          )
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -154,8 +172,14 @@ jobs:
 
       - name: Apply review:critical label
         if: >-
-          steps.guard.outputs.target == 'true' &&
-          steps.guard.outputs.self == 'true'
+          always() &&
+          (
+            (
+              steps.guard.outputs.target == 'true' &&
+              steps.guard.outputs.self == 'true'
+            ) ||
+            steps.fallback.outcome == 'success'
+          )
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -207,11 +231,17 @@ jobs:
           gh pr edit "$PR" --add-label "review:critical"
 
       - name: Reconcile guard sticky comment
+        if: >-
+          always() &&
+          (
+            steps.guard.outcome == 'success' ||
+            steps.fallback.outcome == 'success'
+          )
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
-          SELF: ${{ steps.guard.outputs.self }}
+          SELF: ${{ (steps.guard.outputs.self == 'true' || steps.fallback.outcome == 'success') && 'true' || 'false' }}
           EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
           EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -247,3 +277,7 @@ jobs:
             ensure_current_pr || exit 0
             gh api --method DELETE "repos/$GH_REPO/issues/comments/$existing_id"
           fi
+
+      - name: Fail workflow after publishing fail-closed guard result
+        if: always() && steps.fallback.outcome == 'success'
+        run: exit 1

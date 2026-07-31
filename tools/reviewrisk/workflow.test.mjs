@@ -35,7 +35,7 @@ test("CI runs the review-risk regression suite", async () => {
   assert.match(source, /- run: pnpm test\n\s+- run: pnpm test:review-risk/);
 });
 
-test("review-risk rechecks the live PR before each publish step", async () => {
+test("review-risk rechecks the live PR before every mutation", async () => {
   const source = await readWorkflow("review-risk.yml");
   const labelIndex = source.indexOf("- name: Apply review:<level> label");
   const commentIndex = source.indexOf("- name: Update sticky comment");
@@ -61,6 +61,17 @@ test("review-risk rechecks the live PR before each publish step", async () => {
     );
     assert.match(step, /if \[ "\$current" != "\$expected" \]/);
     assert.match(step, /exit 0/);
+    const mutationCount = [
+      ...step.matchAll(
+        /(?:gh label create|gh pr edit|gh api --method (?:PATCH|POST))/g,
+      ),
+    ].length;
+    const guardedMutationCount = [
+      ...step.matchAll(
+        /ensure_current_pr \|\| exit 0\n\s+(?:gh label create|gh pr edit|gh api --method (?:PATCH|POST))/g,
+      ),
+    ].length;
+    assert.equal(guardedMutationCount, mutationCount);
   }
 });
 
@@ -254,6 +265,63 @@ test("base guard treats pull request content as data only", async () => {
   const applyStep = source.slice(applyIndex, reconcileIndex);
   assert.match(applyStep, /steps\.guard\.outputs\.target == 'true'/);
   assert.match(applyStep, /steps\.guard\.outputs\.self == 'true'/);
+});
+
+test("base guard publishes a fail-closed result when detection fails", async () => {
+  const source = await readWorkflow("review-risk-guard.yml");
+  const guardIndex = source.indexOf("- name: Detect self-modification");
+  const fallbackIndex = source.indexOf("- name: Prepare failed guard result");
+  const clearIndex = source.indexOf(
+    "- name: Clear stale normal result outside main or while conflicting",
+  );
+  const applyIndex = source.indexOf("- name: Apply review:critical label");
+  const reconcileIndex = source.indexOf(
+    "- name: Reconcile guard sticky comment",
+  );
+  const finalFailureIndex = source.indexOf(
+    "- name: Fail workflow after publishing fail-closed guard result",
+  );
+
+  for (const index of [
+    guardIndex,
+    fallbackIndex,
+    clearIndex,
+    applyIndex,
+    reconcileIndex,
+    finalFailureIndex,
+  ]) {
+    assert.notEqual(index, -1);
+  }
+  assert.ok(guardIndex < fallbackIndex);
+  assert.ok(fallbackIndex < clearIndex);
+  assert.ok(reconcileIndex < finalFailureIndex);
+
+  const fallbackStep = source.slice(fallbackIndex, clearIndex);
+  assert.match(fallbackStep, /id: fallback/);
+  assert.match(fallbackStep, /always\(\)/);
+  assert.match(fallbackStep, /pull_request\.base\.ref == 'main'/);
+  assert.match(fallbackStep, /steps\.guard\.outcome != 'success'/);
+  assert.match(fallbackStep, /## Review risk: \*\*CRITICAL\*\*/);
+  assert.match(fallbackStep, /> comment\.md/);
+
+  const clearStep = source.slice(clearIndex, applyIndex);
+  assert.match(clearStep, /always\(\)/);
+
+  const applyStep = source.slice(applyIndex, reconcileIndex);
+  assert.match(applyStep, /always\(\)/);
+  assert.match(applyStep, /steps\.fallback\.outcome == 'success'/);
+
+  const reconcileStep = source.slice(reconcileIndex, finalFailureIndex);
+  assert.match(reconcileStep, /always\(\)/);
+  assert.match(reconcileStep, /steps\.fallback\.outcome == 'success'/);
+  assert.match(reconcileStep, /SELF:.*steps\.fallback\.outcome == 'success'/);
+
+  const finalFailureStep = source.slice(finalFailureIndex);
+  assert.match(
+    finalFailureStep,
+    /always\(\) && steps\.fallback\.outcome == 'success'/,
+  );
+  assert.match(finalFailureStep, /exit 1/);
 });
 
 test("base guard rechecks the live PR before every PR mutation", async () => {

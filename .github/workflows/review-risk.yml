@@ -126,20 +126,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          current="$(gh api "repos/$GH_REPO/pulls/$PR" \
-            --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
-          expected="$(printf '%s\t%s\t%s\t%s' \
-            "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
-            "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
-          if [ "$current" != "$expected" ]; then
-            echo "Skipping stale label publish for $EXPECTED_HEAD_SHA"
-            exit 0
-          fi
+          ensure_current_pr() {
+            local current expected
+            current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+              --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+            expected="$(printf '%s\t%s\t%s\t%s' \
+              "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+              "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            if [ "$current" != "$expected" ]; then
+              echo "Skipping stale label publish for $EXPECTED_HEAD_SHA"
+              return 1
+            fi
+          }
 
+          ensure_current_pr || exit 0
           gh label create "review:none" --color cccccc --description "PR review risk: none" 2>/dev/null || true
+          ensure_current_pr || exit 0
           gh label create "review:low" --color 0e8a16 --description "PR review risk: low" 2>/dev/null || true
+          ensure_current_pr || exit 0
           gh label create "review:medium" --color fbca04 --description "PR review risk: medium" 2>/dev/null || true
+          ensure_current_pr || exit 0
           gh label create "review:high" --color d93f0b --description "PR review risk: high" 2>/dev/null || true
+          ensure_current_pr || exit 0
           gh label create "review:critical" --color b60205 --description "PR review risk: critical" 2>/dev/null || true
 
           existing_labels="$(gh pr view "$PR" --json labels --jq '.labels[].name')"
@@ -147,12 +155,14 @@ jobs:
             case "$label" in
               review:*)
                 if [ "$label" != "review:$LEVEL" ]; then
+                  ensure_current_pr || exit 0
                   gh pr edit "$PR" --remove-label "$label"
                 fi
                 ;;
             esac
           done <<< "$existing_labels"
 
+          ensure_current_pr || exit 0
           gh pr edit "$PR" --add-label "review:$LEVEL"
 
       - name: Update sticky comment
@@ -176,22 +186,27 @@ jobs:
         run: |
           set -euo pipefail
 
-          current="$(gh api "repos/$GH_REPO/pulls/$PR" \
-            --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
-          expected="$(printf '%s\t%s\t%s\t%s' \
-            "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
-            "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
-          if [ "$current" != "$expected" ]; then
-            echo "Skipping stale comment publish for $EXPECTED_HEAD_SHA"
-            exit 0
-          fi
+          ensure_current_pr() {
+            local current expected
+            current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+              --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+            expected="$(printf '%s\t%s\t%s\t%s' \
+              "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+              "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            if [ "$current" != "$expected" ]; then
+              echo "Skipping stale comment publish for $EXPECTED_HEAD_SHA"
+              return 1
+            fi
+          }
 
           existing_id="$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
             --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- review-risk -->")))][0].id // empty')"
 
           if [ -n "$existing_id" ]; then
+            ensure_current_pr || exit 0
             gh api --method PATCH "repos/$GH_REPO/issues/comments/$existing_id" -F body=@"$OUTPUT_DIR/comment.md"
           else
+            ensure_current_pr || exit 0
             gh api --method POST "repos/$GH_REPO/issues/$PR/comments" -F body=@"$OUTPUT_DIR/comment.md"
           fi
 

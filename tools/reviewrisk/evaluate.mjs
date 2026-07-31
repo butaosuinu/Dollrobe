@@ -1258,6 +1258,48 @@ const testRootShadowRanges = ({
           end: scope.closingIndex,
         };
   };
+  const singleStatementEnd = (start) => {
+    const stack = [];
+    const closingFor = { "(": ")", "[": "]", "{": "}" };
+    for (let index = start; index < structuralSource.length; index += 1) {
+      const character = structuralSource[index];
+      if (Object.hasOwn(closingFor, character)) {
+        stack.push(closingFor[character]);
+      } else if (character === stack.at(-1)) {
+        stack.pop();
+      } else if (character === ";" && stack.length === 0) {
+        return index;
+      }
+    }
+    return structuralSource.length;
+  };
+  const forLoopRangeAt = (declarationIndex) => {
+    const forPattern = /\bfor(?:\s+await)?\s*\(/g;
+    let range;
+    for (const match of structuralSource.matchAll(forPattern)) {
+      const openingIndex = (match.index ?? 0) + match[0].lastIndexOf("(");
+      if (openingIndex >= declarationIndex) {
+        break;
+      }
+      const closingIndex = findMatchingDelimiter({
+        source: structuralSource,
+        openingIndex,
+        opening: "(",
+        closing: ")",
+      });
+      if (closingIndex === -1 || declarationIndex >= closingIndex) {
+        continue;
+      }
+      const bodyStart = skipWhitespace(structuralSource, closingIndex + 1);
+      const body =
+        structuralSource[bodyStart] === "{" ? bodyRange(bodyStart) : undefined;
+      range = {
+        start: openingIndex,
+        end: body?.end ?? singleStatementEnd(bodyStart),
+      };
+    }
+    return range;
+  };
   const addParameterRanges = ({
     pattern,
     parameterIndex,
@@ -1322,11 +1364,14 @@ const testRootShadowRanges = ({
       staticAliasRoot !== undefined;
     if (!aliasesTestRoot) {
       const scope = innermostScopeAt(scopes, match.index ?? 0);
+      const loopRange =
+        match[1] === "var" ? undefined : forLoopRangeAt(match.index ?? 0);
       addRange(
         localName,
-        scope === undefined
-          ? undefined
-          : { start: scope.openingIndex, end: scope.closingIndex },
+        loopRange ??
+          (scope === undefined
+            ? undefined
+            : { start: scope.openingIndex, end: scope.closingIndex }),
       );
     }
   }
