@@ -563,6 +563,11 @@ const importedTestRoots = ({ source, structuralSource, stringLiteralEnds }) => {
         roots.set(`${namespace}.${root}`, root);
       }
     }
+    if (moduleName === "node:test") {
+      for (const root of directNodeTestDisableRoots) {
+        roots.set(`${namespace}.${root}`, root);
+      }
+    }
   }
   return roots;
 };
@@ -614,6 +619,25 @@ const skipGroupingClosings = ({ source, start, remaining }) => {
   return { cursor, remaining: grouping };
 };
 
+const skipStaticTypeArguments = (source, start) => {
+  if (source[start] !== "<") {
+    return start;
+  }
+  let depth = 0;
+  for (let index = start; index < source.length; index += 1) {
+    if (source[index] === "<") {
+      depth += 1;
+    } else if (source[index] === ">" && source[index - 1] !== "=") {
+      depth -= 1;
+      if (depth === 0) {
+        const afterTypeArguments = skipWhitespace(source, index + 1);
+        return source[afterTypeArguments] === "(" ? afterTypeArguments : start;
+      }
+    }
+  }
+  return start;
+};
+
 const taggedTemplateAt = ({ structuralSource, templateLiteralEnds, start }) => {
   for (let index = start; index < structuralSource.length; index += 1) {
     const end = templateLiteralEnds.get(index);
@@ -660,6 +684,7 @@ const parseTestCalls = (source) => {
       });
       cursor = afterGrouping.cursor;
       groupingDepth = afterGrouping.remaining;
+      cursor = skipStaticTypeArguments(structuralSource, cursor);
       if (structuralSource[cursor] === "(") {
         openingIndex = cursor;
         break;
@@ -745,6 +770,7 @@ const parseTestCalls = (source) => {
       } else {
         modifiers.push(modifier);
       }
+      cursor = skipStaticTypeArguments(structuralSource, cursor);
       if (structuralSource[cursor] !== "(") {
         continue;
       }
@@ -1011,13 +1037,13 @@ const staticOptionKeyAt = ({
   return { key: literal.value, end: closingBracket + 1 };
 };
 
-const activeOptionModes = ({
+const activeOptionModeConditions = ({
   argument,
   source,
   structuralSource,
   stringLiteralEnds,
 }) => {
-  const modes = new Set();
+  const modes = new Map();
   const objectStart = skipWhitespace(structuralSource, argument.start);
   if (structuralSource[objectStart] !== "{") {
     return modes;
@@ -1052,8 +1078,15 @@ const activeOptionModes = ({
           start: valueStart,
           objectEnd: argument.end,
         });
-        if (structuralSource.slice(valueStart, valueEnd).trim() !== "false") {
-          modes.add(property.key);
+        const valueStructural = structuralSource
+          .slice(valueStart, valueEnd)
+          .trim();
+        if (valueStructural !== "false") {
+          const conditionIdentity =
+            valueStructural === "" || valueStructural === "true"
+              ? ""
+              : normalizedConditionCode(source.slice(valueStart, valueEnd));
+          modes.set(property.key, conditionIdentity);
         }
         index = valueEnd - 1;
         continue;
@@ -1085,6 +1118,26 @@ const activeOptionModes = ({
     }
   }
   return modes;
+};
+
+const optionModeConditionsForCall = ({
+  call,
+  source,
+  structuralSource,
+  stringLiteralEnds,
+}) => {
+  const conditions = new Map();
+  for (const argument of call.arguments.slice(0, 2)) {
+    for (const [mode, conditionIdentity] of activeOptionModeConditions({
+      argument,
+      source,
+      structuralSource,
+      stringLiteralEnds,
+    })) {
+      conditions.set(mode, conditionIdentity);
+    }
+  }
+  return conditions;
 };
 
 const disableModesForCall = ({
@@ -1141,15 +1194,13 @@ const disableModesForCall = ({
       }
     }
   }
-  for (const argument of call.arguments.slice(0, 2)) {
-    for (const mode of activeOptionModes({
-      argument,
-      source,
-      structuralSource,
-      stringLiteralEnds,
-    })) {
-      modes.add(mode);
-    }
+  for (const mode of optionModeConditionsForCall({
+    call,
+    source,
+    structuralSource,
+    stringLiteralEnds,
+  }).keys()) {
+    modes.add(mode);
   }
   return modes;
 };
@@ -1239,8 +1290,20 @@ const testCallDescriptors = (source) => {
         stringLiteralEnds: parsed.stringLiteralEnds,
       }),
     ];
+    const optionModeConditions = optionModeConditionsForCall({
+      call,
+      source,
+      structuralSource: parsed.structuralSource,
+      stringLiteralEnds: parsed.stringLiteralEnds,
+    });
     const modeConditions = new Map(
-      modes.map((mode) => [mode, disableConditionIdentity(call, mode)]),
+      modes.map((mode) => [
+        mode,
+        call.modifiers.includes(mode)
+          ? disableConditionIdentity(call, mode)
+          : (optionModeConditions.get(mode) ??
+            disableConditionIdentity(call, mode)),
+      ]),
     );
     descriptors.push({
       root,

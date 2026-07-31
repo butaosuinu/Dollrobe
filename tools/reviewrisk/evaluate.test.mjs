@@ -254,6 +254,24 @@ test("Vitest namespace の x/f prefix alias は critical", () => {
   }
 });
 
+test("node:test namespace の直接 disable export は critical", () => {
+  for (const exportName of ["skip", "todo", "only"]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [
+            'import * as nodeTest from "node:test";',
+            `nodeTest.${exportName}("boundary", fn);`,
+          ],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, exportName);
+    assert.equal(hasSignal(report, signals.testDisabled), true, exportName);
+  }
+});
+
 test("node:test の直接 disable export と alias は critical", () => {
   for (const [importName, localName] of [
     ["skip", "skip"],
@@ -625,6 +643,30 @@ test("条件付き modifier の条件差し替えは critical", () => {
   assert.equal(hasSignal(report, signals.testDisabled), false);
 });
 
+test("test options の条件差し替えは critical", () => {
+  for (const [beforeSource, afterSource] of [
+    [
+      'test("boundary", { skip: process.platform === "win32" }, fn);',
+      'test("boundary", { skip: process.platform !== "win32" }, fn);',
+    ],
+    [
+      'test("boundary", { only: featureA }, fn);',
+      'test("boundary", { only: featureB }, fn);',
+    ],
+  ]) {
+    const path = "src/lib/options.test.ts";
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: { [path]: beforeSource },
+        afterContents: { [path]: afterSource },
+      }),
+    );
+    assert.equal(report.level, levels.critical, afterSource);
+    assert.equal(hasSignal(report, signals.testDisabled), true, afterSource);
+  }
+});
+
 test("Playwright の skip・fixme false は無効化として扱わない", () => {
   for (const modifier of ["skip", "fixme"]) {
     const report = evaluate(
@@ -703,6 +745,32 @@ test("tagged-template each の skip は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("generic type arguments 付き test call を解析する", () => {
+  const path = "src/lib/generic.test.ts";
+  const disabled = evaluate(
+    diff({
+      files: [change({ path, status: "A" })],
+      addedLines: {
+        [path]: ['test.skip.each<[number, number]>(cases)("later", fn);'],
+      },
+    }),
+  );
+  assert.equal(disabled.level, levels.critical);
+  assert.equal(hasSignal(disabled, signals.testDisabled), true);
+
+  const removed = evaluate(
+    diff({
+      files: [change({ path })],
+      beforeContents: {
+        [path]: 'test.each<Row>(cases)("later", fn);',
+      },
+      afterContents: { [path]: "" },
+    }),
+  );
+  assert.equal(removed.level, levels.critical);
+  assert.equal(hasSignal(removed, signals.testDeleted), true);
 });
 
 test("template literal の補間内にある test skip を検出する", () => {
