@@ -276,6 +276,11 @@ test("静的に代入した test API alias の無効化を検出する", () => {
       'focused("boundary", fn);',
     ],
     [
+      'import { test as base } from "@playwright/test";',
+      "const custom: typeof base = base;",
+      'custom.skip("disabled", fn);',
+    ],
+    [
       'import * as vitest from "vitest";',
       "const { test: check } = vitest;",
       'check.skip("later", fn);',
@@ -578,6 +583,11 @@ test("ローカル binding で shadow された test root は test API として
       "}",
     ],
     [
+      "function inspect<T>(test = createReporter()) {",
+      '  test.only("not a test API", fn);',
+      "}",
+    ],
+    [
       "const inspect = (test = createReporter()) => {",
       '  test.only("not a test API", fn);',
       "};",
@@ -741,6 +751,10 @@ test("const alias の test options は静的に解決する", () => {
     [
       "const options = { only: process.env.CI } satisfies TestOptions;",
       'test("focused", options, () => {});',
+    ],
+    [
+      "const options: TestOptions = { skip: true };",
+      'test("later", options, () => {});',
     ],
   ]) {
     const report = evaluate(
@@ -1069,6 +1083,29 @@ test("条件付き modifier の条件差し替えは critical", () => {
   );
   assert.equal(report.level, levels.low);
   assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("const boolean の無効化条件差し替えは critical", () => {
+  const path = "src/lib/new.test.ts";
+  const report = evaluate(
+    diff({
+      files: [change({ path })],
+      beforeContents: {
+        [path]: [
+          "const disabled = false;",
+          'test.skip(disabled, "reason");',
+        ].join("\n"),
+      },
+      afterContents: {
+        [path]: [
+          "const disabled = true;",
+          'test.skip(disabled, "reason");',
+        ].join("\n"),
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
 test("test options の条件差し替えは critical", () => {
@@ -1423,6 +1460,22 @@ test("postfix 演算後の除算に続く test skip を検出する", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("リテラル直後の除算に続く test skip を検出する", () => {
+  for (const statement of [
+    'const ratio = "4" / 2; test.skip("later", fn);',
+    'const ratio = `4` / 2; test.skip("later", fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: { "src/lib/new.test.ts": [statement] },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
 });
 
 test("non-null assertion 後の除算に続く test skip を検出する", () => {

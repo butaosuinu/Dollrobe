@@ -438,6 +438,7 @@ const scanSource = (source) => {
   const regexLiteralEnds = new Map();
   const templateLiteralEnds = new Map();
   const templateStarts = [];
+  let lastLiteralEnd = -1;
   let hasCodeLiteral = false;
   let hasJsxContent = false;
   let jsxMode;
@@ -475,6 +476,7 @@ const scanSource = (source) => {
         escaped = true;
       } else if (character === quote) {
         stringLiteralEnds.set(stringStart, index);
+        lastLiteralEnd = index;
         stringStart = -1;
         state = "code";
       }
@@ -497,6 +499,7 @@ const scanSource = (source) => {
           if (templateStart !== undefined) {
             templateLiteralEnds.set(templateStart, index);
           }
+          lastLiteralEnd = index;
           state = "code";
         }
       }
@@ -519,6 +522,7 @@ const scanSource = (source) => {
         inRegexCharacterClass = false;
       } else if (character === "/" && !inRegexCharacterClass) {
         regexLiteralEnds.set(regexStart, index);
+        lastLiteralEnd = index;
         regexStart = -1;
         state = "code";
       }
@@ -609,7 +613,14 @@ const scanSource = (source) => {
       state = "block-comment";
       continue;
     }
-    if (character === "/" && startsRegexLiteral(result)) {
+    const followsLiteralOperand =
+      lastLiteralEnd !== -1 &&
+      result.slice(lastLiteralEnd + 1, index).trim() === "";
+    if (
+      character === "/" &&
+      !followsLiteralOperand &&
+      startsRegexLiteral(result)
+    ) {
       result += " ";
       state = "regex";
       regexStart = index;
@@ -1065,6 +1076,39 @@ const endsStaticAliasInitializer = (structuralSource, end) => {
   return true;
 };
 
+const staticInitializerStart = ({ structuralSource, nameEnd }) => {
+  let cursor = skipWhitespace(structuralSource, nameEnd);
+  if (structuralSource[cursor] === "=") {
+    return skipWhitespace(structuralSource, cursor + 1);
+  }
+  if (structuralSource[cursor] !== ":") {
+    return undefined;
+  }
+
+  const closingFor = { "(": ")", "[": "]", "{": "}", "<": ">" };
+  const stack = [];
+  for (cursor += 1; cursor < structuralSource.length; cursor += 1) {
+    const character = structuralSource[cursor];
+    if (Object.hasOwn(closingFor, character)) {
+      stack.push(closingFor[character]);
+    } else if (character === stack.at(-1)) {
+      stack.pop();
+    } else if (
+      character === "=" &&
+      structuralSource[cursor + 1] !== ">" &&
+      stack.length === 0
+    ) {
+      return skipWhitespace(structuralSource, cursor + 1);
+    } else if (
+      (character === ";" || character === "\n") &&
+      stack.length === 0
+    ) {
+      return undefined;
+    }
+  }
+  return undefined;
+};
+
 const resolvedStaticTestRootInitializer = ({
   source,
   structuralSource,
@@ -1122,13 +1166,22 @@ const staticTestRootAliases = ({ source, structuralSource, importedRoots }) => {
   let changed = true;
   while (changed) {
     changed = false;
-    const assignmentPattern = /\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*/g;
-    for (const match of structuralSource.matchAll(assignmentPattern)) {
+    const declarationPattern = /\bconst\s+([A-Za-z_$][\w$]*)\b/g;
+    for (const match of structuralSource.matchAll(declarationPattern)) {
       const localName = match[1];
+      const nameEnd =
+        (match.index ?? 0) + match[0].lastIndexOf(localName) + localName.length;
+      const initializerStart = staticInitializerStart({
+        structuralSource,
+        nameEnd,
+      });
+      if (initializerStart === undefined) {
+        continue;
+      }
       const root = resolvedStaticTestRootInitializer({
         source,
         structuralSource,
-        start: (match.index ?? 0) + match[0].length,
+        start: initializerStart,
         roots,
       });
       if (root !== undefined && !roots.has(localName)) {
@@ -1364,7 +1417,29 @@ const callableParameterLists = ({ structuralSource, scopes }) => {
     if (body === undefined) {
       continue;
     }
-    const prefix = structuralSource.slice(0, openingIndex);
+    const rawPrefix = structuralSource.slice(0, openingIndex);
+    let genericStart = rawPrefix.length - 1;
+    while (genericStart >= 0 && /\s/.test(rawPrefix[genericStart])) {
+      genericStart -= 1;
+    }
+    let genericDepth = 0;
+    let hasTrailingTypeParameters = false;
+    if (rawPrefix[genericStart] === ">") {
+      for (; genericStart >= 0; genericStart -= 1) {
+        if (rawPrefix[genericStart] === ">") {
+          genericDepth += 1;
+        } else if (rawPrefix[genericStart] === "<") {
+          genericDepth -= 1;
+          if (genericDepth === 0) {
+            hasTrailingTypeParameters = true;
+            break;
+          }
+        }
+      }
+    }
+    const prefix = hasTrailingTypeParameters
+      ? rawPrefix.slice(0, genericStart).trimEnd()
+      : rawPrefix;
     const callableName = /([A-Za-z_$][\w$]*)\s*$/.exec(prefix)?.[1];
     const functionExpression =
       /\bfunction(?:\s*\*)?(?:\s+[A-Za-z_$][\w$]*)?\s*$/.test(prefix);
@@ -1478,13 +1553,12 @@ const testRootShadowRanges = ({
     }
     const nameEnd =
       (match.index ?? 0) + match[0].lastIndexOf(localName) + localName.length;
-    const assignmentIndex = skipWhitespace(structuralSource, nameEnd);
-    const initializerStart = skipWhitespace(
+    const initializerStart = staticInitializerStart({
       structuralSource,
-      assignmentIndex + 1,
-    );
+      nameEnd,
+    });
     const staticAliasRoot =
-      structuralSource[assignmentIndex] === "="
+      initializerStart !== undefined
         ? resolvedStaticTestRootInitializer({
             source,
             structuralSource,
@@ -1493,7 +1567,7 @@ const testRootShadowRanges = ({
           })
         : undefined;
     const requireOpeningIndex =
-      structuralSource[assignmentIndex] === "=" &&
+      initializerStart !== undefined &&
       structuralSource.startsWith("require", initializerStart)
         ? skipWhitespace(structuralSource, initializerStart + "require".length)
         : -1;
@@ -2151,7 +2225,7 @@ const activeOptionModeConditions = ({
 const staticOptionBindings = ({ source, structuralSource }) => {
   const scopes = braceScopes(structuralSource);
   const bindings = [];
-  const addBinding = ({ name, declarationIndex, argument }) => {
+  const addBinding = ({ name, declarationIndex, argument, conditionValue }) => {
     const scope = innermostScopeAt(scopes, declarationIndex);
     if (scope === undefined) {
       return;
@@ -2160,6 +2234,7 @@ const staticOptionBindings = ({ source, structuralSource }) => {
       name,
       declarationIndex,
       argument,
+      conditionValue,
       range: { start: scope.openingIndex, end: scope.closingIndex },
     });
   };
@@ -2169,17 +2244,20 @@ const staticOptionBindings = ({ source, structuralSource }) => {
     const declarationIndex = match.index ?? 0;
     const name = match[2];
     const nameEnd = declarationIndex + match[0].lastIndexOf(name) + name.length;
-    const assignmentIndex = skipWhitespace(structuralSource, nameEnd);
-    const objectStart = skipWhitespace(structuralSource, assignmentIndex + 1);
+    const initializerStart = staticInitializerStart({
+      structuralSource,
+      nameEnd,
+    });
     let argument;
+    let conditionValue;
     if (
       match[1] === "const" &&
-      structuralSource[assignmentIndex] === "=" &&
-      structuralSource[objectStart] === "{"
+      initializerStart !== undefined &&
+      structuralSource[initializerStart] === "{"
     ) {
       const objectEnd = findMatchingDelimiter({
         source: structuralSource,
-        openingIndex: objectStart,
+        openingIndex: initializerStart,
         opening: "{",
         closing: "}",
       });
@@ -2204,12 +2282,25 @@ const staticOptionBindings = ({ source, structuralSource }) => {
         argument = argumentRange({
           source,
           structuralSource,
-          start: objectStart,
+          start: initializerStart,
           end: objectEnd + 1,
         });
       }
+    } else if (match[1] === "const" && initializerStart !== undefined) {
+      const booleanMatch = /^(true|false)\b/.exec(
+        structuralSource.slice(initializerStart),
+      );
+      if (
+        booleanMatch !== null &&
+        endsStaticAliasInitializer(
+          structuralSource,
+          initializerStart + booleanMatch[0].length,
+        )
+      ) {
+        conditionValue = booleanMatch[1];
+      }
     }
-    addBinding({ name, declarationIndex, argument });
+    addBinding({ name, declarationIndex, argument, conditionValue });
   }
 
   const declarationPattern =
@@ -2225,12 +2316,8 @@ const staticOptionBindings = ({ source, structuralSource }) => {
   return bindings;
 };
 
-const resolvedOptionArgument = ({ argument, call, optionBindings }) => {
-  const name = /^([A-Za-z_$][\w$]*)$/.exec(argument.structural.trim())?.[1];
-  if (name === undefined) {
-    return argument;
-  }
-  const binding = optionBindings
+const visibleStaticBinding = ({ name, call, optionBindings }) =>
+  optionBindings
     .filter(
       (candidate) =>
         candidate.name === name &&
@@ -2243,6 +2330,13 @@ const resolvedOptionArgument = ({ argument, call, optionBindings }) => {
         left.declarationIndex - right.declarationIndex,
     )
     .at(-1);
+
+const resolvedOptionArgument = ({ argument, call, optionBindings }) => {
+  const name = /^([A-Za-z_$][\w$]*)$/.exec(argument.structural.trim())?.[1];
+  if (name === undefined) {
+    return argument;
+  }
+  const binding = visibleStaticBinding({ name, call, optionBindings });
   return binding?.argument !== undefined &&
     binding.declarationIndex < call.openingIndex
     ? binding.argument
@@ -2368,14 +2462,38 @@ const normalizedConditionCode = (source) => {
   return result;
 };
 
-const disableConditionIdentity = (call, mode) => {
+const conditionIdentityForArgument = ({ argument, call, optionBindings }) => {
+  const name = /^([A-Za-z_$][\w$]*)$/.exec(
+    argument?.structural.trim() ?? "",
+  )?.[1];
+  if (name !== undefined) {
+    const binding = visibleStaticBinding({ name, call, optionBindings });
+    if (
+      binding?.conditionValue !== undefined &&
+      binding.declarationIndex < call.openingIndex
+    ) {
+      return binding.conditionValue;
+    }
+  }
+  return normalizedConditionCode(argument?.raw ?? "");
+};
+
+const disableConditionIdentity = ({ call, mode, optionBindings }) => {
   const modifierArguments = call.modifierArguments.get(mode) ?? [];
   if (mode === "skipIf" || mode === "runIf") {
-    return normalizedConditionCode(modifierArguments[0]?.raw ?? "");
+    return conditionIdentityForArgument({
+      argument: modifierArguments[0],
+      call,
+      optionBindings,
+    });
   }
   const annotation = runtimeAnnotationForCall(call);
   if (annotation?.mode === mode) {
-    return normalizedConditionCode(annotation.arguments[0].raw);
+    return conditionIdentityForArgument({
+      argument: annotation.arguments[0],
+      call,
+      optionBindings,
+    });
   }
   return "";
 };
@@ -2554,9 +2672,17 @@ const testCallDescriptors = (source) => {
       modes.map((mode) => [
         mode,
         call.modifiers.includes(mode)
-          ? disableConditionIdentity(call, mode)
+          ? disableConditionIdentity({
+              call,
+              mode,
+              optionBindings: parsed.optionBindings,
+            })
           : (optionModeConditions.get(mode) ??
-            disableConditionIdentity(call, mode)),
+            disableConditionIdentity({
+              call,
+              mode,
+              optionBindings: parsed.optionBindings,
+            })),
       ]),
     );
     descriptors.push({
