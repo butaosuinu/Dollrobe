@@ -88,7 +88,12 @@ jobs:
           echo "level=$level" >> "$GITHUB_OUTPUT"
 
       - name: Prepare failed judge result
-        if: steps.guard.outputs.self != 'true' && steps.risk.outcome == 'failure'
+        id: fallback
+        if: >-
+          always() &&
+          steps.output.outcome == 'success' &&
+          steps.guard.outputs.self != 'true' &&
+          steps.risk.outcome != 'success'
         env:
           OUTPUT_DIR: ${{ steps.output.outputs.dir }}
         run: |
@@ -97,10 +102,18 @@ jobs:
             echo '<!-- review-risk -->'
             echo '## Review risk: **CRITICAL**'
             echo
-            echo '人間精読必須。review-risk の判定に失敗したため、fail-closed で critical に固定しました。'
+            echo '人間精読必須。review-risk の判定を完了できなかったため、fail-closed で critical に固定しました。'
           } > "$OUTPUT_DIR/comment.md"
 
       - name: Apply review:<level> label
+        if: >-
+          always() &&
+          steps.output.outcome == 'success' &&
+          (
+            steps.guard.outputs.self == 'true' ||
+            steps.risk.outcome == 'success' ||
+            steps.fallback.outcome == 'success'
+          )
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -143,6 +156,14 @@ jobs:
           gh pr edit "$PR" --add-label "review:$LEVEL"
 
       - name: Update sticky comment
+        if: >-
+          always() &&
+          steps.output.outcome == 'success' &&
+          (
+            steps.guard.outputs.self == 'true' ||
+            steps.risk.outcome == 'success' ||
+            steps.fallback.outcome == 'success'
+          )
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -174,6 +195,6 @@ jobs:
             gh api --method POST "repos/$GH_REPO/issues/$PR/comments" -F body=@"$OUTPUT_DIR/comment.md"
           fi
 
-      - name: Fail workflow after publishing failed judge result
-        if: steps.guard.outputs.self != 'true' && steps.risk.outcome == 'failure'
+      - name: Fail workflow after publishing fail-closed result
+        if: always() && steps.fallback.outcome == 'success'
         run: exit 1

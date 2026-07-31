@@ -59,6 +59,7 @@ test("API key の permission・create 境界は H に分類する", () => {
 test("同期・スキャン service は H に分類する", () => {
   for (const [path, rule] of [
     ["workers/src/services/sync-service.ts", "sync-service"],
+    ["workers/src/services/sync-processors.ts", "sync-service"],
     ["workers/src/services/scan-service.ts", "scan-service"],
   ]) {
     const actual = classifyPath(path);

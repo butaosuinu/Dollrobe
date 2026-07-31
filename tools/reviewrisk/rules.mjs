@@ -224,6 +224,14 @@ const exactRules = new Map([
     "workers/src/services/sync-service.ts",
     rule("sync-service", classes.high, "offline pull/push・queue 処理順序"),
   ],
+  [
+    "workers/src/services/sync-processors.ts",
+    rule(
+      "sync-service",
+      classes.high,
+      "offline push action・payload・userId 境界",
+    ),
+  ],
 ]);
 
 const marketingAssetRule = rule(

@@ -1065,6 +1065,58 @@ const endsStaticAliasInitializer = (structuralSource, end) => {
   return true;
 };
 
+const resolvedStaticTestRootInitializer = ({
+  source,
+  structuralSource,
+  start,
+  roots,
+}) => {
+  const initializer = staticMemberPathAt({
+    source,
+    structuralSource,
+    start,
+  });
+  if (initializer === undefined) {
+    return undefined;
+  }
+  const directRoot = resolvedTestRoot(roots, initializer.path);
+  if (
+    directRoot !== undefined &&
+    endsStaticAliasInitializer(structuralSource, initializer.end)
+  ) {
+    return directRoot;
+  }
+
+  const separator = initializer.path.lastIndexOf(".");
+  if (separator === -1 || initializer.path.slice(separator + 1) !== "extend") {
+    return undefined;
+  }
+  const baseRoot = resolvedTestRoot(
+    roots,
+    initializer.path.slice(0, separator),
+  );
+  if (baseRoot === undefined) {
+    return undefined;
+  }
+  const openingIndex = skipStaticTypeArguments(
+    structuralSource,
+    skipWhitespace(structuralSource, initializer.end),
+  );
+  if (structuralSource[openingIndex] !== "(") {
+    return undefined;
+  }
+  const closingIndex = findMatchingDelimiter({
+    source: structuralSource,
+    openingIndex,
+    opening: "(",
+    closing: ")",
+  });
+  return closingIndex !== -1 &&
+    endsStaticAliasInitializer(structuralSource, closingIndex + 1)
+    ? baseRoot
+    : undefined;
+};
+
 const staticTestRootAliases = ({ source, structuralSource, importedRoots }) => {
   const roots = new Map(importedRoots);
   let changed = true;
@@ -1073,18 +1125,12 @@ const staticTestRootAliases = ({ source, structuralSource, importedRoots }) => {
     const assignmentPattern = /\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*/g;
     for (const match of structuralSource.matchAll(assignmentPattern)) {
       const localName = match[1];
-      const initializer = staticMemberPathAt({
+      const root = resolvedStaticTestRootInitializer({
         source,
         structuralSource,
         start: (match.index ?? 0) + match[0].length,
+        roots,
       });
-      if (
-        initializer === undefined ||
-        !endsStaticAliasInitializer(structuralSource, initializer.end)
-      ) {
-        continue;
-      }
-      const root = resolvedTestRoot(roots, initializer.path);
       if (root !== undefined && !roots.has(localName)) {
         roots.set(localName, root);
         changed = true;
@@ -1246,12 +1292,13 @@ const testRootShadowRanges = ({
       structuralSource,
       assignmentIndex + 1,
     );
-    const initializer =
+    const staticAliasRoot =
       structuralSource[assignmentIndex] === "="
-        ? staticMemberPathAt({
+        ? resolvedStaticTestRootInitializer({
             source,
             structuralSource,
             start: initializerStart,
+            roots: testRoots,
           })
         : undefined;
     const requireOpeningIndex =
@@ -1272,9 +1319,7 @@ const testRootShadowRanges = ({
     const aliasesTestRoot =
       (requiredModule?.value === "node:test" &&
         endsStaticAliasInitializer(structuralSource, requiredModule.end)) ||
-      (initializer !== undefined &&
-        endsStaticAliasInitializer(structuralSource, initializer.end) &&
-        resolvedTestRoot(testRoots, initializer.path) !== undefined);
+      staticAliasRoot !== undefined;
     if (!aliasesTestRoot) {
       const scope = innermostScopeAt(scopes, match.index ?? 0);
       addRange(

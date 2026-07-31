@@ -76,14 +76,14 @@ test("Workers test は deploy compatibility 設定を再利用する", async () 
   );
 });
 
-test("review-risk publishes a fail-closed result when the judge fails", async () => {
+test("review-risk publishes a fail-closed result when setup or judge fails", async () => {
   const source = await readWorkflow("review-risk.yml");
   const judgeIndex = source.indexOf("- name: Judge review risk");
   const failureIndex = source.indexOf("- name: Prepare failed judge result");
   const labelIndex = source.indexOf("- name: Apply review:<level> label");
   const commentIndex = source.indexOf("- name: Update sticky comment");
   const finalFailureIndex = source.indexOf(
-    "- name: Fail workflow after publishing failed judge result",
+    "- name: Fail workflow after publishing fail-closed result",
   );
 
   assert.notEqual(judgeIndex, -1);
@@ -99,18 +99,30 @@ test("review-risk publishes a fail-closed result when the judge fails", async ()
   assert.match(judgeStep, /continue-on-error: true/);
 
   const failureStep = source.slice(failureIndex, labelIndex);
-  assert.match(failureStep, /steps\.risk\.outcome == 'failure'/);
+  assert.match(failureStep, /id: fallback/);
+  assert.match(failureStep, /always\(\)/);
+  assert.match(failureStep, /steps\.output\.outcome == 'success'/);
+  assert.match(failureStep, /steps\.risk\.outcome != 'success'/);
   assert.match(failureStep, /## Review risk: \*\*CRITICAL\*\*/);
   assert.match(failureStep, /> "\$OUTPUT_DIR\/comment\.md"/);
 
   const labelStep = source.slice(labelIndex, commentIndex);
+  assert.match(labelStep, /always\(\)/);
+  assert.match(labelStep, /steps\.fallback\.outcome == 'success'/);
   assert.match(
     labelStep,
     /steps\.risk\.outcome == 'success' && steps\.risk\.outputs\.level \|\| 'critical'/,
   );
 
+  const commentStep = source.slice(commentIndex, finalFailureIndex);
+  assert.match(commentStep, /always\(\)/);
+  assert.match(commentStep, /steps\.fallback\.outcome == 'success'/);
+
   const finalFailureStep = source.slice(finalFailureIndex);
-  assert.match(finalFailureStep, /steps\.risk\.outcome == 'failure'/);
+  assert.match(
+    finalFailureStep,
+    /always\(\) && steps\.fallback\.outcome == 'success'/,
+  );
   assert.match(finalFailureStep, /exit 1/);
 });
 

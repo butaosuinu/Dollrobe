@@ -298,6 +298,45 @@ test("静的に代入した test API alias の無効化を検出する", () => {
   }
 });
 
+test("Playwright の extend 由来 test root を追跡する", () => {
+  const path = "e2e/custom.spec.ts";
+  for (const extension of [
+    "const custom = base.extend({});",
+    "const custom = base.extend<Fixtures>({});",
+  ]) {
+    const disabled = evaluate(
+      diff({
+        files: [change({ path, status: "A" })],
+        addedLines: {
+          [path]: [
+            'import { test as base } from "@playwright/test";',
+            extension,
+            'custom.skip("later", fn);',
+          ],
+        },
+      }),
+    );
+    assert.equal(disabled.level, levels.critical, extension);
+    assert.equal(hasSignal(disabled, signals.testDisabled), true, extension);
+  }
+
+  const importAndExtend = [
+    'import { test as base } from "@playwright/test";',
+    "const custom = base.extend<Fixtures>({});",
+  ];
+  const deleted = evaluate(
+    diff({
+      files: [change({ path })],
+      beforeContents: {
+        [path]: [...importAndExtend, 'custom("works", fn);'].join("\n"),
+      },
+      afterContents: { [path]: importAndExtend.join("\n") },
+    }),
+  );
+  assert.equal(deleted.level, levels.critical);
+  assert.equal(hasSignal(deleted, signals.testDeleted), true);
+});
+
 test("test API 以外から代入した alias は無効化として扱わない", () => {
   const report = evaluate(
     diff({
