@@ -211,9 +211,19 @@ const closesControlStatement = (source, closingIndex) => {
     while (keywordStart >= 0 && /[A-Za-z]/.test(source[keywordStart])) {
       keywordStart -= 1;
     }
-    return controlStatementKeywords.has(
-      source.slice(keywordStart + 1, keywordEnd),
-    );
+    let keyword = source.slice(keywordStart + 1, keywordEnd);
+    if (keyword === "await") {
+      keywordEnd = keywordStart + 1;
+      while (keywordStart >= 0 && /\s/.test(source[keywordStart])) {
+        keywordStart -= 1;
+        keywordEnd -= 1;
+      }
+      while (keywordStart >= 0 && /[A-Za-z]/.test(source[keywordStart])) {
+        keywordStart -= 1;
+      }
+      keyword = source.slice(keywordStart + 1, keywordEnd);
+    }
+    return controlStatementKeywords.has(keyword);
   }
   return false;
 };
@@ -267,6 +277,7 @@ const scanSource = (source) => {
   const regexLiteralEnds = new Map();
   const templateLiteralEnds = new Map();
   const templateStarts = [];
+  let hasCodeLiteral = false;
 
   for (let index = 0; index < source.length; index += 1) {
     const character = source[index];
@@ -363,6 +374,7 @@ const scanSource = (source) => {
       result += " ";
       state = "regex";
       regexStart = index;
+      hasCodeLiteral = true;
       escaped = false;
       inRegexCharacterClass = false;
       continue;
@@ -372,6 +384,7 @@ const scanSource = (source) => {
       quote = character;
       stringStart = index;
       state = "string";
+      hasCodeLiteral = true;
       escaped = false;
       continue;
     }
@@ -379,6 +392,7 @@ const scanSource = (source) => {
       result += " ";
       templateStarts.push(index);
       state = "template";
+      hasCodeLiteral = true;
       escaped = false;
       continue;
     }
@@ -406,6 +420,7 @@ const scanSource = (source) => {
     stringLiteralEnds,
     regexLiteralEnds,
     templateLiteralEnds,
+    hasCodeLiteral,
   };
 };
 
@@ -784,6 +799,183 @@ const staticTestRootAliases = ({ source, structuralSource, importedRoots }) => {
   return roots;
 };
 
+const braceScopes = (structuralSource) => {
+  const topLevel = {
+    openingIndex: -1,
+    closingIndex: structuralSource.length,
+  };
+  const scopes = [topLevel];
+  const stack = [topLevel];
+  for (let index = 0; index < structuralSource.length; index += 1) {
+    if (structuralSource[index] === "{") {
+      const scope = {
+        openingIndex: index,
+        closingIndex: structuralSource.length,
+      };
+      scopes.push(scope);
+      stack.push(scope);
+    } else if (structuralSource[index] === "}" && stack.length > 1) {
+      const scope = stack.pop();
+      if (scope !== undefined) {
+        scope.closingIndex = index;
+      }
+    }
+  }
+  return scopes;
+};
+
+const innermostScopeAt = (scopes, index) =>
+  scopes
+    .filter((scope) => scope.openingIndex < index && index < scope.closingIndex)
+    .at(-1);
+
+const parameterBindingNames = (parameters) => {
+  const names = [];
+  for (const parameter of parameters.split(",")) {
+    const trimmed = parameter.trim().replace(/^\.\.\./, "");
+    const direct = /^([A-Za-z_$][\w$]*)/.exec(trimmed);
+    if (direct !== null) {
+      names.push(direct[1]);
+      continue;
+    }
+    if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+      continue;
+    }
+    for (const property of trimmed.slice(1, -1).split(",")) {
+      const binding = /(?::\s*)?([A-Za-z_$][\w$]*)\s*(?:=.*)?$/.exec(
+        property.trim(),
+      );
+      if (binding !== null) {
+        names.push(binding[1]);
+      }
+    }
+  }
+  return names;
+};
+
+const testRootShadowRanges = ({ source, structuralSource, testRoots }) => {
+  const rootNames = new Set([
+    ...canonicalTestRoots,
+    ...[...testRoots.keys()].map((root) => root.split(".")[0]),
+  ]);
+  const scopes = braceScopes(structuralSource);
+  const rangesByRoot = new Map();
+  const addRange = (root, range) => {
+    if (!rootNames.has(root) || range === undefined) {
+      return;
+    }
+    const ranges = rangesByRoot.get(root) ?? [];
+    ranges.push(range);
+    rangesByRoot.set(root, ranges);
+  };
+  const bodyRange = (openingIndex) => {
+    const scope = scopes.find(
+      (candidate) => candidate.openingIndex === openingIndex,
+    );
+    return scope === undefined
+      ? undefined
+      : {
+          start: scope.openingIndex,
+          end: scope.closingIndex,
+        };
+  };
+  const addParameterRanges = ({
+    pattern,
+    parameterIndex,
+    nameIndex,
+    excludedNames = new Set(),
+  }) => {
+    for (const match of structuralSource.matchAll(pattern)) {
+      if (
+        nameIndex !== undefined &&
+        excludedNames.has(match[nameIndex] ?? "")
+      ) {
+        continue;
+      }
+      const openingIndex = (match.index ?? 0) + match[0].lastIndexOf("{");
+      const range = bodyRange(openingIndex);
+      for (const root of parameterBindingNames(match[parameterIndex] ?? "")) {
+        addRange(root, range);
+      }
+    }
+  };
+
+  const variablePattern = /\b(const|let|var)\s+([A-Za-z_$][\w$]*)\b/g;
+  for (const match of structuralSource.matchAll(variablePattern)) {
+    const localName = match[2];
+    if (!rootNames.has(localName)) {
+      continue;
+    }
+    const nameEnd =
+      (match.index ?? 0) + match[0].lastIndexOf(localName) + localName.length;
+    const assignmentIndex = skipWhitespace(structuralSource, nameEnd);
+    const initializer =
+      structuralSource[assignmentIndex] === "="
+        ? staticMemberPathAt({
+            source,
+            structuralSource,
+            start: skipWhitespace(structuralSource, assignmentIndex + 1),
+          })
+        : undefined;
+    const aliasesTestRoot =
+      initializer !== undefined &&
+      endsStaticAliasInitializer(structuralSource, initializer.end) &&
+      resolvedTestRoot(testRoots, initializer.path) !== undefined;
+    if (!aliasesTestRoot) {
+      const scope = innermostScopeAt(scopes, match.index ?? 0);
+      addRange(
+        localName,
+        scope === undefined
+          ? undefined
+          : { start: scope.openingIndex, end: scope.closingIndex },
+      );
+    }
+  }
+
+  const declarationPattern =
+    /\b(?:function(?:\s*\*)?|class)\s+([A-Za-z_$][\w$]*)/g;
+  for (const match of structuralSource.matchAll(declarationPattern)) {
+    const scope = innermostScopeAt(scopes, match.index ?? 0);
+    addRange(
+      match[1],
+      scope === undefined
+        ? undefined
+        : { start: scope.openingIndex, end: scope.closingIndex },
+    );
+  }
+
+  addParameterRanges({
+    pattern:
+      /\bfunction(?:\s*\*)?(?:\s+[A-Za-z_$][\w$]*)?\s*\(([^()]*)\)\s*\{/g,
+    parameterIndex: 1,
+  });
+  addParameterRanges({
+    pattern: /\(([^()]*)\)\s*=>\s*\{/g,
+    parameterIndex: 1,
+  });
+  addParameterRanges({
+    pattern: /\b([A-Za-z_$][\w$]*)\s*=>\s*\{/g,
+    parameterIndex: 1,
+  });
+  addParameterRanges({
+    pattern: /\b([A-Za-z_$][\w$]*)\s*\(([^()]*)\)\s*\{/g,
+    parameterIndex: 2,
+    nameIndex: 1,
+    excludedNames: new Set(["catch", "for", "if", "switch", "while", "with"]),
+  });
+  addParameterRanges({
+    pattern: /\bcatch\s*\(([^()]*)\)\s*\{/g,
+    parameterIndex: 1,
+  });
+
+  return rangesByRoot;
+};
+
+const isTestRootShadowed = ({ root, index, shadowRanges }) =>
+  (shadowRanges.get(root.split(".")[0]) ?? []).some(
+    (range) => range.start < index && index < range.end,
+  );
+
 const groupingParenthesesBefore = (source, rootIndex) => {
   let cursor = rootIndex;
   let count = 0;
@@ -859,11 +1051,25 @@ const parseTestCalls = (source) => {
     structuralSource,
     importedRoots,
   });
+  const shadowRanges = testRootShadowRanges({
+    source,
+    structuralSource,
+    testRoots,
+  });
   const calls = [];
   for (const match of structuralSource.matchAll(
     testRootPatternFor(testRoots),
   )) {
     const root = match[1];
+    if (
+      isTestRootShadowed({
+        root,
+        index: match.index ?? 0,
+        shadowRanges,
+      })
+    ) {
+      continue;
+    }
     let groupingDepth = groupingParenthesesBefore(
       structuralSource,
       match.index ?? 0,
@@ -1803,6 +2009,11 @@ const removesTestCallPattern = (diff, file) => {
   );
 };
 
+const hasTestSupportDefinition = (source) => {
+  const { structuralSource, hasCodeLiteral } = scanSource(source);
+  return structuralSource.trim() !== "" || hasCodeLiteral;
+};
+
 const emptiesTestSupportPattern = (diff, file) => {
   if (!isTestSupportPath(file.path)) {
     return false;
@@ -1811,9 +2022,9 @@ const emptiesTestSupportPattern = (diff, file) => {
   const afterSource = diff.afterContents?.get(file.path);
   return (
     beforeSource !== undefined &&
-    beforeSource.trim() !== "" &&
+    hasTestSupportDefinition(beforeSource) &&
     afterSource !== undefined &&
-    afterSource.trim() === ""
+    !hasTestSupportDefinition(afterSource)
   );
 };
 

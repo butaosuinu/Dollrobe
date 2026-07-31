@@ -133,6 +133,30 @@ test("test support 間の rename は critical", () => {
   assert.equal(hasSignal(report, signals.testSupportDeleted), true);
 });
 
+test("コメントだけにされた test support は critical", () => {
+  for (const afterSource of [
+    "// setup disabled\n",
+    "/* setup disabled\n * temporarily\n */\n",
+  ]) {
+    const path = "src/test/setup.ts";
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: {
+          [path]: 'import "@testing-library/jest-dom";\nsetupMocks();\n',
+        },
+        afterContents: { [path]: afterSource },
+      }),
+    );
+    assert.equal(report.level, levels.critical, JSON.stringify(afterSource));
+    assert.equal(
+      hasSignal(report, signals.testSupportDeleted),
+      true,
+      JSON.stringify(afterSource),
+    );
+  }
+});
+
 test("test runner config の削除・rename は critical", () => {
   for (const file of [
     change({ path: "vitest.config.ts", status: "D" }),
@@ -458,6 +482,44 @@ test("private field の test member は test API として扱わない", () => {
   );
   assert.equal(report.level, levels.low);
   assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("ローカル binding で shadow された test root は test API として扱わない", () => {
+  for (const source of [
+    ["const test = createReporter();", 'test.skip("not a test API", fn);'],
+    ["function inspect(test) {", '  test.only("not a test API", fn);', "}"],
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/helper.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/helper.test.ts": source,
+        },
+      }),
+    );
+    assert.equal(report.level, levels.low, source.join("\n"));
+    assert.equal(
+      hasSignal(report, signals.testDisabled),
+      false,
+      source.join("\n"),
+    );
+  }
+
+  const realTest = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          "function inspect(test) {",
+          '  test.only("not a test API", fn);',
+          "}",
+          'test.skip("real test API", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(realTest.level, levels.critical);
+  assert.equal(hasSignal(realTest, signals.testDisabled), true);
 });
 
 test("静的 bracket の中間 modifier に続く only は critical", () => {
@@ -1103,6 +1165,24 @@ test("制御文直後の正規表現後にある test skip を検出する", () 
     assert.equal(report.level, levels.critical, statement);
     assert.equal(hasSignal(report, signals.testDisabled), true, statement);
   }
+});
+
+test("for await の本体で始まる正規表現後にある test skip を検出する", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          "async function inspect() {",
+          "  for await (const value of values)",
+          '    /foo=/.test(value); test.skip("later", fn);',
+          "}",
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
 test("postfix 演算後の除算に続く test skip を検出する", () => {
