@@ -39,7 +39,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | GitHub workflow / local Action / script / hook | H     | `github-workflow`, `github-action`, `script`, `dmux-hook`, `review-gate`                                                                         |
 | review-risk 判定器                             | H     | `risk-tool`                                                                                                                                      |
 | client auth・API・offline state・信頼度導出    | H     | `client-auth`, `client-api`, `client-db`, `client-store`, `client-sync`, `root-layout`, `service-worker`, `confidence-derivation`                |
-| Workers entry・auth・DB                        | H     | `worker-entry`, `worker-auth`, `worker-auth-boundary`, `worker-db`                                                                               |
+| Workers entry・auth・DB・共有入力 schema       | H     | `worker-entry`, `worker-auth`, `worker-auth-boundary`, `worker-db`, `worker-input-schema`                                                        |
 | Next.js / Workers user-data・HTTP boundary     | H     | `next-route-handler`, `worker-repository`, `worker-trpc`, `worker-route`, `worker-middleware`, `worker-mcp`                                      |
 | admin・sync・scan service                      | H     | `admin-service`, `sync-service`, `scan-service`                                                                                                  |
 | D1 migration                                   | H     | `migration`                                                                                                                                      |

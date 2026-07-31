@@ -186,7 +186,14 @@ const regexPrefixKeywords = new Set([
   "void",
   "yield",
 ]);
-const controlStatementKeywords = new Set(["for", "if", "while", "with"]);
+const controlStatementKeywords = new Set([
+  "catch",
+  "for",
+  "if",
+  "switch",
+  "while",
+  "with",
+]);
 
 const closesControlStatement = (source, closingIndex) => {
   let depth = 0;
@@ -228,6 +235,48 @@ const closesControlStatement = (source, closingIndex) => {
   return false;
 };
 
+const opensStatementBlock = (source, openingIndex) => {
+  let index = openingIndex - 1;
+  while (index >= 0 && /\s/.test(source[index])) {
+    index -= 1;
+  }
+  if (
+    index < 0 ||
+    source[index] === ";" ||
+    source[index] === "{" ||
+    source[index] === "}"
+  ) {
+    return true;
+  }
+  if (source[index] === ")" && closesControlStatement(source, index)) {
+    return true;
+  }
+  const prefix = source.slice(0, openingIndex);
+  return (
+    /(?:^|[;{}])\s*(?:(?:export\s+)?(?:default\s+)?)?(?:async\s+)?function(?:\s*\*)?\s+[A-Za-z_$][\w$]*\s*\([^)]*\)(?:\s*:\s*[^=;{}]+)?\s*$/.test(
+      prefix,
+    ) ||
+    /(?:^|[;{}])\s*(?:class\s+[A-Za-z_$][\w$]*(?:\s+extends\s+[^{]+)?|(?:else|do|finally|try))\s*$/.test(
+      prefix,
+    )
+  );
+};
+
+const closesStatementBlock = (source, closingIndex) => {
+  let depth = 0;
+  for (let index = closingIndex; index >= 0; index -= 1) {
+    if (source[index] === "}") {
+      depth += 1;
+    } else if (source[index] === "{") {
+      depth -= 1;
+      if (depth === 0) {
+        return opensStatementBlock(source, index);
+      }
+    }
+  }
+  return false;
+};
+
 const startsRegexLiteral = (codeBeforeSlash) => {
   let index = codeBeforeSlash.length - 1;
   while (index >= 0 && /\s/.test(codeBeforeSlash[index])) {
@@ -251,6 +300,12 @@ const startsRegexLiteral = (codeBeforeSlash) => {
   ) {
     return true;
   }
+  if (
+    codeBeforeSlash[index] === "}" &&
+    closesStatementBlock(codeBeforeSlash, index)
+  ) {
+    return true;
+  }
   if (index < 0 || regexPrefixCharacters.has(codeBeforeSlash[index])) {
     return true;
   }
@@ -262,6 +317,90 @@ const startsRegexLiteral = (codeBeforeSlash) => {
     index -= 1;
   }
   return regexPrefixKeywords.has(codeBeforeSlash.slice(index + 1, end));
+};
+
+const jsxTagAt = ({ source, start, closing }) => {
+  if (source[start] !== "<") {
+    return undefined;
+  }
+  let cursor = start + 1;
+  if (closing) {
+    if (source[cursor] !== "/") {
+      return undefined;
+    }
+    cursor += 1;
+  } else if (source[cursor] === "/") {
+    return undefined;
+  }
+
+  let name = "";
+  if (source[cursor] !== ">") {
+    const nameMatch = /^[A-Za-z][\w$:.-]*/.exec(source.slice(cursor));
+    if (nameMatch === null) {
+      return undefined;
+    }
+    name = nameMatch[0];
+    cursor += name.length;
+  }
+
+  let quote = "";
+  let escaped = false;
+  let braceDepth = 0;
+  const expressionStarts = new Set();
+  let end = -1;
+  for (let index = cursor; index < source.length; index += 1) {
+    const character = source[index];
+    if (quote !== "") {
+      if (escaped) {
+        escaped = false;
+      } else if (character === "\\") {
+        escaped = true;
+      } else if (character === quote) {
+        quote = "";
+      }
+      continue;
+    }
+    if (character === '"' || character === "'" || character === "`") {
+      quote = character;
+      continue;
+    }
+    if (character === "{") {
+      if (braceDepth === 0) {
+        expressionStarts.add(index);
+      }
+      braceDepth += 1;
+      continue;
+    }
+    if (character === "}" && braceDepth > 0) {
+      braceDepth -= 1;
+      continue;
+    }
+    if (character === ">" && braceDepth === 0) {
+      end = index;
+      break;
+    }
+  }
+  if (end === -1) {
+    return undefined;
+  }
+  let beforeEnd = end - 1;
+  while (beforeEnd > start && /\s/.test(source[beforeEnd])) {
+    beforeEnd -= 1;
+  }
+  const selfClosing = !closing && source[beforeEnd] === "/";
+  if (
+    !closing &&
+    !selfClosing &&
+    source.indexOf(name === "" ? "</>" : `</${name}`, end + 1) === -1
+  ) {
+    return undefined;
+  }
+  return {
+    closing,
+    end,
+    expressionStarts,
+    selfClosing,
+  };
 };
 
 const scanSource = (source) => {
@@ -278,6 +417,11 @@ const scanSource = (source) => {
   const templateLiteralEnds = new Map();
   const templateStarts = [];
   let hasCodeLiteral = false;
+  let hasJsxContent = false;
+  let jsxMode;
+  const jsxTags = [];
+  const jsxElements = [];
+  const jsxExpressions = [];
 
   for (let index = 0; index < source.length; index += 1) {
     const character = source[index];
@@ -358,6 +502,79 @@ const scanSource = (source) => {
       }
       continue;
     }
+    if (jsxMode === "text") {
+      if (character === "{") {
+        jsxExpressions.push({ depth: 1, returnMode: jsxMode });
+        jsxMode = undefined;
+        result += character;
+        continue;
+      }
+      if (character === "<") {
+        const tag =
+          jsxTagAt({ source, start: index, closing: true }) ??
+          jsxTagAt({ source, start: index, closing: false });
+        if (tag !== undefined) {
+          jsxTags.push({ ...tag, originMode: jsxMode });
+          jsxMode = "tag";
+          result += masked;
+          continue;
+        }
+      }
+      result += masked;
+      continue;
+    }
+    if (jsxMode === "tag") {
+      const tag = jsxTags.at(-1);
+      if (tag?.expressionStarts.has(index)) {
+        jsxExpressions.push({ depth: 1, returnMode: jsxMode });
+        jsxMode = undefined;
+        result += character;
+        continue;
+      }
+      result += masked;
+      if (tag !== undefined && index === tag.end) {
+        jsxTags.pop();
+        if (tag.closing) {
+          jsxMode = jsxElements.pop()?.afterCloseMode;
+        } else if (tag.selfClosing) {
+          jsxMode = tag.originMode;
+        } else {
+          jsxElements.push({ afterCloseMode: tag.originMode });
+          jsxMode = "text";
+        }
+      }
+      continue;
+    }
+    const jsxExpression = jsxExpressions.at(-1);
+    if (jsxExpression !== undefined && templateExpressionDepths.length === 0) {
+      if (character === "{") {
+        jsxExpression.depth += 1;
+      } else if (character === "}") {
+        jsxExpression.depth -= 1;
+        result += character;
+        if (jsxExpression.depth === 0) {
+          jsxExpressions.pop();
+          jsxMode = jsxExpression.returnMode;
+        }
+        continue;
+      }
+    }
+    if (character === "<") {
+      const tag = jsxTagAt({ source, start: index, closing: false });
+      if (
+        tag !== undefined &&
+        (jsxExpression !== undefined || startsRegexLiteral(result))
+      ) {
+        jsxTags.push({
+          ...tag,
+          originMode: jsxExpression === undefined ? undefined : "expression",
+        });
+        jsxMode = "tag";
+        hasJsxContent = true;
+        result += masked;
+        continue;
+      }
+    }
     if (character === "/" && next === "/") {
       result += "  ";
       index += 1;
@@ -420,7 +637,7 @@ const scanSource = (source) => {
     stringLiteralEnds,
     regexLiteralEnds,
     templateLiteralEnds,
-    hasCodeLiteral,
+    hasCodeLiteral: hasCodeLiteral || hasJsxContent,
   };
 };
 

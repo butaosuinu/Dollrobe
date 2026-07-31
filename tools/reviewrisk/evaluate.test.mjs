@@ -1185,6 +1185,25 @@ test("for await の本体で始まる正規表現後にある test skip を検�
   assert.equal(hasSignal(report, signals.testDisabled), true);
 });
 
+test("閉じ波括弧後の正規表現に続く test skip を検出する", () => {
+  for (const statement of [
+    'if (enabled) {} /foo=/.test(value); test.skip("later", fn);',
+    'function inspect() {} /foo=/.test(value); test.skip("later", fn);',
+    '{} /foo=/.test(value); test.skip("later", fn);',
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [statement],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, statement);
+    assert.equal(hasSignal(report, signals.testDisabled), true, statement);
+  }
+});
+
 test("postfix 演算後の除算に続く test skip を検出する", () => {
   const report = evaluate(
     diff({
@@ -1246,6 +1265,38 @@ test("文字列と block comment 内の skip は無視する", () => {
   );
   assert.equal(report.level, levels.low);
   assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("JSX text 内の test API は無視して式コンテナ内だけを解析する", () => {
+  const textOnly = evaluate(
+    diff({
+      files: [change({ path: "src/components/Docs.test.tsx", status: "A" })],
+      addedLines: {
+        "src/components/Docs.test.tsx": [
+          'it("renders docs", () =>',
+          '  render(<code>test.skip("later", fn)</code>),',
+          ");",
+        ],
+      },
+    }),
+  );
+  assert.equal(textOnly.level, levels.low);
+  assert.equal(hasSignal(textOnly, signals.testDisabled), false);
+
+  const expression = evaluate(
+    diff({
+      files: [change({ path: "src/components/Docs.test.tsx", status: "A" })],
+      addedLines: {
+        "src/components/Docs.test.tsx": [
+          'it("renders docs", () =>',
+          '  render(<code>{test.skip("later", fn)}</code>),',
+          ");",
+        ],
+      },
+    }),
+  );
+  assert.equal(expression.level, levels.critical);
+  assert.equal(hasSignal(expression, signals.testDisabled), true);
 });
 
 test("dmux lifecycle hook の変更は critical", () => {

@@ -73,6 +73,12 @@ test("信頼度導出ロジックは H に分類する", () => {
   assert.equal(actual?.id, "confidence-derivation");
 });
 
+test("共有入力 schema は H に分類する", () => {
+  const actual = classifyPath("workers/src/lib/schemas.ts");
+  assert.equal(actual?.class, classes.high);
+  assert.equal(actual?.id, "worker-input-schema");
+});
+
 test("Next.js Route Handler は H に分類する", () => {
   for (const path of [
     "src/app/route.ts",

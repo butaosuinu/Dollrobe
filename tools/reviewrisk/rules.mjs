@@ -184,6 +184,14 @@ const exactRules = new Map([
     rule("worker-auth-boundary", classes.high, "session・API key 認証解決"),
   ],
   [
+    "workers/src/lib/schemas.ts",
+    rule(
+      "worker-input-schema",
+      classes.high,
+      "tRPC・MCP・sync・admin の共有入力 validation",
+    ),
+  ],
+  [
     "workers/src/lib/api-key-permissions.ts",
     rule("worker-auth-boundary", classes.high, "API key scope 認可境界"),
   ],
