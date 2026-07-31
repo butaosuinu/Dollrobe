@@ -540,6 +540,20 @@ const staticStringLiteralAt = ({
 
 const importedTestRoots = ({ source, structuralSource, stringLiteralEnds }) => {
   const roots = new Map();
+  const defaultImportPattern =
+    /\bimport\s+([A-Za-z_$][\w$]*)\s*(?:,\s*(?:\{[\s\S]*?\}|\*\s+as\s+[A-Za-z_$][\w$]*))?\s*from\b/g;
+  for (const match of structuralSource.matchAll(defaultImportPattern)) {
+    const moduleLiteral = staticStringLiteralAt({
+      source,
+      structuralSource,
+      stringLiteralEnds,
+      start: (match.index ?? 0) + match[0].length,
+    });
+    if (moduleLiteral?.value === "node:test") {
+      roots.set(match[1], "test");
+    }
+  }
+
   const importPattern = /\bimport\s*\{([\s\S]*?)\}\s*from\b/g;
   for (const match of structuralSource.matchAll(importPattern)) {
     const moduleLiteral = staticStringLiteralAt({
@@ -616,7 +630,7 @@ const testRootPatternFor = (importedRoots) => {
     .sort((left, right) => right.length - left.length)
     .map(escapeRegExp)
     .join("|");
-  return new RegExp(`(?<![\\w$.])(${roots})(?![\\w$])`, "g");
+  return new RegExp(`(?<![\\w$.#])(${roots})(?![\\w$])`, "g");
 };
 
 const staticBracketMember = (source, start, end) => {
@@ -860,6 +874,7 @@ const parseTestCalls = (source) => {
     );
     const modifiers = [];
     const modifierArguments = new Map();
+    const modifierTaggedTemplates = new Map();
     let terminalModifier;
     let openingIndex = -1;
 
@@ -944,6 +959,7 @@ const parseTestCalls = (source) => {
           skipWhitespace(structuralSource, modifierEnd);
         modifiers.push(modifier);
         if (taggedTemplate !== undefined) {
+          modifierTaggedTemplates.set(modifier, taggedTemplate);
           cursor = skipWhitespace(structuralSource, taggedTemplate.end + 1);
           if (structuralSource[cursor] === "(") {
             openingIndex = cursor;
@@ -1001,6 +1017,7 @@ const parseTestCalls = (source) => {
       importedRoot: testRoots.get(root),
       modifiers,
       modifierArguments,
+      modifierTaggedTemplates,
       terminalModifier,
       openingIndex,
       closingIndex: parsedCall.closingIndex,
@@ -1277,20 +1294,30 @@ const activeOptionModeConditions = ({
       });
       if (property !== undefined) {
         const colonIndex = skipWhitespace(structuralSource, property.end);
-        if (
-          !["skip", "only", "todo"].includes(property.key) ||
-          structuralSource[colonIndex] !== ":"
-        ) {
+        const shorthand =
+          structuralSource[colonIndex] === "," ||
+          structuralSource[colonIndex] === "}";
+        if (!["skip", "only", "todo"].includes(property.key)) {
+          index = property.end - 1;
+          continue;
+        }
+        if (structuralSource[colonIndex] !== ":" && !shorthand) {
           index = property.end - 1;
           continue;
         }
 
-        const valueStart = skipWhitespace(structuralSource, colonIndex + 1);
-        const valueEnd = readPropertyValueEnd({
-          structuralSource,
-          start: valueStart,
-          objectEnd: argument.end,
-        });
+        const valueStart =
+          structuralSource[colonIndex] === ":"
+            ? skipWhitespace(structuralSource, colonIndex + 1)
+            : index;
+        const valueEnd =
+          structuralSource[colonIndex] === ":"
+            ? readPropertyValueEnd({
+                structuralSource,
+                start: valueStart,
+                objectEnd: argument.end,
+              })
+            : property.end;
         const valueStructural = structuralSource
           .slice(valueStart, valueEnd)
           .trim();
@@ -1456,6 +1483,121 @@ const disableConditionIdentity = (call, mode) => {
   return "";
 };
 
+const staticInlineEachTable = ({ call, source, structuralSource }) => {
+  const tableArgument = call.modifierArguments.get("each")?.[0];
+  if (tableArgument === undefined) {
+    return undefined;
+  }
+  const openingIndex = skipWhitespace(structuralSource, tableArgument.start);
+  if (structuralSource[openingIndex] !== "[") {
+    return undefined;
+  }
+  const closingIndex = findMatchingDelimiter({
+    source: structuralSource,
+    openingIndex,
+    opening: "[",
+    closing: "]",
+  });
+  if (
+    closingIndex === -1 ||
+    skipWhitespace(structuralSource, closingIndex + 1) !== tableArgument.end
+  ) {
+    return undefined;
+  }
+
+  const ranges = [];
+  let start = openingIndex + 1;
+  let depth = 0;
+  for (let index = start; index < closingIndex; index += 1) {
+    const character = structuralSource[index];
+    if (character === "(" || character === "[" || character === "{") {
+      depth += 1;
+    } else if (character === ")" || character === "]" || character === "}") {
+      depth = Math.max(0, depth - 1);
+    } else if (character === "," && depth === 0) {
+      ranges.push(
+        argumentRange({
+          source,
+          structuralSource,
+          start,
+          end: index,
+        }),
+      );
+      start = index + 1;
+    }
+  }
+  if (source.slice(start, closingIndex).trim() !== "") {
+    ranges.push(
+      argumentRange({
+        source,
+        structuralSource,
+        start,
+        end: closingIndex,
+      }),
+    );
+  }
+  if (
+    ranges.some(
+      (range) => range.raw === "" || range.structural.trim().startsWith("..."),
+    )
+  ) {
+    return undefined;
+  }
+  return {
+    kind: "inline-array",
+    rows: ranges.map((range) => normalizedConditionCode(range.raw)),
+  };
+};
+
+const staticTaggedEachTable = ({ call, source }) => {
+  const table = call.modifierTaggedTemplates.get("each");
+  if (table === undefined) {
+    return undefined;
+  }
+  const lines = source
+    .slice(table.start + 1, table.end)
+    .split(/\r?\n/)
+    .map(normalizedSourceFragment)
+    .filter((line) => line !== "");
+  if (lines.length === 0) {
+    return undefined;
+  }
+  const [header, ...rows] = lines;
+  return {
+    kind: "tagged-template",
+    rows: rows.map((row) => `${header}|${row}`),
+  };
+};
+
+const staticEachTableForCall = ({ call, source, structuralSource }) => {
+  if (!call.modifiers.includes("each")) {
+    return undefined;
+  }
+  return (
+    staticInlineEachTable({ call, source, structuralSource }) ??
+    staticTaggedEachTable({ call, source })
+  );
+};
+
+const staticEachRowsPreserved = (before, after) => {
+  if (
+    before === undefined ||
+    after === undefined ||
+    before.kind !== after.kind
+  ) {
+    return true;
+  }
+  const remainingRows = [...after.rows];
+  for (const row of before.rows) {
+    const index = remainingRows.indexOf(row);
+    if (index === -1) {
+      return false;
+    }
+    remainingRows.splice(index, 1);
+  }
+  return true;
+};
+
 const testCallDescriptors = (source) => {
   const parsed = parseTestCalls(source);
   const scopes = assignSuitePaths(suiteScopes(parsed));
@@ -1490,6 +1632,11 @@ const testCallDescriptors = (source) => {
     const positionalIdentity = `${matchingRoot}|${positionalContext}|${String(position)}`;
     const casePositionIdentity = `${positionalContext}|${String(casePosition)}`;
     const movableIdentity = `${matchingRoot}|${namedContext}|${title}|${callbackIdentity}`;
+    const eachTable = staticEachTableForCall({
+      call,
+      source,
+      structuralSource: parsed.structuralSource,
+    });
     const modes = [
       ...disableModesForCall({
         call,
@@ -1520,6 +1667,7 @@ const testCallDescriptors = (source) => {
       modeConditions,
       title,
       callbackIdentity,
+      eachTable,
       casePositionIdentity,
       positionalIdentity,
       movableIdentity,
@@ -1601,7 +1749,8 @@ const removesTestCallFingerprint = (beforeSource, afterSource) => {
       (candidate) =>
         !candidate.used &&
         candidate.title === descriptor.title &&
-        candidate.callbackIdentity === descriptor.callbackIdentity,
+        candidate.callbackIdentity === descriptor.callbackIdentity &&
+        staticEachRowsPreserved(descriptor.eachTable, candidate.eachTable),
     );
     if (exactMatch === undefined) {
       unmatched.push(descriptor);
@@ -1615,6 +1764,7 @@ const removesTestCallFingerprint = (beforeSource, afterSource) => {
       (candidate) =>
         !candidate.used &&
         candidate.casePositionIdentity === descriptor.casePositionIdentity &&
+        staticEachRowsPreserved(descriptor.eachTable, candidate.eachTable) &&
         (candidate.title === descriptor.title ||
           candidate.callbackIdentity === descriptor.callbackIdentity),
     );

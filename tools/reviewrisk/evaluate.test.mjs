@@ -358,6 +358,36 @@ test("node:test の直接 disable export と alias は critical", () => {
   }
 });
 
+test("node:test の default import alias は test root として扱う", () => {
+  const disabled = evaluate(
+    diff({
+      files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/new.test.ts": [
+          'import check from "node:test";',
+          'check.skip("boundary", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(disabled.level, levels.critical);
+  assert.equal(hasSignal(disabled, signals.testDisabled), true);
+
+  const unrelated = evaluate(
+    diff({
+      files: [change({ path: "src/lib/helper.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/helper.test.ts": [
+          'import check from "./helper";',
+          'check.skip("not a test API", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(unrelated.level, levels.low);
+  assert.equal(hasSignal(unrelated, signals.testDisabled), false);
+});
+
 test("static import のない任意 identifier の skip は無効化として扱わない", () => {
   const report = evaluate(
     diff({
@@ -404,6 +434,24 @@ test("test module 以外の namespace は test root として扱わない", () =
         "src/lib/new.test.ts": [
           'import * as helper from "./helper";',
           'helper.test.skip("not a test API", fn);',
+        ],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.low);
+  assert.equal(hasSignal(report, signals.testDisabled), false);
+});
+
+test("private field の test member は test API として扱わない", () => {
+  const report = evaluate(
+    diff({
+      files: [change({ path: "src/lib/helper.test.ts", status: "A" })],
+      addedLines: {
+        "src/lib/helper.test.ts": [
+          "class Helper {",
+          "  #test = createBuilder();",
+          '  run() { this.#test.skip("not a test API", fn); }',
+          "}",
         ],
       },
     }),
@@ -583,6 +631,24 @@ test("条件式を使う test options skip は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("test options の shorthand disable property は critical", () => {
+  for (const mode of ["skip", "only", "todo"]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: {
+          "src/lib/new.test.ts": [
+            `const ${mode} = process.env.CI;`,
+            `test("boundary", { ${mode} }, fn);`,
+          ],
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, mode);
+    assert.equal(hasSignal(report, signals.testDisabled), true, mode);
+  }
 });
 
 test("test options の skip false は無効化として扱わない", () => {
@@ -884,6 +950,56 @@ test("tagged-template each の skip は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("静的な each table の行削除は test case 削除として扱う", () => {
+  for (const [beforeSource, afterSource] of [
+    [
+      'test.each([[1], [2]])("case %s", fn);',
+      'test.each([[1]])("case %s", fn);',
+    ],
+    [
+      ["test.each`", "value", "${1}", "${2}", '`("case $value", fn);'].join(
+        "\n",
+      ),
+      ["test.each`", "value", "${1}", '`("case $value", fn);'].join("\n"),
+    ],
+  ]) {
+    const path = "src/lib/each.test.ts";
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: { [path]: beforeSource },
+        afterContents: { [path]: afterSource },
+      }),
+    );
+    assert.equal(report.level, levels.critical, beforeSource);
+    assert.equal(hasSignal(report, signals.testDeleted), true, beforeSource);
+  }
+});
+
+test("静的な each table の並び替え・行追加は削除として扱わない", () => {
+  for (const [beforeSource, afterSource] of [
+    [
+      'test.each([[1], [2]])("case %s", fn);',
+      'test.each([[2], [1]])("case %s", fn);',
+    ],
+    [
+      'test.each([[1]])("case %s", fn);',
+      'test.each([[1], [2]])("case %s", fn);',
+    ],
+  ]) {
+    const path = "src/lib/each.test.ts";
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: { [path]: beforeSource },
+        afterContents: { [path]: afterSource },
+      }),
+    );
+    assert.equal(report.level, levels.low, afterSource);
+    assert.equal(hasSignal(report, signals.testDeleted), false, afterSource);
+  }
 });
 
 test("generic type arguments 付き test call を解析する", () => {
