@@ -1203,28 +1203,148 @@ const innermostScopeAt = (scopes, index) =>
     .filter((scope) => scope.openingIndex < index && index < scope.closingIndex)
     .at(-1);
 
-const parameterBindingNames = (parameters) => {
-  const names = [];
-  for (const parameter of parameters.split(",")) {
-    const trimmed = parameter.trim().replace(/^\.\.\./, "");
-    const direct = /^([A-Za-z_$][\w$]*)/.exec(trimmed);
-    if (direct !== null) {
-      names.push(direct[1]);
-      continue;
-    }
-    if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
-      continue;
-    }
-    for (const property of trimmed.slice(1, -1).split(",")) {
-      const binding = /(?::\s*)?([A-Za-z_$][\w$]*)\s*(?:=.*)?$/.exec(
-        property.trim(),
-      );
-      if (binding !== null) {
-        names.push(binding[1]);
-      }
+const splitTopLevelBindings = (source) => {
+  const bindings = [];
+  const closingFor = { "(": ")", "[": "]", "{": "}" };
+  const stack = [];
+  let start = 0;
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    if (Object.hasOwn(closingFor, character)) {
+      stack.push(closingFor[character]);
+    } else if (character === stack.at(-1)) {
+      stack.pop();
+    } else if (character === "," && stack.length === 0) {
+      bindings.push(source.slice(start, index));
+      start = index + 1;
     }
   }
-  return names;
+  bindings.push(source.slice(start));
+  return bindings;
+};
+
+const topLevelBindingOperator = (source, operator) => {
+  const closingFor = { "(": ")", "[": "]", "{": "}" };
+  const stack = [];
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    if (Object.hasOwn(closingFor, character)) {
+      stack.push(closingFor[character]);
+    } else if (character === stack.at(-1)) {
+      stack.pop();
+    } else if (character === operator && stack.length === 0) {
+      return index;
+    }
+  }
+  return -1;
+};
+
+const bindingNamesForPattern = (pattern) => {
+  let trimmed = pattern.trim().replace(/^\.\.\./, "");
+  const assignmentIndex = topLevelBindingOperator(trimmed, "=");
+  if (assignmentIndex !== -1) {
+    trimmed = trimmed.slice(0, assignmentIndex).trim();
+  }
+  const direct = /^([A-Za-z_$][\w$]*)/.exec(trimmed);
+  if (direct !== null) {
+    return [direct[1]];
+  }
+
+  const opening = trimmed[0];
+  const closing = opening === "[" ? "]" : opening === "{" ? "}" : "";
+  if (closing === "") {
+    return [];
+  }
+  const closingIndex = findMatchingDelimiter({
+    source: trimmed,
+    openingIndex: 0,
+    opening,
+    closing,
+  });
+  if (closingIndex === -1) {
+    return [];
+  }
+
+  return splitTopLevelBindings(trimmed.slice(1, closingIndex)).flatMap(
+    (binding) => {
+      if (opening === "[") {
+        return bindingNamesForPattern(binding);
+      }
+      const property = binding.trim();
+      const colonIndex = topLevelBindingOperator(property, ":");
+      return bindingNamesForPattern(
+        colonIndex === -1 ? property : property.slice(colonIndex + 1),
+      );
+    },
+  );
+};
+
+const parameterBindingNames = (parameters) =>
+  splitTopLevelBindings(parameters).flatMap(bindingNamesForPattern);
+
+const scopeRangeForOpening = (scopes, openingIndex) => {
+  const scope = scopes.find(
+    (candidate) => candidate.openingIndex === openingIndex,
+  );
+  return scope === undefined
+    ? undefined
+    : { start: scope.openingIndex, end: scope.closingIndex };
+};
+
+const parameterBindingsForScopes = ({ structuralSource, scopes }) => {
+  const bindings = [];
+  const addBindings = ({
+    pattern,
+    parameterIndex,
+    nameIndex,
+    excludedNames = new Set(),
+  }) => {
+    for (const match of structuralSource.matchAll(pattern)) {
+      if (
+        nameIndex !== undefined &&
+        excludedNames.has(match[nameIndex] ?? "")
+      ) {
+        continue;
+      }
+      const openingIndex = (match.index ?? 0) + match[0].lastIndexOf("{");
+      const range = scopeRangeForOpening(scopes, openingIndex);
+      if (range === undefined) {
+        continue;
+      }
+      for (const name of parameterBindingNames(match[parameterIndex] ?? "")) {
+        bindings.push({
+          name,
+          declarationIndex: match.index ?? 0,
+          range,
+        });
+      }
+    }
+  };
+
+  addBindings({
+    pattern:
+      /\bfunction(?:\s*\*)?(?:\s+[A-Za-z_$][\w$]*)?\s*\(([^()]*)\)\s*\{/g,
+    parameterIndex: 1,
+  });
+  addBindings({
+    pattern: /\(([^()]*)\)\s*=>\s*\{/g,
+    parameterIndex: 1,
+  });
+  addBindings({
+    pattern: /\b([A-Za-z_$][\w$]*)\s*=>\s*\{/g,
+    parameterIndex: 1,
+  });
+  addBindings({
+    pattern: /\b([A-Za-z_$][\w$]*)\s*\(([^()]*)\)\s*\{/g,
+    parameterIndex: 2,
+    nameIndex: 1,
+    excludedNames: new Set(["catch", "for", "if", "switch", "while", "with"]),
+  });
+  addBindings({
+    pattern: /\bcatch\s*\(([^()]*)\)\s*\{/g,
+    parameterIndex: 1,
+  });
+  return bindings;
 };
 
 const testRootShadowRanges = ({
@@ -1247,17 +1367,8 @@ const testRootShadowRanges = ({
     ranges.push(range);
     rangesByRoot.set(root, ranges);
   };
-  const bodyRange = (openingIndex) => {
-    const scope = scopes.find(
-      (candidate) => candidate.openingIndex === openingIndex,
-    );
-    return scope === undefined
-      ? undefined
-      : {
-          start: scope.openingIndex,
-          end: scope.closingIndex,
-        };
-  };
+  const bodyRange = (openingIndex) =>
+    scopeRangeForOpening(scopes, openingIndex);
   const singleStatementEnd = (start) => {
     const stack = [];
     const closingFor = { "(": ")", "[": "]", "{": "}" };
@@ -1300,27 +1411,6 @@ const testRootShadowRanges = ({
     }
     return range;
   };
-  const addParameterRanges = ({
-    pattern,
-    parameterIndex,
-    nameIndex,
-    excludedNames = new Set(),
-  }) => {
-    for (const match of structuralSource.matchAll(pattern)) {
-      if (
-        nameIndex !== undefined &&
-        excludedNames.has(match[nameIndex] ?? "")
-      ) {
-        continue;
-      }
-      const openingIndex = (match.index ?? 0) + match[0].lastIndexOf("{");
-      const range = bodyRange(openingIndex);
-      for (const root of parameterBindingNames(match[parameterIndex] ?? "")) {
-        addRange(root, range);
-      }
-    }
-  };
-
   const variablePattern = /\b(const|let|var)\s+([A-Za-z_$][\w$]*)\b/g;
   for (const match of structuralSource.matchAll(variablePattern)) {
     const localName = match[2];
@@ -1388,29 +1478,12 @@ const testRootShadowRanges = ({
     );
   }
 
-  addParameterRanges({
-    pattern:
-      /\bfunction(?:\s*\*)?(?:\s+[A-Za-z_$][\w$]*)?\s*\(([^()]*)\)\s*\{/g,
-    parameterIndex: 1,
-  });
-  addParameterRanges({
-    pattern: /\(([^()]*)\)\s*=>\s*\{/g,
-    parameterIndex: 1,
-  });
-  addParameterRanges({
-    pattern: /\b([A-Za-z_$][\w$]*)\s*=>\s*\{/g,
-    parameterIndex: 1,
-  });
-  addParameterRanges({
-    pattern: /\b([A-Za-z_$][\w$]*)\s*\(([^()]*)\)\s*\{/g,
-    parameterIndex: 2,
-    nameIndex: 1,
-    excludedNames: new Set(["catch", "for", "if", "switch", "while", "with"]),
-  });
-  addParameterRanges({
-    pattern: /\bcatch\s*\(([^()]*)\)\s*\{/g,
-    parameterIndex: 1,
-  });
+  for (const binding of parameterBindingsForScopes({
+    structuralSource,
+    scopes,
+  })) {
+    addRange(binding.name, binding.range);
+  }
 
   return rangesByRoot;
 };
@@ -1675,7 +1748,12 @@ const parseTestCalls = (source) => {
       arguments: parsedCall.arguments,
     });
   }
-  return { calls, structuralSource, stringLiteralEnds };
+  return {
+    calls,
+    structuralSource,
+    stringLiteralEnds,
+    optionBindings: staticOptionBindings({ source, structuralSource }),
+  };
 };
 
 const normalizedTestRoot = (call) => {
@@ -2011,16 +2089,109 @@ const activeOptionModeConditions = ({
   return modes;
 };
 
+const staticOptionBindings = ({ source, structuralSource }) => {
+  const scopes = braceScopes(structuralSource);
+  const bindings = [];
+  const addBinding = ({ name, declarationIndex, argument }) => {
+    const scope = innermostScopeAt(scopes, declarationIndex);
+    if (scope === undefined) {
+      return;
+    }
+    bindings.push({
+      name,
+      declarationIndex,
+      argument,
+      range: { start: scope.openingIndex, end: scope.closingIndex },
+    });
+  };
+
+  const variablePattern = /\b(const|let|var)\s+([A-Za-z_$][\w$]*)\b/g;
+  for (const match of structuralSource.matchAll(variablePattern)) {
+    const declarationIndex = match.index ?? 0;
+    const name = match[2];
+    const nameEnd = declarationIndex + match[0].lastIndexOf(name) + name.length;
+    const assignmentIndex = skipWhitespace(structuralSource, nameEnd);
+    const objectStart = skipWhitespace(structuralSource, assignmentIndex + 1);
+    let argument;
+    if (
+      match[1] === "const" &&
+      structuralSource[assignmentIndex] === "=" &&
+      structuralSource[objectStart] === "{"
+    ) {
+      const objectEnd = findMatchingDelimiter({
+        source: structuralSource,
+        openingIndex: objectStart,
+        opening: "{",
+        closing: "}",
+      });
+      if (
+        objectEnd !== -1 &&
+        endsStaticAliasInitializer(structuralSource, objectEnd + 1)
+      ) {
+        argument = argumentRange({
+          source,
+          structuralSource,
+          start: objectStart,
+          end: objectEnd + 1,
+        });
+      }
+    }
+    addBinding({ name, declarationIndex, argument });
+  }
+
+  const declarationPattern =
+    /\b(?:function(?:\s*\*)?|class)\s+([A-Za-z_$][\w$]*)/g;
+  for (const match of structuralSource.matchAll(declarationPattern)) {
+    addBinding({
+      name: match[1],
+      declarationIndex: match.index ?? 0,
+      argument: undefined,
+    });
+  }
+  bindings.push(...parameterBindingsForScopes({ structuralSource, scopes }));
+  return bindings;
+};
+
+const resolvedOptionArgument = ({ argument, call, optionBindings }) => {
+  const name = /^([A-Za-z_$][\w$]*)$/.exec(argument.structural.trim())?.[1];
+  if (name === undefined) {
+    return argument;
+  }
+  const binding = optionBindings
+    .filter(
+      (candidate) =>
+        candidate.name === name &&
+        candidate.range.start < call.openingIndex &&
+        call.openingIndex < candidate.range.end,
+    )
+    .sort(
+      (left, right) =>
+        left.range.start - right.range.start ||
+        left.declarationIndex - right.declarationIndex,
+    )
+    .at(-1);
+  return binding?.argument !== undefined &&
+    binding.declarationIndex < call.openingIndex
+    ? binding.argument
+    : argument;
+};
+
 const optionModeConditionsForCall = ({
   call,
   source,
   structuralSource,
   stringLiteralEnds,
+  optionBindings,
 }) => {
   const conditions = new Map();
   for (const argument of call.arguments.slice(0, 2)) {
-    for (const [mode, conditionIdentity] of activeOptionModeConditions({
+    const resolvedArgument = resolvedOptionArgument({
       argument,
+      call,
+      optionBindings,
+    });
+    for (const [mode, conditionIdentity] of activeOptionModeConditions({
+      argument: resolvedArgument,
       source,
       structuralSource,
       stringLiteralEnds,
@@ -2036,6 +2207,7 @@ const disableModesForCall = ({
   source,
   structuralSource,
   stringLiteralEnds,
+  optionBindings,
 }) => {
   const modes = new Set();
   const sourceRoot = call.importedRoot ?? call.root;
@@ -2090,6 +2262,7 @@ const disableModesForCall = ({
     source,
     structuralSource,
     stringLiteralEnds,
+    optionBindings,
   }).keys()) {
     modes.add(mode);
   }
@@ -2294,6 +2467,7 @@ const testCallDescriptors = (source) => {
         source,
         structuralSource: parsed.structuralSource,
         stringLiteralEnds: parsed.stringLiteralEnds,
+        optionBindings: parsed.optionBindings,
       }),
     ];
     const optionModeConditions = optionModeConditionsForCall({
@@ -2301,6 +2475,7 @@ const testCallDescriptors = (source) => {
       source,
       structuralSource: parsed.structuralSource,
       stringLiteralEnds: parsed.stringLiteralEnds,
+      optionBindings: parsed.optionBindings,
     });
     const modeConditions = new Map(
       modes.map((mode) => [

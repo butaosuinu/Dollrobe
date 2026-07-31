@@ -572,6 +572,12 @@ test("ローカル binding で shadow された test root は test API として
   for (const source of [
     ["const test = createReporter();", 'test.skip("not a test API", fn);'],
     ["function inspect(test) {", '  test.only("not a test API", fn);', "}"],
+    ["function inspect([test]) {", '  test.only("not a test API", fn);', "}"],
+    [
+      "function inspect([, { reporter: test }]) {",
+      '  test.only("not a test API", fn);',
+      "}",
+    ],
   ]) {
     const report = evaluate(
       diff({
@@ -703,6 +709,66 @@ test("test options の skip true は critical", () => {
   );
   assert.equal(report.level, levels.critical);
   assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
+test("const alias の test options は静的に解決する", () => {
+  for (const source of [
+    ["const options = { skip: true };", 'test("later", options, () => {});'],
+    [
+      "const options = { only: process.env.CI };",
+      'test("focused", options, () => {});',
+    ],
+    [
+      'const options = { todo: "blocked" };',
+      "function register() {",
+      '  test("later", options, () => {});',
+      "}",
+    ],
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: { "src/lib/new.test.ts": source },
+      }),
+    );
+    assert.equal(report.level, levels.critical, source.join("\n"));
+    assert.equal(
+      hasSignal(report, signals.testDisabled),
+      true,
+      source.join("\n"),
+    );
+  }
+});
+
+test("shadow された const alias の test options は解決しない", () => {
+  for (const source of [
+    [
+      "const options = { skip: true };",
+      "function register(options) {",
+      '  test("enabled", options, () => {});',
+      "}",
+    ],
+    [
+      "const options = { skip: true };",
+      "function register() {",
+      "  const options = { skip: false };",
+      '  test("enabled", options, () => {});',
+      "}",
+    ],
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "src/lib/new.test.ts", status: "A" })],
+        addedLines: { "src/lib/new.test.ts": source },
+      }),
+    );
+    assert.equal(report.level, levels.low, source.join("\n"));
+    assert.equal(
+      hasSignal(report, signals.testDisabled),
+      false,
+      source.join("\n"),
+    );
+  }
 });
 
 test("引用符付き test options の skip・only true は critical", () => {

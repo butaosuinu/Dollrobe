@@ -173,6 +173,14 @@ const exactRules = new Map([
     ),
   ],
   [
+    "src/lib/constants.ts",
+    rule(
+      "confidence-derivation",
+      classes.high,
+      "信頼度の閾値・活動量別減衰定数",
+    ),
+  ],
+  [
     "src/lib/trpc.ts",
     rule("client-api", classes.high, "tRPC transport・認証境界"),
   ],
@@ -245,7 +253,7 @@ const nextRouteHandlerRule = rule(
   classes.high,
   "Next.js user-data HTTP boundary",
 );
-const nextRouteHandlerPattern = /^src\/app\/(?:.+\/)?route\.ts$/;
+const nextRouteHandlerPattern = /^src\/app\/(?:.+\/)?route\.[jt]s$/;
 
 const prefixRules = [
   [

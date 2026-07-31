@@ -68,10 +68,12 @@ test("同期・スキャン service は H に分類する", () => {
   }
 });
 
-test("信頼度導出ロジックは H に分類する", () => {
-  const actual = classifyPath("src/lib/confidence.ts");
-  assert.equal(actual?.class, classes.high);
-  assert.equal(actual?.id, "confidence-derivation");
+test("信頼度導出ロジックと定数は H に分類する", () => {
+  for (const path of ["src/lib/confidence.ts", "src/lib/constants.ts"]) {
+    const actual = classifyPath(path);
+    assert.equal(actual?.class, classes.high, path);
+    assert.equal(actual?.id, "confidence-derivation", path);
+  }
 });
 
 test("共有入力 schema は H に分類する", () => {
@@ -95,7 +97,9 @@ test("dmux の文書は通常の文書 class に分類する", () => {
 test("Next.js Route Handler は H に分類する", () => {
   for (const path of [
     "src/app/route.ts",
+    "src/app/route.js",
     "src/app/api/users/route.ts",
+    "src/app/api/users/route.js",
     "src/app/dolls/[id]/route.ts",
   ]) {
     const actual = classifyPath(path);
