@@ -607,6 +607,22 @@ test("ローカル binding で shadow された test root は test API として
       "const [, { reporter: test }] = createReporters();",
       'test.skip("not a test API", fn);',
     ],
+    [
+      "function inspect() {",
+      "  if (enabled) { var test = createReporter(); }",
+      '  test.skip("not a test API", fn);',
+      "}",
+    ],
+    [
+      "if (enabled) { var test = createReporter(); }",
+      'test.skip("not a test API", fn);',
+    ],
+    [
+      "function inspect() {",
+      "  if (enabled) { var [test] = createReporters(); }",
+      '  test.skip("not a test API", fn);',
+      "}",
+    ],
   ]) {
     const report = evaluate(
       diff({
@@ -1289,6 +1305,22 @@ test("静的な each table の行削除は test case 削除として扱う", () 
       'describe.each([[1], [2]])("suite %s", () => { test("case", fn); });',
       'describe.each([[1]])("suite %s", () => { test("case", fn); });',
     ],
+    [
+      ["const cases = [[1], [2]];", 'test.each(cases)("case %s", fn);'].join(
+        "\n",
+      ),
+      ["const cases = [[1]];", 'test.each(cases)("case %s", fn);'].join("\n"),
+    ],
+    [
+      [
+        "const cases = [[1], [2]] as const;",
+        'describe.each(cases)("suite %s", () => { test("case", fn); });',
+      ].join("\n"),
+      [
+        "const cases = [[1]] as const;",
+        'describe.each(cases)("suite %s", () => { test("case", fn); });',
+      ].join("\n"),
+    ],
   ]) {
     const path = "src/lib/each.test.ts";
     const report = evaluate(
@@ -1320,6 +1352,20 @@ test("静的な each table の並び替え・行追加は削除として扱わ�
     [
       'describe.each([[1]])("suite %s", () => { test("case", fn); });',
       'describe.each([[1], [2]])("suite %s", () => { test("case", fn); });',
+    ],
+    [
+      ["const cases = [[1], [2]];", 'test.each(cases)("case %s", fn);'].join(
+        "\n",
+      ),
+      ["const cases = [[2], [1]];", 'test.each(cases)("case %s", fn);'].join(
+        "\n",
+      ),
+    ],
+    [
+      ["const cases = [[1]];", 'test.each(cases)("case %s", fn);'].join("\n"),
+      ["const cases = [[1], [2]];", 'test.each(cases)("case %s", fn);'].join(
+        "\n",
+      ),
     ],
   ]) {
     const path = "src/lib/each.test.ts";
@@ -1460,6 +1506,7 @@ test("閉じ波括弧後の正規表現に続く test skip を検出する", () 
   for (const statement of [
     'if (enabled) {} /foo=/.test(value); test.skip("later", fn);',
     'function inspect() {} /foo=/.test(value); test.skip("later", fn);',
+    'class Fixture<T> {} /foo=/.test(value); test.skip("later", fn);',
     '{} /foo=/.test(value); test.skip("later", fn);',
   ]) {
     const report = evaluate(

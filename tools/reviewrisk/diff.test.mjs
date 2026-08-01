@@ -1027,6 +1027,9 @@ test("test の設定・hook メソッド削除は test case 削除として扱�
       'test.use({ locale: "ja-JP" });',
       "test.beforeEach(setup);",
       'test.step("helper", helperFn);',
+      "class Reporter { test() { return result; } }",
+      "const reporter = { test() { return result; } };",
+      "class GenericReporter { test<T>(): Result { return result; } }",
       "",
     ].join("\n"),
   );

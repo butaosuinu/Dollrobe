@@ -278,7 +278,7 @@ const opensStatementBlock = (source, openingIndex) => {
     /(?:^|[;{}])\s*(?:(?:export\s+)?(?:default\s+)?)?(?:async\s+)?function(?:\s*\*)?\s+[A-Za-z_$][\w$]*\s*\([^)]*\)(?:\s*:\s*[^=;{}]+)?\s*$/.test(
       prefix,
     ) ||
-    /(?:^|[;{}])\s*(?:class\s+[A-Za-z_$][\w$]*(?:\s+extends\s+[^{]+)?|(?:else|do|finally|try))\s*$/.test(
+    /(?:^|[;{}])\s*(?:class\s+[A-Za-z_$][\w$]*(?:\s*<[^;{}]+>)?(?:\s+extends\s+[^{]+)?|(?:else|do|finally|try))\s*$/.test(
       prefix,
     )
   );
@@ -1508,6 +1508,10 @@ const testRootShadowRanges = ({
     ...[...testRoots.keys()].map((root) => root.split(".")[0]),
   ]);
   const scopes = braceScopes(structuralSource);
+  const callableRanges = callableParameterLists({
+    structuralSource,
+    scopes,
+  }).map(({ range }) => range);
   const rangesByRoot = new Map();
   const addRange = (root, range) => {
     if (!rootNames.has(root) || range === undefined) {
@@ -1561,6 +1565,16 @@ const testRootShadowRanges = ({
     }
     return range;
   };
+  const varScopeRangeAt = (declarationIndex) =>
+    callableRanges
+      .filter(
+        (range) =>
+          range.start < declarationIndex && declarationIndex < range.end,
+      )
+      .at(-1) ?? {
+      start: scopes[0].openingIndex,
+      end: scopes[0].closingIndex,
+    };
   const variablePattern = /\b(const|let|var)\s+([A-Za-z_$][\w$]*)\b/g;
   for (const match of structuralSource.matchAll(variablePattern)) {
     const localName = match[2];
@@ -1602,15 +1616,18 @@ const testRootShadowRanges = ({
         endsStaticAliasInitializer(structuralSource, requiredModule.end)) ||
       staticAliasRoot !== undefined;
     if (!aliasesTestRoot) {
-      const scope = innermostScopeAt(scopes, match.index ?? 0);
+      const declarationIndex = match.index ?? 0;
+      const scope = innermostScopeAt(scopes, declarationIndex);
       const loopRange =
-        match[1] === "var" ? undefined : forLoopRangeAt(match.index ?? 0);
+        match[1] === "var" ? undefined : forLoopRangeAt(declarationIndex);
       addRange(
         localName,
-        loopRange ??
-          (scope === undefined
-            ? undefined
-            : { start: scope.openingIndex, end: scope.closingIndex }),
+        match[1] === "var"
+          ? varScopeRangeAt(declarationIndex)
+          : (loopRange ??
+              (scope === undefined
+                ? undefined
+                : { start: scope.openingIndex, end: scope.closingIndex })),
       );
     }
   }
@@ -1698,10 +1715,12 @@ const testRootShadowRanges = ({
     const loopRange =
       match[1] === "var" ? undefined : forLoopRangeAt(declarationIndex);
     const range =
-      loopRange ??
-      (scope === undefined
-        ? undefined
-        : { start: scope.openingIndex, end: scope.closingIndex });
+      match[1] === "var"
+        ? varScopeRangeAt(declarationIndex)
+        : (loopRange ??
+          (scope === undefined
+            ? undefined
+            : { start: scope.openingIndex, end: scope.closingIndex }));
     for (const localName of localNames) {
       if (!aliasedNames.has(localName)) {
         addRange(localName, range);
@@ -1979,6 +1998,13 @@ const parseTestCalls = (source) => {
       structuralSource,
       openingIndex,
     });
+    const declarationBody = parameterBodyAfter({
+      structuralSource,
+      closingIndex: parsedCall.closingIndex,
+    });
+    if (declarationBody !== undefined && !declarationBody.arrow) {
+      continue;
+    }
     calls.push({
       root,
       importedRoot: testRoots.get(root),
@@ -2335,7 +2361,13 @@ const activeOptionModeConditions = ({
 const staticOptionBindings = ({ source, structuralSource }) => {
   const scopes = braceScopes(structuralSource);
   const bindings = [];
-  const addBinding = ({ name, declarationIndex, argument, conditionValue }) => {
+  const addBinding = ({
+    name,
+    declarationIndex,
+    argument,
+    arrayArgument,
+    conditionValue,
+  }) => {
     const scope = innermostScopeAt(scopes, declarationIndex);
     if (scope === undefined) {
       return;
@@ -2344,6 +2376,7 @@ const staticOptionBindings = ({ source, structuralSource }) => {
       name,
       declarationIndex,
       argument,
+      arrayArgument,
       conditionValue,
       range: { start: scope.openingIndex, end: scope.closingIndex },
     });
@@ -2359,6 +2392,7 @@ const staticOptionBindings = ({ source, structuralSource }) => {
       nameEnd,
     });
     let argument;
+    let arrayArgument;
     let conditionValue;
     if (
       match[1] === "const" &&
@@ -2386,6 +2420,32 @@ const staticOptionBindings = ({ source, structuralSource }) => {
           end: objectEnd + 1,
         });
       }
+    } else if (
+      match[1] === "const" &&
+      initializerStart !== undefined &&
+      structuralSource[initializerStart] === "["
+    ) {
+      const arrayEnd = findMatchingDelimiter({
+        source: structuralSource,
+        openingIndex: initializerStart,
+        opening: "[",
+        closing: "]",
+      });
+      const initializerEnd =
+        arrayEnd === -1
+          ? -1
+          : skipStaticTypeSuffixes(structuralSource, arrayEnd + 1);
+      if (
+        arrayEnd !== -1 &&
+        endsStaticAliasInitializer(structuralSource, initializerEnd)
+      ) {
+        arrayArgument = argumentRange({
+          source,
+          structuralSource,
+          start: initializerStart,
+          end: arrayEnd + 1,
+        });
+      }
     } else if (match[1] === "const" && initializerStart !== undefined) {
       const booleanMatch = /^(true|false)\b/.exec(
         structuralSource.slice(initializerStart),
@@ -2403,7 +2463,13 @@ const staticOptionBindings = ({ source, structuralSource }) => {
         conditionValue = booleanMatch[1];
       }
     }
-    addBinding({ name, declarationIndex, argument, conditionValue });
+    addBinding({
+      name,
+      declarationIndex,
+      argument,
+      arrayArgument,
+      conditionValue,
+    });
   }
 
   const declarationPattern =
@@ -2443,6 +2509,18 @@ const resolvedOptionArgument = ({ argument, call, optionBindings }) => {
   return binding?.argument !== undefined &&
     binding.declarationIndex < call.openingIndex
     ? binding.argument
+    : argument;
+};
+
+const resolvedEachTableArgument = ({ argument, call, optionBindings }) => {
+  const name = /^([A-Za-z_$][\w$]*)$/.exec(argument.structural.trim())?.[1];
+  if (name === undefined) {
+    return argument;
+  }
+  const binding = visibleStaticBinding({ name, call, optionBindings });
+  return binding?.arrayArgument !== undefined &&
+    binding.declarationIndex < call.openingIndex
+    ? binding.arrayArgument
     : argument;
 };
 
@@ -2601,11 +2679,22 @@ const disableConditionIdentity = ({ call, mode, optionBindings }) => {
   return "";
 };
 
-const staticInlineEachTable = ({ call, source, structuralSource }) => {
-  const tableArgument = call.modifierArguments.get("each")?.[0];
-  if (tableArgument === undefined) {
+const staticInlineEachTable = ({
+  call,
+  source,
+  structuralSource,
+  optionBindings,
+}) => {
+  const directTableArgument = call.modifierArguments.get("each")?.[0];
+  if (directTableArgument === undefined) {
     return undefined;
   }
+  const tableArgument = resolvedEachTableArgument({
+    argument: directTableArgument,
+    call,
+    optionBindings,
+  });
+  const resolvedFromBinding = tableArgument !== directTableArgument;
   const openingIndex = skipWhitespace(structuralSource, tableArgument.start);
   if (structuralSource[openingIndex] !== "[") {
     return undefined;
@@ -2618,7 +2707,8 @@ const staticInlineEachTable = ({ call, source, structuralSource }) => {
   });
   if (
     closingIndex === -1 ||
-    skipWhitespace(structuralSource, closingIndex + 1) !== tableArgument.end
+    (!resolvedFromBinding &&
+      skipWhitespace(structuralSource, closingIndex + 1) !== tableArgument.end)
   ) {
     return undefined;
   }
@@ -2687,13 +2777,22 @@ const staticTaggedEachTable = ({ call, source }) => {
   };
 };
 
-const staticEachTableForCall = ({ call, source, structuralSource }) => {
+const staticEachTableForCall = ({
+  call,
+  source,
+  structuralSource,
+  optionBindings,
+}) => {
   if (!call.modifiers.includes("each")) {
     return undefined;
   }
   return (
-    staticInlineEachTable({ call, source, structuralSource }) ??
-    staticTaggedEachTable({ call, source })
+    staticInlineEachTable({
+      call,
+      source,
+      structuralSource,
+      optionBindings,
+    }) ?? staticTaggedEachTable({ call, source })
   );
 };
 
@@ -2754,6 +2853,7 @@ const testCallDescriptors = (source) => {
       call,
       source,
       structuralSource: parsed.structuralSource,
+      optionBindings: parsed.optionBindings,
     });
     const modes = [
       ...disableModesForCall({
