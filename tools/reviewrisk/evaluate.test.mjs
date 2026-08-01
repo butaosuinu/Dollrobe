@@ -1334,6 +1334,13 @@ test("静的な each table の行削除は test case 削除として扱う", () 
         'describe.each(cases)("suite %s", () => { test("case", fn); });',
       ].join("\n"),
     ],
+    [
+      [
+        'const suite = () => { test("case", fn); };',
+        'describe.each([[1], [2]])("suite %s", suite);',
+      ].join("\n"),
+      'const suite = () => { test("case", fn); };',
+    ],
   ]) {
     const path = "src/lib/each.test.ts";
     const report = evaluate(

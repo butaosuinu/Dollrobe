@@ -3135,7 +3135,7 @@ const removesTestCallFingerprint = (beforeSource, afterSource) => {
       }
     }
     if (!matched) {
-      continue;
+      return true;
     }
   }
 
