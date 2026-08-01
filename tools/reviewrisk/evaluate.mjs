@@ -1575,6 +1575,74 @@ const testRootShadowRanges = ({
       start: scopes[0].openingIndex,
       end: scopes[0].closingIndex,
     };
+  const namedDeclarationIsExpression = (declarationIndex) => {
+    let cursor = declarationIndex - 1;
+    let crossedLineBreak = false;
+    const skipBackwardWhitespace = () => {
+      while (cursor >= 0 && /\s/.test(structuralSource[cursor])) {
+        crossedLineBreak ||= structuralSource[cursor] === "\n";
+        cursor -= 1;
+      }
+    };
+    skipBackwardWhitespace();
+    while (cursor >= 0) {
+      const prefix = structuralSource.slice(0, cursor + 1);
+      const previousWord = /([A-Za-z_$][\w$]*)$/.exec(prefix)?.[1];
+      if (
+        previousWord === undefined ||
+        !["abstract", "async", "declare", "default", "export"].includes(
+          previousWord,
+        )
+      ) {
+        break;
+      }
+      cursor -= previousWord.length;
+      skipBackwardWhitespace();
+    }
+    if (cursor < 0 || ";{}".includes(structuralSource[cursor])) {
+      return false;
+    }
+    return (
+      !crossedLineBreak ||
+      "=(:,[.!?+-*/%&|<>".includes(structuralSource[cursor])
+    );
+  };
+  const classBodyRangeAfter = (start) => {
+    let parentheses = 0;
+    let brackets = 0;
+    let typeArguments = 0;
+    for (let index = start; index < structuralSource.length; index += 1) {
+      const character = structuralSource[index];
+      if (character === "(") {
+        parentheses += 1;
+      } else if (character === ")") {
+        parentheses = Math.max(0, parentheses - 1);
+      } else if (character === "[") {
+        brackets += 1;
+      } else if (character === "]") {
+        brackets = Math.max(0, brackets - 1);
+      } else if (character === "<") {
+        typeArguments += 1;
+      } else if (character === ">") {
+        typeArguments = Math.max(0, typeArguments - 1);
+      } else if (
+        character === "{" &&
+        parentheses === 0 &&
+        brackets === 0 &&
+        typeArguments === 0
+      ) {
+        return bodyRange(index);
+      } else if (
+        character === ";" &&
+        parentheses === 0 &&
+        brackets === 0 &&
+        typeArguments === 0
+      ) {
+        return undefined;
+      }
+    }
+    return undefined;
+  };
   const variablePattern = /\b(const|let|var)\s+([A-Za-z_$][\w$]*)\b/g;
   for (const match of structuralSource.matchAll(variablePattern)) {
     const localName = match[2];
@@ -1729,14 +1797,21 @@ const testRootShadowRanges = ({
   }
 
   const declarationPattern =
-    /\b(?:function(?:\s*\*)?|class)\s+([A-Za-z_$][\w$]*)/g;
+    /\b(function(?:\s*\*)?|class)\s+([A-Za-z_$][\w$]*)/g;
   for (const match of structuralSource.matchAll(declarationPattern)) {
-    const scope = innermostScopeAt(scopes, match.index ?? 0);
+    const declarationIndex = match.index ?? 0;
+    const expression = namedDeclarationIsExpression(declarationIndex);
+    const scope = innermostScopeAt(scopes, declarationIndex);
+    const expressionRange = match[1].startsWith("function")
+      ? callableRanges.find((range) => declarationIndex < range.start)
+      : classBodyRangeAfter(declarationIndex + match[0].length);
     addRange(
-      match[1],
-      scope === undefined
-        ? undefined
-        : { start: scope.openingIndex, end: scope.closingIndex },
+      match[2],
+      expression
+        ? expressionRange
+        : scope === undefined
+          ? undefined
+          : { start: scope.openingIndex, end: scope.closingIndex },
     );
   }
 
@@ -1817,6 +1892,51 @@ const taggedTemplateAt = ({ structuralSource, templateLiteralEnds, start }) => {
   return undefined;
 };
 
+const isBodylessTestMethod = ({
+  structuralSource,
+  rootIndex,
+  closingIndex,
+  scopes,
+}) => {
+  let prefixStart = rootIndex - 1;
+  while (prefixStart >= 0 && !";{}".includes(structuralSource[prefixStart])) {
+    prefixStart -= 1;
+  }
+  const prefix = structuralSource.slice(prefixStart + 1, rootIndex).trim();
+  if (
+    !/^(?:(?:abstract|async|declare|override|private|protected|public|readonly|static)\s+)*$/.test(
+      prefix,
+    )
+  ) {
+    return false;
+  }
+
+  const afterParameters = skipWhitespace(structuralSource, closingIndex + 1);
+  if (structuralSource[afterParameters] === ":") {
+    return true;
+  }
+  if (
+    structuralSource[afterParameters] !== ";" &&
+    structuralSource[afterParameters] !== "}"
+  ) {
+    return false;
+  }
+  if (/\b(?:abstract|declare)\b/.test(prefix)) {
+    return true;
+  }
+
+  const scope = innermostScopeAt(scopes, rootIndex);
+  if (scope === undefined || scope.openingIndex < 0) {
+    return false;
+  }
+  const scopePrefix = structuralSource.slice(0, scope.openingIndex).trimEnd();
+  return (
+    /\b(?:interface|class)\s+[A-Za-z_$][\w$]*[^;{}]*$/.test(scopePrefix) ||
+    /\btype\s+[A-Za-z_$][\w$]*[^;{}]*=\s*[^;{}]*$/.test(scopePrefix) ||
+    /:\s*$/.test(scopePrefix)
+  );
+};
+
 const parseTestCalls = (source) => {
   const { structuralSource, stringLiteralEnds, templateLiteralEnds } =
     scanSource(source);
@@ -1830,6 +1950,7 @@ const parseTestCalls = (source) => {
     structuralSource,
     importedRoots,
   });
+  const scopes = braceScopes(structuralSource);
   const shadowRanges = testRootShadowRanges({
     source,
     structuralSource,
@@ -1998,6 +2119,16 @@ const parseTestCalls = (source) => {
       structuralSource,
       openingIndex,
     });
+    if (
+      isBodylessTestMethod({
+        structuralSource,
+        rootIndex: match.index ?? 0,
+        closingIndex: parsedCall.closingIndex,
+        scopes,
+      })
+    ) {
+      continue;
+    }
     const declarationBody = parameterBodyAfter({
       structuralSource,
       closingIndex: parsedCall.closingIndex,
@@ -2062,6 +2193,7 @@ const nonTestCaseModifiers = new Set([
   "beforeAll",
   "beforeEach",
   "extend",
+  "fail",
   "info",
   "setTimeout",
   "slow",

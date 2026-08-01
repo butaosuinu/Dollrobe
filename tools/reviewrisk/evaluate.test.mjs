@@ -623,6 +623,17 @@ test("ローカル binding で shadow された test root は test API として
       '  test.skip("not a test API", fn);',
       "}",
     ],
+    [
+      "const helper = function test() {",
+      '  test.skip("not a test API", fn);',
+      "};",
+    ],
+    [
+      "const Helper = class test {",
+      '  static run() { test.skip("not a test API", fn); }',
+      "};",
+    ],
+    ["function test() {}", 'test.skip("not a test API", fn);'],
   ]) {
     const report = evaluate(
       diff({
@@ -648,6 +659,8 @@ test("ローカル binding で shadow された test root は test API として
           "function inspect(test) {",
           '  test.only("not a test API", fn);',
           "}",
+          "const helper = function test() {};",
+          "const Helper = class test {};",
           'test.skip("real test API", fn);',
         ],
       },
