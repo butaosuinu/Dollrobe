@@ -304,6 +304,10 @@ const prefixRules = [
     rule("auth-ui", classes.medium, "API key 管理 UI"),
   ],
   [
+    "src/app/settings/",
+    rule("settings-ui", classes.medium, "settings 共通・設定 UI"),
+  ],
+  [
     "src/app/serwist/",
     rule("service-worker", classes.high, "service worker route"),
   ],

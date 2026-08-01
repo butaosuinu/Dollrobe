@@ -291,6 +291,28 @@ test("静的に代入した test API alias の無効化を検出する", () => {
       'custom.skip("disabled", fn);',
     ],
     [
+      'import { test as base } from "@playwright/test";',
+      "const custom = base as TestType<typeof base>;",
+      'custom.skip("disabled", fn);',
+    ],
+    [
+      'import { test as base } from "@playwright/test";',
+      "const custom = base as (typeof base);",
+      'custom.skip("disabled", fn);',
+    ],
+    [
+      'import { test as base } from "@playwright/test";',
+      "const custom = base as typeof base & Fixtures;",
+      'custom.skip("disabled", fn);',
+    ],
+    [
+      'import { test as base } from "@playwright/test";',
+      "const custom = base satisfies TestType<",
+      "  typeof base & Fixtures",
+      ">;",
+      'custom.skip("disabled", fn);',
+    ],
+    [
       'import * as vitest from "vitest";',
       "const { test: check } = vitest;",
       'check.skip("later", fn);',
@@ -645,6 +667,22 @@ test("ローカル binding で shadow された test root は test API として
     ],
     ['const inspect = test => test.only("not a test API", fn);'],
     ['const inspect = (test) => test.only("not a test API", fn);'],
+    [
+      "const inspect = test => reporter",
+      '  instanceof test.only("not a test API", fn);',
+    ],
+    [
+      "const inspect = test => reporter",
+      '  in test.only("not a test API", fn);',
+    ],
+    [
+      "const inspect = test => reporter instanceof",
+      '  test.only("not a test API", fn);',
+    ],
+    [
+      "const inspect = test => reporter in",
+      '  test.only("not a test API", fn);',
+    ],
     ["function test() {}", 'test.skip("not a test API", fn);'],
   ]) {
     const report = evaluate(
@@ -1704,6 +1742,42 @@ test("test subscript の変更は critical", () => {
   assert.equal(hasSignal(report, signals.qualityGate), true);
 });
 
+test("precheck 派生 script の変更は critical", () => {
+  for (const script of [
+    "precheck",
+    "precheck:full",
+    "precheck:ci",
+    "precheck:quick",
+  ]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path: "package.json" })],
+        beforeContents: {
+          "package.json": JSON.stringify({
+            scripts: { [script]: "pnpm typecheck" },
+          }),
+        },
+        afterContents: {
+          "package.json": JSON.stringify({ scripts: { [script]: "true" } }),
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, script);
+    assert.equal(hasSignal(report, signals.qualityGate), true, script);
+  }
+
+  const changedLineOnly = evaluate(
+    diff({
+      files: [change({ path: "package.json" })],
+      addedLines: {
+        "package.json": ['"precheck:ci": "true"'],
+      },
+    }),
+  );
+  assert.equal(changedLineOnly.level, levels.critical);
+  assert.equal(hasSignal(changedLineOnly, signals.qualityGate), true);
+});
+
 test("depcruise script の変更は critical", () => {
   const report = evaluate(
     diff({
@@ -1805,8 +1879,20 @@ test("workflow の yml・yaml 間 rename は critical", () => {
   assert.equal(hasSignal(report, signals.workflowDeleted), true);
 });
 
-test("空またはコメントだけにされた workflow は critical", () => {
-  for (const afterSource of ["", "\n# disabled temporarily\n"]) {
+test("空 document またはコメントだけにされた workflow は critical", () => {
+  for (const afterSource of [
+    "",
+    "\n# disabled temporarily\n",
+    "---\n",
+    "null\n",
+    "null # disabled\n",
+    "{}\n",
+    "{} # disabled\n",
+    "[]\n",
+    "[] # disabled\n",
+    "disabled\n",
+    "- name: disabled\n",
+  ]) {
     const path = ".github/workflows/ci.yml";
     const report = evaluate(
       diff({
@@ -1822,6 +1908,26 @@ test("空またはコメントだけにされた workflow は critical", () => {
       hasSignal(report, signals.workflowDeleted),
       true,
       JSON.stringify(afterSource),
+    );
+  }
+});
+
+test("top-level mapping が残る workflow は空として扱わない", () => {
+  const path = ".github/workflows/ci.yml";
+  for (const afterSource of ["name: CI\n", "  name: CI\n", "{ name: CI }\n"]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: {
+          [path]: "on: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n",
+        },
+        afterContents: { [path]: afterSource },
+      }),
+    );
+    assert.equal(
+      hasSignal(report, signals.workflowDeleted),
+      false,
+      afterSource,
     );
   }
 });

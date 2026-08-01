@@ -28,7 +28,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | 通常 app page・component・public asset         | A     | `app-ui`, `component-ui`, `public-asset`                                                                                                         |
 | i18n                                           | A     | `client-i18n`                                                                                                                                    |
 | test・test harness                             | A     | `test-file`, `client-test-support`, `worker-test-support`, `e2e-test`                                                                            |
-| admin/auth/settings UI                         | M     | `admin-ui`, `auth-ui`, `admin-component`, `auth-component`, `settings-component`                                                                 |
+| admin/auth/settings UI                         | M     | `admin-ui`, `auth-ui`, `settings-ui`, `admin-component`, `auth-component`, `settings-component`                                                  |
 | client hook・domain logic・共有型              | M     | `client-hook`, `client-lib`, `client-type`, `client-stub`                                                                                        |
 | Workers service・queue・cron・共通 logic       | M     | `worker-service`, `worker-queue`, `worker-scheduled`, `worker-lib`, `worker-rest`                                                                |
 | repository / agent / GitHub 一般設定           | M     | `repo-config`, `agent-config`, `agent-guide`, `github-rest`                                                                                      |
@@ -53,7 +53,7 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 | S3-test-disabled-or-focused | critical | test API の skip/fixme/todo/only/runIf、x/f prefix の追加・有効化・差し替え           |
 | S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更                          |
 | S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                                      |
-| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動、空・コメントだけへの変更          |
+| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動、空 document・コメントだけへの変更 |
 | S7-quality-gate-modified    | critical | package.json の削除・移動、JSON 上の scripts container・test/build/precheck 等の変更  |
 | S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                                                |
 | S9-unclassified-path        | high     | rule に一致しない path                                                                |

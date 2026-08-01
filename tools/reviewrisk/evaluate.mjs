@@ -89,9 +89,9 @@ const invariantPatterns = [
 ];
 
 const qualityGatePattern =
-  /"(?:scripts|test(?::[^"]+)?|build(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?|review-risk)"\s*:/;
+  /"(?:scripts|test(?::[^"]+)?|build(?::[^"]+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::[^"]+)?|review-risk)"\s*:/;
 const qualityScriptNamePattern =
-  /^(?:test(?::.+)?|build(?::.+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::full)?|review-risk)$/;
+  /^(?:test(?::.+)?|build(?::.+)?|typecheck|lint|depcruise|format:check|i18n:check|precheck(?::.+)?|review-risk)$/;
 
 const touches = (file, pathOrPrefix) =>
   file.path.startsWith(pathOrPrefix) ||
@@ -1082,20 +1082,121 @@ const endsStaticAliasInitializer = (structuralSource, end) => {
   return true;
 };
 
-const staticTypeSuffixPattern =
-  /^(?:as\s+(?:const\b|(?:typeof\s+)?[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)|satisfies\s+(?:typeof\s+)?[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)/;
+const previousLineContinuationKeywords = new Set([
+  "as",
+  "await",
+  "delete",
+  "in",
+  "instanceof",
+  "new",
+  "satisfies",
+  "typeof",
+  "void",
+  "yield",
+]);
+const nextLineContinuationKeywords = new Set([
+  "as",
+  "in",
+  "instanceof",
+  "satisfies",
+]);
+
+const identifierWordBefore = ({ source, start, end }) => {
+  let wordStart = end;
+  while (wordStart >= start && /[\w$]/.test(source[wordStart])) {
+    wordStart -= 1;
+  }
+  return source.slice(wordStart + 1, end + 1);
+};
+
+const identifierWordAt = ({ source, start }) => {
+  let end = start;
+  while (end < source.length && /[\w$]/.test(source[end])) {
+    end += 1;
+  }
+  return source.slice(start, end);
+};
+
+const continuesAcrossNewline = ({ structuralSource, start, newlineIndex }) => {
+  let previous = newlineIndex - 1;
+  while (previous >= start && /\s/.test(structuralSource[previous])) {
+    previous -= 1;
+  }
+  const next = skipWhitespace(structuralSource, newlineIndex + 1);
+  const previousCharacter = structuralSource[previous] ?? "";
+  const nextCharacter = structuralSource[next] ?? "";
+  return (
+    "=(:,[.!?+-*/%&|<>".includes(previousCharacter) ||
+    ".?([+-*/%&|<>=!".includes(nextCharacter) ||
+    previousLineContinuationKeywords.has(
+      identifierWordBefore({ source: structuralSource, start, end: previous }),
+    ) ||
+    nextLineContinuationKeywords.has(
+      identifierWordAt({ source: structuralSource, start: next }),
+    )
+  );
+};
+
+const staticTypeSuffixKeywordAt = (structuralSource, start) => {
+  for (const keyword of ["as", "satisfies"]) {
+    if (
+      structuralSource.startsWith(keyword, start) &&
+      !/[\w$]/.test(structuralSource[start + keyword.length] ?? "")
+    ) {
+      return keyword;
+    }
+  }
+  return undefined;
+};
+
+const staticTypeSuffixEnd = ({ structuralSource, start, keyword }) => {
+  const typeStart = skipWhitespace(structuralSource, start + keyword.length);
+  if (
+    typeStart >= structuralSource.length ||
+    ";,\n".includes(structuralSource[typeStart])
+  ) {
+    return undefined;
+  }
+
+  const closingFor = { "(": ")", "[": "]", "{": "}", "<": ">" };
+  const stack = [];
+  for (let index = typeStart; index < structuralSource.length; index += 1) {
+    const character = structuralSource[index];
+    if (Object.hasOwn(closingFor, character)) {
+      stack.push(closingFor[character]);
+      continue;
+    }
+    if (character === stack.at(-1)) {
+      stack.pop();
+      continue;
+    }
+    if (stack.length > 0) {
+      continue;
+    }
+    if (character === ";" || character === ",") {
+      return index;
+    }
+    if (
+      character === "\n" &&
+      !continuesAcrossNewline({
+        structuralSource,
+        start: typeStart,
+        newlineIndex: index,
+      })
+    ) {
+      return index;
+    }
+  }
+  return structuralSource.length;
+};
 
 const skipStaticTypeSuffixes = (structuralSource, start) => {
-  let cursor = start;
-  while (true) {
-    cursor = skipWhitespace(structuralSource, cursor);
-    const suffix = staticTypeSuffixPattern.exec(structuralSource.slice(cursor));
-    if (suffix === null) {
-      break;
-    }
-    cursor += suffix[0].length;
-  }
-  return cursor;
+  const cursor = skipWhitespace(structuralSource, start);
+  const keyword = staticTypeSuffixKeywordAt(structuralSource, cursor);
+  return keyword === undefined
+    ? cursor
+    : (staticTypeSuffixEnd({ structuralSource, start: cursor, keyword }) ??
+        cursor);
 };
 
 const staticInitializerStart = ({ structuralSource, nameEnd }) => {
@@ -1397,17 +1498,13 @@ const arrowExpressionEnd = ({ structuralSource, start }) => {
     if (character !== "\n") {
       continue;
     }
-    let previous = index - 1;
-    while (previous >= start && /\s/.test(structuralSource[previous])) {
-      previous -= 1;
-    }
-    const next = skipWhitespace(structuralSource, index + 1);
-    const previousCharacter = structuralSource[previous] ?? "";
-    const nextCharacter = structuralSource[next] ?? "";
-    const continues =
-      "=(:,[.!?+-*/%&|<>".includes(previousCharacter) ||
-      ".?([+-*/%&|<>=!".includes(nextCharacter);
-    if (!continues) {
+    if (
+      !continuesAcrossNewline({
+        structuralSource,
+        start,
+        newlineIndex: index,
+      })
+    ) {
       return index;
     }
   }
@@ -3299,10 +3396,39 @@ const emptiesTestSupportPattern = (diff, file) => {
   );
 };
 
-const hasWorkflowDefinition = (source) =>
-  source
-    .split(/\r?\n/)
-    .some((line) => line.trim() !== "" && !line.trimStart().startsWith("#"));
+const topLevelYamlMappingKeyPattern =
+  /^(?:[A-Za-z_][\w.-]*|"(?:[^"\\]|\\.)+"|'[^']+')\s*:/;
+
+const hasWorkflowDefinition = (source) => {
+  const contentLines = source.split(/\r?\n/).filter((line) => {
+    const trimmed = line.trim();
+    return (
+      trimmed !== "" &&
+      !trimmed.startsWith("#") &&
+      !/^(?:---|\.\.\.)(?:\s+#.*)?$/.test(trimmed)
+    );
+  });
+  if (contentLines.length === 0) {
+    return false;
+  }
+
+  const content = contentLines.join("\n").trim();
+  if (/^(?:null|~|\{\s*\}|\[\s*\])(?:\s+#.*)?$/i.test(content)) {
+    return false;
+  }
+  const flowMapping = /^\{([\s\S]*)\}(?:\s+#.*)?$/.exec(content);
+  if (flowMapping !== null) {
+    return flowMapping[1].trim() !== "";
+  }
+  const minimumIndent = Math.min(
+    ...contentLines.map((line) => /^\s*/.exec(line)?.[0].length ?? 0),
+  );
+  return contentLines.some(
+    (line) =>
+      (/^\s*/.exec(line)?.[0].length ?? 0) === minimumIndent &&
+      topLevelYamlMappingKeyPattern.test(line.trim()),
+  );
+};
 
 const emptiesWorkflowPattern = (diff, file) => {
   if (!isWorkflowFile(file.path)) {
