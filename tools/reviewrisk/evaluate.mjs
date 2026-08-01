@@ -939,7 +939,10 @@ const importedTestRoots = ({ source, structuralSource, stringLiteralEnds }) => {
     });
     if (
       requiredModule?.value === "node:test" &&
-      endsStaticAliasInitializer(structuralSource, requiredModule.end)
+      endsStaticAliasInitializer(
+        structuralSource,
+        skipStaticTypeSuffixes(structuralSource, requiredModule.end),
+      )
     ) {
       addNodeTestNamespaceRoots({
         roots,
@@ -960,7 +963,10 @@ const importedTestRoots = ({ source, structuralSource, stringLiteralEnds }) => {
     });
     if (
       requiredModule?.value !== "node:test" ||
-      !endsStaticAliasInitializer(structuralSource, requiredModule.end)
+      !endsStaticAliasInitializer(
+        structuralSource,
+        skipStaticTypeSuffixes(structuralSource, requiredModule.end),
+      )
     ) {
       continue;
     }
@@ -1077,7 +1083,7 @@ const endsStaticAliasInitializer = (structuralSource, end) => {
 };
 
 const staticTypeSuffixPattern =
-  /^(?:as\s+(?:const\b|[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)|satisfies\s+[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)/;
+  /^(?:as\s+(?:const\b|(?:typeof\s+)?[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)|satisfies\s+(?:typeof\s+)?[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)/;
 
 const skipStaticTypeSuffixes = (structuralSource, start) => {
   let cursor = start;
@@ -1142,7 +1148,10 @@ const resolvedStaticTestRootInitializer = ({
   const directRoot = resolvedTestRoot(roots, initializer.path);
   if (
     directRoot !== undefined &&
-    endsStaticAliasInitializer(structuralSource, initializer.end)
+    endsStaticAliasInitializer(
+      structuralSource,
+      skipStaticTypeSuffixes(structuralSource, initializer.end),
+    )
   ) {
     return directRoot;
   }
@@ -1172,7 +1181,10 @@ const resolvedStaticTestRootInitializer = ({
     closing: ")",
   });
   return closingIndex !== -1 &&
-    endsStaticAliasInitializer(structuralSource, closingIndex + 1)
+    endsStaticAliasInitializer(
+      structuralSource,
+      skipStaticTypeSuffixes(structuralSource, closingIndex + 1),
+    )
     ? baseRoot
     : undefined;
 };
@@ -1215,7 +1227,10 @@ const staticTestRootAliases = ({ source, structuralSource, importedRoots }) => {
       });
       if (
         initializer === undefined ||
-        !endsStaticAliasInitializer(structuralSource, initializer.end)
+        !endsStaticAliasInitializer(
+          structuralSource,
+          skipStaticTypeSuffixes(structuralSource, initializer.end),
+        )
       ) {
         continue;
       }
@@ -1360,13 +1375,55 @@ const scopeRangeForOpening = (scopes, openingIndex) => {
     : { start: scope.openingIndex, end: scope.closingIndex };
 };
 
+const arrowExpressionEnd = ({ structuralSource, start }) => {
+  const closingFor = { "(": ")", "[": "]", "{": "}" };
+  const stack = [];
+  for (let index = start; index < structuralSource.length; index += 1) {
+    const character = structuralSource[index];
+    if (Object.hasOwn(closingFor, character)) {
+      stack.push(closingFor[character]);
+      continue;
+    }
+    if (character === stack.at(-1)) {
+      stack.pop();
+      continue;
+    }
+    if (stack.length > 0) {
+      continue;
+    }
+    if (character === ";" || character === "," || ")]}".includes(character)) {
+      return index;
+    }
+    if (character !== "\n") {
+      continue;
+    }
+    let previous = index - 1;
+    while (previous >= start && /\s/.test(structuralSource[previous])) {
+      previous -= 1;
+    }
+    const next = skipWhitespace(structuralSource, index + 1);
+    const previousCharacter = structuralSource[previous] ?? "";
+    const nextCharacter = structuralSource[next] ?? "";
+    const continues =
+      "=(:,[.!?+-*/%&|<>".includes(previousCharacter) ||
+      ".?([+-*/%&|<>=!".includes(nextCharacter);
+    if (!continues) {
+      return index;
+    }
+  }
+  return structuralSource.length;
+};
+
+const arrowBodyAt = ({ structuralSource, start }) =>
+  structuralSource[start] === "{"
+    ? { openingIndex: start, arrow: true, expression: false }
+    : { openingIndex: start, arrow: true, expression: true };
+
 const parameterBodyAfter = ({ structuralSource, closingIndex }) => {
   let cursor = skipWhitespace(structuralSource, closingIndex + 1);
   if (structuralSource.startsWith("=>", cursor)) {
     cursor = skipWhitespace(structuralSource, cursor + 2);
-    return structuralSource[cursor] === "{"
-      ? { openingIndex: cursor, arrow: true }
-      : undefined;
+    return arrowBodyAt({ structuralSource, start: cursor });
   }
   if (structuralSource[cursor] === "{") {
     return { openingIndex: cursor, arrow: false };
@@ -1378,9 +1435,7 @@ const parameterBodyAfter = ({ structuralSource, closingIndex }) => {
   for (let index = cursor + 1; index < structuralSource.length; index += 1) {
     if (structuralSource.startsWith("=>", index)) {
       const openingIndex = skipWhitespace(structuralSource, index + 2);
-      return structuralSource[openingIndex] === "{"
-        ? { openingIndex, arrow: true }
-        : undefined;
+      return arrowBodyAt({ structuralSource, start: openingIndex });
     }
     if (structuralSource[index] !== "{") {
       continue;
@@ -1400,9 +1455,7 @@ const parameterBodyAfter = ({ structuralSource, closingIndex }) => {
     }
     if (structuralSource.startsWith("=>", afterType)) {
       const openingIndex = skipWhitespace(structuralSource, afterType + 2);
-      return structuralSource[openingIndex] === "{"
-        ? { openingIndex, arrow: true }
-        : undefined;
+      return arrowBodyAt({ structuralSource, start: openingIndex });
     }
     return { openingIndex: index, arrow: false };
   }
@@ -1466,7 +1519,15 @@ const callableParameterLists = ({ structuralSource, scopes }) => {
     ) {
       continue;
     }
-    const range = scopeRangeForOpening(scopes, body.openingIndex);
+    const range = body.expression
+      ? {
+          start: openingIndex,
+          end: arrowExpressionEnd({
+            structuralSource,
+            start: body.openingIndex,
+          }),
+        }
+      : scopeRangeForOpening(scopes, body.openingIndex);
     if (range !== undefined) {
       lists.push({ openingIndex, closingIndex, range });
     }
@@ -1481,15 +1542,21 @@ const parameterBindingsForScopes = ({ structuralSource, scopes }) => {
         structuralSource.slice(openingIndex + 1, closingIndex),
       ).map((name) => ({ name, declarationIndex: openingIndex, range })),
   );
-  for (const match of structuralSource.matchAll(
-    /\b([A-Za-z_$][\w$]*)\s*=>\s*\{/g,
-  )) {
-    const openingIndex = (match.index ?? 0) + match[0].lastIndexOf("{");
-    const range = scopeRangeForOpening(scopes, openingIndex);
+  for (const match of structuralSource.matchAll(/\b([A-Za-z_$][\w$]*)\s*=>/g)) {
+    const declarationIndex = match.index ?? 0;
+    const arrowIndex = declarationIndex + match[0].lastIndexOf("=>");
+    const bodyStart = skipWhitespace(structuralSource, arrowIndex + 2);
+    const range =
+      structuralSource[bodyStart] === "{"
+        ? scopeRangeForOpening(scopes, bodyStart)
+        : {
+            start: declarationIndex,
+            end: arrowExpressionEnd({ structuralSource, start: bodyStart }),
+          };
     if (range !== undefined) {
       bindings.push({
         name: match[1],
-        declarationIndex: match.index ?? 0,
+        declarationIndex,
         range,
       });
     }
@@ -1681,7 +1748,10 @@ const testRootShadowRanges = ({
         : undefined;
     const aliasesTestRoot =
       (requiredModule?.value === "node:test" &&
-        endsStaticAliasInitializer(structuralSource, requiredModule.end)) ||
+        endsStaticAliasInitializer(
+          structuralSource,
+          skipStaticTypeSuffixes(structuralSource, requiredModule.end),
+        )) ||
       staticAliasRoot !== undefined;
     if (!aliasesTestRoot) {
       const declarationIndex = match.index ?? 0;
@@ -1736,7 +1806,10 @@ const testRootShadowRanges = ({
       });
       const initializerPath =
         initializer !== undefined &&
-        endsStaticAliasInitializer(structuralSource, initializer.end)
+        endsStaticAliasInitializer(
+          structuralSource,
+          skipStaticTypeSuffixes(structuralSource, initializer.end),
+        )
           ? initializer.path
           : undefined;
       const requireOpeningIndex = structuralSource.startsWith(
@@ -1757,7 +1830,10 @@ const testRootShadowRanges = ({
           : undefined;
       const requiresNodeTest =
         requiredModule?.value === "node:test" &&
-        endsStaticAliasInitializer(structuralSource, requiredModule.end);
+        endsStaticAliasInitializer(
+          structuralSource,
+          skipStaticTypeSuffixes(structuralSource, requiredModule.end),
+        );
       for (const specifier of splitTopLevelBindings(pattern.slice(1, -1))) {
         const aliasMatch =
           /^\s*([A-Za-z_$][\w$]*)(?:\s*:\s*([A-Za-z_$][\w$]*))?\s*$/.exec(

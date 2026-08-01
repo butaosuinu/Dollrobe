@@ -281,6 +281,16 @@ test("静的に代入した test API alias の無効化を検出する", () => {
       'custom.skip("disabled", fn);',
     ],
     [
+      'import { test as base } from "@playwright/test";',
+      "const custom = base as typeof base;",
+      'custom.skip("disabled", fn);',
+    ],
+    [
+      'import { test as base } from "@playwright/test";',
+      "const custom = base satisfies typeof base;",
+      'custom.skip("disabled", fn);',
+    ],
+    [
       'import * as vitest from "vitest";',
       "const { test: check } = vitest;",
       'check.skip("later", fn);',
@@ -633,6 +643,8 @@ test("ローカル binding で shadow された test root は test API として
       '  static run() { test.skip("not a test API", fn); }',
       "};",
     ],
+    ['const inspect = test => test.only("not a test API", fn);'],
+    ['const inspect = (test) => test.only("not a test API", fn);'],
     ["function test() {}", 'test.skip("not a test API", fn);'],
   ]) {
     const report = evaluate(
@@ -661,6 +673,8 @@ test("ローカル binding で shadow された test root は test API として
           "}",
           "const helper = function test() {};",
           "const Helper = class test {};",
+          'const inspectExpression = test => test.only("not a test API", fn);',
+          'const inspectParenthesized = (test) => test.only("not a test API", fn);',
           'test.skip("real test API", fn);',
         ],
       },
