@@ -1076,6 +1076,22 @@ const endsStaticAliasInitializer = (structuralSource, end) => {
   return true;
 };
 
+const staticTypeSuffixPattern =
+  /^(?:as\s+(?:const\b|[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)|satisfies\s+[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)/;
+
+const skipStaticTypeSuffixes = (structuralSource, start) => {
+  let cursor = start;
+  while (true) {
+    cursor = skipWhitespace(structuralSource, cursor);
+    const suffix = staticTypeSuffixPattern.exec(structuralSource.slice(cursor));
+    if (suffix === null) {
+      break;
+    }
+    cursor += suffix[0].length;
+  }
+  return cursor;
+};
+
 const staticInitializerStart = ({ structuralSource, nameEnd }) => {
   let cursor = skipWhitespace(structuralSource, nameEnd);
   if (structuralSource[cursor] === "=") {
@@ -1596,6 +1612,100 @@ const testRootShadowRanges = ({
             ? undefined
             : { start: scope.openingIndex, end: scope.closingIndex }),
       );
+    }
+  }
+
+  const destructuringPattern = /\b(const|let|var)\s*([\[{])/g;
+  for (const match of structuralSource.matchAll(destructuringPattern)) {
+    const declarationIndex = match.index ?? 0;
+    const opening = match[2];
+    const closing = opening === "[" ? "]" : "}";
+    const openingIndex = declarationIndex + match[0].lastIndexOf(opening);
+    const closingIndex = findMatchingDelimiter({
+      source: structuralSource,
+      openingIndex,
+      opening,
+      closing,
+    });
+    if (closingIndex === -1) {
+      continue;
+    }
+    const pattern = structuralSource.slice(openingIndex, closingIndex + 1);
+    const localNames = bindingNamesForPattern(pattern).filter((name) =>
+      rootNames.has(name),
+    );
+    if (localNames.length === 0) {
+      continue;
+    }
+
+    const initializerStart = staticInitializerStart({
+      structuralSource,
+      nameEnd: closingIndex + 1,
+    });
+    const aliasedNames = new Set();
+    if (opening === "{" && initializerStart !== undefined) {
+      const initializer = staticMemberPathAt({
+        source,
+        structuralSource,
+        start: initializerStart,
+      });
+      const initializerPath =
+        initializer !== undefined &&
+        endsStaticAliasInitializer(structuralSource, initializer.end)
+          ? initializer.path
+          : undefined;
+      const requireOpeningIndex = structuralSource.startsWith(
+        "require",
+        initializerStart,
+      )
+        ? skipWhitespace(structuralSource, initializerStart + "require".length)
+        : -1;
+      const requiredModule =
+        requireOpeningIndex !== -1 &&
+        structuralSource[requireOpeningIndex] === "("
+          ? staticRequireModuleAt({
+              source,
+              structuralSource,
+              stringLiteralEnds,
+              openingIndex: requireOpeningIndex,
+            })
+          : undefined;
+      const requiresNodeTest =
+        requiredModule?.value === "node:test" &&
+        endsStaticAliasInitializer(structuralSource, requiredModule.end);
+      for (const specifier of splitTopLevelBindings(pattern.slice(1, -1))) {
+        const aliasMatch =
+          /^\s*([A-Za-z_$][\w$]*)(?:\s*:\s*([A-Za-z_$][\w$]*))?\s*$/.exec(
+            specifier,
+          );
+        if (aliasMatch !== null) {
+          const property = aliasMatch[1];
+          if (
+            (initializerPath !== undefined &&
+              resolvedTestRoot(testRoots, `${initializerPath}.${property}`) !==
+                undefined) ||
+            (requiresNodeTest &&
+              (canonicalTestRoots.includes(property) ||
+                directNodeTestDisableRoots.has(property)))
+          ) {
+            aliasedNames.add(aliasMatch[2] ?? property);
+          }
+        }
+      }
+    }
+
+    const scope = innermostScopeAt(scopes, declarationIndex);
+    const loopRange =
+      match[1] === "var" ? undefined : forLoopRangeAt(declarationIndex);
+    const range =
+      loopRange ??
+      (scope === undefined
+        ? undefined
+        : { start: scope.openingIndex, end: scope.closingIndex });
+    for (const localName of localNames) {
+      if (!aliasedNames.has(localName)) {
+        addRange(localName, range);
+      }
     }
   }
 
@@ -2261,20 +2371,10 @@ const staticOptionBindings = ({ source, structuralSource }) => {
         opening: "{",
         closing: "}",
       });
-      const staticTypeSuffixPattern =
-        /^(?:as\s+(?:const\b|[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)|satisfies\s+[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)/;
-      let initializerEnd = objectEnd + 1;
-      let suffix;
-      while (objectEnd !== -1) {
-        initializerEnd = skipWhitespace(structuralSource, initializerEnd);
-        suffix = staticTypeSuffixPattern.exec(
-          structuralSource.slice(initializerEnd),
-        );
-        if (suffix === null) {
-          break;
-        }
-        initializerEnd += suffix[0].length;
-      }
+      const initializerEnd =
+        objectEnd === -1
+          ? -1
+          : skipStaticTypeSuffixes(structuralSource, objectEnd + 1);
       if (
         objectEnd !== -1 &&
         endsStaticAliasInitializer(structuralSource, initializerEnd)
@@ -2294,7 +2394,10 @@ const staticOptionBindings = ({ source, structuralSource }) => {
         booleanMatch !== null &&
         endsStaticAliasInitializer(
           structuralSource,
-          initializerStart + booleanMatch[0].length,
+          skipStaticTypeSuffixes(
+            structuralSource,
+            initializerStart + booleanMatch[0].length,
+          ),
         )
       ) {
         conditionValue = booleanMatch[1];
@@ -2761,10 +2864,51 @@ const addsTestDisableFingerprint = (beforeSource, afterSource) => {
 };
 
 const removesTestCallFingerprint = (beforeSource, afterSource) => {
-  const before = testCallDescriptors(beforeSource).filter(
-    ({ testCase }) => testCase,
+  const beforeCalls = testCallDescriptors(beforeSource);
+  const afterCalls = testCallDescriptors(afterSource);
+  const beforeSuites = beforeCalls.filter(
+    ({ root, eachTable }) => root === "describe" && eachTable !== undefined,
   );
-  const after = testCallDescriptors(afterSource)
+  const afterSuites = afterCalls
+    .filter(
+      ({ root, eachTable }) => root === "describe" && eachTable !== undefined,
+    )
+    .map((descriptor) => ({ ...descriptor, used: false }));
+  for (const descriptor of beforeSuites) {
+    const identities = [
+      (candidate) => candidate.movableIdentity === descriptor.movableIdentity,
+      (candidate) =>
+        candidate.positionalIdentity === descriptor.positionalIdentity &&
+        (candidate.title === descriptor.title ||
+          candidate.callbackIdentity === descriptor.callbackIdentity),
+    ];
+    let matched = false;
+    for (const sameIdentity of identities) {
+      const preserved = afterSuites.find(
+        (candidate) =>
+          !candidate.used &&
+          sameIdentity(candidate) &&
+          staticEachRowsPreserved(descriptor.eachTable, candidate.eachTable),
+      );
+      if (preserved !== undefined) {
+        preserved.used = true;
+        matched = true;
+        break;
+      }
+      const rowsRemoved = afterSuites.some(
+        (candidate) => !candidate.used && sameIdentity(candidate),
+      );
+      if (rowsRemoved) {
+        return true;
+      }
+    }
+    if (!matched) {
+      continue;
+    }
+  }
+
+  const before = beforeCalls.filter(({ testCase }) => testCase);
+  const after = afterCalls
     .filter(({ testCase }) => testCase)
     .map((descriptor) => ({ ...descriptor, used: false }));
   const unmatched = [];

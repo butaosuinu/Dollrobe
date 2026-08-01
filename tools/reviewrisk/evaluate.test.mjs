@@ -598,6 +598,15 @@ test("ローカル binding で shadow された test root は test API として
       '  test.only("not a test API", fn);',
       "}",
     ],
+    [
+      "const { reporter: test } = createReporter();",
+      'test.skip("not a test API", fn);',
+    ],
+    ["const [test] = createReporters();", 'test.skip("not a test API", fn);'],
+    [
+      "const [, { reporter: test }] = createReporters();",
+      'test.skip("not a test API", fn);',
+    ],
   ]) {
     const report = evaluate(
       diff({
@@ -638,6 +647,11 @@ test("ローカル binding で shadow された test root は test API として
       "}",
     ],
     ["for (const test of reporters)", '  test.skip("not a test API", fn);'],
+    [
+      "for (const [test] of reporters) {",
+      '  test.skip("not a test API", fn);',
+      "}",
+    ],
   ]) {
     const loopOnly = evaluate(
       diff({
@@ -1087,25 +1101,27 @@ test("条件付き modifier の条件差し替えは critical", () => {
 
 test("const boolean の無効化条件差し替えは critical", () => {
   const path = "src/lib/new.test.ts";
-  const report = evaluate(
-    diff({
-      files: [change({ path })],
-      beforeContents: {
-        [path]: [
-          "const disabled = false;",
-          'test.skip(disabled, "reason");',
-        ].join("\n"),
-      },
-      afterContents: {
-        [path]: [
-          "const disabled = true;",
-          'test.skip(disabled, "reason");',
-        ].join("\n"),
-      },
-    }),
-  );
-  assert.equal(report.level, levels.critical);
-  assert.equal(hasSignal(report, signals.testDisabled), true);
+  for (const suffix of ["", " as const", " satisfies boolean"]) {
+    const report = evaluate(
+      diff({
+        files: [change({ path })],
+        beforeContents: {
+          [path]: [
+            `const disabled = false${suffix};`,
+            'test.skip(disabled, "reason");',
+          ].join("\n"),
+        },
+        afterContents: {
+          [path]: [
+            `const disabled = true${suffix};`,
+            'test.skip(disabled, "reason");',
+          ].join("\n"),
+        },
+      }),
+    );
+    assert.equal(report.level, levels.critical, suffix);
+    assert.equal(hasSignal(report, signals.testDisabled), true, suffix);
+  }
 });
 
 test("test options の条件差し替えは critical", () => {
@@ -1269,6 +1285,10 @@ test("静的な each table の行削除は test case 削除として扱う", () 
       ),
       ["test.each`", "value", "${1}", '`("case $value", fn);'].join("\n"),
     ],
+    [
+      'describe.each([[1], [2]])("suite %s", () => { test("case", fn); });',
+      'describe.each([[1]])("suite %s", () => { test("case", fn); });',
+    ],
   ]) {
     const path = "src/lib/each.test.ts";
     const report = evaluate(
@@ -1292,6 +1312,14 @@ test("静的な each table の並び替え・行追加は削除として扱わ�
     [
       'test.each([[1]])("case %s", fn);',
       'test.each([[1], [2]])("case %s", fn);',
+    ],
+    [
+      'describe.each([[1], [2]])("suite %s", () => { test("case", fn); });',
+      'describe.each([[2], [1]])("suite %s", () => { test("case", fn); });',
+    ],
+    [
+      'describe.each([[1]])("suite %s", () => { test("case", fn); });',
+      'describe.each([[1], [2]])("suite %s", () => { test("case", fn); });',
     ],
   ]) {
     const path = "src/lib/each.test.ts";

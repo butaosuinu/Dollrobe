@@ -91,7 +91,8 @@ jobs:
           always() &&
           (
             steps.guard.outputs.target != 'true' ||
-            steps.guard.outputs.conflict == 'true'
+            steps.guard.outputs.conflict == 'true' ||
+            steps.guard.outcome != 'success'
           )
         env:
           GH_TOKEN: ${{ github.token }}

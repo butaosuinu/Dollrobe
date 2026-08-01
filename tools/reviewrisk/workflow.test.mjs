@@ -248,6 +248,7 @@ test("base guard treats pull request content as data only", async () => {
   const clearStep = source.slice(clearIndex, clearGuardIndex);
   assert.match(clearStep, /steps\.guard\.outputs\.target != 'true'/);
   assert.match(clearStep, /steps\.guard\.outputs\.conflict == 'true'/);
+  assert.match(clearStep, /steps\.guard\.outcome != 'success'/);
   assert.match(clearStep, /review:\*/);
   assert.match(clearStep, /--remove-label/);
   assert.match(clearStep, /<!-- review-risk -->/);
@@ -306,6 +307,7 @@ test("base guard publishes a fail-closed result when detection fails", async () 
 
   const clearStep = source.slice(clearIndex, applyIndex);
   assert.match(clearStep, /always\(\)/);
+  assert.match(clearStep, /steps\.guard\.outcome != 'success'/);
 
   const applyStep = source.slice(applyIndex, reconcileIndex);
   assert.match(applyStep, /always\(\)/);
