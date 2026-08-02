@@ -105,7 +105,8 @@ base branch 側の定義を実行する。PR head は `git fetch` と `git diff`
 自己変更時の comment は `<!-- review-risk-guard -->` という別 marker を使う。
 fork PR で自己変更が取り消されたら、guard が付けた `review:critical` label と
 guard comment を削除する。PR の base が main から外れた `edited` イベントでは、
-既存の `review:*` label と通常・guard comment を削除する。
+この仕組みが所有する `review:none`、`review:low`、`review:medium`、
+`review:high`、`review:critical` label と通常・guard comment を削除する。
 
 どちらも `contents: read`、`pull-requests: write`、`issues: write` の最小権限、
 `persist-credentials: false`、workflow ごとの PR 番号単位 concurrency を使う。

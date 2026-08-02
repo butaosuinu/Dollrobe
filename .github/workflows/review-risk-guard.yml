@@ -121,7 +121,7 @@ jobs:
           existing_labels="$(gh pr view "$PR" --json labels --jq '.labels[].name')"
           while IFS= read -r label; do
             case "$label" in
-              review:*)
+              review:none|review:low|review:medium|review:high|review:critical)
                 ensure_current_pr || exit 0
                 gh pr edit "$PR" --remove-label "$label"
                 ;;
@@ -219,7 +219,7 @@ jobs:
           existing_labels="$(gh pr view "$PR" --json labels --jq '.labels[].name')"
           while IFS= read -r label; do
             case "$label" in
-              review:*)
+              review:none|review:low|review:medium|review:high|review:critical)
                 if [ "$label" != "review:critical" ]; then
                   ensure_current_pr || exit 0
                   gh pr edit "$PR" --remove-label "$label"

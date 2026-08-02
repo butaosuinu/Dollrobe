@@ -35,6 +35,18 @@ test("CI runs the review-risk regression suite", async () => {
   assert.match(source, /- run: pnpm test\n\s+- run: pnpm test:review-risk/);
 });
 
+test("review-risk workflows only remove labels owned by the tool", async () => {
+  const ownedLabels =
+    "review:none|review:low|review:medium|review:high|review:critical";
+
+  for (const name of ["review-risk.yml", "review-risk-guard.yml"]) {
+    const source = await readWorkflow(name);
+
+    assert.ok(source.includes(`${ownedLabels})`));
+    assert.doesNotMatch(source, /review:\*/);
+  }
+});
+
 test("review-risk rechecks the live PR before every mutation", async () => {
   const source = await readWorkflow("review-risk.yml");
   const labelIndex = source.indexOf("- name: Apply review:<level> label");
@@ -249,7 +261,10 @@ test("base guard treats pull request content as data only", async () => {
   assert.match(clearStep, /steps\.guard\.outputs\.target != 'true'/);
   assert.match(clearStep, /steps\.guard\.outputs\.conflict == 'true'/);
   assert.match(clearStep, /steps\.guard\.outcome != 'success'/);
-  assert.match(clearStep, /review:\*/);
+  assert.match(
+    clearStep,
+    /review:none\|review:low\|review:medium\|review:high\|review:critical/,
+  );
   assert.match(clearStep, /--remove-label/);
   assert.match(clearStep, /<!-- review-risk -->/);
   assert.match(clearStep, /--method DELETE/);
