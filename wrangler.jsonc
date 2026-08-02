@@ -3,7 +3,10 @@
   "name": "doll-wardrobe-api",
   "main": "workers/src/index.ts",
   "compatibility_date": "2025-01-01",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat",
+    "unhandled_rejection_after_microtask_checkpoint",
+  ],
   "tsconfig": "tsconfig.workers.json",
   "upload_source_maps": true,
   "d1_databases": [

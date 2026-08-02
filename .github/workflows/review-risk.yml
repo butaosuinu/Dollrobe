@@ -1,0 +1,252 @@
+name: review-risk
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: review-risk-publish-${{ github.event.pull_request.number }}
+  queue: max
+
+jobs:
+  review-risk:
+    name: PR review risk
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Fork and Dependabot PRs receive a read-only token and cannot maintain the
+    # label/comment. Keep this advisory workflow limited to same-repo branches.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
+    steps:
+      - name: Prepare output directory
+        id: output
+        run: |
+          set -euo pipefail
+          output_dir="$(mktemp -d "$RUNNER_TEMP/review-risk.XXXXXX")"
+          echo "dir=$output_dir" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          # The judge runs PR-authored JavaScript. Only the publishing steps
+          # below receive github.token through GH_TOKEN.
+          persist-credentials: false
+
+      # This shell-only guard runs before Node setup and never trusts a
+      # PR-authored policy to judge changes to that policy itself.
+      - name: Self-modification guard
+        id: guard
+        env:
+          OUTPUT_DIR: ${{ steps.output.outputs.dir }}
+        run: |
+          set -euo pipefail
+          base="$(git merge-base "origin/$GITHUB_BASE_REF" HEAD)"
+          if ! git diff --quiet "$base" HEAD -- \
+            tools/reviewrisk \
+            docs/review-risk.ja.md \
+            .github/workflows/review-risk.yml \
+            .github/workflows/review-risk-guard.yml
+          then
+            {
+              echo '<!-- review-risk -->'
+              echo '## Review risk: **CRITICAL**'
+              echo
+              echo '人間精読必須。review-risk の判定器・正典・workflow 自身が変更されているため、PR 側ツールは実行せず workflow が fail-closed で critical に固定しました(S5)。'
+            } > "$OUTPUT_DIR/comment.md"
+            echo "self=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node.js
+        if: steps.guard.outputs.self != 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Judge review risk
+        id: risk
+        if: steps.guard.outputs.self != 'true'
+        continue-on-error: true
+        env:
+          OUTPUT_DIR: ${{ steps.output.outputs.dir }}
+        run: |
+          set -euo pipefail
+          node ./tools/reviewrisk/main.mjs \
+            --base "origin/$GITHUB_BASE_REF" \
+            --format json > "$OUTPUT_DIR/risk.json"
+          node ./tools/reviewrisk/main.mjs \
+            --base "origin/$GITHUB_BASE_REF" \
+            --format markdown > "$OUTPUT_DIR/comment.md"
+          level="$(jq -r .level "$OUTPUT_DIR/risk.json")"
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare failed judge result
+        id: fallback
+        if: >-
+          always() &&
+          steps.output.outcome == 'success' &&
+          steps.guard.outputs.self != 'true' &&
+          steps.risk.outcome != 'success'
+        env:
+          OUTPUT_DIR: ${{ steps.output.outputs.dir }}
+        run: |
+          set -euo pipefail
+          {
+            echo '<!-- review-risk -->'
+            echo '## Review risk: **CRITICAL**'
+            echo
+            echo '人間精読必須。review-risk の判定を完了できなかったため、fail-closed で critical に固定しました。'
+          } > "$OUTPUT_DIR/comment.md"
+
+      - name: Check base guard override
+        id: base_guard
+        if: >-
+          always() &&
+          steps.output.outcome == 'success' &&
+          (
+            steps.guard.outputs.self == 'true' ||
+            steps.risk.outcome == 'success' ||
+            steps.fallback.outcome == 'success'
+          )
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          LEVEL: ${{ steps.guard.outputs.self == 'true' && 'critical' || steps.risk.outcome == 'success' && steps.risk.outputs.level || 'critical' }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$LEVEL" = "critical" ]; then
+            echo "override=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          guard_bodies="$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- review-risk-guard -->"))) | .body')"
+          if grep -Fqx "<!-- review-risk-guard-head:$EXPECTED_HEAD_SHA -->" \
+            <<< "$guard_bodies"
+          then
+            echo "override=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "override=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Apply review:<level> label
+        if: >-
+          always() &&
+          steps.output.outcome == 'success' &&
+          steps.base_guard.outcome == 'success' &&
+          steps.base_guard.outputs.override != 'true' &&
+          (
+            steps.guard.outputs.self == 'true' ||
+            steps.risk.outcome == 'success' ||
+            steps.fallback.outcome == 'success'
+          )
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          LEVEL: ${{ steps.guard.outputs.self == 'true' && 'critical' || steps.risk.outcome == 'success' && steps.risk.outputs.level || 'critical' }}
+          EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          set -euo pipefail
+
+          ensure_current_pr() {
+            local current expected
+            current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+              --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+            expected="$(printf '%s\t%s\t%s\t%s' \
+              "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+              "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            if [ "$current" != "$expected" ]; then
+              echo "Skipping stale label publish for $EXPECTED_HEAD_SHA"
+              return 1
+            fi
+          }
+
+          ensure_current_pr || exit 0
+          gh label create "review:none" --color cccccc --description "PR review risk: none" 2>/dev/null || true
+          ensure_current_pr || exit 0
+          gh label create "review:low" --color 0e8a16 --description "PR review risk: low" 2>/dev/null || true
+          ensure_current_pr || exit 0
+          gh label create "review:medium" --color fbca04 --description "PR review risk: medium" 2>/dev/null || true
+          ensure_current_pr || exit 0
+          gh label create "review:high" --color d93f0b --description "PR review risk: high" 2>/dev/null || true
+          ensure_current_pr || exit 0
+          gh label create "review:critical" --color b60205 --description "PR review risk: critical" 2>/dev/null || true
+
+          existing_labels="$(gh pr view "$PR" --json labels --jq '.labels[].name')"
+          while IFS= read -r label; do
+            case "$label" in
+              review:none|review:low|review:medium|review:high|review:critical)
+                if [ "$label" != "review:$LEVEL" ]; then
+                  ensure_current_pr || exit 0
+                  gh pr edit "$PR" --remove-label "$label"
+                fi
+                ;;
+            esac
+          done <<< "$existing_labels"
+
+          ensure_current_pr || exit 0
+          gh pr edit "$PR" --add-label "review:$LEVEL"
+
+      - name: Update sticky comment
+        if: >-
+          always() &&
+          steps.output.outcome == 'success' &&
+          steps.base_guard.outcome == 'success' &&
+          steps.base_guard.outputs.override != 'true' &&
+          (
+            steps.guard.outputs.self == 'true' ||
+            steps.risk.outcome == 'success' ||
+            steps.fallback.outcome == 'success'
+          )
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          OUTPUT_DIR: ${{ steps.output.outputs.dir }}
+          EXPECTED_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          set -euo pipefail
+
+          ensure_current_pr() {
+            local current expected
+            current="$(gh api "repos/$GH_REPO/pulls/$PR" \
+              --jq '[.base.ref, .base.sha, .head.sha, .head.repo.full_name] | @tsv')"
+            expected="$(printf '%s\t%s\t%s\t%s' \
+              "$EXPECTED_BASE_REF" "$EXPECTED_BASE_SHA" \
+              "$EXPECTED_HEAD_SHA" "$EXPECTED_HEAD_REPO")"
+            if [ "$current" != "$expected" ]; then
+              echo "Skipping stale comment publish for $EXPECTED_HEAD_SHA"
+              return 1
+            fi
+          }
+
+          existing_id="$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+            --jq '[.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- review-risk -->")))][0].id // empty')"
+
+          if [ -n "$existing_id" ]; then
+            ensure_current_pr || exit 0
+            gh api --method PATCH "repos/$GH_REPO/issues/comments/$existing_id" -F body=@"$OUTPUT_DIR/comment.md"
+          else
+            ensure_current_pr || exit 0
+            gh api --method POST "repos/$GH_REPO/issues/$PR/comments" -F body=@"$OUTPUT_DIR/comment.md"
+          fi
+
+      - name: Fail workflow after publishing fail-closed result
+        if: always() && steps.fallback.outcome == 'success'
+        run: exit 1

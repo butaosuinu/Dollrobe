@@ -80,8 +80,10 @@ Node.js 22 以上、`pnpm@10.28.2` を使用する。依存がない環境では
 - `pnpm test:e2e`: Playwright。Next.js と Wrangler は設定から起動される
 - `pnpm build`: Next.js build
 - `pnpm build:workers`: Workers deploy の dry-run
+- `pnpm review-risk`: main との差分に対する PR review risk のローカル判定
+- `pnpm test:review-risk`: review-risk 判定器の専用 test
 - `pnpm precheck`: typecheck、lint、depcruise、format check、i18n check
-- `pnpm precheck:full`: `precheck` + Vitest
+- `pnpm precheck:full`: `precheck` + Vitest + review-risk test
 
 実装中は変更箇所に近いテストを先に実行し、完了時に変更範囲に応じて検証を
 広げる。`precheck` には build と E2E が含まれないため、必要な場合は別途実行
@@ -232,3 +234,12 @@ commit は一つの論理変更に絞り、短い imperative message（Conventio
 prefix と日本語説明を使用可）にする。PR には挙動の要約、検証コマンド、
 関連 issue、UI screenshot、migration / env / Cloudflare 設定への影響を記載
 する。
+
+### PR review risk
+
+`tools/reviewrisk` は `docs/review-risk.ja.md` の分類規範から PR の review risk
+を判定する。新しい path や重要境界を追加する場合は、実装・正典・専用 test を
+同じ変更で更新する。未分類 path は安全側に high とする。test file は A、通常の
+GitHub workflow は H であり、critical は test・test support の削除、test の
+skip・focus 追加、review gate・review-risk・quality script・既存 migration の
+変更、workflow の削除、patch 読み取り不能など S1-S8 / S12 に限定する。

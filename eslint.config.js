@@ -40,6 +40,7 @@ export default tseslint.config(
       "e2e/",
       "playwright.config.ts",
       "scripts/",
+      "tools/reviewrisk/",
       ".claude/",
       ".mcp.json",
     ],
