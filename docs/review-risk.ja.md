@@ -103,6 +103,9 @@ workflow 自身の変更は PR 側 code を実行せず critical に固定する
 base branch 側の定義を実行する。PR head は `git fetch` と `git diff` の
 入力データとしてのみ扱い、PR 側の file、script、dependency は実行しない。
 自己変更時の comment は `<!-- review-risk-guard -->` という別 marker を使う。
+通常 workflow と base-side guard は PR 番号単位の同じ concurrency group で
+直列化する。guard が同じ head SHA に対して fail-closed の結果を公開済みなら、
+通常 workflow は非 critical の label と comment を公開せず guard を優先する。
 fork PR で自己変更が取り消されたら、guard が付けた `review:critical` label と
 guard comment を削除する。PR の base が main から外れた `edited` イベントでは、
 この仕組みが所有する `review:none`、`review:low`、`review:medium`、

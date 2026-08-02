@@ -47,6 +47,47 @@ test("review-risk workflows only remove labels owned by the tool", async () => {
   }
 });
 
+test("review-risk workflows serialize publishing for each PR", async () => {
+  for (const name of ["review-risk.yml", "review-risk-guard.yml"]) {
+    const source = await readWorkflow(name);
+
+    assert.match(
+      source,
+      /group: review-risk-publish-\$\{\{ github\.event\.pull_request\.number \}\}/,
+    );
+    assert.match(source, /queue: max/);
+    assert.doesNotMatch(source, /cancel-in-progress:/);
+  }
+});
+
+test("normal publishing yields to a current-head base guard result", async () => {
+  const source = await readWorkflow("review-risk.yml");
+  const guardSource = await readWorkflow("review-risk-guard.yml");
+  const checkIndex = source.indexOf("- name: Check base guard override");
+  const labelIndex = source.indexOf("- name: Apply review:<level> label");
+  const commentIndex = source.indexOf("- name: Update sticky comment");
+
+  assert.notEqual(checkIndex, -1);
+  assert.ok(checkIndex < labelIndex);
+  const checkStep = source.slice(checkIndex, labelIndex);
+  assert.match(checkStep, /EXPECTED_HEAD_SHA/);
+  assert.match(checkStep, /review-risk-guard-head:\$EXPECTED_HEAD_SHA/);
+  assert.match(checkStep, /if \[ "\$LEVEL" = "critical" \]/);
+
+  for (const step of [
+    source.slice(labelIndex, commentIndex),
+    source.slice(commentIndex),
+  ]) {
+    assert.match(step, /steps\.base_guard\.outcome == 'success'/);
+    assert.match(step, /steps\.base_guard\.outputs\.override != 'true'/);
+  }
+
+  assert.equal(
+    [...guardSource.matchAll(/review-risk-guard-head:\$HEAD_SHA/g)].length,
+    2,
+  );
+});
+
 test("review-risk rechecks the live PR before every mutation", async () => {
   const source = await readWorkflow("review-risk.yml");
   const labelIndex = source.indexOf("- name: Apply review:<level> label");

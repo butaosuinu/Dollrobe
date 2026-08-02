@@ -11,8 +11,8 @@ permissions:
   issues: write
 
 concurrency:
-  group: review-risk-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: review-risk-publish-${{ github.event.pull_request.number }}
+  queue: max
 
 jobs:
   review-risk:
@@ -105,10 +105,45 @@ jobs:
             echo '人間精読必須。review-risk の判定を完了できなかったため、fail-closed で critical に固定しました。'
           } > "$OUTPUT_DIR/comment.md"
 
+      - name: Check base guard override
+        id: base_guard
+        if: >-
+          always() &&
+          steps.output.outcome == 'success' &&
+          (
+            steps.guard.outputs.self == 'true' ||
+            steps.risk.outcome == 'success' ||
+            steps.fallback.outcome == 'success'
+          )
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          LEVEL: ${{ steps.guard.outputs.self == 'true' && 'critical' || steps.risk.outcome == 'success' && steps.risk.outputs.level || 'critical' }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$LEVEL" = "critical" ]; then
+            echo "override=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          guard_bodies="$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- review-risk-guard -->"))) | .body')"
+          if grep -Fqx "<!-- review-risk-guard-head:$EXPECTED_HEAD_SHA -->" \
+            <<< "$guard_bodies"
+          then
+            echo "override=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "override=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Apply review:<level> label
         if: >-
           always() &&
           steps.output.outcome == 'success' &&
+          steps.base_guard.outcome == 'success' &&
+          steps.base_guard.outputs.override != 'true' &&
           (
             steps.guard.outputs.self == 'true' ||
             steps.risk.outcome == 'success' ||
@@ -169,6 +204,8 @@ jobs:
         if: >-
           always() &&
           steps.output.outcome == 'success' &&
+          steps.base_guard.outcome == 'success' &&
+          steps.base_guard.outputs.override != 'true' &&
           (
             steps.guard.outputs.self == 'true' ||
             steps.risk.outcome == 'success' ||

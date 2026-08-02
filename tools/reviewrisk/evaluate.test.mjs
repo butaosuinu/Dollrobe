@@ -195,6 +195,8 @@ test("test file の追加行に disable・focus marker があれば critical", (
     'test.fixme("later", fn);',
     'test.skipIf(condition)("later", fn);',
     'test.runIf(condition)("focused", fn);',
+    'test./* temporary */ fixme("later", fn);',
+    'test./* reason */ skipIf(condition)("later", fn);',
     'xit("later", fn);',
     'fdescribe("focused", fn);',
     'test("later", { skip: true }, fn);',

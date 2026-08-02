@@ -15,8 +15,8 @@ permissions:
   issues: write
 
 concurrency:
-  group: review-risk-guard-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: review-risk-publish-${{ github.event.pull_request.number }}
+  queue: max
 
 jobs:
   review-risk-guard:
@@ -56,6 +56,7 @@ jobs:
           then
             {
               echo '<!-- review-risk-guard -->'
+              echo "<!-- review-risk-guard-head:$HEAD_SHA -->"
               echo '## Review risk: **CRITICAL**（base 側ガード）'
               echo
               echo '人間精読必須。review-risk の判定器・正典・workflow 自身が変更されているため、base ブランチ側の自己改変ガードが fail-closed で critical に固定しました(S5)。この workflow は PR 側コードを実行しません。'
@@ -77,10 +78,13 @@ jobs:
           always() &&
           github.event.pull_request.base.ref == 'main' &&
           steps.guard.outcome != 'success'
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           {
             echo '<!-- review-risk-guard -->'
+            echo "<!-- review-risk-guard-head:$HEAD_SHA -->"
             echo '## Review risk: **CRITICAL**（base 側ガード）'
             echo
             echo '人間精読必須。base ブランチ側の自己改変判定を完了できなかったため、fail-closed で critical に固定しました。この workflow は PR 側コードを実行しません。'
