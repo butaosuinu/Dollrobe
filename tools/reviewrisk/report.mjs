@@ -14,6 +14,8 @@ const unsafeTextPathCharacter =
   /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028-\u202e\u2066-\u2069]/gu;
 const unsafeMarkdownPathCharacter =
   /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028-\u202e\u2066-\u2069`|<>&]/gu;
+const unsafeMarkdownDetailCharacter =
+  /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028-\u202e\u2066-\u2069\\`|<>&\[\]()*_!~]/gu;
 
 const escapePath = (value, pattern) =>
   value.replace(pattern, (character) => {
@@ -24,6 +26,8 @@ const escapePath = (value, pattern) =>
 const escapeTextPath = (value) => escapePath(value, unsafeTextPathCharacter);
 const escapeMarkdownPath = (value) =>
   escapePath(value, unsafeMarkdownPathCharacter);
+const escapeMarkdownDetail = (value) =>
+  escapePath(value, unsafeMarkdownDetailCharacter);
 
 const takeLinesWithinByteBudget = ({ items, render, byteBudget }) => {
   const lines = [];
@@ -84,7 +88,7 @@ export const renderMarkdown = (report) => {
       items: report.reasons,
       byteBudget: markdownReasonByteBudget,
       render: (item) =>
-        `- **[${item.level}]** \`${item.signal}\` — \`${escapeMarkdownPath(item.file || "(diff 全体)")}\`: ${item.detail}`,
+        `- **[${item.level}]** \`${item.signal}\` — \`${escapeMarkdownPath(item.file || "(diff 全体)")}\`: ${escapeMarkdownDetail(item.detail)}`,
     });
     lines.push(...visibleReasons.lines);
     if (visibleReasons.omitted > 0) {

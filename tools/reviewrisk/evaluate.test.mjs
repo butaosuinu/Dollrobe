@@ -214,6 +214,20 @@ test("test file の追加行に disable・focus marker があれば critical", (
   }
 });
 
+test("行末の disable marker だけでも critical", () => {
+  const path = "src/lib/new.test.ts";
+  const report = evaluate(
+    diff({
+      files: [change({ path, status: "A" })],
+      addedLines: {
+        [path]: ["test", "  .skip", '  ("disabled", fn);'],
+      },
+    }),
+  );
+  assert.equal(report.level, levels.critical);
+  assert.equal(hasSignal(report, signals.testDisabled), true);
+});
+
 test("comment-only line の marker は無視する", () => {
   const path = "src/lib/new.test.ts";
   for (const line of [

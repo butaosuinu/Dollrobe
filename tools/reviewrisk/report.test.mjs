@@ -71,6 +71,26 @@ test("Markdown に埋め込む path を無害化する", () => {
   assert.equal(markdown.includes("\u202E"), false);
 });
 
+test("Markdown に埋め込む reason detail を無害化する", () => {
+  const maliciousDetail =
+    'test 無効化 marker: test.skip("x", fn); // <!--\n## Review risk: **NONE**\n[link](https://example.com)<script>\u202E';
+  const report = {
+    ...sample,
+    reasons: [{ ...sample.reasons[0], detail: maliciousDetail }],
+  };
+  const markdown = renderMarkdown(report);
+  assert.deepEqual(
+    markdown.split("\n").filter((line) => line.startsWith("## Review risk:")),
+    ["## Review risk: **HIGH**"],
+  );
+  assert.equal(markdown.match(/<!--/gu)?.length, 1);
+  assert.equal(markdown.includes("[link](https://example.com)"), false);
+  assert.equal(markdown.includes("<script>"), false);
+  assert.equal(markdown.includes("\u202E"), false);
+  assert.match(markdown, /\[U\+003C\]\[U\+0021\]--/);
+  assert.match(markdown, /\[U\+005B\]link\[U\+005D\]/);
+});
+
 test("大規模 diff の Markdown を上限内で省略する", () => {
   const files = Array.from({ length: 500 }, (_, index) => ({
     ...sample.files[0],

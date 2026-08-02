@@ -77,9 +77,9 @@ const invariantPatterns = [
 ];
 
 const testDisablePatterns = [
-  /\.(?:skip|skipIf|only|todo|fixme|runIf)\s*(?:<[^>]*>\s*)?(?:\?\.)?\s*(?:\(|\.)/,
-  /\[\s*["'](?:skip|skipIf|only|todo|fixme|runIf)["']\s*\]\s*(?:<[^>]*>\s*)?(?:\?\.)?\s*\(/,
-  /\b(?:xit|xtest|xdescribe|fit|ftest|fdescribe)\s*(?:<[^>]*>\s*)?\(/,
+  /\.(?:skip|skipIf|only|todo|fixme|runIf)\b/,
+  /\[\s*["'](?:skip|skipIf|only|todo|fixme|runIf)["']\s*\]/,
+  /\b(?:xit|xtest|xdescribe|fit|ftest|fdescribe)\b/,
   /(?:\b(?:skip|only|todo|fixme)|["'](?:skip|only|todo|fixme)["'])\s*:(?!\s*false\b)\s*/,
   /\b(?:skip|todo|only)\s*(?:<[^>]*>\s*)?\(/,
 ];

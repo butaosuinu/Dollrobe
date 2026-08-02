@@ -70,8 +70,10 @@ file mode だけで判定し、S3 は test file の追加 hunk に対する行�
 同一 diff では Files を path 順、Reasons を level 降順・signal・path 順に固定し、
 出力を決定的にする。binary の行数は 0 として集計する。Markdown は GitHub comment
 の上限に余裕を持たせて UTF-8 で 60,000 bytes 以下とし、超過する理由・ファイルは
-省略数を表示する。Git path は NUL 区切りの byte 列として読み、非 UTF-8 byte は
-`%XX`、有効な UTF-8 path 内の `%` は `%25` へ encoding して一意に保つ。
+省略数を表示する。PR 由来の path と理由内の test 追加行は Markdown 構造として
+解釈されないよう encoding する。Git path は NUL 区切りの byte 列として読み、
+非 UTF-8 byte は `%XX`、有効な UTF-8 path 内の `%` は `%25` へ encoding して
+一意に保つ。
 patch 本文または package.json の変更前後文脈が 64 MiB の読み取り上限を
 超える場合は処理を停止せず、S12 / critical として fail-closed にする。
 
