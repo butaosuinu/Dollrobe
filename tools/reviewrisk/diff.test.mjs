@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
+import { spawnSync } from "node:child_process";
 import {
   mkdirSync,
   mkdtempSync,
@@ -9,8 +10,8 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { levels } from "./classes.mjs";
 import {
   parseNameStatus,
   parseNumstat,
@@ -18,8 +19,6 @@ import {
   readGitDiff,
 } from "./diff.mjs";
 import { evaluate, requiresEvaluationContents, signals } from "./evaluate.mjs";
-import { levels } from "./classes.mjs";
-import { isTestFile } from "./rules.mjs";
 
 const runGit = (cwd, args) => {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });
@@ -153,7 +152,7 @@ test("JSON escape された品質 script key の上書きは critical", (context
   const actual = readGitDiff({
     base: "HEAD",
     cwd,
-    includeContents: (path) => path === "package.json" || isTestFile(path),
+    includeContents: requiresEvaluationContents,
   });
   assert.match(actual.afterContents.get("package.json") ?? "", /\\u0074est/);
   const report = evaluate(actual);
@@ -380,543 +379,38 @@ test("staged rename 後の unstaged edit を working tree から読む", (contex
   );
 });
 
-test("変更行外の skip key と変更後の値を合わせて判定する", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-context-"));
+test("条件式だけの変更は test source として解析しない", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-condition-only-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));
   runGit(cwd, ["init", "--quiet"]);
   runGit(cwd, ["config", "user.email", "test@example.com"]);
   runGit(cwd, ["config", "user.name", "Review Risk Test"]);
 
-  const path = "src/lib/context.test.ts";
+  const path = "src/lib/condition.test.ts";
   mkdirSync(join(cwd, "src/lib"), { recursive: true });
   writeFileSync(
     join(cwd, path),
-    'test("later", {\n  skip:\n    false,\n}, () => {});\n',
+    'const disabled = false;\ntest.skipIf(disabled)("later", fn);\n',
   );
   runGit(cwd, ["add", "."]);
   runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
   writeFileSync(
     join(cwd, path),
-    'test("later", {\n  skip:\n    true,\n}, () => {});\n',
+    'const disabled = true;\ntest.skipIf(disabled)("later", fn);\n',
   );
 
   const actual = readGitDiff({
     base: "HEAD",
     cwd,
-    includeContents: isTestFile,
+    includeContents: requiresEvaluationContents,
   });
-  assert.deepEqual(actual.addedLines.get(path), ["    true,"]);
-  assert.match(actual.beforeContents.get(path) ?? "", /skip:\n    false/);
-  assert.match(actual.afterContents.get(path) ?? "", /skip:\n    true/);
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    true,
-  );
-});
-
-test("skipIf の条件だけを false から true にした変更は critical", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-if-context-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/conditional.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    'test.skipIf(\n  false\n)("later", () => {});\n',
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(
-    join(cwd, path),
-    'test.skipIf(\n  true\n)("later", () => {});\n',
-  );
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  assert.deepEqual(actual.addedLines.get(path), ["  true"]);
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    true,
-  );
-});
-
-test("runIf の条件だけを true から false にした変更は critical", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-run-if-context-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/run-if.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(join(cwd, path), 'test.runIf(true)("later", fn);\n');
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(join(cwd, path), 'test.runIf(false)("later", fn);\n');
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    true,
-  );
-});
-
-test("既存の test skip の空白整形は新規無効化として扱わない", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-format-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/formatted.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(join(cwd, path), 'test.skip("later",()=>{});\n');
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(join(cwd, path), 'test.skip("later", () => {});\n');
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  assert.match(actual.addedLines.get(path)?.[0] ?? "", /test\.skip/);
+  assert.equal(actual.beforeContents.has(path), false);
+  assert.equal(actual.afterContents.has(path), false);
   const report = evaluate(actual);
   assert.equal(report.level, levels.low);
   assert.equal(
     report.reasons.some(({ signal }) => signal === signals.testDisabled),
     false,
-  );
-});
-
-test("skip 済み test・suite のタイトル変更は新規無効化として扱わない", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-title-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/title.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    'describe("old suite", () => { test.skip("old title", fn); });\n',
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(
-    join(cwd, path),
-    'describe("new suite", () => { test.skip("new title", fn); });\n',
-  );
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.low);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    false,
-  );
-});
-
-test("test file 内の test case 削除は critical", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-case-delete-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/authorization.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    'test("authorization boundary", authFn);\n' +
-      'test("ordinary behavior", ordinaryFn);\n',
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(join(cwd, path), 'test("ordinary behavior", ordinaryFn);\n');
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDeleted),
-    true,
-  );
-});
-
-test("既存 test case の suite 間移動は削除として扱わない", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-case-move-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/moved-case.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(join(cwd, path), 'test("same", shared);\n');
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(
-    join(cwd, path),
-    'describe("new suite", () => { test("same", shared); });\n',
-  );
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.low);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDeleted),
-    false,
-  );
-});
-
-test("test から it への同義置換は削除として扱わない", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-it-alias-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/root-alias.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(join(cwd, path), 'test("same case", sharedFn);\n');
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(join(cwd, path), 'it("same case", sharedFn);\n');
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.low);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDeleted),
-    false,
-  );
-});
-
-test("skip 済み test から it への同義置換は新規無効化として扱わない", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-test-it-alias-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/root-alias-skip.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(join(cwd, path), 'test.skip("same", sharedFn);\n');
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(join(cwd, path), 'it.skip("same", sharedFn);\n');
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.low);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    false,
-  );
-});
-
-test("tagged-template each の test case 削除は critical", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-tagged-each-delete-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/tagged-each.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    'test.each`a | b\n${1} | ${2}`("same", sharedFn);\n',
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(join(cwd, path), "");
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDeleted),
-    true,
-  );
-});
-
-test("既存の skip 済み test の並び替えは新規無効化として扱わない", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-move-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/moved.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    'test.skip("later", skippedFn);\ntest("other", enabledFn);\n',
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(
-    join(cwd, path),
-    'test("other", enabledFn);\ntest.skip("later", skippedFn);\n',
-  );
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.low);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    false,
-  );
-});
-
-test("skip 済み suite の並び替えは新規無効化として扱わない", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-suite-move-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/moved-suite.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    'describe("A", () => { test.skip("same", shared); });\n' +
-      'describe("B", () => { test("same", shared); });\n',
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(
-    join(cwd, path),
-    'describe("B", () => { test("same", shared); });\n' +
-      'describe("A", () => { test.skip("same", shared); });\n',
-  );
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.low);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    false,
-  );
-});
-
-test("suite 並び替え時の別 suite への skip 移動は critical", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-suite-skip-swap-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/swapped-suite-skip.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    'describe("A", () => { test.skip("same", shared); });\n' +
-      'describe("B", () => { test("same", shared); });\n',
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(
-    join(cwd, path),
-    'describe("B", () => { test.skip("same", shared); });\n' +
-      'describe("A", () => { test("same", shared); });\n',
-  );
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    true,
-  );
-});
-
-test("同じ位置に移った別 test の skip は critical", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-same-position-skip-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/same-position.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(join(cwd, path), 'test.skip("A", fnA);\ntest("B", fnB);\n');
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(join(cwd, path), 'test.skip("B", fnB);\ntest("A", fnA);\n');
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    true,
-  );
-});
-
-test("同名で callback が異なる test の skip 差し替えは critical", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-same-title-skip-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/same-title.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    'test.skip("same", fnA);\ntest("same", fnB);\n',
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(
-    join(cwd, path),
-    'test.skip("same", fnB);\ntest("same", fnA);\n',
-  );
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    true,
-  );
-});
-
-test("skip を別の test へ差し替えた変更は critical", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-skip-replaced-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/replaced.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    'test.skip("old", () => {});\ntest("new", () => {});\n',
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(
-    join(cwd, path),
-    'test("old", () => {});\ntest.skip("new", () => {});\n',
-  );
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    true,
-  );
-});
-
-test("同名 test の suite 間 skip 差し替えは critical", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-same-name-skip-"));
-  context.after(() => rmSync(cwd, { recursive: true, force: true }));
-  runGit(cwd, ["init", "--quiet"]);
-  runGit(cwd, ["config", "user.email", "test@example.com"]);
-  runGit(cwd, ["config", "user.name", "Review Risk Test"]);
-
-  const path = "src/lib/same-name.test.ts";
-  mkdirSync(join(cwd, "src/lib"), { recursive: true });
-  writeFileSync(
-    join(cwd, path),
-    [
-      'describe("first", () => { test.skip("same", () => {}); });',
-      'describe("second", () => { test("same", () => {}); });',
-      "",
-    ].join("\n"),
-  );
-  runGit(cwd, ["add", "."]);
-  runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(
-    join(cwd, path),
-    [
-      'describe("first", () => { test("same", () => {}); });',
-      'describe("second", () => { test.skip("same", () => {}); });',
-      "",
-    ].join("\n"),
-  );
-
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
-  const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
-  assert.equal(
-    report.reasons.some(({ signal }) => signal === signals.testDisabled),
-    true,
   );
 });
 
@@ -935,11 +429,7 @@ test("test file の regular file から symlink への type change は critical"
   rmSync(join(cwd, path));
   symlinkSync("missing-target", join(cwd, path));
 
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
+  const actual = readGitDiff({ base: "HEAD", cwd });
   const changedFile = actual.files.find((file) => file.path === path);
   assert.equal(changedFile?.status, "T");
   assert.equal(changedFile?.oldMode, "100644");
@@ -952,7 +442,7 @@ test("test file の regular file から symlink への type change は critical"
   );
 });
 
-test("空にされた test support は critical", (context) => {
+test("test support の本文は評価文脈として読まない", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-empty-test-support-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));
   runGit(cwd, ["init", "--quiet"]);
@@ -964,22 +454,24 @@ test("空にされた test support は critical", (context) => {
   writeFileSync(join(cwd, path), "installTestHarness();\n");
   runGit(cwd, ["add", "."]);
   runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(join(cwd, path), " \n");
+  writeFileSync(join(cwd, path), "// disabled\n");
 
   const actual = readGitDiff({
     base: "HEAD",
     cwd,
     includeContents: requiresEvaluationContents,
   });
+  assert.equal(actual.beforeContents.has(path), false);
+  assert.equal(actual.afterContents.has(path), false);
   const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
+  assert.equal(report.level, levels.low);
   assert.equal(
     report.reasons.some(({ signal }) => signal === signals.testSupportDeleted),
-    true,
+    false,
   );
 });
 
-test("コメントだけにされた workflow は本文を読み取り critical", (context) => {
+test("workflow の YAML 本文は評価文脈として読まない", (context) => {
   const cwd = mkdtempSync(join(tmpdir(), "review-risk-empty-workflow-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));
   runGit(cwd, ["init", "--quiet"]);
@@ -1001,18 +493,18 @@ test("コメントだけにされた workflow は本文を読み取り critical"
     cwd,
     includeContents: requiresEvaluationContents,
   });
-  assert.match(actual.beforeContents.get(path) ?? "", /^on: push/);
-  assert.equal(actual.afterContents.get(path), "# disabled temporarily\n");
+  assert.equal(actual.beforeContents.has(path), false);
+  assert.equal(actual.afterContents.has(path), false);
   const report = evaluate(actual);
-  assert.equal(report.level, levels.critical);
+  assert.equal(report.level, levels.high);
   assert.equal(
     report.reasons.some(({ signal }) => signal === signals.workflowDeleted),
-    true,
+    false,
   );
 });
 
-test("test の設定・hook メソッド削除は test case 削除として扱わない", (context) => {
-  const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-settings-"));
+test("test file の通常行削除は test case として解析しない", (context) => {
+  const cwd = mkdtempSync(join(tmpdir(), "review-risk-test-deletion-"));
   context.after(() => rmSync(cwd, { recursive: true, force: true }));
   runGit(cwd, ["init", "--quiet"]);
   runGit(cwd, ["config", "user.email", "test@example.com"]);
@@ -1022,32 +514,13 @@ test("test の設定・hook メソッド削除は test case 削除として扱�
   mkdirSync(join(cwd, "e2e"), { recursive: true });
   writeFileSync(
     join(cwd, path),
-    [
-      "test.setTimeout(60_000);",
-      'test.use({ locale: "ja-JP" });',
-      "test.beforeEach(setup);",
-      'test.step("helper", helperFn);',
-      "test.fail();",
-      "class Reporter { test() { return result; } }",
-      "const reporter = { test() { return result; } };",
-      "class GenericReporter { test<T>(): Result { return result; } }",
-      "interface ReporterContract { test(): void; }",
-      "interface UntypedReporterContract { test(); }",
-      "type ReporterShape = { test(): void };",
-      "abstract class AbstractReporter { abstract test(): void; }",
-      "declare class DeclaredReporter { test(): void; }",
-      "",
-    ].join("\n"),
+    'test("removed", fn);\ntest("remaining", fn);\n',
   );
   runGit(cwd, ["add", "."]);
   runGit(cwd, ["commit", "--quiet", "-m", "initial"]);
-  writeFileSync(join(cwd, path), "");
+  writeFileSync(join(cwd, path), 'test("remaining", fn);\n');
 
-  const actual = readGitDiff({
-    base: "HEAD",
-    cwd,
-    includeContents: isTestFile,
-  });
+  const actual = readGitDiff({ base: "HEAD", cwd });
   const report = evaluate(actual);
   assert.equal(report.level, levels.low);
   assert.equal(

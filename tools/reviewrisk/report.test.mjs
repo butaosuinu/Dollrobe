@@ -143,7 +143,7 @@ test("CLI 引数を検証する", () => {
   assert.throws(() => parseArgs(["--base"]), /requires a value/);
 });
 
-test("CLI は process cwd から test file の変更文脈を読み取る", () => {
+test("CLI は process cwd の diff を評価する", () => {
   const result = run(["--base", "HEAD", "--format", "json"]);
   assert.equal(result.exitCode, 0);
   assert.equal(typeof JSON.parse(result.output).level, "string");

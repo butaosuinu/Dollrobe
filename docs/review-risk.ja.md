@@ -46,27 +46,33 @@ rename は新旧 path の重い方を採用し、未知 path は fail-closed で
 
 ## Escalation signals
 
-| ID                          | Level    | Condition                                                                             |
-| --------------------------- | -------- | ------------------------------------------------------------------------------------- |
-| S1-test-deleted             | critical | test file・test case の削除、test suffix の喪失、非 regular file への type change     |
-| S2-test-support-deleted     | critical | test runner config、`src/test`、Workers test harness、E2E fixture/helper の削除・移動 |
-| S3-test-disabled-or-focused | critical | test API の skip/fixme/todo/only/runIf、x/f prefix の追加・有効化・差し替え           |
-| S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更                          |
-| S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                                      |
-| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動、空 document・コメントだけへの変更 |
-| S7-quality-gate-modified    | critical | package.json の削除・移動、JSON 上の scripts container・test/build/precheck 等の変更  |
-| S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                                                |
-| S9-unclassified-path        | high     | rule に一致しない path                                                                |
-| S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触                    |
-| S11-large-diff              | +1       | 非 NONE が 800 行超または 30 ファイル超。low/medium のみ一段上げる                    |
-| S12-patch-unreadable        | critical | patch 本文または判定に必要な変更前後文脈が上限超過・解析不能                          |
+| ID                          | Level    | Condition                                                                                            |
+| --------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| S1-test-deleted             | critical | test file の削除、test suffix の喪失、非 regular file への type change                               |
+| S2-test-support-deleted     | critical | test runner config、`src/test`、Workers test harness、E2E fixture/helper の削除・rename・type change |
+| S3-test-disabled-or-focused | critical | test file の追加行に skip/fixme/todo/only/runIf、x/f prefix、disable option marker が出現            |
+| S4-review-gate-modified     | critical | `.claude/settings.json`、自動 hook、code-review skill の変更                                         |
+| S5-risk-tool-modified       | critical | 判定器、正典、二つの review-risk workflow の変更                                                     |
+| S6-ci-workflow-deleted      | critical | workflow の削除、拡張子変更、subdirectory への移動、非 regular file への type change                 |
+| S7-quality-gate-modified    | critical | package.json の削除・移動、JSON 上の scripts container・test/build/precheck 等の変更                 |
+| S8-migration-rewritten      | critical | 既存 D1 migration の変更・削除・rename                                                               |
+| S9-unclassified-path        | high     | rule に一致しない path                                                                               |
+| S10-invariant-hit           | high     | userId、auth/admin、syncQueue、環境・remote migration 境界への接触                                   |
+| S11-large-diff              | +1       | 非 NONE が 800 行超または 30 ファイル超。low/medium のみ一段上げる                                   |
+| S12-patch-unreadable        | critical | patch 本文または package.json の判定文脈が上限超過・解析不能                                         |
+
+test source と workflow YAML は構文解析しない。S1、S2、S6 は Git の path、status、
+file mode だけで判定し、S3 は test file の追加 hunk に対する行単位の marker 検索とする。
+そのため、既存 marker を含む行の移動・整形は critical になり得る一方、test case の
+削除や alias、scope、条件式だけの変更は意味解析しない。package.json だけは標準の
+`JSON.parse` で品質 script の変更を比較し、独自の言語 parser は持たない。
 
 同一 diff では Files を path 順、Reasons を level 降順・signal・path 順に固定し、
 出力を決定的にする。binary の行数は 0 として集計する。Markdown は GitHub comment
 の上限に余裕を持たせて UTF-8 で 60,000 bytes 以下とし、超過する理由・ファイルは
 省略数を表示する。Git path は NUL 区切りの byte 列として読み、非 UTF-8 byte は
 `%XX`、有効な UTF-8 path 内の `%` は `%25` へ encoding して一意に保つ。
-patch 本文または test file・workflow の変更前後文脈が 64 MiB の読み取り上限を
+patch 本文または package.json の変更前後文脈が 64 MiB の読み取り上限を
 超える場合は処理を停止せず、S12 / critical として fail-closed にする。
 
 ## CLI
